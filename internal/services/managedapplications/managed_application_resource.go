@@ -519,16 +519,18 @@ func flattenManagedApplicationIdentity(input *applications.Identity) ([]interfac
 
 	if input != nil {
 		config = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(*input.Type)),
+			Type:        identity.Type(*input.Type),
 			IdentityIds: nil,
 		}
 
 		if input.PrincipalId != nil {
 			config.PrincipalId = *input.PrincipalId
 		}
+
 		if input.TenantId != nil {
 			config.TenantId = *input.TenantId
 		}
+
 		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
 		if input.UserAssignedIdentities != nil {
 			for k, v := range *input.UserAssignedIdentities {
@@ -546,5 +548,6 @@ func flattenManagedApplicationIdentity(input *applications.Identity) ([]interfac
 	if err != nil {
 		return nil, err
 	}
+
 	return *result, nil
 }
