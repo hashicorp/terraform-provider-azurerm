@@ -1022,6 +1022,13 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.networkDataPlane(data, "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.networkDataPlane(data, "cilium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1030,7 +1037,6 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
 func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}

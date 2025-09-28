@@ -92,9 +92,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.network_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old != ""
-			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
