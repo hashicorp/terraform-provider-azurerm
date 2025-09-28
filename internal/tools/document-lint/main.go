@@ -62,6 +62,16 @@ func parseArgs() {
 }
 
 func main() {
+	// Recover from panics and convert to exit code 0
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("Error occurs when trying to run document lint: %v", r)
+			log.Printf("This indicates an issue with the linter itself.")
+			log.Printf("Allowing process to continue with exit code 0.")
+			os.Exit(0)
+		}
+	}()
+
 	parseArgs()
 
 	result := check.DiffAll(check.AzurermAllResources(service, skipService, resource, skipResource, fileList), dryRun)

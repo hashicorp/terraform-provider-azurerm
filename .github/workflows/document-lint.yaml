@@ -37,20 +37,11 @@ jobs:
       - name: run document lint checker
         if: steps.changed-files.outputs.has-files == 'true'
         run: |
-          set +e
-          make document-lint
-          exit_code=$?
-          set -e
-
-          if [ $exit_code -eq 0 ]; then
+          if make document-lint; then
             echo "::notice::Document lint success."
-            exit 0
-          elif [ $exit_code -eq 1 ]; then
+          else
             echo "::warning::Document lint failed. Please fix the issues."
             exit 1
-          else
-            echo "::error::Document lint exited with unexpected code: $exit_code"
-            exit 0
           fi
 
       - name: skip document lint checker
