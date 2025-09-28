@@ -1037,6 +1037,7 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
