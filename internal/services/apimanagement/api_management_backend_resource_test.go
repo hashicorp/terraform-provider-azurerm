@@ -314,30 +314,30 @@ func TestAccApiManagementBackend_poolWithMultipleServices(t *testing.T) {
 		{
 			Config: r.poolWithMultipleServices(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
-				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
-				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("1"),
-				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("50"),
-				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
-				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
-				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("3"),
-				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("20"),
+				check.That("azurerm_api_management_backend.test_pool").ExistsInAzure(r),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.#").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.#").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.weight").HasValue("50"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.priority").HasValue("2"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.weight").HasValue("30"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.priority").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.weight").HasValue("20"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.poolWithMultipleServicesWithUpdatedPriorityAndWeight(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
-				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
-				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("3"),
-				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("20"),
-				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
-				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
-				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("0"),
-				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("50"),
+				check.That("azurerm_api_management_backend.test_pool").ExistsInAzure(r),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.#").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.#").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.weight").HasValue("10"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.weight").HasValue("20"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.priority").HasValue("0"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.weight").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -764,7 +764,7 @@ resource "azurerm_api_management_backend" "test_pool" {
     service {
       id       = azurerm_api_management_backend.test.id
       priority = 1
-      weight   = 20
+      weight   = 10
     }
     service {
       id       = azurerm_api_management_backend.test2.id
@@ -772,8 +772,7 @@ resource "azurerm_api_management_backend" "test_pool" {
       weight   = 20
     }
     service {
-      id     = azurerm_api_management_backend.test3.id
-      weight = 10
+      id = azurerm_api_management_backend.test3.id
     }
   }
 }
