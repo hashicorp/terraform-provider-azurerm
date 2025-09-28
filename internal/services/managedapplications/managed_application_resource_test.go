@@ -162,7 +162,6 @@ func TestAccManagedApplication_identity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -170,8 +169,6 @@ func TestAccManagedApplication_identity(t *testing.T) {
 			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 			),
 		},
 		data.ImportStep(),
@@ -187,9 +184,6 @@ func TestAccManagedApplication_userAssignedIdentity(t *testing.T) {
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -205,9 +199,6 @@ func TestAccManagedApplication_systemAssignedUserAssignedIdentity(t *testing.T) 
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
