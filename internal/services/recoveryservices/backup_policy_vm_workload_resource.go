@@ -380,7 +380,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 		"settings": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -392,7 +392,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"compression_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Required: true,
 						Default:  false,
 					},
 				},
@@ -405,6 +405,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(protectionpolicies.WorkloadTypeSQLDataBase),
+				string(protectionpolicies.WorkloadTypeSAPHanaDatabase),
 			}, false),
 		},
 	}

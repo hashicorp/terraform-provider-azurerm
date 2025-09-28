@@ -70,7 +70,7 @@ func (SiteRecoveryRecoveryVaultDataSource) Attributes() map[string]*pluginsdk.Sc
 
 func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 20 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RecoveryServices.VaultsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId

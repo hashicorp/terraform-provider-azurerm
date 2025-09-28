@@ -125,7 +125,7 @@ A `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String.
 
-* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and `SQLServer`.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, `TestMissingValueInSchema` and `SQLServer`.
 
 * `value` - (Required) The value for the Connection String.
 
