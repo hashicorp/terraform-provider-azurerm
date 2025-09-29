@@ -202,9 +202,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if nfsv4IDDomain := d.Get("nfsv4_id_domain").(string); nfsv4IDDomain != "" {
-		accountParameters.Properties.NfsV4IDDomain = utils.String(nfsv4IDDomain)
-	}
+	accountParameters.Properties.NfsV4IDDomain = utils.String(d.Get("nfsv4_id_domain").(string))
 
 	activeDirectoryRaw := d.Get("active_directory")
 	if activeDirectoryRaw != nil {
@@ -256,9 +254,7 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("nfsv4_id_domain") {
-		if nfsv4IDDomain := d.Get("nfsv4_id_domain").(string); nfsv4IDDomain != "" {
-			update.Properties.NfsV4IDDomain = utils.String(nfsv4IDDomain)
-		}
+		update.Properties.NfsV4IDDomain = utils.String(d.Get("nfsv4_id_domain").(string))
 	}
 
 	if d.HasChange("active_directory") {
