@@ -40,7 +40,8 @@ func (r EventGridPartnerNamespaceChannelDataSource) Arguments() map[string]*plug
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
 				"`name` must be between 3 and 50 characters. It can contain only letters, numbers and hyphens (-).",
-			)},
+			),
+		},
 		"partner_namespace_id": commonschema.ResourceIDReferenceRequired(&partnernamespaces.PartnerNamespaceId{}),
 	}
 }

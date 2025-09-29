@@ -91,12 +91,6 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.All(validation.IsRFC3339Time,
 				validate.ExpirationTimeIfNotActivated(),
 			),
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				if value, ok := d.GetOk("readiness_state"); ok && value.(string) == string(channels.ReadinessStateActivated) {
-					return true
-				}
-				return false
-			},
 		},
 		"partner_topic": {
 			Type:     pluginsdk.TypeList,
@@ -362,15 +356,22 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 
 			partnerNamespaceId := partnernamespaces.NewPartnerNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.PartnerNamespaceName)
 
-			state := EventGridPartnerNamespaceChannelResourceModel{
-				PartnerNamespaceId: partnerNamespaceId.ID(),
-				ChannelName:        id.ChannelName,
+			// decode existing state to preserve fields not returned by the API (ExpirationTimeIfNotActivatedInUtc)
+			var state EventGridPartnerNamespaceChannelResourceModel
+			err = metadata.Decode(&state)
+			if err != nil {
+				return fmt.Errorf("decoding existing state: %+v", err)
 			}
+
+			state.PartnerNamespaceId = partnerNamespaceId.ID()
+			state.ChannelName = id.ChannelName
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.ChannelType = pointer.FromEnum(props.ChannelType)
-					state.ExpirationTimeIfNotActivatedInUtc = pointer.From(props.ExpirationTimeIfNotActivatedUtc)
+					if props.ExpirationTimeIfNotActivatedUtc != nil {
+						state.ExpirationTimeIfNotActivatedInUtc = pointer.From(props.ExpirationTimeIfNotActivatedUtc)
+					}
 					state.ReadinessState = pointer.FromEnum(props.ReadinessState)
 					state.PartnerTopic = flattenPartnerNamespaceChannelPartnerTopic(props.PartnerTopicInfo)
 				}

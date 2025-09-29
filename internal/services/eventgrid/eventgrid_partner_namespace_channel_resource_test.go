@@ -112,6 +112,10 @@ func (EventGridPartnerNamespaceChannelTestResource) Exists(ctx context.Context, 
 
 func (r EventGridPartnerNamespaceChannelTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
@@ -147,6 +151,10 @@ resource "azurerm_eventgrid_partner_namespace_channel" "import" {
 
 func (r EventGridPartnerNamespaceChannelTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
@@ -176,6 +184,10 @@ resource "azurerm_eventgrid_partner_namespace_channel" "test" {
 func (r EventGridPartnerNamespaceChannelTestResource) update(data acceptance.TestData) string {
 	expiryTime := time.Now().In(time.UTC).Add(7 * 24 * time.Hour).Format(time.RFC3339)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
@@ -212,10 +224,6 @@ resource "azurerm_eventgrid_partner_namespace_channel" "test" {
 func (r EventGridPartnerNamespaceChannelTestResource) template(data acceptance.TestData) interface{} {
 	expiryTime := time.Now().In(time.UTC).Add(3 * 24 * time.Hour).Format(time.RFC3339)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
   location = "%[2]s"
