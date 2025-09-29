@@ -1,12 +1,3 @@
-## 4.48.0 (Unreleased)
-
-ENHANCEMENTS:
-
-FEATURES:
-* **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
-
-BUG FIXES:
-
 ## 4.47.0 (Unreleased)
 
 ENHANCEMENTS:
