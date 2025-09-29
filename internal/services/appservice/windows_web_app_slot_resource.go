@@ -418,10 +418,14 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			auth := helpers.ExpandAuthSettings(webAppSlot.AuthSettings)
-			if auth.Properties != nil {
-				if _, err := client.UpdateAuthSettingsSlot(ctx, id, *auth); err != nil {
-					return fmt.Errorf("setting Authorisation Settings for %s: %+v", id, err)
+			if metadata.ResourceData.HasChange("auth_settings") {
+				authUpdate := helpers.ExpandAuthSettings(webAppSlot.AuthSettings)
+				if authUpdate.Properties == nil {
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
+				}
+
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id, *authUpdate); err != nil {
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
