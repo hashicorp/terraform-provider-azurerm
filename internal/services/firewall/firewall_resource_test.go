@@ -1343,7 +1343,6 @@ func (FirewallResource) withAutoscaleConfiguration(data acceptance.TestData, min
   autoscale_configuration {
     max_capacity = %d
   }`, *max)
-
 	} else if min != nil && max != nil {
 		autoscaleConfiguration = fmt.Sprintf(`
   autoscale_configuration {
