@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies a description of the API Management Workspace Logger.
 
-* `resource_id` - (Optional) Specifies the target resource ID of the API Management Workspace Logger, which can be either an azure event hub or an application insights resource.
+* `resource_id` - (Optional) Specifies the target resource ID of the API Management Workspace Logger, which can be either an Azure Event Hub or an application insights resource.
 
 ---
 
@@ -88,15 +88,15 @@ An `application_insights` block supports the following:
 
 An `eventhub` block supports the following:
 
-* `name` - (Required) Specifies the name of the eventhub.
+* `name` - (Required) Specifies the name of the Event Hub.
 
-* `connection_string` - (Optional) Specifies the connection string of the eventhub namespace.
+* `connection_string` - (Optional) Specifies the connection string of the Event Hub namespace.
 
-* `endpoint_uri` - (Optional) Specifies the endpoint address of an eventhub namespace.
+* `endpoint_uri` - (Optional) Specifies the endpoint address of an Event Hub namespace.
 
 -> **Note:** Exactly one of `connection_string` or `endpoint_uri` must be specified.
 
-* `user_assigned_identity_client_id` - (Optional) Specifies the client ID of user-assigned identity that has the "Azure Event Hubs Data Sender" role on the target eventhub namespace.
+* `user_assigned_identity_client_id` - (Optional) Specifies the client ID of user-assigned identity that has the "Azure Event Hubs Data Sender" role on the target Event Hub namespace.
 
 -> **Note:** * If this is omitted, the `SystemAssigned` will be used.
 

@@ -44,7 +44,7 @@ type EventHubModel struct {
 
 type ApiManagementWorkspaceLoggerResource struct{}
 
-var _ sdk.Resource = ApiManagementWorkspaceLoggerResource{}
+var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceLoggerResource{}
 
 func (r ApiManagementWorkspaceLoggerResource) ResourceType() string {
 	return "azurerm_api_management_workspace_logger"
@@ -88,6 +88,18 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 					},
 				},
 			},
+		},
+
+		"buffering_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"eventhub": {
@@ -136,18 +148,6 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 					},
 				},
 			},
-		},
-
-		"buffering_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_id": {
@@ -312,27 +312,9 @@ func (r ApiManagementWorkspaceLoggerResource) Update() sdk.ResourceFunc {
 				payload.Properties.Credentials = expandApiManagementWorkspaceLoggerApplicationInsights(model.ApplicationInsights)
 			}
 
-			if len(model.EventHub) > 0 && payload.Properties.Credentials != nil {
-				credentials := *payload.Properties.Credentials
-				eventHub := model.EventHub[0]
-
-				// `eventhub.0.connection_string` reads from config since the API masks `connectionString`.
-				if len(eventHub.ConnectionString) > 0 {
-					credentials["connectionString"] = eventHub.ConnectionString
-				}
-				// `eventhub.0.user_assigned_identity_client_id` reads from config since the API masks`identityClientId`.
-				// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value,
-				// so we default this to `SystemAssigned` in the update if the field is omitted
-				credentials["identityClientId"] = "SystemAssigned"
-				if eventHub.UserAssignedIdentityClientId != "" {
-					credentials["identityClientId"] = eventHub.UserAssignedIdentityClientId
-				}
-
-				if metadata.ResourceData.HasChange("eventhub.0.name") {
-					credentials["name"] = eventHub.Name
-				}
-				if metadata.ResourceData.HasChange("eventhub.0.endpoint_uri") {
-					credentials["endpointAddress"] = eventHub.EndpointUri
+			if len(model.EventHub) > 0 {
+				if metadata.ResourceData.HasChange("eventhub") {
+					payload.Properties.Credentials = expandApiManagementWorkspaceLoggerEventHub(model.EventHub)
 				}
 			}
 
@@ -405,7 +387,7 @@ func expandApiManagementWorkspaceLoggerEventHub(inputs []EventHubModel) *map[str
 		result["connectionString"] = input.ConnectionString
 	} else if len(input.EndpointUri) > 0 {
 		result["endpointAddress"] = input.EndpointUri
-		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the creation if the field is omitted
+		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the creation/update if the field is omitted/removed
 		result["identityClientId"] = "SystemAssigned"
 		if input.UserAssignedIdentityClientId != "" {
 			result["identityClientId"] = input.UserAssignedIdentityClientId
@@ -421,26 +403,26 @@ func flattenApiManagementWorkspaceLoggerEventHub(model ApiManagementWorkspaceLog
 		return outputList
 	}
 
-	output := EventHubModel{
-		Name: (*input.Credentials)["name"],
+	output := EventHubModel{}
+
+	if name, ok := (*input.Credentials)["name"]; ok {
+		output.Name = name
 	}
 
 	if endpoint, ok := (*input.Credentials)["endpointAddress"]; ok {
 		output.EndpointUri = endpoint
 	}
 
-	if eventhub := expandApiManagementWorkspaceLoggerEventHub(model.EventHub); eventhub != nil {
+	if eventhub := model.EventHub; len(eventhub) > 0 {
 		// The `eventhub.0.connection_string` returned by the Azure API is intentionally masked
 		// (e.g. "{{Logger-Credentials--<hash>}}") and does not match the original value provided during creation/update.
 		// This is by design to prevent exposing sensitive credentials in API responses.
 		// Therefore, the `connection_string` is sourced from the state.
-		if conn, ok := (*eventhub)["connectionString"]; ok {
-			output.ConnectionString = conn
-		}
+		output.ConnectionString = eventhub[0].ConnectionString
 
 		// The API return `user_assigned_identity_client_id` as an internal identifier (e.g., hex string),
 		// not the original AAD `client_id` (UUID). Therefore, we read `user_assigned_identity_client_id` from config.
-		if clientId, ok := (*eventhub)["identityClientId"]; ok && clientId != "SystemAssigned" {
+		if clientId := eventhub[0].UserAssignedIdentityClientId; clientId != "SystemAssigned" {
 			output.UserAssignedIdentityClientId = clientId
 		}
 	}
