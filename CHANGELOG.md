@@ -1,3 +1,11 @@
+## 4.48.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.47.0 (Unreleased)
 
 ENHANCEMENTS:
