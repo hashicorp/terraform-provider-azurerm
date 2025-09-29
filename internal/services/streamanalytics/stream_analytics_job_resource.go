@@ -163,6 +163,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
+								string(streamingjobs.AuthenticationModeMsi),
 							}, false),
 						},
 
@@ -174,7 +175,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 						"account_key": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -297,9 +298,6 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("job_storage_account"); ok {
-		if contentStoragePolicy != string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
-			return fmt.Errorf("`job_storage_account` must not be set when `content_storage_policy` is `SystemAccount`")
-		}
 		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
 	}
 
@@ -568,15 +566,17 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	}
 
 	v := input[0].(map[string]interface{})
-	authenticationMode := v["authentication_mode"].(string)
-	accountName := v["account_name"].(string)
-	accountKey := v["account_key"].(string)
 
-	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(authenticationMode)),
-		AccountName:        pointer.To(accountName),
-		AccountKey:         pointer.To(accountKey),
+	jobStorageAccount := streamingjobs.JobStorageAccount{
+		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(v["authentication_mode"].(string))),
+		AccountName:        pointer.To(v["account_name"].(string)),
 	}
+
+	if accountKey := v["account_key"].(string); accountKey != "" {
+		jobStorageAccount.AccountKey = pointer.To(accountKey)
+	}
+
+	return &jobStorageAccount
 }
 
 func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {
