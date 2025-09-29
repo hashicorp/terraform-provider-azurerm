@@ -4,6 +4,7 @@
 package streamanalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -155,6 +156,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"job_storage_account": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
@@ -207,6 +209,13 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.Get("job_storage_account.0.authentication_mode") == string(streamingjobs.AuthenticationModeMsi) && d.Get("job_storage_account.0.account_key") != "" {
+				return fmt.Errorf("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
+			}
+			return nil
 		},
 	}
 }
