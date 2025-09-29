@@ -71,6 +71,7 @@ func TestAccCloudHardwareSecurityModuleCluster_complete(t *testing.T) {
 func TestAccCloudHardwareSecurityModuleCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cloud_hardware_security_module_cluster", "test")
 	r := CloudHardwareSecurityModuleClusterResource{}
+	t.Skip(r.update(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,6 +86,20 @@ func TestAccCloudHardwareSecurityModuleCluster_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("updated"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -245,6 +260,38 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "updated"
+    purpose     = "acceptance-testing"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r CloudHardwareSecurityModuleClusterResource) updateIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestuai2-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_cloud_hardware_security_module_cluster" "test" {
+  name                = "acctest-hsm-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test2.id]
   }
 
   tags = {

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope for auto-generated domain name labels. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse`, and `NoReuse`. Defaults to `NoReuse`. Changing this forces a new resource to be created.
+* `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope for auto-generated domain name labels. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse`, and `NoReuse`. Defaults to `TenantReuse`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Cloud Hardware Security Module Cluster.
 
