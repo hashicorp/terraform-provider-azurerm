@@ -2,6 +2,8 @@
 
 ENHANCEMENTS:
 
+* dependencies: `go-azure-sdk` - update to `v0.20250924.1155608` [GH-30693]
+
 FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
 
