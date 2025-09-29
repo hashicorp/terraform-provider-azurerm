@@ -1193,6 +1193,13 @@ func TestAccKubernetesCluster_aiToolchainOperatorProfileToggle(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.aiToolchainOperatorProfile(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
