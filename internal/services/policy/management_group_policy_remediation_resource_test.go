@@ -124,12 +124,12 @@ func (r ManagementGroupPolicyRemediationResource) complete(data acceptance.TestD
 %s
 
 resource "azurerm_management_group_policy_remediation" "test" {
-  name                 = "acctestremediation-%[2]s"
-  management_group_id  = azurerm_management_group.test.id
-  
-  policy_assignment_id = azurerm_management_group_policy_assignment.test.id
+  name                = "acctestremediation-%[2]s"
+  management_group_id = azurerm_management_group.test.id
+
+  policy_assignment_id           = azurerm_management_group_policy_assignment.test.id
   policy_definition_reference_id = "RandomStringWithUpperCaseCharacters"
-  location_filters     = ["%[3]s"]
+  location_filters               = ["%[3]s"]
 }
 `, r.template(data), data.RandomString, data.Locations.Secondary)
 }
