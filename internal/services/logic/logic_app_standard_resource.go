@@ -216,10 +216,13 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		// Once this property is set, it can not be removed.
 		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
 		"key_vault_reference_identity_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true, // When the `identity` is specified as `SystemAssigned`, the service will add `SystemAssigned` to this `key_vault_reference_identity_id` property.
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true, // When the `identity` is specified as `SystemAssigned`, the service will add `SystemAssigned` to this `key_vault_reference_identity_id` property.
+			ValidateFunc: validation.Any(
+				commonids.ValidateUserAssignedIdentityID,
+				validation.StringInSlice([]string{"SystemAssigned"}, false),
+			),
 		},
 
 		"public_network_access": {
