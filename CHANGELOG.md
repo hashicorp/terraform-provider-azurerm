@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
 
 BUG FIXES:
 
