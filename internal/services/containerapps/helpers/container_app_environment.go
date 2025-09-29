@@ -25,6 +25,9 @@ const (
 	WorkloadProfileSkuE8                     WorkloadProfileSku = "E8"
 	WorkloadProfileSkuE16                    WorkloadProfileSku = "E16"
 	WorkloadProfileSkuE32                    WorkloadProfileSku = "E32"
+	WorkloadProfileSkuNc24A100               WorkloadProfileSku = "NC24-A100"
+	WorkloadProfileSkuNc48A100               WorkloadProfileSku = "NC48-A100"
+	WorkloadProfileSkuNc96A100               WorkloadProfileSku = "NC96-A100"
 )
 
 func PossibleValuesForWorkloadProfileSku() []string {
@@ -40,6 +43,9 @@ func PossibleValuesForWorkloadProfileSku() []string {
 		string(WorkloadProfileSkuE8),
 		string(WorkloadProfileSkuE16),
 		string(WorkloadProfileSkuE32),
+		string(WorkloadProfileSkuNc24A100),
+		string(WorkloadProfileSkuNc48A100),
+		string(WorkloadProfileSkuNc96A100),
 	}
 }
 
