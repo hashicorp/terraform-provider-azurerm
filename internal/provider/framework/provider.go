@@ -292,6 +292,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 						"key_vault": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
+									"check_public_availability": schema.BoolAttribute{
+										Description: "When enabled the provider will check for the public availability of `azurerm_key_vault` after creation when `public_network_access_enabled` is set to `true`.",
+										Optional:    true,
+									},
 									"purge_soft_delete_on_destroy": schema.BoolAttribute{
 										Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
 										Optional:    true,

@@ -221,7 +221,10 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if diags.HasError() {
 				return
 			}
-
+			f.KeyVault.CheckPublicAvailability = true
+			if !feature[0].CheckPublicAvailability.IsNull() && !feature[0].CheckPublicAvailability.IsUnknown() {
+				f.KeyVault.CheckPublicAvailability = feature[0].CheckPublicAvailability.ValueBool()
+			}
 			f.KeyVault.PurgeSoftDeleteOnDestroy = true
 			if !feature[0].PurgeSoftDeleteOnDestroy.IsNull() && !feature[0].PurgeSoftDeleteOnDestroy.IsUnknown() {
 				f.KeyVault.PurgeSoftDeleteOnDestroy = feature[0].PurgeSoftDeleteOnDestroy.ValueBool()
@@ -277,6 +280,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.KeyVault.RecoverSoftDeletedHSMKeys = feature[0].RecoverSoftDeletedHSMKeys.ValueBool()
 			}
 		} else {
+			f.KeyVault.CheckPublicAvailability = true
 			f.KeyVault.PurgeSoftDeleteOnDestroy = true
 			f.KeyVault.PurgeSoftDeletedCertsOnDestroy = true
 			f.KeyVault.PurgeSoftDeletedKeysOnDestroy = true

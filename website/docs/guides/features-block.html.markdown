@@ -50,6 +50,7 @@ provider "azurerm" {
     }
 
     key_vault {
+      check_public_availability       = true
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
     }
@@ -186,6 +187,8 @@ The `databricks_workspace` block supports the following:
 ---
 
 The `key_vault` block supports the following:
+
+* `check_public_availability` - (Optional) When enabled the provider will check for the public availability of `azurerm_key_vault` after creation when `public_network_access_enabled` is set to `true`. Defaults to `true`.
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 

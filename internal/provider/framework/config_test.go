@@ -242,6 +242,7 @@ func defaultFeaturesList() types.List {
 	cognitiveAccountList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(CognitiveAccountAttributes), []attr.Value{cognitiveAccount})
 
 	keyVault, _ := basetypes.NewObjectValueFrom(context.Background(), KeyVaultAttributes, map[string]attr.Value{
+		"check_public_availability":                               basetypes.NewBoolNull(),
 		"purge_soft_delete_on_destroy":                            basetypes.NewBoolNull(),
 		"purge_soft_deleted_certificates_on_destroy":              basetypes.NewBoolNull(),
 		"purge_soft_deleted_keys_on_destroy":                      basetypes.NewBoolNull(),
