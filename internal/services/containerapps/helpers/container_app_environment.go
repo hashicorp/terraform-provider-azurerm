@@ -4,6 +4,9 @@
 package helpers
 
 import (
+	"fmt"
+	"slices"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -161,4 +164,11 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 		}
 	}
 	return false
+}
+
+func ValidateContainerWorkloadProfiles(w WorkloadProfileModel) error {
+	if slices.Contains(PossibleValuesForWorkloadProfileSku(), w.WorkloadProfileType) {
+		return nil
+	}
+	return fmt.Errorf("invalid workload profile type: %s", w.WorkloadProfileType)
 }
