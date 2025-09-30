@@ -54,17 +54,17 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Arguments() map[string]*pl
 			DiffSuppressFunc: XmlWhitespaceDiffSuppress,
 		},
 
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"xml_format": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(policyfragment.PolicyFragmentContentFormatXml),
 			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }

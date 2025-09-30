@@ -55,9 +55,9 @@ The following arguments are supported:
 
 ---
 
-* `xml_format` - (Optional) Specifies the XML format of the API Management Workspace Policy Fragment. Possible values are `xml` or `rawxml`. Defaults to `xml`.
+* `description` - (Optional) Specifies the description for the API Management Workspace Policy Fragment.
 
-* `description` - (Optional) Specifies the description for of the API Management Workspace Policy Fragment.
+* `xml_format` - (Optional) Specifies the XML format of the API Management Workspace Policy Fragment. Possible values are `xml` or `rawxml`. Defaults to `xml`.
 
 ## Attributes Reference
 
