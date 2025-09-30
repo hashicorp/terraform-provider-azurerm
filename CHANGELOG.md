@@ -9,6 +9,10 @@ FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
 
 BUG FIXES:
+* `azurerm_management_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as API doesn't honour casing [GH-30736]
+* `azurerm_resource_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as API doesn't honour casing [GH-30736]
+* `azurerm_resource_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as API doesn't honour casing [GH-30736]
+* `azurerm_subscription_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as API doesn't honour casing [GH-30736]
 
 ## 4.46.0 (September 25, 2025)
 
