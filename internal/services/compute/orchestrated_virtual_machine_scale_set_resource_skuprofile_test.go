@@ -34,11 +34,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 }
 
 // TODO: Remove in v5.0
-// Note: This test validates the legacy vm_sizes array format for backward compatibility.
-// We cannot use ImportStep() because the flatten function generates vm_size objects
-// with rank fields that don't exist in the original legacy configuration, causing
-// ImportStateVerify failures. This is a known limitation when supporting multiple
-// configuration formats for the same Azure API data.
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skipf("Skipping since `vm_sizes` field is deprecated and has been removed in v5.0")
@@ -52,15 +47,25 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompati
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// The OVMSS is deployed with the deprecated `vm_sizes`...
 			Config: r.skuProfileDeprecatedSimple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_profile.0.allocation_strategy").HasValue("LowestPrice"),
-				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.#").HasValue("2"),
-				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.0").HasValue("Standard_B1ls"),
-				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.1").HasValue("Standard_B1s"),
 			),
 		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+		{
+			// Switching to the new `vm_size` format should not trigger any changes...
+			Config:   r.skuProfileUpdate(data),
+			PlanOnly: true,
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+		{
+			// Switching back to the `vm_sizes` also should not trigger any changes...
+			Config:   r.skuProfileDeprecatedSimple(data),
+			PlanOnly: true,
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
 	})
 }
 

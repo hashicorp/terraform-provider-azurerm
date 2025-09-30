@@ -77,6 +77,7 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 		schema["vm_sizes"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
+			Computed:      true,
 			MinItems:      1,
 			ConflictsWith: []string{"sku_profile.0.vm_size"},
 			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` block instead.",
@@ -89,6 +90,7 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 		schema["vm_size"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
+			Computed:      true,
 			MinItems:      1,
 			ConflictsWith: []string{"sku_profile.0.vm_sizes"},
 			Elem: &pluginsdk.Resource{
@@ -1525,7 +1527,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("single_placement_group", props.SinglePlacementGroup)
 			}
 
-			if err := d.Set("sku_profile", flattenOrchestratedVirtualMachineScaleSetSkuProfile(d.Get("sku_profile"), props.SkuProfile)); err != nil {
+			if err := d.Set("sku_profile", flattenOrchestratedVirtualMachineScaleSetSkuProfile(props.SkuProfile)); err != nil {
 				return fmt.Errorf("setting `sku_profile`: %w", err)
 			}
 
@@ -1759,7 +1761,7 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 	}
 }
 
-func flattenOrchestratedVirtualMachineScaleSetSkuProfile(config interface{}, input *virtualmachinescalesets.SkuProfile) []interface{} {
+func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinescalesets.SkuProfile) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1768,48 +1770,33 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(config interface{}, inp
 		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
 	}
 
-	var isVmSizes bool
-	if !features.FivePointOh() && config != nil {
-		configList := config.([]interface{})
-		if len(configList) > 0 && configList[0] != nil {
-			configMap := configList[0].(map[string]interface{})
-			if vmSizes, exists := configMap["vm_sizes"]; exists {
-				if vmSizesList, ok := vmSizes.(*pluginsdk.Set); ok && vmSizesList.Len() > 0 {
-					isVmSizes = true
-				}
-			}
-		}
-
-		if isVmSizes {
-			output := make([]string, 0)
-			for _, vmSize := range *input.VMSizes {
-				if vmSize.Name != nil {
-					output = append(output, pointer.From(vmSize.Name))
-				}
+	output := make([]interface{}, 0)
+	if input.VMSizes != nil {
+		for _, vmSize := range *input.VMSizes {
+			results := map[string]interface{}{
+				"name": pointer.From(vmSize.Name),
+				"rank": nil,
 			}
 
-			result["vm_sizes"] = output
+			if vmSize.Rank != nil {
+				results["rank"] = int(pointer.From(vmSize.Rank))
+			}
+
+			output = append(output, results)
 		}
 	}
 
-	if !isVmSizes {
-		output := make([]interface{}, 0)
-		if input.VMSizes != nil {
-			for _, vmSize := range *input.VMSizes {
-				results := map[string]interface{}{
-					"name": pointer.From(vmSize.Name),
-					"rank": nil,
-				}
+	result["vm_size"] = output
 
-				if vmSize.Rank != nil {
-					results["rank"] = int(pointer.From(vmSize.Rank))
-				}
-
-				output = append(output, results)
+	if !features.FivePointOh() {
+		output := make([]string, 0)
+		for _, vmSize := range *input.VMSizes {
+			if vmSize.Name != nil {
+				output = append(output, pointer.From(vmSize.Name))
 			}
 		}
 
-		result["vm_size"] = output
+		result["vm_sizes"] = output
 	}
 
 	return []interface{}{result}
