@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -412,20 +413,18 @@ func flattenBatchPoolIdentityReferenceToIdentityID(ref *pool.ComputeNodeIdentity
 	return ""
 }
 
-func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
-	securityProfile := make([]interface{}, 0)
-	securityConfig := make(map[string]interface{})
-
-	securityConfig["host_encryption_enabled"] = pointer.From(configProfile.EncryptionAtHost)
-	securityConfig["security_type"] = string(pointer.From(configProfile.SecurityType))
-
-	if configProfile.UefiSettings != nil {
-		securityConfig["secure_boot_enabled"] = pointer.From(configProfile.UefiSettings.SecureBootEnabled)
-		securityConfig["vtpm_enabled"] = pointer.From(configProfile.UefiSettings.VTpmEnabled)
+func valuesFromBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) securityprofile.Values {
+	return securityprofile.Values{
+		HostEncryption: configProfile.EncryptionAtHost,
+		SecurityType:   (*string)(configProfile.SecurityType),
+		SecureBoot:     configProfile.UefiSettings.SecureBootEnabled,
+		VTPM:           configProfile.UefiSettings.VTpmEnabled,
 	}
+}
 
-	securityProfile = append(securityProfile, securityConfig)
-	return securityProfile
+func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
+	values := valuesFromBatchPoolSecurityProfile(configProfile)
+	return securityprofile.ToBlock(values)
 }
 
 func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAccount) map[string]interface{} {
@@ -820,32 +819,19 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 }
 
 func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile {
-	if len(profile) == 0 {
+	values := securityprofile.FromBlock(profile)
+	if values == nil {
 		return nil
 	}
 
-	item := profile[0].(map[string]interface{})
-	securityProfile := &pool.SecurityProfile{
-		UefiSettings: &pool.UefiSettings{},
+	return &pool.SecurityProfile{
+		EncryptionAtHost: values.HostEncryption,
+		SecurityType:     (*pool.SecurityTypes)(values.SecurityType),
+		UefiSettings: &pool.UefiSettings{
+			SecureBootEnabled: values.SecureBoot,
+			VTpmEnabled:       values.VTPM,
+		},
 	}
-
-	if v, ok := item["host_encryption_enabled"]; ok {
-		securityProfile.EncryptionAtHost = pointer.To(v.(bool))
-	}
-
-	if v, ok := item["security_type"]; ok {
-		securityProfile.SecurityType = pointer.To(pool.SecurityTypes(v.(string)))
-	}
-
-	if v, ok := item["secure_boot_enabled"]; ok {
-		securityProfile.UefiSettings.SecureBootEnabled = pointer.To(v.(bool))
-	}
-
-	if v, ok := item["vtpm_enabled"]; ok {
-		securityProfile.UefiSettings.VTpmEnabled = pointer.To(v.(bool))
-	}
-
-	return securityProfile
 }
 
 func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -2221,4 +2222,85 @@ func flattenOrchestratedVirtualMachineScaleSetIdentity(input *identity.SystemAnd
 	}
 
 	return identity.FlattenUserAssignedMap(transform)
+}
+
+func valuesFromVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile) securityprofile.Values {
+	return securityprofile.Values{
+		HostEncryption: profile.EncryptionAtHost,
+		SecurityType:   (*string)(profile.SecurityType),
+		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
+		VTPM:           profile.UefiSettings.VTpmEnabled,
+	}
+}
+
+func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, securityEncryptionType string) (*virtualmachinescalesets.SecurityProfile, error) {
+	values := func() securityprofile.Values {
+		if v, ok := d.GetOk("security_profile"); ok {
+			if values := securityprofile.FromBlock(v.([]interface{})); values != nil {
+				return *values
+			}
+		}
+		values := securityprofile.Values{
+			SecureBoot: pointer.To(d.Get("secure_boot_enabled").(bool)),
+			VTPM:       pointer.To(d.Get("vtpm_enabled").(bool)),
+		}
+		if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
+			values.HostEncryption = pointer.To(v.(bool))
+		}
+		return values
+	}()
+
+	encryptionType := virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType)
+	if values.HostEncryption != nil && *values.HostEncryption {
+		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState {
+			return nil, fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+	}
+
+	secureBootEnabled := pointer.From(values.SecureBoot)
+	vtpmEnabled := pointer.From(values.VTPM)
+	if encryptionType != "" {
+		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState && !secureBootEnabled {
+			return nil, fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		if !vtpmEnabled {
+			return nil, fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
+		}
+
+		const expected = string(virtualmachinescalesets.SecurityTypesConfidentialVM)
+		if values.SecurityType == nil {
+			values.SecurityType = pointer.To(expected)
+		} else if *values.SecurityType != expected {
+			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", expected)
+		}
+	} else if secureBootEnabled || vtpmEnabled {
+		if values.SecurityType == nil {
+			values.SecurityType = pointer.To(string(virtualmachinescalesets.SecurityTypesTrustedLaunch))
+		} else {
+			switch v := *values.SecurityType; v {
+			case string(virtualmachinescalesets.SecurityTypesConfidentialVM):
+			case string(virtualmachinescalesets.SecurityTypesTrustedLaunch):
+			default:
+				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `secure_boot_enabled` or `vtpm_enabled` are set to true", v)
+			}
+		}
+	}
+
+	return &virtualmachinescalesets.SecurityProfile{
+		EncryptionAtHost: values.HostEncryption,
+		SecurityType:     (*virtualmachinescalesets.SecurityTypes)(values.SecurityType),
+		UefiSettings: &virtualmachinescalesets.UefiSettings{
+			SecureBootEnabled: values.SecureBoot,
+			VTpmEnabled:       values.VTPM,
+		},
+	}, nil
+}
+
+func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	values := valuesFromVirtualMachineScaleSetSecurityProfile(profile)
+	return securityprofile.ToBlock(values)
 }
