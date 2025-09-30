@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -266,6 +267,24 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	payload := existing.Model
+
+	// Normalize the identity type - Azure API returns lowercase (e.g. "userAssigned")
+	// but the SDK MarshalJSON expects exact case match (e.g. "UserAssigned")
+	// Without normalization, MarshalJSON defaults to "None" and removes the identity
+	if payload.Identity != nil {
+		// Use string comparison to normalize the type
+		switch strings.ToLower(string(payload.Identity.Type)) {
+		case "systemassigned":
+			payload.Identity.Type = identity.TypeSystemAssigned
+		case "userassigned":
+			payload.Identity.Type = identity.TypeUserAssigned
+		case "systemassigned, userassigned", "systemassigned,userassigned":
+			payload.Identity.Type = identity.TypeSystemAssignedUserAssigned
+		case "none":
+			payload.Identity.Type = identity.TypeNone
+		}
+		log.Printf("[DEBUG] Normalized identity type from %q to %q", existing.Model.Identity.Type, payload.Identity.Type)
+	}
 
 	if d.HasChange("identity") {
 		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
