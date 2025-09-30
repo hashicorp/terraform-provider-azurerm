@@ -6,8 +6,6 @@ package mssql
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"log"
 	"time"
 
@@ -24,12 +22,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/sqlvulnerabilityassessmentssettings"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
