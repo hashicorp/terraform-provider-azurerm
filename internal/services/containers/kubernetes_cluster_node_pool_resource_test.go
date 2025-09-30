@@ -2614,11 +2614,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                               = "internal"
-  kubernetes_cluster_id              = azurerm_kubernetes_cluster.test.id
-  vm_size                            = "Standard_DS2_v2"
-  node_count                         = 1
-  ignore_pod_disruption_budget       = true
+  name                         = "internal"
+  kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
+  vm_size                      = "Standard_DS2_v2"
+  node_count                   = 1
+  ignore_pod_disruption_budget = true
   upgrade_settings {
     max_surge = "10%%"
   }
