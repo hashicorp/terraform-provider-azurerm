@@ -1277,6 +1277,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								}, false),
 							},
 						},
+
+						"static_egress_gateway_profile": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2249,6 +2264,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if outboundType != managedclusters.OutboundTypeManagedNATGateway && outboundType != managedclusters.OutboundTypeUserAssignedNATGateway {
 				existing.Model.Properties.NetworkProfile.NatGatewayProfile = nil
 			}
+		}
+
+		if key := "network_profile.0.static_egress_gateway_profile"; d.HasChange(key) {
+			staticEgressGatewayProfileRaw := d.Get(key).([]interface{})
+			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(staticEgressGatewayProfileRaw)
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -3472,6 +3492,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
+	if staticEgressGatewayProfileRaw := config["static_egress_gateway_profile"].([]interface{}); len(staticEgressGatewayProfileRaw) > 0 {
+		networkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(staticEgressGatewayProfileRaw)
+	}
+
 	return &networkProfile, nil
 }
 
@@ -3738,21 +3762,22 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	result := map[string]interface{}{
-		"dns_service_ip":        dnsServiceIP,
-		"network_data_plane":    networkDataPlane,
-		"load_balancer_sku":     string(*sku),
-		"load_balancer_profile": lbProfiles,
-		"nat_gateway_profile":   ngwProfiles,
-		"ip_versions":           ipVersions,
-		"network_plugin":        networkPlugin,
-		"network_plugin_mode":   networkPluginMode,
-		"network_mode":          networkMode,
-		"network_policy":        networkPolicy,
-		"pod_cidr":              podCidr,
-		"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
-		"service_cidr":          serviceCidr,
-		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
-		"outbound_type":         outboundType,
+		"dns_service_ip":                dnsServiceIP,
+		"network_data_plane":            networkDataPlane,
+		"load_balancer_sku":             string(*sku),
+		"load_balancer_profile":         lbProfiles,
+		"nat_gateway_profile":           ngwProfiles,
+		"ip_versions":                   ipVersions,
+		"network_plugin":                networkPlugin,
+		"network_plugin_mode":           networkPluginMode,
+		"network_mode":                  networkMode,
+		"network_policy":                networkPolicy,
+		"pod_cidr":                      podCidr,
+		"pod_cidrs":                     utils.FlattenStringSlice(profile.PodCidrs),
+		"service_cidr":                  serviceCidr,
+		"service_cidrs":                 utils.FlattenStringSlice(profile.ServiceCidrs),
+		"static_egress_gateway_profile": flattenStaticEgressGatewayProfile(profile.StaticEgressGatewayProfile),
+		"outbound_type":                 outboundType,
 	}
 
 	return []interface{}{result}
@@ -4518,6 +4543,35 @@ func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterSt
 	}
 
 	return &profile
+}
+
+func expandStaticEgressGatewayProfile(input []interface{}) *managedclusters.ManagedClusterStaticEgressGatewayProfile {
+	if (input == nil) || len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &managedclusters.ManagedClusterStaticEgressGatewayProfile{
+		Enabled: pointer.To(raw["enabled"].(bool)),
+	}
+}
+
+func flattenStaticEgressGatewayProfile(profile *managedclusters.ManagedClusterStaticEgressGatewayProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	if profile.Enabled != nil {
+		enabled = *profile.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+		},
+	}
 }
 
 func expandEdgeZone(input string) *edgezones.Model {
