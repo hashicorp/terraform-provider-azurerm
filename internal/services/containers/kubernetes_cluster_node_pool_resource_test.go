@@ -717,6 +717,21 @@ func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_ignorePodDisruptionBudget(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ignorePodDisruptionBudget(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2583,6 +2598,27 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                 = "Standard_DS2_v2"
   host_encryption_enabled = true
   node_count              = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) ignorePodDisruptionBudget(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                               = "internal"
+  kubernetes_cluster_id              = azurerm_kubernetes_cluster.test.id
+  vm_size                            = "Standard_DS2_v2"
+  node_count                         = 1
+  ignore_pod_disruption_budget       = true
   upgrade_settings {
     max_surge = "10%%"
   }
