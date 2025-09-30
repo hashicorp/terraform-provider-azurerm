@@ -79,7 +79,7 @@ func (r *Resource) Init() {
 	if r.Schema == nil {
 		return
 	}
-	
+
 	if r.SDKResource != nil {
 		// SDKResource is a type of interface, have to get the real
 		// vd := reflect.ValueOf(r.SDKResource).Interface()
