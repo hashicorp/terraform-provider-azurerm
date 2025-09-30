@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20250924.1155608` [GH-30693]
+* `azurerm_stream_analytics_job` - add support for the `Msi` value in the `job_storage_account.authentication_mode` property [GH-30728]
 
 FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
