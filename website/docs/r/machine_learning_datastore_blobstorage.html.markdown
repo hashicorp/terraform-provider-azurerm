@@ -86,7 +86,7 @@ The following arguments are supported:
 
 ---
 
-~> **Note:** One authentication method must be specified when `service_data_auth_identity` is set to `None` or omitted. You can choose either traditional credentials (`account_key` or `shared_access_signature`) or Service Principal authentication (`client_id`, `client_secret`, `tenant_id`), but not both.
+~> **Note:** Exactly one authentication method must be specified when `service_data_auth_identity` is set to `None` or omitted. You can choose either traditional credentials (using `account_key` or `shared_access_signature`) or Service Principal authentication (using `client_id`, `client_secret` and `tenant_id`).
 
 * `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature` and all Service Principal arguments.
 
