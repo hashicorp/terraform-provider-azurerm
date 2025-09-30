@@ -419,6 +419,28 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSConfidentialSecurityProfileBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSSecurityProfileBlock(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("ConfidentialVM"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption_at_host_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("secure_boot_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("vtpm_enabled").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -1235,7 +1257,46 @@ resource "azurerm_windows_virtual_machine" "test" {
   vtpm_enabled        = %t
   secure_boot_enabled = %t
 }
+
 `, r.template(data), vtpm, secureBoot)
+}
+
+func (r WindowsVirtualMachineResource) diskOSSecurityProfileBlock(data acceptance.TestData) string {
+	data.Locations.Primary = "northeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DC2as_v5"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "windows-cvm"
+    sku       = "2022-datacenter-cvm"
+    version   = "latest"
+  }
+
+  security_profile {
+    security_type       = "ConfidentialVM"
+    secure_boot_enabled = true
+    vtpm_enabled        = true
+  }
+}
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
