@@ -229,6 +229,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.AgentPoolModeSystem),
 				string(agentpools.AgentPoolModeUser),
+				string(agentpools.AgentPoolModeGateway),
 			}, false),
 		},
 
