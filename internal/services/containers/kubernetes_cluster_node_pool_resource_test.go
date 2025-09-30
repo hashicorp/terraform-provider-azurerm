@@ -728,7 +728,7 @@ func TestAccKubernetesClusterNodePool_ignorePodDisruptionBudget(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("ignore_pod_disruption_budget"),
 	})
 }
 
