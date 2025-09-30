@@ -698,6 +698,8 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
+* `static_egress_gateway_profile` - (Optional) A `static_egress_gateway_profile` block as defined below.
+
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
@@ -735,6 +737,14 @@ A `nat_gateway_profile` block supports the following:
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the managed nat gateway. Must be between `4` and `120` inclusive. Defaults to `4`.
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive.
+
+---
+
+A `static_egress_gateway_profile` block supports the following:
+
+* `enabled` - (Optional) Whether the static egress gateway is enabled. Defaults to `false`.
+
+-> **Note:** Static egress gateway provides a dedicated gateway for egress traffic from the cluster using a static IP address. For more information about this feature, see the Azure documentation.
 
 ---
 
@@ -1047,6 +1057,8 @@ A `network_profile` block exports the following:
 * `load_balancer_profile` - A `load_balancer_profile` block as defined below.
 
 * `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
+
+* `static_egress_gateway_profile` - A `static_egress_gateway_profile` block as defined below.
 
 ---
 
