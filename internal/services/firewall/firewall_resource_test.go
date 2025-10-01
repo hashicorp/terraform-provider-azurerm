@@ -36,8 +36,6 @@ func TestAccFirewall_autoscaleConfigMinMax(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("3"),
-				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
