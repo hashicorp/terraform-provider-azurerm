@@ -1335,24 +1335,22 @@ resource "azurerm_firewall" "test" {
 }
 
 func (FirewallResource) withAutoscaleConfiguration(data acceptance.TestData, min, max *int) string {
-	autoscaleConfiguration := ""
-	if min == nil && max != nil {
-		autoscaleConfiguration = fmt.Sprintf(`
-  autoscale {
-    max_capacity = %d
-  }`, *max)
-	} else if min != nil && max != nil {
-		autoscaleConfiguration = fmt.Sprintf(`
-  autoscale {
-    min_capacity = %d
-    max_capacity = %d
-  }`, *min, *max)
-	} else if min != nil && max == nil {
-		autoscaleConfiguration = fmt.Sprintf(`
-  autoscale {
-    min_capacity = %d
-  }`, *min)
-	}
+  min_capacity, max_capacity, autoscaleConfiguration := "", "", ""
+  if min != nil {
+    min_capacity = fmt.Sprintf("min_capacity = %d", min)
+  }
+  
+  if max != nil {
+     max_capacity = fmt.Sprintf("max_capacity =  %s", max)
+  }
+  
+  if min_capacity != "" || max_capacity != "" {
+     autoscaleConfiguration = fmt.Sprintf(`
+   autoscale_configuration {
+     %s
+     %s
+   }`, max_capacity, min_capacity)
+  }
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
