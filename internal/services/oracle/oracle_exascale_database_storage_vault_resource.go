@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -20,32 +21,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ExascaleDbStorageVaultResource{}
+var _ sdk.Resource = ExascaleDatabaseStorageVaultResource{}
 
-type ExascaleDbStorageVaultResource struct{}
+type ExascaleDatabaseStorageVaultResource struct{}
 
-type ExascaleDbStorageVaultResourceModel struct {
+type ExascaleDatabaseStorageVaultResourceModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
 
-	// Required
-	AdditionalFlashCacheInPercent int64                                `tfschema:"additional_flash_cache_in_percent"`
-	Description                   string                               `tfschema:"description"`
-	DisplayName                   string                               `tfschema:"display_name"`
-	HighCapacityDatabaseStorage   []ExascaleDbStorageInputDetailsModel `tfschema:"high_capacity_database_storage"`
+	AdditionalFlashCachePercentage int64                                      `tfschema:"additional_flash_cache_percentage"`
+	Description                    string                                     `tfschema:"description"`
+	DisplayName                    string                                     `tfschema:"display_name"`
+	HighCapacityDatabaseStorage    []ExascaleDatabaseStorageInputDetailsModel `tfschema:"high_capacity_database_storage"`
 
-	// Optional
 	TimeZone string `tfschema:"time_zone"`
 }
 
-type ExascaleDbStorageInputDetailsModel struct {
+type ExascaleDatabaseStorageInputDetailsModel struct {
 	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
 }
 
-func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
+func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
@@ -55,15 +54,15 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-_]`), "Name can contains letters, numbers, underscores (_) and hyphens (-)"),
 				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
-				validation.StringDoesNotContainAny("--"),
+				validation.StringMatch(regexp.MustCompile(`^[^-]*(-[^-]+)*$`), "Name can not contains two or more consecutive hyphens (--)"),
 			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		// Required
-		"additional_flash_cache_in_percent": {
+		"additional_flash_cache_percentage": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -82,8 +81,9 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Display Name must start with a letter or underscore (_)"),
-				validation.StringDoesNotContainAny("--"),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-_]`), "Name can contains letters, numbers, underscores (_) and hyphens (-)"),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
+				validation.StringMatch(regexp.MustCompile(`^[^-]*(-[^-]+)*$`), "Name can not contains two or more consecutive hyphens (--)"),
 			),
 		},
 
@@ -117,26 +117,26 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ExascaleDbStorageVaultResource) Attributes() map[string]*pluginsdk.Schema {
+func (ExascaleDatabaseStorageVaultResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ExascaleDbStorageVaultResource) ModelObject() interface{} {
-	return &ExascaleDbStorageVaultResource{}
+func (ExascaleDatabaseStorageVaultResource) ModelObject() interface{} {
+	return &ExascaleDatabaseStorageVaultResource{}
 }
 
-func (ExascaleDbStorageVaultResource) ResourceType() string {
-	return "azurerm_oracle_exascale_db_storage_vault"
+func (ExascaleDatabaseStorageVaultResource) ResourceType() string {
+	return "azurerm_oracle_exascale_database_storage_vault"
 }
 
-func (r ExascaleDbStorageVaultResource) Create() sdk.ResourceFunc {
+func (r ExascaleDatabaseStorageVaultResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.ExascaleDbStorageVaults
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ExascaleDbStorageVaultResourceModel
+			var model ExascaleDatabaseStorageVaultResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -160,7 +160,7 @@ func (r ExascaleDbStorageVaultResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(model.Tags),
 				Properties: &exascaledbstoragevaults.ExascaleDbStorageVaultProperties{
 					DisplayName:                   model.DisplayName,
-					AdditionalFlashCacheInPercent: pointer.To(model.AdditionalFlashCacheInPercent),
+					AdditionalFlashCacheInPercent: pointer.To(model.AdditionalFlashCachePercentage),
 					Description:                   pointer.To(model.Description),
 					TimeZone:                      pointer.To(model.TimeZone),
 					HighCapacityDatabaseStorageInput: exascaledbstoragevaults.ExascaleDbStorageInputDetails{
@@ -179,7 +179,7 @@ func (r ExascaleDbStorageVaultResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ExascaleDbStorageVaultResource) Update() sdk.ResourceFunc {
+func (r ExascaleDatabaseStorageVaultResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -189,9 +189,9 @@ func (r ExascaleDbStorageVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model ExascaleDbStorageVaultResourceModel
+			var model ExascaleDatabaseStorageVaultResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return err
 			}
 
 			_, err = client.Get(ctx, *id)
@@ -200,10 +200,7 @@ func (r ExascaleDbStorageVaultResource) Update() sdk.ResourceFunc {
 			}
 
 			update := &exascaledbstoragevaults.ExascaleDbStorageVaultTagsUpdate{}
-
-			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(model.Tags)
-			}
+			update.Tags = pointer.To(model.Tags)
 
 			err = client.UpdateThenPoll(ctx, *id, *update)
 			if err != nil {
@@ -215,13 +212,13 @@ func (r ExascaleDbStorageVaultResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
+func (ExascaleDatabaseStorageVaultResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := exascaledbstoragevaults.ParseExascaleDbStorageVaultID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
 			client := metadata.Client.Oracle.OracleClient.ExascaleDbStorageVaults
@@ -230,10 +227,10 @@ func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
-			state := ExascaleDbStorageVaultResourceModel{
+			state := ExascaleDatabaseStorageVaultResourceModel{
 				Name:              id.ExascaleDbStorageVaultName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -247,9 +244,9 @@ func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
 					state.Tags = pointer.From(model.Tags)
 					state.Zones = pointer.From(model.Zones)
 					state.DisplayName = props.DisplayName
-					state.AdditionalFlashCacheInPercent = pointer.From(props.AdditionalFlashCacheInPercent)
+					state.AdditionalFlashCachePercentage = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.Description = pointer.From(props.Description)
-					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorageInputInterface(props.HighCapacityDatabaseStorageInput)
+					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorageInterface(props.HighCapacityDatabaseStorage)
 					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
@@ -258,7 +255,7 @@ func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (ExascaleDbStorageVaultResource) Delete() sdk.ResourceFunc {
+func (ExascaleDatabaseStorageVaultResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -278,14 +275,14 @@ func (ExascaleDbStorageVaultResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (ExascaleDbStorageVaultResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (ExascaleDatabaseStorageVaultResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
 }
 
-func flattenHighCapacityDatabaseStorageInputInterface(input exascaledbstoragevaults.ExascaleDbStorageInputDetails) []ExascaleDbStorageInputDetailsModel {
-	output := make([]ExascaleDbStorageInputDetailsModel, 0)
-	storageInput := ExascaleDbStorageInputDetailsModel{
-		TotalSizeInGb: input.TotalSizeInGbs,
+func flattenHighCapacityDatabaseStorageInterface(input *exascaledbstoragevaults.ExascaleDbStorageDetails) []ExascaleDatabaseStorageInputDetailsModel {
+	output := make([]ExascaleDatabaseStorageInputDetailsModel, 0)
+	storageInput := ExascaleDatabaseStorageInputDetailsModel{
+		TotalSizeInGb: pointer.From(input.TotalSizeInGbs),
 	}
 	output = append(output, storageInput)
 	return output

@@ -15,26 +15,26 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AdbsCharSetsDataSource{},
 		AdbsNCharSetsDataSource{},
+		AutonomousDatabaseBackupDataSource{},
+		AutonomousDatabaseBackupsDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
 		DBNodesDataSource{},
 		DBServersDataSource{},
 		DbSystemShapesDataSource{},
 		ExadataInfraDataSource{},
-		ExascaleDbStorageVaultDataSource{},
+		ExascaleDatabaseStorageVaultDataSource{},
 		GiVersionsDataSource{},
-		AutonomousDatabaseBackupDataSource{},
-		AutonomousDatabaseBackupsDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AutonomousDatabaseBackupResource{},
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
-		AutonomousDatabaseBackupResource{},
-		ExascaleDbStorageVaultResource{},
+		ExascaleDatabaseStorageVaultResource{},
 	}
 }
 
