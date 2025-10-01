@@ -1,6 +1,7 @@
 ## 4.47.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_palo_alto_local_rulestack_rule` - increase limit for `priority` to `1000000` [GH-30712]
 
 * dependencies: `go-azure-sdk` - update to `v0.20250924.1155608` [GH-30693]
 * `azurerm_stream_analytics_job` - add support for the `Msi` value in the `job_storage_account.authentication_mode` property [GH-30728]
