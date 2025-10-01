@@ -1,52 +1,46 @@
-// Copyright © 2025, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ExascaleDbStorageVaultDataSource struct{}
+type ExascaleDatabaseStorageVaultDataSource struct{}
 
-type ExascaleDbStorageVaultDataModel struct {
+type ExascaleDatabaseStorageVaultDataModel struct {
 	Location          string       `tfschema:"location"`
 	Name              string       `tfschema:"name"`
 	ResourceGroupName string       `tfschema:"resource_group_name"`
 	Zones             zones.Schema `tfschema:"zones"`
 
-	// ExascaleDbStorageVaultProperties
-	AdditionalFlashCacheInPercent int64                           `tfschema:"additional_flash_cache_in_percent"`
-	Description                   string                          `tfschema:"description"`
-	DisplayName                   string                          `tfschema:"display_name"`
-	HighCapacityDatabaseStorage   []ExascaleDbStorageDetailsModel `tfschema:"high_capacity_database_storage"`
-	LifecycleDetails              string                          `tfschema:"lifecycle_details"`
-	LifecycleState                string                          `tfschema:"lifecycle_state"`
-	Ocid                          string                          `tfschema:"ocid"`
-	OciUrl                        string                          `tfschema:"oci_url"`
-	TimeZone                      string                          `tfschema:"time_zone"`
-	VirtualMachineClusterCount    int64                           `tfschema:"virtual_machine_cluster_count"`
+	AdditionalFlashCachePercentage int64                                 `tfschema:"additional_flash_cache_percentage"`
+	Description                    string                                `tfschema:"description"`
+	DisplayName                    string                                `tfschema:"display_name"`
+	HighCapacityDatabaseStorage    []ExascaleDatabaseStorageDetailsModel `tfschema:"high_capacity_database_storage"`
+	LifecycleDetails               string                                `tfschema:"lifecycle_details"`
+	LifecycleState                 string                                `tfschema:"lifecycle_state"`
+	Ocid                           string                                `tfschema:"ocid"`
+	OciUrl                         string                                `tfschema:"oci_url"`
+	TimeZone                       string                                `tfschema:"time_zone"`
+	VirtualMachineClusterCount     int64                                 `tfschema:"virtual_machine_cluster_count"`
 }
 
-type ExascaleDbStorageDetailsModel struct {
-	AvailableSizeInGb int64 `tfschema:"available_size_in_gb"`
-	TotalSizeInGb     int64 `tfschema:"total_size_in_gb"`
-}
-
-func (d ExascaleDbStorageVaultDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d ExascaleDatabaseStorageVaultDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
@@ -55,19 +49,17 @@ func (d ExascaleDbStorageVaultDataSource) Arguments() map[string]*pluginsdk.Sche
 			Required: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
-				validation.StringDoesNotContainAny("--"),
+				validate.ExascaleDatabaseStorageVaultName,
 			),
 		},
 	}
 }
 
-func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d ExascaleDatabaseStorageVaultDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// ExascaleDbStorageVaultProperties
-		"additional_flash_cache_in_percent": {
+		"additional_flash_cache_percentage": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -133,26 +125,26 @@ func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (d ExascaleDbStorageVaultDataSource) ModelObject() interface{} {
-	return &ExascaleDbStorageVaultDataModel{}
+func (d ExascaleDatabaseStorageVaultDataSource) ModelObject() interface{} {
+	return &ExascaleDatabaseStorageVaultDataModel{}
 }
 
-func (d ExascaleDbStorageVaultDataSource) ResourceType() string {
-	return "azurerm_oracle_exascale_db_storage_vault"
+func (d ExascaleDatabaseStorageVaultDataSource) ResourceType() string {
+	return "azurerm_oracle_exascale_database_storage_vault"
 }
 
-func (d ExascaleDbStorageVaultDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d ExascaleDatabaseStorageVaultDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
 }
 
-func (d ExascaleDbStorageVaultDataSource) Read() sdk.ResourceFunc {
+func (d ExascaleDatabaseStorageVaultDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.ExascaleDbStorageVaults
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state ExascaleDbStorageVaultDataModel
+			var state ExascaleDatabaseStorageVaultDataModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -164,17 +156,17 @@ func (d ExascaleDbStorageVaultDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
-					state.AdditionalFlashCacheInPercent = pointer.From(props.AdditionalFlashCacheInPercent)
-					state.Description = pointer.From(props.Description)
+					state.AdditionalFlashCachePercentage = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.DisplayName = props.DisplayName
-					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)
+					state.Description = pointer.From(props.Description)
+					state.HighCapacityDatabaseStorage = FlattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.LifecycleState = pointer.FromEnum(props.LifecycleState)
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
@@ -189,15 +181,4 @@ func (d ExascaleDbStorageVaultDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func flattenHighCapacityDatabaseStorage(input *exascaledbstoragevaults.ExascaleDbStorageDetails) []ExascaleDbStorageDetailsModel {
-	output := make([]ExascaleDbStorageDetailsModel, 0)
-	if input != nil {
-		return append(output, ExascaleDbStorageDetailsModel{
-			AvailableSizeInGb: pointer.From(input.AvailableSizeInGbs),
-			TotalSizeInGb:     pointer.From(input.TotalSizeInGbs),
-		})
-	}
-	return output
 }
