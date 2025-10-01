@@ -639,7 +639,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azuread_application_federated_identity_credential" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id        = azuread_application.test.id
   display_name          = "acctestcred-%[5]s"
   description           = "Federated Identity Credential for CMK"
   audiences             = ["api://AzureADTokenExchange"]
