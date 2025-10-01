@@ -245,18 +245,8 @@ func resourceFirewall() *pluginsdk.Resource {
 					CustomizeDiff: pluginsdk.CustomDiffWithAll(
 						// Verify autoscaleConfiguration server side validations, on client side
 						pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-							_, nMin := diff.GetChange("min_capacity")
-							_, nMax := diff.GetChange("max_capacity")
-
-							min := -1
-							max := -1
-
-							if nMin != "" {
-								min = int(nMin.(float64))
-							}
-							if nMax != "" {
-								max = int(nMax.(float64))
-							}
+							min = diff.Get("min_capacity").(int)
+							max = diff.Get("max_capacity").(int)
 
 							if min > 0 && max > 0 {
 								if min > max {
