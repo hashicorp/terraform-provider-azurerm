@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `rulestack_id` - (Required) The ID of the Local Rulestack in which to create this Rule. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
-* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
+* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Possible values are between 1 and 1000000. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
 ~> **Note:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
