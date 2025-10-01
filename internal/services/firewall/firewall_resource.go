@@ -241,7 +241,6 @@ func resourceFirewall() *pluginsdk.Resource {
 						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Description:  "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
-							Required:     false,
 							Optional:     true,
 							ValidateFunc: validate.MaxCapacity,
 						},
