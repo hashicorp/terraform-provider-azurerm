@@ -225,7 +225,7 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
-			"autoscale_configuration": {
+			"autoscale": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -405,7 +405,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
-	if autoscaleConfiguration := d.Get("autoscale_configuration").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
+	if autoscaleConfiguration := d.Get("autoscale").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
 		configuration, err := expandAutoscaleConfiguration(autoscaleConfiguration)
 		if err != nil {
 			return err
@@ -507,8 +507,8 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 			}
 
-			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
-				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
+			if err := d.Set("autoscale", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale`: %+v", err)
 			}
 
 			firewallPolicyId := ""
