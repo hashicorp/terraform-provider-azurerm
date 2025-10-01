@@ -3,11 +3,11 @@ package cdn
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/convert"
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -77,7 +77,7 @@ func (a *AzureFrontDoorCachePurgeAction) Schema(ctx context.Context, request act
 	}
 }
 
-func (a *AzureFrontDoorCachePurgeAction) Metadata(ctx context.Context, request action.MetadataRequest, response *action.MetadataResponse) {
+func (a *AzureFrontDoorCachePurgeAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
 	response.TypeName = "azurerm_azure_front_door_cache_purge"
 }
 
