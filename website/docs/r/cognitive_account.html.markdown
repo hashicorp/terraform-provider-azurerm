@@ -120,7 +120,7 @@ A `network_acls` block supports the following:
 
 A `network_injection` block supports the following:
 
-* `scenario` - (Required) Specifies what features network injection applies to. Only possible value is `agent` for agent scenarios.
+* `scenario` - (Required) Specifies what features network injection applies to. The only possible value is `agent`.
 
 * `subnet_id` - (Required) The ID of the subnet which the Agent Client is injected into.
 

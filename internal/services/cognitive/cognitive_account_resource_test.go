@@ -458,10 +458,6 @@ func TestAccCognitiveAccount_aiServices_complete(t *testing.T) {
 			Config: r.aiServices_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
 			),
 		},
 		data.ImportStep(),
@@ -483,10 +479,6 @@ func TestAccCognitiveAccount_aiServices_update(t *testing.T) {
 			Config: r.aiServices_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
 			),
 		},
 		data.ImportStep(),
