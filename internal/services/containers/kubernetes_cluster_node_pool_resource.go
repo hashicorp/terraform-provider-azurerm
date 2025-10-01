@@ -424,6 +424,12 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"ignore_pod_disruption_budget": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
 
 	return s
@@ -1240,7 +1246,13 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
+	ignorePdb := d.Get("ignore_pod_disruption_budget").(bool)
+	opts := agentpools.DefaultDeleteOperationOptions()
+	if ignorePdb {
+		opts.IgnorePodDisruptionBudget = pointer.To(true)
+	}
+
+	err = client.DeleteThenPoll(ctx, *id, opts)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
