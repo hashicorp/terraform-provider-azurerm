@@ -3503,6 +3503,7 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mode").HasValue("Gateway"),
+				check.That(data.ResourceName).Key("gateway_profile.0.public_ip_prefix_size").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -3524,6 +3525,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   mode                  = "Gateway"
   vnet_subnet_id        = azurerm_subnet.test.id
+
+  gateway_profile {
+    public_ip_prefix_size = 30
+  }
+
   upgrade_settings {
     max_surge = "10%%"
   }

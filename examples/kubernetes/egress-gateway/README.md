@@ -38,11 +38,15 @@ This enables the static egress gateway feature at the cluster level.
 ```hcl
 resource "azurerm_kubernetes_cluster_node_pool" "egress_gateway" {
   mode = "Gateway"
+
+  gateway_profile {
+    public_ip_prefix_size = 30  # Range: 28-31, default: 31
+  }
   # ... other configuration
 }
 ```
 
-Node pools with `mode = "Gateway"` are specifically configured to host the egress gateway infrastructure.
+Node pools with `mode = "Gateway"` are specifically configured to host the egress gateway infrastructure. The `gateway_profile` block allows you to configure the public IP prefix size (28-31) that determines the number of IP addresses allocated to the gateway nodes.
 
 ## Prerequisites
 

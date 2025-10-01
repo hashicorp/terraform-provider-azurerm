@@ -55,6 +55,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "egress_gateway" {
   node_count            = 2
   mode                  = "Gateway"
 
+  # Configure the gateway profile with public IP prefix size
+  gateway_profile {
+    public_ip_prefix_size = 30  # Supports 28-31, defaults to 31
+  }
+
   tags = {
     Environment = "Demo"
     Purpose     = "EgressGateway"
