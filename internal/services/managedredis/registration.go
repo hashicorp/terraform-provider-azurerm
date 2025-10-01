@@ -33,5 +33,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ManagedRedisClusterResource{},
 		ManagedRedisDatabaseResource{},
+		ManagedRedisDatabaseGeoReplicationResource{},
 	}
 }

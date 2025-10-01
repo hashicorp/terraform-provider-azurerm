@@ -26,7 +26,9 @@ import (
 
 type ManagedRedisClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
+var (
+	_ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
+)
 
 type ManagedRedisClusterResourceModel struct {
 	Name                    string                                     `tfschema:"name"`
@@ -57,7 +59,14 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": commonschema.Location(),
+		"location": func() *pluginsdk.Schema {
+			location := commonschema.Location()
+			location.ValidateFunc = validation.All(
+				location.ValidateFunc,
+				validate.ManagedRedisSupportedLocations,
+			)
+			return location
+		}(),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
@@ -148,25 +157,18 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			highAvailability := redisenterprise.HighAvailabilityEnabled
-			if !model.HighAvailabilityEnabled {
-				highAvailability = redisenterprise.HighAvailabilityDisabled
-			}
-
 			parameters := redisenterprise.Cluster{
 				Location: location.Normalize(model.Location),
 				Sku: redisenterprise.Sku{
 					Name: redisenterprise.SkuName(model.SkuName),
 				},
 				Properties: &redisenterprise.ClusterProperties{
+					Encryption:        expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
 					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersionOnePointTwo),
-					HighAvailability:  pointer.To(highAvailability),
+					HighAvailability:  expandHighAvailability(model.HighAvailabilityEnabled),
 				},
-				Tags: pointer.To(model.Tags),
-			}
-
-			if len(model.CustomerManagedKey) > 0 {
-				parameters.Properties.Encryption = expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
+				Tags:  pointer.To(model.Tags),
+				Zones: expandZones(model.Zones),
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -174,10 +176,6 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 			parameters.Identity = expandedIdentity
-
-			if len(model.Zones) > 0 {
-				parameters.Zones = pointer.To(model.Zones)
-			}
 
 			if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -228,7 +226,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
 
-				state.Identity = *flattenedIdentity
+				state.Identity = pointer.From(flattenedIdentity)
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 
@@ -318,7 +316,7 @@ func (r ManagedRedisClusterResource) Delete() sdk.ResourceFunc {
 
 func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
-		return &redisenterprise.ClusterPropertiesEncryption{}
+		return nil
 	}
 
 	cmk := input[0]
@@ -336,7 +334,7 @@ func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *re
 
 func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKey {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
-		return make([]CustomerManagedKey, 0)
+		return nil
 	}
 
 	cmkEncryption := input.CustomerManagedKeyEncryption
@@ -351,4 +349,18 @@ func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.Cluster
 			UserAssignedIdentityId: uaiResourceId,
 		},
 	}
+}
+
+func expandHighAvailability(enabled bool) *redisenterprise.HighAvailability {
+	if enabled {
+		return pointer.To(redisenterprise.HighAvailabilityEnabled)
+	}
+	return pointer.To(redisenterprise.HighAvailabilityDisabled)
+}
+
+func expandZones(zones []string) *[]string {
+	if len(zones) == 0 {
+		return nil
+	}
+	return pointer.To(zones)
 }

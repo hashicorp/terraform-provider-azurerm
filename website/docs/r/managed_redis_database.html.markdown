@@ -26,37 +26,20 @@ resource "azurerm_managed_redis_cluster" "example" {
   sku_name = "Balanced_B3"
 }
 
-resource "azurerm_managed_redis_cluster" "example1" {
-  name                = "example-managedredis1"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  sku_name = "Balanced_B3"
-}
-
 resource "azurerm_managed_redis_database" "example" {
-  name = "default"
-
   cluster_id        = azurerm_managed_redis_cluster.example.id
   client_protocol   = "Encrypted"
   clustering_policy = "OSSCluster"
   eviction_policy   = "NoEviction"
   port              = 10000
 
-  linked_database_id = [
-    "${azurerm_managed_redis_cluster.example.id}/databases/default",
-    "${azurerm_managed_redis_cluster.example1.id}/databases/default"
-  ]
-
-  linked_database_group_nickname = "tftestGeoGroup"
+  geo_replication_group_name = "tftestGeoGroup"
 }
 ```
 
 ## Arguments Reference
 
 The following arguments are supported:
-
-* `name` - (Optional) The name which should be used for this Managed Redis Database. Currently the acceptable value for this argument is `default`. Defaults to `default`. Changing this forces a new Managed Redis Database to be created.
 
 * `cluster_id` - (Required) The resource id of the Managed Redis Cluster to deploy this Managed Redis Database. Changing this forces a new Managed Redis Database to be created.
 
@@ -68,15 +51,15 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Changing this forces a new Managed Redis Database to be created. Defaults to `VolatileLRU`.
 
+* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [azurerm_managed_redis_database_geo_replication](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new resource to be created.
+
 * `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
 -> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
 
-* `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5. Reference the database using the cluster address prefix to avoid cyclic dependency, for example: `${azurerm_managed_redis_cluster.example1.id}/databases/default`.
+<!-- * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5. Reference the database using the cluster address prefix to avoid cyclic dependency, for example: `${azurerm_managed_redis_cluster.example1.id}/databases/default`.
 
--> **Note:** Adding an existing database to a geo-replication group will discard all cache data and causes an outage for several minutes. Please refer to [the Microsoft documentation about geo-replication](https://learn.microsoft.com/en-us/azure/redis/how-to-active-geo-replication#remove-from-an-active-geo-replication-group).
-
-* `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this forces a new Managed Redis Database to be created.
+-> **Note:** Adding an existing database to a geo-replication group will discard all cache data and causes an outage for several minutes. Please refer to [the Microsoft documentation about geo-replication](https://learn.microsoft.com/en-us/azure/redis/how-to-active-geo-replication#remove-from-an-active-geo-replication-group). -->
 
 * `port` - (Optional) TCP port of the database endpoint. Specified at create time. Defaults to an available port. Changing this forces a new Managed Redis Database to be created. Defaults to `10000`.
 

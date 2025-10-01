@@ -82,115 +82,6 @@ func TestAccManagedRedisDatabase_complete(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisDatabase_geoDatabase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.threeLinkedDatabases(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoDatabaseOtherEvictionPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_geoDatabaseModule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoDatabasewithModuleEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoDatabasewithRedisJsonModuleEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_unlinkDatabase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.threeLinkedDatabases(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.twoLinkedDatabases(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_linkDatabase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.twoLinkedDatabases(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.threeLinkedDatabases(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedisDatabase_customizeDiffDatabaseIdError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.customizeDiffDatabaseIdError(data),
-			ExpectError: regexp.MustCompile("linked database list must include the current database ID"),
-		},
-	})
-}
-
 func TestAccManagedRedisDatabase_customizeDiffModuleError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
 	r := ManagedRedisDatabaseResource{}
@@ -227,7 +118,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-rec1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Balanced_B3"
+  sku_name            = "Balanced_B0"
 }`, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -265,13 +156,22 @@ provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-rec1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Balanced_B0"
+}
 
 resource "azurerm_managed_redis_database" "test" {
-  name       = "default"
   cluster_id = azurerm_managed_redis_cluster.test.id
 }
-`, r.template(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisDatabaseResource) update(data acceptance.TestData) string {
@@ -280,15 +180,24 @@ provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-rec1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Balanced_B0"
+}
 
 resource "azurerm_managed_redis_database" "test" {
-  name       = "default"
   cluster_id = azurerm_managed_redis_cluster.test.id
 
   access_keys_authentication_enabled = true
 }
-`, r.template(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -296,7 +205,6 @@ func (r ManagedRedisDatabaseResource) requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_managed_redis_database" "import" {
-  name       = azurerm_managed_redis_database.test.name
   cluster_id = azurerm_managed_redis_database.test.cluster_id
 }
 `, r.basic(data))
@@ -308,29 +216,29 @@ provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-rec1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Balanced_B3"
+}
 
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  name                               = "default"
   access_keys_authentication_enabled = true
   client_protocol                    = "Encrypted"
   clustering_policy                  = "EnterpriseCluster"
   eviction_policy                    = "NoEviction"
+	geo_replication_group_name         = "testGeoReplGroup"
 
   module {
     name = "RediSearch"
-    args = ""
-  }
-
-  module {
-    name = "RedisBloom"
-    args = ""
-  }
-
-  module {
-    name = "RedisTimeSeries"
     args = ""
   }
 
@@ -341,7 +249,7 @@ resource "azurerm_managed_redis_database" "test" {
 
   port = 10000
 }
-`, r.template(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisDatabaseResource) threeLinkedDatabases(data acceptance.TestData) string {
@@ -370,131 +278,131 @@ resource "azurerm_managed_redis_database" "test" {
 `, r.templateThreeClusters(data))
 }
 
-func (r ManagedRedisDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+// func (r ManagedRedisDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
 
-%s
+// %s
 
-resource "azurerm_managed_redis_database" "test" {
-  cluster_id = azurerm_managed_redis_cluster.test.id
+// resource "azurerm_managed_redis_database" "test" {
+//   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "AllKeysLRU"
+//   client_protocol   = "Encrypted"
+//   clustering_policy = "EnterpriseCluster"
+//   eviction_policy   = "AllKeysLRU"
 
-  linked_database_id = [
-    "${azurerm_managed_redis_cluster.test.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test1.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test2.id}/databases/default"
-  ]
+//   linked_database_id = [
+//     "${azurerm_managed_redis_cluster.test.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test1.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test2.id}/databases/default"
+//   ]
 
-  linked_database_group_nickname = "tftestGeoGroup"
-}
-`, r.templateThreeClusters(data))
-}
+//   linked_database_group_nickname = "tftestGeoGroup"
+// }
+// `, r.templateThreeClusters(data))
+// }
 
-func (r ManagedRedisDatabaseResource) twoLinkedDatabases(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+// func (r ManagedRedisDatabaseResource) twoLinkedDatabases(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
 
-%s
+// %s
 
-resource "azurerm_managed_redis_database" "test" {
-  cluster_id = azurerm_managed_redis_cluster.test.id
+// resource "azurerm_managed_redis_database" "test" {
+//   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "NoEviction"
+//   client_protocol   = "Encrypted"
+//   clustering_policy = "EnterpriseCluster"
+//   eviction_policy   = "NoEviction"
 
-  linked_database_id = [
-    "${azurerm_managed_redis_cluster.test.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test1.id}/databases/default",
-  ]
+//   linked_database_id = [
+//     "${azurerm_managed_redis_cluster.test.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test1.id}/databases/default",
+//   ]
 
-  linked_database_group_nickname = "tftestGeoGroup"
-}
-`, r.templateThreeClusters(data))
-}
+//   linked_database_group_nickname = "tftestGeoGroup"
+// }
+// `, r.templateThreeClusters(data))
+// }
 
-func (r ManagedRedisDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+// func (r ManagedRedisDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
 
-%s
+// %s
 
-resource "azurerm_managed_redis_database" "test" {
-  cluster_id = azurerm_managed_redis_cluster.test.id
+// resource "azurerm_managed_redis_database" "test" {
+//   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "NoEviction"
-  module {
-    name = "RediSearch"
-    args = ""
-  }
-  linked_database_id = [
-    "${azurerm_managed_redis_cluster.test.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test1.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test2.id}/databases/default"
-  ]
+//   client_protocol   = "Encrypted"
+//   clustering_policy = "EnterpriseCluster"
+//   eviction_policy   = "NoEviction"
+//   module {
+//     name = "RediSearch"
+//     args = ""
+//   }
+//   linked_database_id = [
+//     "${azurerm_managed_redis_cluster.test.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test1.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test2.id}/databases/default"
+//   ]
 
-  linked_database_group_nickname = "tftestGeoGroup"
-}
-`, r.templateThreeClusters(data))
-}
+//   linked_database_group_nickname = "tftestGeoGroup"
+// }
+// `, r.templateThreeClusters(data))
+// }
 
-func (r ManagedRedisDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+// func (r ManagedRedisDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
 
-%s
+// %s
 
-resource "azurerm_managed_redis_database" "test" {
-  cluster_id = azurerm_managed_redis_cluster.test.id
+// resource "azurerm_managed_redis_database" "test" {
+//   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "NoEviction"
-  module {
-    name = "RedisJSON"
-    args = ""
-  }
-  linked_database_id = [
-    "${azurerm_managed_redis_cluster.test.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test1.id}/databases/default",
-    "${azurerm_managed_redis_cluster.test2.id}/databases/default"
-  ]
+//   client_protocol   = "Encrypted"
+//   clustering_policy = "EnterpriseCluster"
+//   eviction_policy   = "NoEviction"
+//   module {
+//     name = "RedisJSON"
+//     args = ""
+//   }
+//   linked_database_id = [
+//     "${azurerm_managed_redis_cluster.test.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test1.id}/databases/default",
+//     "${azurerm_managed_redis_cluster.test2.id}/databases/default"
+//   ]
 
-  linked_database_group_nickname = "tftestGeoGroup"
-}
-`, r.templateThreeClusters(data))
-}
+//   linked_database_group_nickname = "tftestGeoGroup"
+// }
+// `, r.templateThreeClusters(data))
+// }
 
-func (r ManagedRedisDatabaseResource) customizeDiffDatabaseIdError(data acceptance.TestData) string {
-	return `
-provider "azurerm" {
-  features {}
-}
+// func (r ManagedRedisDatabaseResource) customizeDiffDatabaseIdError(data acceptance.TestData) string {
+// 	return `
+// provider "azurerm" {
+//   features {}
+// }
 
-resource "azurerm_managed_redis_database" "test" {
-  name       = "default"
-  cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
+// resource "azurerm_managed_redis_database" "test" {
+//   name       = "default"
+//   cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
 
-  linked_database_id = [
-    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise2/databases/default",
-  ]
-}
-`
-}
+//   linked_database_id = [
+//     "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise2/databases/default",
+//   ]
+// }
+// `
+// }
 
 func (r ManagedRedisDatabaseResource) customizeDiffModuleError() string {
 	return `
@@ -503,7 +411,6 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis_database" "test" {
-  name       = "default"
   cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
 
   module {
@@ -511,9 +418,7 @@ resource "azurerm_managed_redis_database" "test" {
     args = ""
   }
 
-  linked_database_id = [
-    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1/databases/default",
-  ]
+  geo_replication_group_name = "testGeoReplGroup"
 }
 `
 }

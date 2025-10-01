@@ -22,21 +22,15 @@ type ManagedRedisDatabaseDataSource struct{}
 var _ sdk.DataSource = ManagedRedisDatabaseDataSource{}
 
 type ManagedRedisDatabaseDataSourceModel struct {
-	Name                        string   `tfschema:"name"`
-	ClusterId                   string   `tfschema:"cluster_id"`
-	LinkedDatabaseId            []string `tfschema:"linked_database_id"`
-	LinkedDatabaseGroupNickname string   `tfschema:"linked_database_group_nickname"`
-	PrimaryAccessKey            string   `tfschema:"primary_access_key"`
-	SecondaryAccessKey          string   `tfschema:"secondary_access_key"`
+	ClusterId               string   `tfschema:"cluster_id"`
+	GeoReplicationGroupName string   `tfschema:"geo_replication_group_name"`
+	LinkedDatabaseIds       []string `tfschema:"linked_database_ids"`
+	PrimaryAccessKey        string   `tfschema:"primary_access_key"`
+	SecondaryAccessKey      string   `tfschema:"secondary_access_key"`
 }
 
 func (r ManagedRedisDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-
 		"cluster_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -47,18 +41,18 @@ func (r ManagedRedisDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema
 
 func (r ManagedRedisDatabaseDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"linked_database_id": {
+		"geo_replication_group_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"linked_database_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: databases.ValidateDatabaseID,
 			},
-		},
-
-		"linked_database_group_nickname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
 		},
 
 		"primary_access_key": {
@@ -100,7 +94,7 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, state.Name)
+			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -115,8 +109,8 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if geoProps := props.GeoReplication; geoProps != nil {
-						state.LinkedDatabaseGroupNickname = pointer.From(geoProps.GroupNickname)
-						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(geoProps.LinkedDatabases)
+						state.GeoReplicationGroupName = pointer.From(geoProps.GroupNickname)
+						state.LinkedDatabaseIds = flattenLinkedDatabases(geoProps.LinkedDatabases)
 					}
 					if strings.EqualFold(string(pointer.From(props.AccessKeysAuthentication)), string(databases.AccessKeysAuthenticationEnabled)) {
 						keysResp, err := client.ListKeys(ctx, id)

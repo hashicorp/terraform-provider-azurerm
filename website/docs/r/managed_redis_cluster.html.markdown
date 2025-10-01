@@ -161,9 +161,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Managed Redis Cluster should exist. Changing this forces a new Managed Redis Cluster to be created.
 
-* `location` - (Required) The Azure Region where the Managed Redis Cluster should exist. Refer to [product availability documentation](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table) for supported locations. Changing this forces a new Managed Redis Cluster to be created.
+* `location` - (Required) The Azure Region where the Managed Redis Cluster should exist. Refer to "Redis Enterprise" on the [product availability documentation](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table) for supported locations. Changing this forces a new Managed Redis Cluster to be created.
 
-* `sku_name` - (Required) The features and specification of the Managed Redis Cluster to deploy. Refer to [the documentation](https://learn.microsoft.com/en-us/rest/api/redis/redisenterprisecache/redis-enterprise/create?view=rest-redis-redisenterprisecache-2025-04-01&tabs=HTTP#skuname) for valid values. `Enterprise_` and `EnterpriseFlash_` prefixed SKUs are [no longer supported](https://learn.microsoft.com/azure/redis/migrate/migrate-overview). Changing this forces a new Managed Redis Cluster to be created.
+* `sku_name` - (Required) The features and specification of the Managed Redis Cluster to deploy. Refer to [the documentation](https://learn.microsoft.com/rest/api/redis/redisenterprisecache/redis-enterprise/create?view=rest-redis-redisenterprisecache-2025-04-01&tabs=HTTP#skuname) for valid values. `Balanced_B3` SKU or higher is required for geo-replication. `Enterprise_` and `EnterpriseFlash_` prefixed SKUs are [no longer supported](https://learn.microsoft.com/azure/redis/migrate/migrate-overview). Changing this forces a new Managed Redis Cluster to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 

@@ -6,7 +6,6 @@ package managedredis
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -14,10 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,15 +26,16 @@ var (
 	_ sdk.ResourceWithUpdate        = ManagedRedisDatabaseResource{}
 )
 
+// The only valid database name is 'default'
+const DefaultDatabaseName = "default"
+
 type ManagedRedisDatabaseResourceModel struct {
-	Name                            string        `tfschema:"name"`
 	ClusterId                       string        `tfschema:"cluster_id"`
 	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
 	ClientProtocol                  string        `tfschema:"client_protocol"`
 	ClusteringPolicy                string        `tfschema:"clustering_policy"`
 	EvictionPolicy                  string        `tfschema:"eviction_policy"`
-	LinkedDatabaseGroupNickname     string        `tfschema:"linked_database_group_nickname"`
-	LinkedDatabaseId                []string      `tfschema:"linked_database_id"`
+	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
 	Module                          []ModuleModel `tfschema:"module"`
 	Port                            int64         `tfschema:"port"`
 	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
@@ -53,14 +50,6 @@ type ModuleModel struct {
 
 func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      "default",
-			ValidateFunc: validate.ManagedRedisDatabaseName,
-		},
-
 		"cluster_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -98,22 +87,11 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForEvictionPolicy(), false),
 		},
 
-		"linked_database_group_nickname": {
+		"geo_replication_group_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"linked_database_id"},
 			ValidateFunc: validate.ManagedRedisDatabaseGeoreplicationGroupName,
-		},
-
-		"linked_database_id": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MaxItems: 5,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: databases.ValidateDatabaseID,
-			},
 		},
 
 		"module": {
@@ -204,11 +182,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name)
-
-			if err := validate.ValidateLinkedDatabaseIncludesSelf(model.LinkedDatabaseId, id.ID()); err != nil {
-				return err
-			}
+			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -226,13 +200,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 				accessKeysAuth = databases.AccessKeysAuthenticationEnabled
 			}
 
-			linkedDatabase := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, model.LinkedDatabaseGroupNickname)
-
-			isGeoEnabled := false
-			if linkedDatabase != nil {
-				isGeoEnabled = true
-			}
-			module, err := expandArmDatabaseModuleArray(model.Module, isGeoEnabled)
+			module, err := expandArmDatabaseModuleArray(model.Module)
 			if err != nil {
 				return fmt.Errorf("expanding `module`: %+v", err)
 			}
@@ -244,7 +212,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 					ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(model.ClusteringPolicy)),
 					EvictionPolicy:           pointer.To(databases.EvictionPolicy(model.EvictionPolicy)),
 					Port:                     pointer.To(model.Port),
-					GeoReplication:           linkedDatabase,
+					GeoReplication:           expandGeoReplication(model.GeoReplicationGroupName, id.ID()),
 					Modules:                  module,
 				},
 			}
@@ -283,9 +251,7 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := ManagedRedisDatabaseResourceModel{
-				Name: id.DatabaseName,
-			}
+			state := ManagedRedisDatabaseResourceModel{}
 
 			clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 			state.ClusterId = clusterId.ID()
@@ -293,14 +259,13 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.AccessKeysAuthenticationEnabled = strings.EqualFold(string(pointer.From(props.AccessKeysAuthentication)), string(databases.AccessKeysAuthenticationEnabled))
-					state.ClientProtocol = string(pointer.From(props.ClientProtocol))
-					state.ClusteringPolicy = string(pointer.From(props.ClusteringPolicy))
-					state.EvictionPolicy = string(pointer.From(props.EvictionPolicy))
+					state.ClientProtocol = pointer.FromEnum(props.ClientProtocol)
+					state.ClusteringPolicy = pointer.FromEnum(props.ClusteringPolicy)
+					state.EvictionPolicy = pointer.FromEnum(props.EvictionPolicy)
 					state.Port = pointer.From(props.Port)
 
 					if geoProps := props.GeoReplication; geoProps != nil {
-						state.LinkedDatabaseGroupNickname = pointer.From(geoProps.GroupNickname)
-						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(geoProps.LinkedDatabases)
+						state.GeoReplicationGroupName = pointer.From(geoProps.GroupNickname)
 					}
 
 					state.Module = flattenArmDatabaseModuleArray(props.Modules)
@@ -339,10 +304,6 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if err := validate.ValidateLinkedDatabaseIncludesSelf(model.LinkedDatabaseId, id.ID()); err != nil {
-				return err
-			}
-
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -356,32 +317,18 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			}
 
 			param := existing.Model
-			databaseUpdateNeeded := false
-
-			if metadata.ResourceData.HasChange("linked_database_id") {
-				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
-				if err := forceUnlinkDatabase(ctx, &metadata, oldItems, newItems); err != nil {
-					return fmt.Errorf("force unlinking database error: %+v", err)
-				}
-				if err := forceLinkDatabase(ctx, &metadata, oldItems, newItems); err != nil {
-					return fmt.Errorf("force linking database error: %+v", err)
-				}
-			}
 
 			if metadata.ResourceData.HasChange("access_keys_authentication_enabled") {
 				param.Properties.AccessKeysAuthentication = pointer.To(databases.AccessKeysAuthenticationDisabled)
 				if model.AccessKeysAuthenticationEnabled {
 					param.Properties.AccessKeysAuthentication = pointer.To(databases.AccessKeysAuthenticationEnabled)
 				}
-				databaseUpdateNeeded = true
 			}
 
-			if databaseUpdateNeeded {
-				// Oddly this SDK does not have a CreateOrUpdate method. Despite the name, Create uses PUT. Update / PATCH
-				// method cannot be used because it has a bug where accessKeysAuthentication update is not yet implemented.
-				if err := client.CreateThenPoll(ctx, *id, *param); err != nil {
-					return fmt.Errorf("updating %s: %+v", *id, err)
-				}
+			// This SDK does not have a CreateOrUpdate method. Despite the name, Create uses PUT. Update / PATCH
+			// method cannot be used because it has a bug where accessKeysAuthentication update is not yet implemented.
+			if err := client.CreateThenPoll(ctx, *id, *param); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -394,29 +341,14 @@ func (r ManagedRedisDatabaseResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedRedis.DatabaseClient
-			clusterClient := metadata.Client.ManagedRedis.Client
 
 			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName, id.DatabaseName)
-			clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
-
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
-			// can't use DeleteThenPoll since cluster deletion also deletes the default database, which will cause db deletion failure
-			deletePoller := custompollers.NewDatabaseDeletePoller(client, clusterClient, dbId, clusterId)
-			poller := pollers.NewPoller(deletePoller, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-
-			timeoutContext, cancel := context.WithTimeout(ctx, metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete))
-			defer cancel()
-
-			if err := poller.PollUntilDone(timeoutContext); err != nil {
-				return fmt.Errorf("waiting for deletion %s: %+v", id, err)
 			}
 
 			return nil
@@ -437,37 +369,9 @@ func (r ManagedRedisDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			isGeoEnabled := len(model.LinkedDatabaseId) > 0
-
-			if isGeoEnabled {
-				var currentDatabaseId string
-				switch {
-				case metadata.ResourceData != nil && metadata.ResourceData.Id() != "":
-					currentDatabaseId = metadata.ResourceData.Id()
-				case model.ClusterId != "" && model.Name != "":
-					clusterId, err := redisenterprise.ParseRedisEnterpriseID(model.ClusterId)
-					if err != nil {
-						return fmt.Errorf("parsing cluster ID: %+v", err)
-					}
-					currentDatabaseId = databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name).ID()
-				default:
-					return nil
-				}
-
-				isCurrentDbIncluded := false
-				for _, id := range model.LinkedDatabaseId {
-					if id == currentDatabaseId {
-						isCurrentDbIncluded = true
-						break
-					}
-				}
-
-				if !isCurrentDbIncluded {
-					return fmt.Errorf("linked database list must include the current database ID: %s", currentDatabaseId)
-				}
-
+			if isGeoReplicationEnabled := model.GeoReplicationGroupName != ""; isGeoReplicationEnabled {
 				for _, module := range model.Module {
-					if module.Name != "RediSearch" && module.Name != "RedisJSON" {
+					if module.Name != "" && module.Name != "RediSearch" && module.Name != "RedisJSON" {
 						return fmt.Errorf("Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication")
 					}
 				}
@@ -478,13 +382,24 @@ func (r ManagedRedisDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandArmDatabaseModuleArray(input []ModuleModel, isGeoEnabled bool) (*[]databases.Module, error) {
-	results := make([]databases.Module, 0)
+func expandGeoReplication(input string, id string) *databases.DatabasePropertiesGeoReplication {
+	if input == "" {
+		return nil
+	}
 
+	return &databases.DatabasePropertiesGeoReplication{
+		GroupNickname: pointer.To(input),
+		LinkedDatabases: &[]databases.LinkedDatabase{
+			{
+				Id: pointer.To(id),
+			},
+		},
+	}
+}
+
+func expandArmDatabaseModuleArray(input []ModuleModel) (*[]databases.Module, error) {
+	results := make([]databases.Module, 0, len(input))
 	for _, item := range input {
-		if item.Name != "RediSearch" && item.Name != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication")
-		}
 		results = append(results, databases.Module{
 			Name: item.Name,
 			Args: pointer.To(item.Args),
@@ -508,95 +423,4 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []ModuleModel {
 	}
 
 	return results
-}
-
-func expandArmGeoLinkedDatabase(inputId []string, inputGeoName string) *databases.DatabasePropertiesGeoReplication {
-	idList := make([]databases.LinkedDatabase, 0)
-	if len(inputId) == 0 {
-		return nil
-	}
-
-	for _, id := range inputId {
-		idList = append(idList, databases.LinkedDatabase{
-			Id: pointer.To(id),
-		})
-	}
-
-	return &databases.DatabasePropertiesGeoReplication{
-		LinkedDatabases: &idList,
-		GroupNickname:   pointer.To(inputGeoName),
-	}
-}
-
-func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
-	results := make([]string, 0)
-
-	if inputDB == nil {
-		return results
-	}
-
-	for _, item := range *inputDB {
-		if item.Id != nil {
-			results = append(results, *item.Id)
-		}
-	}
-	return results
-}
-
-func forceUnlinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
-	isForceUnlinkNeeded, data := databaselink.ForceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
-	if isForceUnlinkNeeded {
-		client := meta.Client.ManagedRedis.DatabaseClient
-		log.Printf("[INFO] Preparing to unlink a linked database")
-
-		id, err := databases.ParseDatabaseID(meta.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-
-		parameters := databases.ForceUnlinkParameters{
-			Ids: data,
-		}
-
-		if err := client.ForceUnlinkThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("force unlinking from database %s error: %+v", id, err)
-		}
-	}
-	return nil
-}
-
-func forceLinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
-	if databaselink.ForceLinkNeeded(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List()) {
-		client := meta.Client.ManagedRedis.DatabaseClient
-		log.Printf("[INFO] Preparing to link to a replication group")
-
-		id, err := databases.ParseDatabaseID(meta.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-
-		var model ManagedRedisDatabaseResourceModel
-		if err := meta.Decode(&model); err != nil {
-			return fmt.Errorf("decoding model: %+v", err)
-		}
-
-		linkedDatabases := make([]databases.LinkedDatabase, 0)
-		for _, item := range model.LinkedDatabaseId {
-			linkedDatabases = append(linkedDatabases, databases.LinkedDatabase{
-				Id: pointer.To(item),
-			})
-		}
-
-		parameters := databases.ForceLinkParameters{
-			GeoReplication: databases.ForceLinkParametersGeoReplication{
-				GroupNickname:   pointer.To(model.LinkedDatabaseGroupNickname),
-				LinkedDatabases: &linkedDatabases,
-			},
-		}
-
-		if err := client.ForceLinkToReplicationGroupThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("force linking to replication group %s error: %+v", id, err)
-		}
-	}
-	return nil
 }

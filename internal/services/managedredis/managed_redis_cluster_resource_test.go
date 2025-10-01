@@ -6,6 +6,7 @@ package managedredis_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,20 +91,6 @@ func TestAccManagedRedisCluster_update(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisCluster_withCmk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
-	r := ManagedRedisClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withCmk(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccManagedRedisCluster_withPrivateEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
 	r := ManagedRedisClusterResource{}
@@ -115,6 +102,17 @@ func TestAccManagedRedisCluster_withPrivateEndpoint(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedisCluster_invalidLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
+	r := ManagedRedisClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidLocation(),
+			ExpectError: regexp.MustCompile(`location .* does not support Managed Redis`),
+		},
 	})
 }
 
@@ -146,7 +144,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Balanced_B3"
+  sku_name = "Balanced_B0"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -230,7 +228,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Balanced_B3"
+  sku_name = "Balanced_B0"
 
   identity {
     type         = "UserAssigned"
@@ -263,38 +261,8 @@ resource "azurerm_managed_redis_cluster" "import" {
 `, r.basic(data))
 }
 
+// TODO add zones (availability zones)
 func (r ManagedRedisClusterResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-managedRedis-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-mrc-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  high_availability_enabled = true
-
-  sku_name = "Balanced_B3"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r ManagedRedisClusterResource) withCmk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -373,16 +341,22 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Balanced_B3"
+  sku_name = "Balanced_B0"
+  
+  customer_managed_key {
+    encryption_key_url        = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+    
+  high_availability_enabled = true
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  customer_managed_key {
-    encryption_key_url        = azurerm_key_vault_key.test.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  tags = {
+    ENV = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -417,7 +391,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-mrc-%[1]d"
   location            = azurerm_virtual_network.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Balanced_B3"
+  sku_name            = "Balanced_B0"
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -435,4 +409,15 @@ resource "azurerm_private_endpoint" "test" {
 }
 
 	`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisClusterResource) invalidLocation() string {
+	return `
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-invalid"
+  location            = "japanwest"
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B0"
+}
+`
 }
