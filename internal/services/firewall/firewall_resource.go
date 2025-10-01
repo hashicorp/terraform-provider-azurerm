@@ -225,22 +225,19 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"autoscale_configuration": {
-				Type:        pluginsdk.TypeSet,
-				Description: "Properties to provide a custom autoscale configuration to this azure firewall.",
-				Optional:    true,
-				Required:    false,
-				Elem: &schema.Resource{
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
 							Type:         pluginsdk.TypeInt,
-							Description:  "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
 							Required:     false,
 							Optional:     true,
 							ValidateFunc: validate.MinCapacity,
 						},
 						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
-							Description:  "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
 							Optional:     true,
 							ValidateFunc: validate.MaxCapacity,
 						},

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -153,20 +152,17 @@ func firewallDataSource() *pluginsdk.Resource {
 			},
 
 			"autoscale_configuration": {
-				Type:        pluginsdk.TypeSet,
-				Description: "Properties to provide a custom autoscale configuration to this azure firewall.",
-				Computed:    true,
-				Elem: &schema.Resource{
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
-							Type:        pluginsdk.TypeInt,
-							Description: "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
-							Computed:    true,
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
 						},
 						"max_capacity": {
-							Type:        pluginsdk.TypeInt,
-							Description: "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
-							Computed:    true,
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
 						},
 					},
 				},
