@@ -642,7 +642,7 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 func expandAutoscaleConfiguration(config []interface{}) (*azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
 	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
 	emptyConfig := make(map[string]interface{})
-	if config != nil && len(config) == 1 {
+	if len(config) == 1 {
 		emptyConfig = config[0].(map[string]interface{})
 	}
 
