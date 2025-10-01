@@ -54,6 +54,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	product_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/product"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -105,6 +106,7 @@ type Client struct {
 	ServiceClient                      *apimanagementservice.ApiManagementServiceClient
 	SignInClient                       *signinsettings.SignInSettingsClient
 	SignUpClient                       *signupsettings.SignUpSettingsClient
+	ProductClient_v2024_05_01          *product_v2024_05_01.ProductClient
 	SubscriptionsClient                *subscription.SubscriptionClient
 	TagClient                          *tag.TagClient
 	TenantAccessClient                 *tenantaccess.TenantAccessClient
@@ -407,6 +409,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(usersClient.Client, o.Authorizers.ResourceManager)
 
+	productClient_v2024_05_01, err := product_v2024_05_01.NewProductClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building product client: %+v", err)
+	}
+	o.Configure(productClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	workspaceClient, err := workspace.NewWorkspaceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building workspace client: %+v", err)
@@ -459,6 +467,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ServiceClient:                      serviceClient,
 		SignInClient:                       signInClient,
 		SignUpClient:                       signUpClient,
+		ProductClient_v2024_05_01:          productClient_v2024_05_01,
 		SubscriptionsClient:                subscriptionsClient,
 		TagClient:                          tagClient,
 		TenantAccessClient:                 tenantAccessClient,
