@@ -77,7 +77,7 @@ A `template` block exports the following:
 
 * `min_replicas` - The minimum number of replicas for this container.
 
-* `revision_suffix` - The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
+* `revision_suffix` - The suffix for the revision.
 
 * `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
@@ -99,11 +99,11 @@ A `volume` block exports the following:
 
 A `init_container` block exports the following:
 
-* `args` - A list of extra arguments to pass to the container.
+* `args` - A list of extra arguments passed to the container.
 
-* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `command` - A command passed to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - The amount of vCPU to allocate to the container.
+* `cpu` - The amount of vCPU allocated to the container.
 
 * `env` - One or more `env` blocks as detailed below.
 
@@ -111,7 +111,7 @@ A `init_container` block exports the following:
 
 * `image` - The image to use to create the container.
 
-* `memory` - The amount of memory to allocate to the container.
+* `memory` - The amount of memory allocated to the container.
 
 * `name` - The name of the container
 
@@ -121,11 +121,11 @@ A `init_container` block exports the following:
 
 A `container` block exports the following:
 
-* `args` - A list of extra arguments to pass to the container.
+* `args` - A list of extra arguments passed to the container.
 
-* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `command` - A command passed to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - The amount of vCPU to allocate to the container.
+* `cpu` - The amount of vCPU allocated to the container.
 
 * `env` - One or more `env` blocks as detailed below.
 
@@ -135,7 +135,7 @@ A `container` block exports the following:
 
 * `liveness_probe` - A `liveness_probe` block as detailed below.
 
-* `memory` - The amount of memory to allocate to the container.
+* `memory` - The amount of memory allocated to the container.
 
 * `name` - The name of the container
 
@@ -153,13 +153,13 @@ A `liveness_probe` block exports the following:
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The probe hostname.
 
 * `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
 * `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI used with the `host` for http type probes.
 
 * `port` - The port number on which to connect.
 
@@ -193,13 +193,13 @@ A `readiness_probe` block exports the following:
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The probe hostname.
 
 * `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
 * `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI to use for http type probes.
 
 * `port` - The port number on which to connect.
 
@@ -225,13 +225,13 @@ A `startup_probe` block exports the following:
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The value for the host header which should be sent with this probe.
 
 * `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
 * `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI to use with the `host` for http type probes.
 
 * `port` - The port number on which to connect.
 
@@ -263,7 +263,7 @@ An `identity` block exports the following:
 
 * `type` - The type of managed identity to assign.
 
-* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign.
 
 ---
 
@@ -357,9 +357,9 @@ A `registry` block exports the following:
 
 * `identity` - Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 
-* `password_secret_name` - The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
+* `password_secret_name` - The name of the Secret Reference containing the password value for the user on the Container Registry.
 
-* `username` - The username to use for this Container Registry, `password_secret_name` must also be supplied..
+* `username` - The username used for this Container Registry.
 
 ## Timeouts
 
