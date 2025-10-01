@@ -54,6 +54,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	namedvalue_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/namedvalue"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -91,6 +92,7 @@ type Client struct {
 	IdentityProviderClient             *identityprovider.IdentityProviderClient
 	LoggerClient                       *logger.LoggerClient
 	NamedValueClient                   *namedvalue.NamedValueClient
+	NamedValueClient_v2024_05_01       *namedvalue_v2024_05_01.NamedValueClient
 	NotificationRecipientEmailClient   *notificationrecipientemail.NotificationRecipientEmailClient
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
@@ -293,6 +295,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(namedValueClient.Client, o.Authorizers.ResourceManager)
 
+	namedValueClient_v2024_05_01, err := namedvalue_v2024_05_01.NewNamedValueClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspace Named Value client: %+v", err)
+	}
+	o.Configure(namedValueClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	notificationRecipientEmailClient, err := notificationrecipientemail.NewNotificationRecipientEmailClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Notification Recipient Email client: %+v", err)
@@ -445,6 +453,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		IdentityProviderClient:             identityProviderClient,
 		LoggerClient:                       loggerClient,
 		NamedValueClient:                   namedValueClient,
+		NamedValueClient_v2024_05_01:       namedValueClient_v2024_05_01,
 		NotificationRecipientEmailClient:   notificationRecipientEmailClient,
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
 		OpenIdConnectClient:                openIdConnectClient,
