@@ -4,6 +4,7 @@
 package firewall
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -232,16 +233,43 @@ func resourceFirewall() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
 							Type:         pluginsdk.TypeInt,
-							Required:     false,
 							Optional:     true,
-							ValidateFunc: validate.MinCapacity,
+							ValidateFunc: validation.IntBetween(2, 50),
 						},
 						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validate.MaxCapacity,
+							ValidateFunc: validation.IntBetween(2, 50),
 						},
 					},
+					CustomizeDiff: pluginsdk.CustomDiffWithAll(
+						// Verify autoscaleConfiguration server side validations, on client side
+						pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+							_, nMin := diff.GetChange("min_capacity")
+							_, nMax := diff.GetChange("max_capacity")
+
+							min := -1
+							max := -1
+
+							if nMin != "" {
+								min = int(nMin.(float64))
+							}
+							if nMax != "" {
+								max = int(nMax.(float64))
+							}
+
+							if min > 0 && max > 0 {
+								if min > max {
+									return fmt.Errorf("min_capacity cannot be greater than max_capacity")
+								}
+								if max-min < 2 || max-min != 0 {
+									return fmt.Errorf("max_capacity must be at least 2 greater than min_capacity or be exactly 0")
+								}
+							}
+
+							return nil
+						}),
+					),
 				},
 			},
 
@@ -378,12 +406,11 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if autoscaleConfiguration := d.Get("autoscale_configuration").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
-		configMap := autoscaleConfiguration[0].(map[string]interface{})
-		configuration, err := expandAutoscaleConfiguration(configMap)
+		configuration, err := expandAutoscaleConfiguration(autoscaleConfiguration)
 		if err != nil {
 			return err
 		}
-		parameters.Properties.AutoscaleConfiguration = &configuration
+		parameters.Properties.AutoscaleConfiguration = configuration
 	}
 
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
@@ -612,19 +639,24 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return err
 }
 
-func expandAutoscaleConfiguration(d map[string]interface{}) (azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
+func expandAutoscaleConfiguration(config []interface{}) (*azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
 	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+	emptyConfig := make(map[string]interface{})
+	if config != nil && len(config) == 1 {
+		emptyConfig = config[0].(map[string]interface{})
+	}
+
 	minPresent := false
 	maxPresent := false
 	min := 0
 	max := 0
-	if _, ok := d["min_capacity"]; ok {
+	if _, ok := emptyConfig["min_capacity"]; ok {
 		minPresent = true
-		min = d["min_capacity"].(int)
+		min = emptyConfig["min_capacity"].(int)
 	}
-	if _, ok := d["max_capacity"]; ok {
+	if _, ok := emptyConfig["max_capacity"]; ok {
 		maxPresent = true
-		max = d["max_capacity"].(int)
+		max = emptyConfig["max_capacity"].(int)
 	}
 	if minPresent && min > 0 {
 		configuration.MinCapacity = pointer.FromInt64(int64(min))
@@ -632,11 +664,7 @@ func expandAutoscaleConfiguration(d map[string]interface{}) (azurefirewalls.Azur
 	if maxPresent && max > 0 {
 		configuration.MaxCapacity = pointer.FromInt64(int64(max))
 	}
-	_, errors := validate.AutoscaleConfiguration(d)
-	if len(errors) > 0 {
-		return azurefirewalls.AzureFirewallAutoscaleConfiguration{}, fmt.Errorf("validating `autoscale_configuration`: %+v", errors)
-	}
-	return configuration, nil
+	return &configuration, nil
 }
 
 func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
