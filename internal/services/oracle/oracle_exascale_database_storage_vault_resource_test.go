@@ -1,4 +1,5 @@
-// Copyright © 2025, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -16,37 +17,37 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ExascaleDbStorageVaultResource struct{}
+type ExascaleDatabaseStorageVaultResource struct{}
 
-func (a ExascaleDbStorageVaultResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (a ExascaleDatabaseStorageVaultResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exascaledbstoragevaults.ParseExascaleDbStorageVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resp, err := client.Oracle.OracleClient.ExascaleDbStorageVaults.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving db storage vault %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
 func TestDbStorageVaultResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.ExascaleDbStorageVaultResource{}.ResourceType(), "test")
-	r := ExascaleDbStorageVaultResource{}
+	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
+	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("high_capacity_database_storage.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage"),
 	})
 }
 
 func TestDbStorageVaultResource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.ExascaleDbStorageVaultResource{}.ResourceType(), "test")
-	r := ExascaleDbStorageVaultResource{}
+	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
+	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -54,13 +55,13 @@ func TestDbStorageVaultResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage"),
+		data.ImportStep(),
 	})
 }
 
 func TestDbStorageVaultResource_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.ExascaleDbStorageVaultResource{}.ResourceType(), "test")
-	r := ExascaleDbStorageVaultResource{}
+	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
+	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -68,27 +69,27 @@ func TestDbStorageVaultResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage"),
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage"),
+		data.ImportStep(),
 	})
 }
 
 func TestDbStorageVaultResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.ExascaleDbStorageVaultResource{}.ResourceType(), "test")
-	r := ExascaleDbStorageVaultResource{}
+	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
+	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -100,7 +101,7 @@ func TestDbStorageVaultResource_requiresImport(t *testing.T) {
 	})
 }
 
-func (a ExascaleDbStorageVaultResource) basic(data acceptance.TestData) string {
+func (a ExascaleDatabaseStorageVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -108,14 +109,13 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_oracle_exascale_db_storage_vault" "test" {
+resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                              = "OFakeacctest%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   location                          = "%[3]s"
   zones                             = ["2"]
   display_name                      = "OFakeacctest%[2]d"
-  description                       = "description"
-  additional_flash_cache_in_percent = 100
+  additional_flash_cache_percentage = 100
   high_capacity_database_storage {
     total_size_in_gb = 300
   }
@@ -123,7 +123,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDbStorageVaultResource) complete(data acceptance.TestData) string {
+func (a ExascaleDatabaseStorageVaultResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +131,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_oracle_exascale_db_storage_vault" "test" {
+resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                = "OFakeacctest%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
@@ -140,9 +140,9 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   high_capacity_database_storage {
     total_size_in_gb = 300
   }
-  additional_flash_cache_in_percent = 100
+  additional_flash_cache_percentage = 100
   description                       = "description"
-  time_zone                         = "UTC"
+  time_zone                         = "America/New_York"
   tags = {
     ENV = "Test"
   }
@@ -150,27 +150,27 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDbStorageVaultResource) requiresImport(data acceptance.TestData) string {
+func (a ExascaleDatabaseStorageVaultResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_exascale_db_storage_vault" "import" {
-  name                              = azurerm_oracle_exascale_db_storage_vault.test.name
-  resource_group_name               = azurerm_oracle_exascale_db_storage_vault.test.resource_group_name
-  location                          = azurerm_oracle_exascale_db_storage_vault.test.location
-  display_name                      = azurerm_oracle_exascale_db_storage_vault.test.display_name
-  additional_flash_cache_in_percent = azurerm_oracle_exascale_db_storage_vault.test.additional_flash_cache_in_percent
-  description                       = azurerm_oracle_exascale_db_storage_vault.test.description
-  time_zone                         = azurerm_oracle_exascale_db_storage_vault.test.time_zone
-  zones                             = azurerm_oracle_exascale_db_storage_vault.test.zones
+resource "azurerm_oracle_exascale_database_storage_vault" "import" {
+  name                              = azurerm_oracle_exascale_database_storage_vault.test.name
+  resource_group_name               = azurerm_oracle_exascale_database_storage_vault.test.resource_group_name
+  location                          = azurerm_oracle_exascale_database_storage_vault.test.location
+  display_name                      = azurerm_oracle_exascale_database_storage_vault.test.display_name
+  additional_flash_cache_percentage = azurerm_oracle_exascale_database_storage_vault.test.additional_flash_cache_percentage
+  description                       = azurerm_oracle_exascale_database_storage_vault.test.description
+  time_zone                         = azurerm_oracle_exascale_database_storage_vault.test.time_zone
+  zones                             = azurerm_oracle_exascale_database_storage_vault.test.zones
   high_capacity_database_storage {
-    total_size_in_gb = azurerm_oracle_exascale_db_storage_vault.test.high_capacity_database_storage[0].total_size_in_gb
+    total_size_in_gb = azurerm_oracle_exascale_database_storage_vault.test.high_capacity_database_storage[0].total_size_in_gb
   }
 }
 `, a.basic(data))
 }
 
-func (a ExascaleDbStorageVaultResource) template(data acceptance.TestData) string {
+func (a ExascaleDatabaseStorageVaultResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -178,5 +178,5 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary)
 }
