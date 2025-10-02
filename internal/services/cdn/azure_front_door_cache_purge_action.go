@@ -18,26 +18,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-type AzureFrontDoorCachePurgeAction struct {
+type FrontDoorCachePurgeAction struct {
 	sdk.ActionMetadata
 }
 
-type AzureFrontDoorCachePurgeActionModel struct {
-	AzureFrontDoorId types.String                          `tfsdk:"front_door_id"`
+type FrontDoorCachePurgeActionModel struct {
+	AzureFrontDoorId types.String                          `tfsdk:"front_door_endpoint_id"`
 	ContentPaths     typehelpers.ListValueOf[types.String] `tfsdk:"content_paths"`
 	Domains          typehelpers.ListValueOf[types.String] `tfsdk:"domains"`
+	Timeout          types.Int64                           `tfsdk:"timeout"`
 }
 
-var _ sdk.Action = &AzureFrontDoorCachePurgeAction{}
+var _ sdk.Action = &FrontDoorCachePurgeAction{}
 
-func newAzureFrontDoorCachePurgeAction() action.Action {
-	return &AzureFrontDoorCachePurgeAction{}
+func newCDNFrontDoorCachePurgeAction() action.Action {
+	return &FrontDoorCachePurgeAction{}
 }
 
-func (a *AzureFrontDoorCachePurgeAction) Schema(ctx context.Context, request action.SchemaRequest, response *action.SchemaResponse) {
+func (a *FrontDoorCachePurgeAction) Schema(ctx context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"front_door_id": schema.StringAttribute{
+			"front_door_endpoint_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -73,26 +74,36 @@ func (a *AzureFrontDoorCachePurgeAction) Schema(ctx context.Context, request act
 					),
 				},
 			},
+
+			"timeout": schema.Int64Attribute{
+				Optional:            true,
+				Description:         "Timeout in seconds for the Front Door Purge action to complete. Defaults to 1800 (30m).",
+				MarkdownDescription: "Timeout in seconds for the Front Door Purge action to complete. Defaults to 1800 (30m).",
+			},
 		},
 	}
 }
 
-func (a *AzureFrontDoorCachePurgeAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
-	response.TypeName = "azurerm_azure_front_door_cache_purge"
+func (a *FrontDoorCachePurgeAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
+	response.TypeName = "azurerm_cdn_front_door_cache_purge"
 }
 
-func (a *AzureFrontDoorCachePurgeAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
+func (a *FrontDoorCachePurgeAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := a.Client.Cdn.AFDEndpointsClient
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-	defer cancel()
-
-	model := AzureFrontDoorCachePurgeActionModel{}
-
+	model := FrontDoorCachePurgeActionModel{}
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	ctxTimeout := 1800 * time.Second
+	if t := model.Timeout; !t.IsNull() {
+		ctxTimeout = time.Duration(t.ValueInt64()) * time.Second
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, ctxTimeout)
+	defer cancel()
 
 	id, err := afdendpoints.ParseAfdEndpointID(model.AzureFrontDoorId.ValueString())
 	if err != nil {
@@ -121,7 +132,7 @@ func (a *AzureFrontDoorCachePurgeAction) Invoke(ctx context.Context, request act
 	}
 
 	response.SendProgress(action.InvokeProgressEvent{
-		Message: "Purging Azure Front Door Cache",
+		Message: fmt.Sprintf("Purging Azure Front Door Cache, paths (%s) / domains (%s)", model.ContentPaths, model.Domains),
 	})
 
 	if err := client.PurgeContentThenPoll(ctx, *id, payload); err != nil {
@@ -130,10 +141,10 @@ func (a *AzureFrontDoorCachePurgeAction) Invoke(ctx context.Context, request act
 	}
 
 	response.SendProgress(action.InvokeProgressEvent{
-		Message: "Purged Azure Front Door Cache",
+		Message: fmt.Sprintf("Purged Azure Front Door Cache, paths (%s) / domains (%s)", model.ContentPaths, model.Domains),
 	})
 }
 
-func (a *AzureFrontDoorCachePurgeAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
+func (a *FrontDoorCachePurgeAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
 	a.Defaults(ctx, request, response)
 }
