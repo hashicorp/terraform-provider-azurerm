@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
+* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
 * `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
@@ -239,9 +239,9 @@ The `site_config` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
-* `support_credentials` - (Optional) Are credentials supported?
+* `support_credentials` - (Optional) Are credentials supported? 
 
 ---
 
@@ -260,6 +260,8 @@ An `identity` block supports the following:
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -280,6 +282,8 @@ A `ip_restriction` block supports the following:
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -345,7 +349,7 @@ The `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App

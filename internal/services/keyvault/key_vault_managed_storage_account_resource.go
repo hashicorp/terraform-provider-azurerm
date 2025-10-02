@@ -81,7 +81,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 				RequiredWith: []string{"regenerate_key_automatically"},
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
@@ -224,7 +224,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Managed Storage Account %q (Key Vault %q): %+v", id.Name, *keyVaultId, err)
+		return fmt.Errorf("making Read request on Managed Storage Account %q (Key Vault %q): %+v", id.Name, *keyVaultId, err)
 	}
 
 	d.Set("name", id.Name)

@@ -80,7 +80,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) fileTaskStep(data acceptance.TestData) string {
@@ -100,7 +100,7 @@ resource "azurerm_container_registry_task" "test" {
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) encodedTaskStep(data acceptance.TestData) string {
@@ -127,7 +127,7 @@ EOF
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) template(data acceptance.TestData) string {

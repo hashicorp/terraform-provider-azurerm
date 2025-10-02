@@ -30,6 +30,50 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
   name                                   = "example-backup-policy"
   vault_id                               = azurerm_data_protection_backup_vault.example.id
   operational_default_retention_duration = "P30D"
+  vault_default_retention_duration       = "P7D"
+
+  retention_rule {
+    name     = "Weekly"
+    priority = 20
+
+    life_cycle {
+      duration        = "P90D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      days_of_week = ["Monday"]
+    }
+  }
+
+  retention_rule {
+    name     = "Monthly"
+    priority = 10
+
+    life_cycle {
+      duration        = "P180D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      days_of_month = [1]
+    }
+  }
+
+  retention_rule {
+    name     = "Yearly"
+    priority = 5
+
+    life_cycle {
+      duration        = "P365D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      months_of_year = ["January"]
+      days_of_month  = [1]
+    }
+  }
 }
 ```
 
@@ -77,11 +121,13 @@ A `criteria` block supports the following:
 
 * `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new Backup Policy Blob Storage to be created.
+* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new Backup Policy Blob Storage to be created. When this property is specified, exactly one of the following must also be set: `days_of_month`, `days_of_week`
 
 * `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy Blob Storage to be created.
+* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy Blob Storage to be created. When this property is specified, exactly one of the following must also be set: `days_of_month`, `days_of_week`
+
+-> **Note:** When not using `absolute_criteria`, you must use exactly one of `days_of_month` or `days_of_week`. Regarding the remaining two properties, `weeks_of_month` and `months_of_year`, you may use either, both, or neither. If you would like to set multiple intervals, you may do so by using multiple `retention_rule` blocks.
 
 A `life_cycle` block supports the following:
 
@@ -97,7 +143,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy Blob Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy Blob Storage.

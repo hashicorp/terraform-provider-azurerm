@@ -71,6 +71,23 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"log_scrubbing_rule": {
+				Type:     pluginsdk.TypeSet,
+				MaxItems: 3,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"match_variable": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice(
+								profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+								false),
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 
 			"resource_guid": {
@@ -86,7 +103,7 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 				if oSku != "" {
 					if oSku.(string) == string(profiles.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(profiles.SkuNameStandardAzureFrontDoor) {
-						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor, nSku.(string))
+						return fmt.Errorf("downgrading `sku_name` from `%s` to `%s` is not supported", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor)
 					}
 				}
 
@@ -125,6 +142,8 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	props.Properties.LogScrubbing = expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing_rule").(*pluginsdk.Set).List())
 
 	if v, ok := d.GetOk("identity"); ok {
 		i, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
@@ -186,6 +205,10 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 			// whilst this is returned in the API as FrontDoorID other resources refer to
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if err := d.Set("log_scrubbing_rule", flattenCdnFrontDoorProfileLogScrubbingRules(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing_rule`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -213,6 +236,10 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("response_timeout_seconds") {
 		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
+	}
+
+	if d.HasChange("log_scrubbing_rule") {
+		props.Properties.LogScrubbing = expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing_rule").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("identity") {
@@ -248,4 +275,62 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
+	if len(input) == 0 {
+		return &profiles.ProfileLogScrubbing{
+			State: pointer.To(profiles.ProfileScrubbingStateDisabled),
+		}
+	}
+
+	return &profiles.ProfileLogScrubbing{
+		State:          pointer.To(profiles.ProfileScrubbingStateEnabled),
+		ScrubbingRules: expandCdnFrontDoorProfileLogScrubbingRules(input),
+	}
+}
+
+func expandCdnFrontDoorProfileLogScrubbingRules(input []interface{}) *[]profiles.ProfileScrubbingRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	scrubbingRules := make([]profiles.ProfileScrubbingRules, 0)
+
+	for _, rule := range input {
+		v := rule.(map[string]interface{})
+
+		item := profiles.ProfileScrubbingRules{
+			MatchVariable:         profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string)),
+			Selector:              nil,
+			SelectorMatchOperator: profiles.ScrubbingRuleEntryMatchOperatorEqualsAny, // EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
+			State:                 pointer.To(profiles.ScrubbingRuleEntryStateEnabled),
+		}
+
+		scrubbingRules = append(scrubbingRules, item)
+	}
+
+	return &scrubbingRules
+}
+
+func flattenCdnFrontDoorProfileLogScrubbingRules(input *profiles.ProfileLogScrubbing) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input == nil || pointer.From(input.State) == profiles.ProfileScrubbingStateDisabled {
+		return result
+	}
+
+	if input.ScrubbingRules == nil {
+		return result
+	}
+
+	for _, scrubbingRule := range *input.ScrubbingRules {
+		if scrubbingRule.State != nil && pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled {
+			result = append(result, map[string]interface{}{
+				"match_variable": scrubbingRule.MatchVariable,
+			})
+		}
+	}
+
+	return result
 }

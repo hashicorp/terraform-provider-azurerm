@@ -18,10 +18,26 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "example-cdn-profile"
+resource "azurerm_user_assigned_identity" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = "example-identity"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Standard_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                     = "example-cdn-profile"
+  resource_group_name      = azurerm_resource_group.example.name
+  sku_name                 = "Premium_AzureFrontDoor"
+  response_timeout_seconds = 120
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+
+  log_scrubbing_rule {
+    match_variable = "RequestIPAddress"
+  }
 
   tags = {
     environment = "Production"
@@ -43,6 +59,10 @@ The following arguments are supported:
 
 * `response_timeout_seconds` - (Optional) Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
+* `log_scrubbing_rule` - (Optional) One or more `log_scrubbing_rule` blocks as defined below.
+
+~> **Note:** When no `log_scrubbing_rule` blocks are defined, log scrubbing will be automatically `disabled`. When one or more `log_scrubbing_rule` blocks are present, log scrubbing will be `enabled`.
+
 * `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
 
@@ -56,6 +76,12 @@ An `identity` block supports the following:
 
 ---
 
+A `log_scrubbing_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
+
+~> **Note:** The `operator` field is implicitly set to `EqualsAny`, as it is the sole supported value, and is therefore not exposed as a configurable option in the provider schema.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -66,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Profile.

@@ -131,7 +131,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 	// use this to track last step successfully applied
 	// acts as default for import tests
-	var appliedCfg string
+	var appliedCfg teststep.Config
 	var stepNumber int
 
 	for stepIndex, step := range c.Steps {
@@ -254,7 +254,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 			testStepConfig = teststep.Configuration(confRequest)
 
-			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			if !step.Query {
+				err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			}
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -356,6 +358,41 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			continue
 		}
 
+		if step.Query {
+			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
+
+			queryConfigRequest := teststep.ConfigurationRequest{
+				Raw: &step.Config,
+			}
+			err := wd.SetQuery(ctx, teststep.Configuration(queryConfigRequest), step.ConfigVariables)
+			if err != nil {
+				t.Fatalf("Step %d/%d error setting query: %s", stepNumber, len(c.Steps), err)
+			}
+
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				return wd.Init(ctx)
+			})
+			if err != nil {
+				t.Fatalf("Step %d/%d error running init: %s", stepNumber, len(c.Steps), err)
+			}
+
+			var queryOut any
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				var err error
+				queryOut, err = wd.Query(ctx)
+				return err
+			})
+			if err != nil {
+				fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
+				t.Fatalf("Step %d/%d error running query: %s", stepNumber, len(c.Steps), err)
+			}
+
+			fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
+
+			continue
+
+		}
+
 		if cfg != nil {
 			logging.HelperResourceTrace(ctx, "TestStep is Config mode")
 
@@ -418,7 +455,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				}
 			}
 
-			appliedCfg, err = step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock, helper.TerraformVersion())
+			mergedConfig, err := step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock, helper.TerraformVersion())
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -427,6 +464,19 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				)
 				t.Fatalf("Error generating merged configuration: %s", err)
 			}
+
+			// Preserve the step config for future test steps to use (import state)
+			confRequest := teststep.PrepareConfigurationRequest{
+				Directory: step.ConfigDirectory,
+				File:      step.ConfigFile,
+				Raw:       mergedConfig,
+				TestStepConfigRequest: config.TestStepConfigRequest{
+					StepNumber: stepNumber,
+					TestName:   t.Name(),
+				},
+			}.Exec()
+
+			appliedCfg = teststep.Configuration(confRequest)
 
 			logging.HelperResourceDebug(ctx, "Finished TestStep")
 
@@ -633,7 +683,7 @@ func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugin
 	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
 
 	baseDir := wd.BaseDir()
-	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+	rootBaseDir := strings.TrimPrefix(baseDir, workingDir)
 
 	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
 	if err != nil {
