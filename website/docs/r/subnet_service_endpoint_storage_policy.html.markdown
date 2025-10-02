@@ -38,6 +38,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "example" {
     service_resources = [
       "/services/Azure",
       "/services/Azure/Batch",
+      "/services/Azure/Databricks",
       "/services/Azure/DataFactory",
       "/services/Azure/MachineLearning",
       "/services/Azure/ManagedInstance",
