@@ -82,7 +82,6 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
-			// Validate network interface auxiliary mode and sku requirements
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				networkInterfaces := diff.Get("network_interface").([]interface{})
 				for _, v := range networkInterfaces {
@@ -442,11 +441,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
-	resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
-	resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-	if resiliencyPolicy := ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled); resiliencyPolicy != nil {
-		props.Properties.ResiliencyPolicy = resiliencyPolicy
-	}
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -715,7 +710,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("resilient_vm_creation_enabled") || d.HasChange("resilient_vm_deletion_enabled") {
+	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
 		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
 		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
 		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
