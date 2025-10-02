@@ -1,0 +1,24 @@
+# Example terraform.tfvars file for IoT Operations Broker Authorization
+# Copy this file to terraform.tfvars and update with your actual values
+
+# Basic Configuration
+resource_group_name = "my-iotoperations-rg"
+location            = "West Europe"
+instance_name       = "my-iotoperations-instance"
+broker_name         = "my-broker"
+authorization_name  = "my-broker-authorization"
+
+# Required: Custom Location ARM ID (Arc-enabled Kubernetes cluster)
+# Replace with your actual Custom Location ARM ID
+custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+
+# Required: Schema Registry ARM ID
+# Replace with your actual Schema Registry ARM ID
+schema_registry_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.DeviceRegistry/schemaRegistries/my-schema-registry"
+
+# Optional: Tags
+tags = {
+  Environment = "Development"
+  Owner       = "IoT Team"
+  Project     = "IoT Operations Demo"
+}
