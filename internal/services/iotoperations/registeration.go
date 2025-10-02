@@ -4,8 +4,8 @@
 package iotoperations
 
 import (
-    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
