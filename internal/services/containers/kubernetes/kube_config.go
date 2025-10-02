@@ -4,6 +4,7 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 
 	"gopkg.in/yaml.v3"
@@ -82,24 +83,24 @@ type KubeConfigAAD struct {
 
 func ParseKubeConfig(config string) (*KubeConfig, error) {
 	if config == "" {
-		return nil, fmt.Errorf("Cannot parse empty config")
+		return nil, errors.New("cannot parse empty config")
 	}
 
 	var kubeConfig KubeConfig
 
 	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
+		return nil, fmt.Errorf("failed to unmarshal YAML config with error %+v", err)
 	}
 	if len(kubeConfig.Clusters) == 0 || len(kubeConfig.Users) == 0 {
-		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
+		return nil, fmt.Errorf("config %+v contains no valid clusters or users", kubeConfig)
 	}
 	u := kubeConfig.Users[0].User
 	if u.Token == "" && (u.ClientCertificteData == "" || u.ClientKeyData == "") {
-		return nil, fmt.Errorf("Config requires either token or certificate auth for user %+v", u)
+		return nil, fmt.Errorf("config requires either token or certificate auth for user %+v", u)
 	}
 	c := kubeConfig.Clusters[0].Cluster
 	if c.Server == "" {
-		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", c)
+		return nil, fmt.Errorf("config has invalid or non existent server for cluster %+v", c)
 	}
 
 	return &kubeConfig, nil
@@ -107,20 +108,20 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 
 func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 	if config == "" {
-		return nil, fmt.Errorf("Cannot parse empty config")
+		return nil, fmt.Errorf("cannot parse empty config")
 	}
 
 	var kubeConfig KubeConfigAAD
 	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
+		return nil, fmt.Errorf("failed to unmarshal YAML config with error %+v", err)
 	}
 	if len(kubeConfig.Clusters) == 0 || len(kubeConfig.Users) == 0 {
-		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
+		return nil, fmt.Errorf("config %+v contains no valid clusters or users", kubeConfig)
 	}
 
 	c := kubeConfig.Clusters[0].Cluster
 	if c.Server == "" {
-		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", c)
+		return nil, fmt.Errorf("config has invalid or non existent server for cluster %+v", c)
 	}
 
 	return &kubeConfig, nil

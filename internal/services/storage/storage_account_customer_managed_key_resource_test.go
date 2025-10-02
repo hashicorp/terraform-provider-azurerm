@@ -639,12 +639,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azuread_application_federated_identity_credential" "test" {
-  application_object_id = azuread_application.test.object_id
-  display_name          = "acctestcred-%[5]s"
-  description           = "Federated Identity Credential for CMK"
-  audiences             = ["api://AzureADTokenExchange"]
-  issuer                = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
-  subject               = azurerm_user_assigned_identity.test.principal_id
+  application_id = azuread_application.test.id
+  display_name   = "acctestcred-%[5]s"
+  description    = "Federated Identity Credential for CMK"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+  subject        = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_resource_group" "remotetest" {

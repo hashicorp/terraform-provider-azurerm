@@ -63,6 +63,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
@@ -188,6 +189,12 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional:     true,
 			Default:      100,
 			ValidateFunc: validation.IntBetween(40, 1000),
+		},
+
+		"http_concurrency": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
 		},
 
 		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
@@ -479,6 +486,14 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				MaximumInstanceCount: &functionAppFlexConsumption.MaximumInstanceCount,
 			}
 
+			if functionAppFlexConsumption.HttpConcurrency >= 1 {
+				scaleAndConcurrencyConfig.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+					HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+						PerInstanceConcurrency: &functionAppFlexConsumption.HttpConcurrency,
+					},
+				}
+			}
+
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
 				Deployment:          storageDeployment,
 				Runtime:             &runtime,
@@ -721,6 +736,9 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						state.AlwaysReady = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
+						if faConfigScale.Triggers != nil && faConfigScale.Triggers.HTTP != nil {
+							state.HttpConcurrency = pointer.From(faConfigScale.Triggers.HTTP.PerInstanceConcurrency)
+						}
 					}
 				}
 
@@ -910,6 +928,24 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
 				}
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
+			}
+
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = &state.MaximumInstanceCount
+			}
+
+			if metadata.ResourceData.HasChange("http_concurrency") {
+				if state.HttpConcurrency > 0 {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+							PerInstanceConcurrency: &state.HttpConcurrency,
+						},
+					}
+				} else {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: nil,
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("runtime_name") {

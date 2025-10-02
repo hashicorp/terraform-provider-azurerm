@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -1929,7 +1930,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	}
 
 	if networkInterface == nil {
-		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
+		return "", errors.New("a Network Interface wasn't found on the Virtual Machine")
 	}
 
 	if props := networkInterface.Properties; props != nil {

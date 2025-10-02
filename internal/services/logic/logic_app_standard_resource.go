@@ -458,9 +458,10 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 					publicNetworkAccess = helpers.PublicNetworkAccessDisabled
 				}
 				// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
-				if publicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+				switch publicNetworkAccess {
+				case helpers.PublicNetworkAccessDisabled:
 					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-				} else if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+				case helpers.PublicNetworkAccessEnabled:
 					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
 				}
 				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
