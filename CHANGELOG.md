@@ -1,23 +1,25 @@
-## 4.47.0 (Unreleased)
-
-ENHANCEMENTS:
-* `azurerm_cognitive_account` - add support for value `AIServices` to `kind` property [GH-30423]
-* `azurerm_cognitive_account` - add the `project_management_enabled` property [GH-30423]
-* `azurerm_cognitive_account` - add the `network_injection` property [GH-30423]
-* `azurerm_palo_alto_local_rulestack_rule` - increase limit for `priority` to `1000000` [GH-30712]
-
-* dependencies: `go-azure-sdk` - update to `v0.20250924.1155608` [GH-30693]
-* `azurerm_stream_analytics_job` - add support for the `Msi` value in the `job_storage_account.authentication_mode` property [GH-30728]
+## 4.47.0 (October 02, 2025)
 
 FEATURES:
-* **New Resource**: `azurerm_api_management_workspace_policy` [GH-30547]
+
+* **New Resource**: `azurerm_api_management_workspace_policy` ([#30547](https://github.com/hashicorp/terraform-provider-azurerm/issues/30547))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250924.1155608` ([#30693](https://github.com/hashicorp/terraform-provider-azurerm/issues/30693))
+* `azurerm_cognitive_account` - add support for value `AIServices` to `kind` property ([#30423](https://github.com/hashicorp/terraform-provider-azurerm/issues/30423))
+* `azurerm_cognitive_account` - add the `project_management_enabled` property ([#30423](https://github.com/hashicorp/terraform-provider-azurerm/issues/30423))
+* `azurerm_cognitive_account` - add the `network_injection` property ([#30423](https://github.com/hashicorp/terraform-provider-azurerm/issues/30423))
+* `azurerm_palo_alto_local_rulestack_rule` - increase limit for `priority` to `1000000` ([#30712](https://github.com/hashicorp/terraform-provider-azurerm/issues/30712))
+* `azurerm_stream_analytics_job` - add support for the `Msi` value in the `job_storage_account.authentication_mode` property ([#30728](https://github.com/hashicorp/terraform-provider-azurerm/issues/30728))
 
 BUG FIXES:
-* `azurerm_storage_account` - fix error that occurs around `queue_properties` when not specified [GH-30746]
-* `azurerm_management_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing [GH-30736]
-* `azurerm_resource_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing [GH-30736]
-* `azurerm_resource_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing [GH-30736]
-* `azurerm_subscription_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing [GH-30736]
+
+* `azurerm_management_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing ([#30736](https://github.com/hashicorp/terraform-provider-azurerm/issues/30736))
+* `azurerm_resource_group_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing ([#30736](https://github.com/hashicorp/terraform-provider-azurerm/issues/30736))
+* `azurerm_resource_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing ([#30736](https://github.com/hashicorp/terraform-provider-azurerm/issues/30736))
+* `azurerm_storage_account` - fix error that occurs around `queue_properties` when not specified ([#30746](https://github.com/hashicorp/terraform-provider-azurerm/issues/30746))
+* `azurerm_subscription_policy_remediation` - suppress casing difference on `policy_definition_reference_id` to avoid a perpetual diff as the API doesn't honour casing ([#30736](https://github.com/hashicorp/terraform-provider-azurerm/issues/30736))
 
 ## 4.46.0 (September 25, 2025)
 
