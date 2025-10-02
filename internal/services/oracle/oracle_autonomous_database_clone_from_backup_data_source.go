@@ -69,7 +69,6 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	MemoryPerOracleComputeUnitInGb                int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
 	NextLongTermBackupTimestamp                   string                          `tfschema:"next_long_term_backup_timestamp"`
 	Ocid                                          string                          `tfschema:"ocid"`
-	PeerDatabaseId                                string                          `tfschema:"peer_database_id"`
 	PeerDatabaseIds                               []string                        `tfschema:"peer_database_ids"`
 	Preview                                       bool                            `tfschema:"preview"`
 	PreviewVersionWithServiceTermsAccepted        bool                            `tfschema:"preview_version_with_service_terms_accepted"`
@@ -305,11 +304,6 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"peer_database_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"peer_database_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -522,7 +516,6 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.NextLongTermBackupTimestamp = pointer.From(props.NextLongTermBackupTimeStamp)
 				state.OciUrl = pointer.From(props.OciURL)
 				state.Ocid = pointer.From(props.Ocid)
-				state.PeerDatabaseId = pointer.From(props.PeerDbId)
 				state.PeerDatabaseIds = pointer.From(props.PeerDbIds)
 				state.Preview = pointer.From(props.IsPreview)
 				state.PreviewVersionWithServiceTermsAccepted = pointer.From(props.IsPreviewVersionWithServiceTermsAccepted)

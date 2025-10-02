@@ -29,10 +29,8 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 
 	// Clone-specific properties
 	SourceAutonomousDatabaseId string `tfschema:"source_autonomous_database_id"`
-	CloneType                  string `tfschema:"clone_type"`
 	ReconnectCloneEnabled      bool   `tfschema:"reconnect_clone_enabled"`
 	RefreshableClone           bool   `tfschema:"refreshable_clone"`
-	RefreshableModel           string `tfschema:"refreshable_model"`
 	RefreshableStatus          string `tfschema:"refreshable_status"`
 	TimeUntilReconnectUtc      string `tfschema:"time_until_reconnect_in_utc"`
 
@@ -69,7 +67,6 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	NextLongTermBackupTimestamp                   string                          `tfschema:"next_long_term_backup_timestamp"`
 	OciUrl                                        string                          `tfschema:"oci_url"`
 	Ocid                                          string                          `tfschema:"ocid"`
-	PeerDatabaseId                                string                          `tfschema:"peer_database_id"`
 	PeerDatabaseIds                               []string                        `tfschema:"peer_database_ids"`
 	Preview                                       bool                            `tfschema:"preview"`
 	PreviewVersionWithServiceTermsAccepted        bool                            `tfschema:"preview_version_with_service_terms_accepted"`
@@ -122,11 +119,6 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"clone_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"reconnect_clone_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -134,11 +126,6 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 
 		"refreshable_clone": {
 			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"refreshable_model": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
@@ -345,11 +332,6 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"peer_database_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"peer_database_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -526,18 +508,23 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("%s was not of type `Clone`", id)
 				}
-				state.CloneType = string(props.CloneType)
 				state.SourceAutonomousDatabaseId = props.SourceId
 				state.ReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
 				state.RefreshableClone = pointer.From(props.IsRefreshableClone)
 				state.TimeUntilReconnectUtc = pointer.From(props.TimeUntilReconnectCloneEnabled)
-				state.RefreshableModel = pointer.FromEnum(props.RefreshableModel)
 				state.RefreshableStatus = pointer.FromEnum(props.RefreshableStatus)
+				state.ActualUsedDataStorageSizeInTb = pointer.From(props.ActualUsedDataStorageSizeInTbs)
+				state.AllocatedStorageSizeInTb = pointer.From(props.AllocatedStorageSizeInTbs)
 				state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
+				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+				state.AvailableUpgradeVersions = pointer.From(props.AvailableUpgradeVersions)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
+				state.ConnectionStrings = flattenConnectionStrings(props.ConnectionStrings)
+				state.CpuCoreCount = pointer.From(props.CpuCoreCount)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
@@ -546,21 +533,45 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.LifecycleState = pointer.FromEnum(props.LifecycleState)
+				state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 				state.LocalAdgAutoFailoverMaxDataLossLimitInSeconds = pointer.From(props.LocalAdgAutoFailoverMaxDataLossLimit)
-				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
-				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+				state.LocalDataGuardEnabled = pointer.From(props.IsLocalDataGuardEnabled)
+				state.LongTermBackupSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
+				state.MemoryAreaInGb = pointer.From(props.InMemoryAreaInGbs)
+				state.MemoryPerOracleComputeUnitInGb = pointer.From(props.MemoryPerOracleComputeUnitInGbs)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.NextLongTermBackupTimestamp = pointer.From(props.NextLongTermBackupTimeStamp)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.VnetId = pointer.From(props.VnetId)
+				state.Ocid = pointer.From(props.Ocid)
+				state.OciUrl = pointer.From(props.OciURL)
+				state.PeerDatabaseIds = pointer.From(props.PeerDbIds)
+				state.Preview = pointer.From(props.IsPreview)
+				state.PreviewVersionWithServiceTermsAccepted = pointer.From(props.IsPreviewVersionWithServiceTermsAccepted)
 				state.PrivateEndpointUrl = pointer.From(props.PrivateEndpoint)
 				state.PrivateEndpointIp = pointer.From(props.PrivateEndpointIP)
+				state.PrivateEndpointLabel = pointer.From(props.PrivateEndpointLabel)
+				state.ProvisionableCPUs = pointer.From(props.ProvisionableCPUs)
+				state.RemoteDataGuardEnabled = pointer.From(props.IsRemoteDataGuardEnabled)
 				state.ServiceConsoleUrl = pointer.From(props.ServiceConsoleURL)
 				state.SqlWebDeveloperUrl = pointer.From(props.SqlWebDeveloperURL)
+				state.SupportedRegionsToCloneTo = pointer.From(props.SupportedRegionsToCloneTo)
 				state.TimeCreatedUtc = pointer.From(props.TimeCreated)
-				state.OciUrl = pointer.From(props.OciURL)
-				state.ConnectionStrings = flattenConnectionStrings(props.ConnectionStrings)
+				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
+				state.TimeDeletionOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
+				state.TimeLocalDataGuardEnabledInUtc = pointer.From(props.TimeLocalDataGuardEnabled)
+				state.TimeMaintenanceBeginInUtc = pointer.From(props.TimeMaintenanceBegin)
+				state.TimeMaintenanceEndInUtc = pointer.From(props.TimeMaintenanceEnd)
+				state.TimeOfLastFailoverInUtc = pointer.From(props.TimeOfLastFailover)
+				state.TimeOfLastRefreshInUtc = pointer.From(props.TimeOfLastRefresh)
+				state.TimeOfLastRefreshPointInUtc = pointer.From(props.TimeOfLastRefreshPoint)
+				state.TimeOfLastSwitchoverInUtc = pointer.From(props.TimeOfLastSwitchover)
+				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
+				state.TimeReclamationOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
+				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
+				state.UsedDataStorageSizeInTb = pointer.From(props.UsedDataStorageSizeInGbs)
+				state.UsedDataStorageSizeInGb = pointer.From(props.UsedDataStorageSizeInGbs)
+				state.SubnetId = pointer.From(props.SubnetId)
+				state.VnetId = pointer.From(props.VnetId)
 			}
 
 			metadata.SetID(id)

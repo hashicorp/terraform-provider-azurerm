@@ -57,9 +57,8 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 
 	// Optional
 
-	BackupTimestamp                          string   `tfschema:"backup_timestamp"`
-	CustomerContacts                         []string `tfschema:"customer_contacts"`
-	UseLatestAvailableBackupTimestampEnabled bool     `tfschema:"use_latest_available_backup_timestamp_enabled"`
+	BackupTimestamp  string   `tfschema:"backup_timestamp"`
+	CustomerContacts []string `tfschema:"customer_contacts"`
 }
 
 func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -272,27 +271,28 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
 
 				// Base properties
-				AdminPassword:                     pointer.To(model.AdminPassword),
-				BackupRetentionPeriodInDays:       pointer.To(model.BackupRetentionPeriodInDays),
-				CharacterSet:                      pointer.To(model.CharacterSet),
-				ComputeCount:                      pointer.To(model.ComputeCount),
-				ComputeModel:                      pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-				CustomerContacts:                  pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
-				DataStorageSizeInTbs:              pointer.To(model.DataStorageSizeInTb),
-				DbWorkload:                        pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
-				DbVersion:                         pointer.To(model.DatabaseVersion),
-				DisplayName:                       pointer.To(model.DisplayName),
-				IsAutoScalingEnabled:              pointer.To(model.AutoScalingEnabled),
-				IsAutoScalingForStorageEnabled:    pointer.To(model.AutoScalingForStorageEnabled),
-				IsMtlsConnectionRequired:          pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                      pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-				NcharacterSet:                     pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                    pointer.To(model.AllowedIpAddresses),
-				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestampEnabled),
+				AdminPassword:                  pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                   pointer.To(model.CharacterSet),
+				ComputeCount:                   pointer.To(model.ComputeCount),
+				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				CustomerContacts:               pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
+				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
+				DbVersion:                      pointer.To(model.DatabaseVersion),
+				DisplayName:                    pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
+				WhitelistedIPs:                 pointer.To(model.AllowedIpAddresses),
 			}
 			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 			if model.BackupTimestamp != "" {
 				properties.Timestamp = pointer.To(model.BackupTimestamp)
+				properties.UseLatestAvailableBackupTimeStamp = pointer.To(false)
+
 			} else {
 				properties.UseLatestAvailableBackupTimeStamp = pointer.To(true)
 			}
@@ -334,9 +334,6 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 
 			var state AutonomousDatabaseCloneFromBackupResourceModel
 
-			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_timestamp_enabled"); ok {
-				state.UseLatestAvailableBackupTimestampEnabled = v.(bool)
-			}
 			if v, ok := metadata.ResourceData.GetOk("backup_timestamp"); ok {
 				state.BackupTimestamp = v.(string)
 			}

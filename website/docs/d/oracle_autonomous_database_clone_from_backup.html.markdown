@@ -91,6 +91,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the autonomous database cloned from backup exists.
 
+* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below.
+
 * `memory_per_oracle_compute_unit_in_gb` - The amount of memory in gigabytes per ECPU or OCPU.
 
 * `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
@@ -159,7 +161,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_network_id` - The ID to an Azure Resource Manager virtual network resource.
 
-* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
 
 ---
 
@@ -175,7 +176,7 @@ A `long_term_backup_schedule` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the autonomous database clone from backup.
 

@@ -29,7 +29,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source_autonomous_database_id", "use_latest_available_backup_timestamp_enabled", "backup_timestamp"),
+		data.ImportStep("admin_password", "backup_timestamp"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source_autonomous_database_id", "use_latest_available_backup_timestamp_enabled", "backup_timestamp"),
+		data.ImportStep("admin_password", "backup_timestamp"),
 	})
 }
 

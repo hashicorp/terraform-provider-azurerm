@@ -27,16 +27,16 @@ resource "azurerm_oracle_autonomous_database" "example" {
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb          = 1
-  database_version                 = "19c"
-  database_workload                = "OLTP"
+  data_storage_size_in_tbs          = 1
+  db_version                 = "19c"
+  db_workload                = "OLTP"
   display_name                     = "ADB%[1]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses             = []
+  allowed_ips            = []
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
@@ -55,7 +55,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
   data_storage_size_in_tb          = 1
   database_version                 = "19c"
   database_workload                = "OLTP"
-  display_name                     = "ADB%[1]dclone"
+  display_name                     = "ADBclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
@@ -114,17 +114,17 @@ The following arguments are supported:
 
 ---
 
-* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses. Changing this forces a new autonomous database clone from backup to be created.
 
 * `backup_timestamp` - (Optional) The autonomous database backup time stamp to be used for a cloning autonomous database. Changing this forces a new autonomous database clone from backup to be created.
+
+~> **Note:** If backup-timestamp is not provided latest backup timestamp will be used.
 
 * `customer_contacts` - (Optional) Specifies a list of customer contact email addresses. Changing this forces a new autonomous database clone from backup to be created.
 
 * `subnet_id` - (Optional) The ID of the subnet the resource is associated with. Changing this forces a new autonomous database clone from backup to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the autonomous database clone from backup.
-
-* `use_latest_available_backup_timestamp_enabled` - (Optional) Setting this value to true will initiate cloning from latest backup time stamp. Changing this forces a new autonomous database clone from backup to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the autonomous database clone from backup. Changing this forces a new autonomous database clone from backup to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new autonomous database clone from backup to be created.
 
@@ -136,7 +136,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the autonomous database clone from backup.
 * `read` - (Defaults to 5 minutes) Used when retrieving the autonomous database clone from backup.

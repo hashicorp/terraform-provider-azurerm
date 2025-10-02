@@ -29,7 +29,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source_autonomous_database_id"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source_autonomous_database_id", "refreshable_model"),
+		data.ImportStep("admin_password", "refreshable_model"),
 	})
 }
 
@@ -75,7 +75,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_metadataClone(t *testing.T) {
 				check.That(data.ResourceName).Key("clone_type").HasValue("Metadata"),
 			),
 		},
-		data.ImportStep("admin_password", "source_autonomous_database_id"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -119,7 +119,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses             = ["140.204.126.129"]
+  allowed_ip_addresses             = ["140.204.126.129", "140.204.125.0/24"]
 
   depends_on = [azurerm_oracle_autonomous_database.test]
 }
