@@ -48,7 +48,6 @@ action "azurerm_virtual_machine_power" "example" {
     power_action       = "restart"
   }
 }
-
 ```
 
 ## Argument Reference
@@ -58,3 +57,5 @@ This action supports the following arguments:
 * `virtual_machine_id` - (Required) The ID of the virtual machine on which to perform the action.
 
 * `power_action` - (Required) The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.
+
+* `timeout` - (Optional) Timeout in seconds to wait for the Virtual Machine Power action to complete. Defaults to 300 seconds (5 minutes).

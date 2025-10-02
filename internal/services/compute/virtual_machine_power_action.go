@@ -31,7 +31,7 @@ func newVirtualMachinePowerAction() action.Action {
 type VirtualMachinePowerActionModel struct {
 	VirtualMachineId types.String `tfsdk:"virtual_machine_id"`
 	Action           types.String `tfsdk:"power_action"`
-	// TODO - Custom timeouts?
+	Timeout          types.Int64  `tfsdk:"timeout"`
 }
 
 func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
@@ -60,6 +60,12 @@ func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaReq
 					),
 				},
 			},
+
+			"timeout": schema.Int64Attribute{
+				Optional:            true,
+				Description:         "Timeout in seconds for the Virtual Machine Power action to complete. Defaults to 1800 (30m).",
+				MarkdownDescription: "Timeout in seconds for the Virtual Machine Power action to complete. Defaults to 1800 (30m).",
+			},
 		},
 	}
 }
@@ -71,15 +77,20 @@ func (v *VirtualMachinePowerAction) Metadata(_ context.Context, _ action.Metadat
 func (v *VirtualMachinePowerAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := v.Client.Compute.VirtualMachinesClient
 
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*15)
-	defer cancel()
-
 	model := VirtualMachinePowerActionModel{}
 
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	ctxTimeout := 300 * time.Second
+	if t := model.Timeout; !t.IsNull() {
+		ctxTimeout = time.Duration(t.ValueInt64()) * time.Second
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, ctxTimeout)
+	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(model.VirtualMachineId.ValueString())
 	if err != nil {
