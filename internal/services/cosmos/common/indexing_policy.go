@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]cosmosdb.IncludedPath {
@@ -21,7 +21,7 @@ func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]co
 	for _, v := range input {
 		includedPath := v.(map[string]interface{})
 		path := cosmosdb.IncludedPath{
-			Path: utils.String(includedPath["path"].(string)),
+			Path: pointer.To(includedPath["path"].(string)),
 		}
 
 		includedPaths = append(includedPaths, path)
@@ -39,7 +39,7 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]co
 	for _, v := range input {
 		block := v.(map[string]interface{})
 		paths = append(paths, cosmosdb.ExcludedPath{
-			Path: utils.String(block["path"].(string)),
+			Path: pointer.To(block["path"].(string)),
 		})
 	}
 
@@ -57,7 +57,7 @@ func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 
 			order := cosmosdb.CompositePathSortOrder(strings.ToLower(data["order"].(string)))
 			index := cosmosdb.CompositePath{
-				Path:  utils.String(data["path"].(string)),
+				Path:  pointer.To(data["path"].(string)),
 				Order: &order,
 			}
 			indexPairs = append(indexPairs, index)
@@ -85,7 +85,25 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]c
 		indexPair := i.(map[string]interface{})
 		indexes = append(indexes, cosmosdb.SpatialSpec{
 			Types: &spatialTypes,
-			Path:  utils.String(indexPair["path"].(string)),
+			Path:  pointer.To(indexPair["path"].(string)),
+		})
+	}
+
+	return &indexes
+}
+
+func ExpandAzureRmCosmosDBIndexingPolicyVectorIndexes(input []interface{}) *[]cosmosdb.VectorIndex {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	indexes := make([]cosmosdb.VectorIndex, 0)
+	for _, i := range input {
+		indexPair := i.(map[string]interface{})
+		vectorIndexType := cosmosdb.VectorIndexType(indexPair["type"].(string))
+		indexes = append(indexes, cosmosdb.VectorIndex{
+			Path: indexPair["path"].(string),
+			Type: vectorIndexType,
 		})
 	}
 
@@ -115,20 +133,32 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.In
 
 	policy.SpatialIndexes = ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
 
+	if v, ok := input["vector_index"].([]interface{}); ok {
+		policy.VectorIndexes = ExpandAzureRmCosmosDBIndexingPolicyVectorIndexes(v)
+	}
+
 	return policy
 }
 
-func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath) []interface{} {
+func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath, vectorIndexes *[]cosmosdb.VectorIndex) []interface{} {
 	if input == nil {
 		return nil
 	}
 
 	excludedPaths := make([]interface{}, 0)
 
+	vectorExcludedPaths := make(map[string]bool)
+	if vectorIndexes != nil {
+		for _, vectorIndex := range *vectorIndexes {
+			vectorExcludedPath := vectorIndex.Path + "/*"
+			vectorExcludedPaths[vectorExcludedPath] = true
+		}
+	}
+
 	for _, v := range *input {
-		// _etag is automatically added by the server and should be excluded on flattening
-		// as the user isn't setting it and it will show changes in state.
-		if *v.Path == "/\"_etag\"/?" {
+		// _etag and Vector index excluded paths are automatically added by the server and should be excluded on flainternal/services/cosmos/common/schema.gottening
+		// as the user isn't setting it and it will otherwise show changes in state.
+		if *v.Path == "/\"_etag\"/?" || vectorExcludedPaths[*v.Path] {
 			continue
 		}
 
@@ -228,6 +258,23 @@ func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialT
 	return types
 }
 
+func FlattenCosmosDBIndexingPolicyVectorIndexes(input *[]cosmosdb.VectorIndex) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0)
+
+	for _, v := range *input {
+		indexes = append(indexes, map[string]interface{}{
+			"path": v.Path,
+			"type": string(v.Type),
+		})
+	}
+
+	return indexes
+}
+
 func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if indexingPolicy == nil {
@@ -237,9 +284,10 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolic
 	result := make(map[string]interface{})
 	result["indexing_mode"] = indexingPolicy.IndexingMode
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
-	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
+	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths, indexingPolicy.VectorIndexes)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 	result["spatial_index"] = FlattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
+	result["vector_index"] = FlattenCosmosDBIndexingPolicyVectorIndexes(indexingPolicy.VectorIndexes)
 
 	results = append(results, result)
 	return results

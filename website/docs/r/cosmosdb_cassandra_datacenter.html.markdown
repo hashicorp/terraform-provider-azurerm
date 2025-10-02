@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
 
-* `sku_name` - (Optional) Determines the selected sku.
+* `sku_name` - (Optional) Determines the selected sku. Defaults to `Standard_E16s_v5`.
 
 -> **Note:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
 
@@ -135,4 +135,4 @@ terraform import azurerm_cosmosdb_cassandra_datacenter.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2023-04-15
+* `Microsoft.DocumentDB` - 2025-04-15

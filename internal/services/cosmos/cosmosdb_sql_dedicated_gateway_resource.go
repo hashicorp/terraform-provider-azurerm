@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,10 +98,10 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
+					ServiceType:   serviceType,
 				},
 			}
 
@@ -144,8 +144,8 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
+					ServiceType:   serviceType,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},

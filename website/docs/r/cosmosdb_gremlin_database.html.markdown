@@ -77,4 +77,4 @@ terraform import azurerm_cosmosdb_gremlin_database.db1 /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2024-08-15
+* `Microsoft.DocumentDB` - 2025-04-15

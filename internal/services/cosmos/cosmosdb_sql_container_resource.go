@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -143,6 +143,10 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				},
 			},
 			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
+
+			"vector_embedding_policy": common.CosmosDbVectorEmbeddingPolicySchema(),
+
+			"full_text_policy": common.CosmosDbFullTextPolicySchema(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -191,6 +195,8 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 				Id:                       id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
+				VectorEmbeddingPolicy:    common.ExpandCosmosDbVectorEmbeddingPolicy(d.Get("vector_embedding_policy").([]interface{})),
+				FullTextPolicy:           common.ExpandCosmosDbFullTextPolicy(d.Get("full_text_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -266,8 +272,10 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	db := cosmosdb.SqlContainerCreateUpdateParameters{
 		Properties: cosmosdb.SqlContainerCreateUpdateProperties{
 			Resource: cosmosdb.SqlContainerResource{
-				Id:             id.ContainerName,
-				IndexingPolicy: indexingPolicy,
+				Id:                    id.ContainerName,
+				IndexingPolicy:        indexingPolicy,
+				VectorEmbeddingPolicy: common.ExpandCosmosDbVectorEmbeddingPolicy(d.Get("vector_embedding_policy").([]interface{})),
+				FullTextPolicy:        common.ExpandCosmosDbFullTextPolicy(d.Get("full_text_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -378,6 +386,14 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 
 				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(res.ConflictResolutionPolicy)); err != nil {
 					return fmt.Errorf("setting `conflict_resolution_policy`: %+v", err)
+				}
+
+				if err := d.Set("vector_embedding_policy", common.FlattenCosmosDbVectorEmbeddingPolicy(res.VectorEmbeddingPolicy)); err != nil {
+					return fmt.Errorf("setting `vector_embedding_policy`: %+v", err)
+				}
+
+				if err := d.Set("full_text_policy", common.FlattenCosmosDbFullTextPolicy(res.FullTextPolicy)); err != nil {
+					return fmt.Errorf("setting `full_text_policy`: %+v", err)
 				}
 			}
 		}
