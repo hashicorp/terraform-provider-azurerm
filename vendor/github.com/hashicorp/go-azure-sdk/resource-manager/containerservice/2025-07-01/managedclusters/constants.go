@@ -742,11 +742,13 @@ func parseManagedClusterPodIdentityProvisioningState(input string) (*ManagedClus
 type ManagedClusterSKUName string
 
 const (
-	ManagedClusterSKUNameBase ManagedClusterSKUName = "Base"
+	ManagedClusterSKUNameAutomatic ManagedClusterSKUName = "Automatic"
+	ManagedClusterSKUNameBase      ManagedClusterSKUName = "Base"
 )
 
 func PossibleValuesForManagedClusterSKUName() []string {
 	return []string{
+		string(ManagedClusterSKUNameAutomatic),
 		string(ManagedClusterSKUNameBase),
 	}
 }
@@ -766,7 +768,8 @@ func (s *ManagedClusterSKUName) UnmarshalJSON(bytes []byte) error {
 
 func parseManagedClusterSKUName(input string) (*ManagedClusterSKUName, error) {
 	vals := map[string]ManagedClusterSKUName{
-		"base": ManagedClusterSKUNameBase,
+		"automatic": ManagedClusterSKUNameAutomatic,
+		"base":      ManagedClusterSKUNameBase,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -1253,6 +1256,7 @@ type OSSKU string
 
 const (
 	OSSKUAzureLinux            OSSKU = "AzureLinux"
+	OSSKUAzureLinuxThree       OSSKU = "AzureLinux3"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
 	OSSKUUbuntuTwoTwoZeroFour  OSSKU = "Ubuntu2204"
@@ -1263,6 +1267,7 @@ const (
 func PossibleValuesForOSSKU() []string {
 	return []string{
 		string(OSSKUAzureLinux),
+		string(OSSKUAzureLinuxThree),
 		string(OSSKUCBLMariner),
 		string(OSSKUUbuntu),
 		string(OSSKUUbuntuTwoTwoZeroFour),
@@ -1287,6 +1292,7 @@ func (s *OSSKU) UnmarshalJSON(bytes []byte) error {
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
 		"azurelinux":  OSSKUAzureLinux,
+		"azurelinux3": OSSKUAzureLinuxThree,
 		"cblmariner":  OSSKUCBLMariner,
 		"ubuntu":      OSSKUUbuntu,
 		"ubuntu2204":  OSSKUUbuntuTwoTwoZeroFour,
