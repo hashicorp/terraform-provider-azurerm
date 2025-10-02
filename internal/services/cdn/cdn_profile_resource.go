@@ -95,10 +95,29 @@ func resourceCdnProfile() *pluginsdk.Resource {
 			case string(cdn.SkuNameStandardMicrosoft), string(cdn.SkuNameStandardChinaCdn):
 				// The only currently supported sku's for CDN are 'Standard_Microsoft' and 'Standard_ChinaCdn' which
 				// will also be deprecated as of October 1, 2025, but can still be updated until September 30, 2027.
-				// First, check to see if any of the force new fields have changed after the October 1, 2025 deprecation date,
-				// if they have we need to block the update because the force new will cause the deployments to fail...
-				if IsCdnDeprecatedForCreation() && d.HasChanges("name", "location", "resource_group_name", "sku") {
-					return fmt.Errorf("%s", CreateDeprecationMessage)
+				if IsCdnDeprecatedForCreation() {
+					// Check for actual changes to ForceNew fields that would trigger recreation.
+					// Note: We can't use HasChange("location") directly because it doesn't respect
+					// the location schema's normalization, leading to false positives when comparing
+					// "East US" (config) vs "eastus" (state). We must manually normalize for comparison.
+					hasForceNewChange := false
+
+					// Check non-location ForceNew fields
+					if d.HasChanges("name", "resource_group_name", "sku") {
+						hasForceNewChange = true
+					}
+
+					// Manually check location with normalization to avoid false positives
+					if !hasForceNewChange {
+						oldLoc, newLoc := d.GetChange("location")
+						if location.Normalize(oldLoc.(string)) != location.Normalize(newLoc.(string)) {
+							hasForceNewChange = true
+						}
+					}
+
+					if hasForceNewChange {
+						return fmt.Errorf("%s", CreateDeprecationMessage)
+					}
 				}
 			}
 
