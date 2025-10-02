@@ -27,16 +27,16 @@ resource "azurerm_oracle_autonomous_database" "example" {
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tbs          = 1
-  db_version                 = "19c"
-  db_workload                = "OLTP"
+  data_storage_size_in_tbs         = 1
+  db_version                       = "19c"
+  db_workload                      = "OLTP"
   display_name                     = "ADB%[1]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ips            = []
+  allowed_ips                      = []
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {

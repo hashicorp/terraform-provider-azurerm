@@ -6,11 +6,11 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
@@ -200,15 +200,12 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 				ValidateFunc: validate.CustomerContactEmail,
 			},
 		},
-		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
-
-		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
-
 		"allowed_ip_addresses": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MaxItems: 1024,
-			ForceNew: true,
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			MaxItems:     1024,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
@@ -216,6 +213,21 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 					validation.IsCIDR,
 				),
 			},
+		},
+
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"virtual_network_id"},
+		},
+
+		"virtual_network_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
+			RequiredWith: []string{"subnet_id"},
 		},
 
 		"tags": commonschema.TagsForceNew(),
