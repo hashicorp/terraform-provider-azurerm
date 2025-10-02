@@ -1,3 +1,15 @@
+## 4.48.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20250925.1224537` [GH-30719]
+* dependencies: `containerservice` - update to API version `2025-07-01` [GH-30719]
+* `azurerm_kubernetes_cluster` - add support for `AzureLinux3` and `Ubuntu2204` to the `default_node_pool.os_sku` property [GH-30719]
+* `azurerm_kubernetes_cluster_node_pool` - add support for `AzureLinux3` and `Ubuntu2204` to the `os_sku` property [GH-30719]
+
+BUG FIXES:
+
 ## 4.47.0 (October 02, 2025)
 
 FEATURES:
