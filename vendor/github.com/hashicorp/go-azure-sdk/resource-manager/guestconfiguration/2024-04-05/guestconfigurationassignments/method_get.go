@@ -11,30 +11,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *GuestConfigurationAssignment
 }
 
-// CreateOrUpdate ...
-func (c GuestConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id Providers2GuestConfigurationAssignmentId, input GuestConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
+// Get ...
+func (c GuestConfigurationAssignmentsClient) Get(ctx context.Context, id VirtualMachineProviders2GuestConfigurationAssignmentId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodGet,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
