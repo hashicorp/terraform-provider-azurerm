@@ -539,7 +539,7 @@ func TestAccLinuxWebAppSlot_withAuthSettingsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withAuthSettings(data),
+			Config: r.withAuthSettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

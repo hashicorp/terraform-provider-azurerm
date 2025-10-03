@@ -1772,13 +1772,15 @@ func DefaultAuthSettingsProperties() *webapps.SiteAuthSettingsProperties {
 		ClientSecret:                      pointer.To(""),
 		ClientSecretSettingName:           pointer.To(""),
 		ClientSecretCertificateThumbprint: pointer.To(""),
-		GoogleClientSecret:                pointer.To(""),
 		FacebookAppId:                     pointer.To(""),
 		FacebookAppSecret:                 pointer.To(""),
 		FacebookOAuthScopes:               pointer.To(make([]string, 0)),
 		GitHubClientSecret:                pointer.To(""),
+		GoogleClientSecret:                pointer.To(""),
 		Issuer:                            pointer.To(""),
-		TwitterConsumerSecret:             pointer.To(""),
 		MicrosoftAccountClientSecret:      pointer.To(""),
+		TokenRefreshExtensionHours:        pointer.To(72.0),
+		TokenStoreEnabled:                 pointer.To(false),
+		TwitterConsumerSecret:             pointer.To(""),
 	}
 }

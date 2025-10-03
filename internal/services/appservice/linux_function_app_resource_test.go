@@ -737,7 +737,7 @@ func TestAccLinuxFunctionApp_withAuthSettingsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withAuthSettings(data, SkuStandardPlan),
+			Config: r.withAuthSettingsUpdate(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

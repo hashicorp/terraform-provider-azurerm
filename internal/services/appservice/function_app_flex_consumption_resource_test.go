@@ -149,7 +149,7 @@ func TestAccFunctionAppFlexConsumption_withAuthSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withAuthSettings(data),
+			Config: r.withAuthSettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
