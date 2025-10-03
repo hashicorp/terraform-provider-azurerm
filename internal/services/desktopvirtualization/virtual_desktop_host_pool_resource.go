@@ -6,6 +6,7 @@ package desktopvirtualization
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -386,6 +387,10 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+	timeout, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context is missing a timeout")
+	}
 
 	id, err := hostpool.ParseHostPoolID(d.Id())
 	if err != nil {
@@ -398,8 +403,19 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	options := hostpool.DeleteOperationOptions{
 		Force: pointer.To(true),
 	}
-	if _, err = client.Delete(ctx, *id, options); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+
+	err = pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
+		_, err := client.Delete(ctx, *id, options)
+		if err == nil {
+			return nil
+		}
+		if strings.Contains(err.Error(), fmt.Sprintf("The SessionHostPool %s could not be deleted because it still has ApplicationGroups associated with it. Please remove all ApplicationGroups from the SessionHostPool and retry the operation.", id.HostPoolName)) {
+			return pluginsdk.RetryableError(fmt.Errorf(" %s still has ApplicationGroups attached, retrying", id.HostPoolName))
+		}
+		return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
