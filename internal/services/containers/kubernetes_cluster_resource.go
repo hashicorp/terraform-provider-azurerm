@@ -1642,6 +1642,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"node_provisioning_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// Note: O+C The API returns default values here even if not set in the request
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+						"default_node_pools": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+					},
+				},
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1766,6 +1790,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
 	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 
+	nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+	nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
 		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
@@ -1868,6 +1895,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AadProfile:                azureADProfile,
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
+			NodeProvisioningProfile:   nodeProvisioningProfile,
 			AutoScalerProfile:         autoScalerProfile,
 			AutoUpgradeProfile:        autoUpgradeProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
@@ -2435,6 +2463,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("node_provisioning_profile") {
+		updateCluster = true
+		nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+		nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+		existing.Model.Properties.NodeProvisioningProfile = nodeProvisioningProfile
+	}
+
 	if d.HasChanges("workload_identity_enabled") {
 		updateCluster = true
 		workloadIdentity := d.Get("workload_identity_enabled").(bool)
@@ -2956,6 +2991,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
+			nodeProvisioningProfile := flattenKubernetesClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
+			}
+
 			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
 				if props.SecurityProfile.ImageCleaner.Enabled != nil {
 					d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
@@ -3354,6 +3394,23 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pl
 	return &workloadAutoscalerProfile
 }
 
+func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *managedclusters.ManagedClusterNodeProvisioningProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	config := input[0].(map[string]interface{})
+	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
+	if v := config["mode"].(string); v != "" {
+		mv := managedclusters.NodeProvisioningMode(v)
+		profile.Mode = &mv
+	}
+	if v := config["default_node_pools"].(string); v != "" {
+		dv := managedclusters.NodeProvisioningDefaultNodePools(v)
+		profile.DefaultNodePools = &dv
+	}
+	return profile
+}
+
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -3427,6 +3484,24 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 			"vertical_pod_autoscaler_enabled": vpaEnabled,
 		},
 	}
+}
+
+func flattenKubernetesClusterNodeProvisioningProfile(profile *managedclusters.ManagedClusterNodeProvisioningProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+	mode := ""
+	if profile.Mode != nil {
+		mode = string(*profile.Mode)
+	}
+	defaultNodePools := ""
+	if profile.DefaultNodePools != nil {
+		defaultNodePools = string(*profile.DefaultNodePools)
+	}
+	return []interface{}{map[string]interface{}{
+		"mode":               mode,
+		"default_node_pools": defaultNodePools,
+	}}
 }
 
 func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
