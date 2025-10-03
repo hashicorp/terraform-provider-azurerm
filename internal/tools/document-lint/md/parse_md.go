@@ -357,18 +357,20 @@ func (m *Mark) buildStruct() {
 func (m *Mark) BuildResourceDoc() *model.ResourceDoc {
 	doc := model.NewResourceDoc()
 	for _, f := range m.Fields {
-		if f.Pos == model.PosArgs {
+		switch f.Pos {
+		case model.PosArgs:
 			doc.Args.AddField(f)
-		} else if f.Pos == model.PosAttr {
+		case model.PosAttr:
 			doc.Attr.AddField(f)
 		}
 	}
 
 	doc.ResourceName = m.ResourceType
 	for _, item := range m.Items {
-		if item.Type == ItemExample {
+		switch item.Type {
+		case ItemExample:
 			doc.ExampleHCL = item.content()
-		} else if item.Type == ItemTimeout {
+		case ItemTimeout:
 			doc.SetTimeout(item.FromLine, item.content())
 		}
 	}

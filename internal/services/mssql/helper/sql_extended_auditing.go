@@ -36,7 +36,7 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 	}
 
 	var storageAccountSubscriptionId string
-	if extendedServerBlobAuditingPolicy.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID != nil && extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
+	if extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID != nil && extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 		storageAccountSubscriptionId = extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String()
 	}
 

@@ -198,7 +198,7 @@ func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.NetworkSecurityGroups.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkSecurityGroups.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -212,7 +212,7 @@ func (NetworkSecurityGroupResource) Destroy(ctx context.Context, client *clients
 		return nil, err
 	}
 
-	if err := client.Network.Client.NetworkSecurityGroups.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.NetworkSecurityGroups.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -6,6 +6,7 @@ package markdown
 func RegisteredSections() []Section {
 	return []Section{
 		&FrontMatterSection{},
+		&TitleSection{},
 		&ExampleSection{},
 		&ArgumentsSection{},
 		&AttributesSection{},

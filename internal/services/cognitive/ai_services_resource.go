@@ -683,7 +683,7 @@ func flattenCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env 
 			keyVersion = *props.KeyVersion
 		}
 
-		isHsmURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+		isHsmURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 		if err != nil {
 			return nil, err
 		}

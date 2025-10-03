@@ -862,11 +862,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -942,7 +942,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {

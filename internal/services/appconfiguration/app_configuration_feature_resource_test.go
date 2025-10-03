@@ -262,7 +262,7 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response.StatusCode == 200), nil
+	return utils.Bool(res.StatusCode == 200), nil
 }
 
 func (t AppConfigurationFeatureResource) basic(data acceptance.TestData) string {

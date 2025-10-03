@@ -134,7 +134,7 @@ func (r StorageContainerImmutabilityPolicyResource) basic(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 1
 }
 `, template)
@@ -146,7 +146,7 @@ func (r StorageContainerImmutabilityPolicyResource) completeUnlocked(data accept
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 2
   protected_append_writes_all_enabled   = false
   protected_append_writes_enabled       = true
@@ -160,7 +160,7 @@ func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptan
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 2
   protected_append_writes_all_enabled   = true
   protected_append_writes_enabled       = false

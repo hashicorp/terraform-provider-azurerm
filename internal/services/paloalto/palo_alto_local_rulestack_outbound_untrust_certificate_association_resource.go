@@ -57,7 +57,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRulestackOutboundUnTrustCertificateResourceModel{}
 
@@ -111,7 +111,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Read() sdk.
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			certificateId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
@@ -145,7 +145,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Delete() sd
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			certId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -227,7 +227,8 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 	for _, item := range input {
 		mappingBlock := item.(map[string]interface{})
 
-		if mappingBlock["type"].(string) == "Static" {
+		switch mappingBlock["type"].(string) {
+		case "Static":
 			output = append(output, eventsubscriptions.StaticDeliveryAttributeMapping{
 				Name: utils.String(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.StaticDeliveryAttributeMappingProperties{
@@ -235,7 +236,7 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
 				},
 			})
-		} else if mappingBlock["type"].(string) == "Dynamic" {
+		case "Dynamic":
 			output = append(output, eventsubscriptions.DynamicDeliveryAttributeMapping{
 				Name: utils.String(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.DynamicDeliveryAttributeMappingProperties{
@@ -733,7 +734,7 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Values: v,
 		}, nil
 	default:
-		return nil, fmt.Errorf("Invalid `advanced_filter` operator_type %q used", operatorType)
+		return nil, fmt.Errorf("invalid `advanced_filter` operator_type %q used", operatorType)
 	}
 }
 

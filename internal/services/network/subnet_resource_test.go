@@ -415,6 +415,34 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sharingScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -496,7 +524,7 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
@@ -510,7 +538,7 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 		return nil, err
 	}
 
-	if err := client.Network.Client.Subnets.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.Subnets.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
@@ -526,7 +554,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	subnet, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -559,7 +587,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -594,7 +622,7 @@ func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -1023,6 +1051,20 @@ resource "azurerm_subnet" "import" {
   address_prefixes     = azurerm_subnet.test.address_prefixes
 }
 `, r.basic(data))
+}
+
+func (r SubnetResource) sharingScope(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "test" {
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+  sharing_scope                   = "Tenant"
+}
+`, r.template(data))
 }
 
 func (r SubnetResource) serviceEndpoints(data acceptance.TestData) string {

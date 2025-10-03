@@ -345,7 +345,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
 			}
 			if storageAccount == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", *data.AccountName)
+				return fmt.Errorf("unable to locate Storage Account %q", *data.AccountName)
 			}
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()

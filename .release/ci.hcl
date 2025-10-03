@@ -18,7 +18,7 @@ project "terraform-provider-azurerm" {
   github {
     organization     = "hashicorp"
     repository       = "terraform-provider-azurerm"
-    release_branches = ["main"]
+    release_branches = ["main", "release/**"]
   }
 }
 

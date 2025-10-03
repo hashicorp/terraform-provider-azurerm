@@ -92,6 +92,10 @@ The following arguments are supported:
 
 * `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -100,7 +104,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub EventHub Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub EventHub Endpoint.

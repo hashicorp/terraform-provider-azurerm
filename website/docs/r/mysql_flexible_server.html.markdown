@@ -165,6 +165,8 @@ A `customer_managed_key` block supports the following:
 
 ~> **Note:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
+* `managed_hsm_key_id` - (Optional) The ID of the Managed HSM Key.
+
 ---
 
 An `identity` block supports the following:
@@ -225,7 +227,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the MySQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Flexible Server.

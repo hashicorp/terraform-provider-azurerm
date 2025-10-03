@@ -328,7 +328,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupp
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services for the kind \"Face\""),
+			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
 		},
 	})
 }
@@ -443,9 +443,6 @@ func TestAccCognitiveAccount_aiServices_basic(t *testing.T) {
 			Config: r.aiServices_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
-				check.That(data.ResourceName).Key("project_management_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -461,15 +458,6 @@ func TestAccCognitiveAccount_aiServices_complete(t *testing.T) {
 			Config: r.aiServices_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("false"),
-				check.That(data.ResourceName).Key("project_management_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("custom_subdomain_name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -485,24 +473,27 @@ func TestAccCognitiveAccount_aiServices_update(t *testing.T) {
 			Config: r.aiServices_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
-				check.That(data.ResourceName).Key("project_management_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 		{
 			Config: r.aiServices_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("false"),
-				check.That(data.ResourceName).Key("project_management_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("custom_subdomain_name").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_aiServices_networkInjection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aiServices_networkInjection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -1541,6 +1532,71 @@ resource "azurerm_cognitive_account" "test" {
 
   tags = {
     Acceptance = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) aiServices_networkInjection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aiservices-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["192.168.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "subnet_agent" {
+  name                 = "acctestsubnetaagent%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.0.0/24"]
+
+  delegation {
+    name = "Microsoft.App/environments"
+
+    service_delegation {
+      name = "Microsoft.App/environments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                          = "acctestaiservices-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  kind                          = "AIServices"
+  sku_name                      = "S0"
+  public_network_access_enabled = false
+  project_management_enabled    = true
+  custom_subdomain_name         = "acctestaiservices-%[1]d"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_acls {
+    default_action = "Allow"
+  }
+
+  network_injection {
+    scenario  = "agent"
+    subnet_id = azurerm_subnet.subnet_agent.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

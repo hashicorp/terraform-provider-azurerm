@@ -146,7 +146,7 @@ func (t IpGroupResource) Exists(ctx context.Context, clients *clients.Client, st
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
+	resp, err := clients.Network.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

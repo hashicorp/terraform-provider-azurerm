@@ -30,6 +30,7 @@ type DevCenterProjectPoolDataSourceModel struct {
 	DevBoxDefinitionName               string            `tfschema:"dev_box_definition_name"`
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
 	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
+	SingleSignOnEnabled                bool              `tfschema:"single_sign_on_enabled"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -64,6 +65,11 @@ func (DevCenterProjectPoolDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"location": commonschema.LocationComputed(),
+
+		"single_sign_on_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
 		"stop_on_disconnect_grace_period_minutes": {
 			Type:     pluginsdk.TypeInt,
@@ -122,6 +128,7 @@ func (r DevCenterProjectPoolDataSource) Read() sdk.ResourceFunc {
 					state.DevBoxDefinitionName = pointer.From(props.DevBoxDefinitionName)
 					state.LocalAdministratorEnabled = pointer.From(props.LocalAdministrator) == pools.LocalAdminStatusEnabled
 					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
+					state.SingleSignOnEnabled = pointer.From(props.SingleSignOnStatus) == pools.SingleSignOnStatusEnabled
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnectForDataSource(props.StopOnDisconnect)
 				}
 			}

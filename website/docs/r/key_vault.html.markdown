@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 
-* `enable_rbac_authorization` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions.
+* `rbac_authorization_enabled` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions.
 
 -> **Note:** Changing the permission model requires unrestricted (no conditions on the role assignment) `Microsoft.Authorization/roleAssignments/write` permission, which is part of the `Owner` and `User Access Administrator` roles. Classic subscription administrator roles like `Service Administrator` and `Co-Administrator`, or restricted `Key Vault Data Access Administrator` cannot be used to change the permission model. For more information, please see the [product documentation](https://learn.microsoft.com/azure/key-vault/general/rbac-guide?tabs=azure-cli#using-azure-rbac-secret-key-and-certificate-permissions-with-key-vault:~:text=Enable%20Azure%20RBAC,change%20permission%20model).
 
@@ -142,14 +142,6 @@ A `network_acls` block supports the following:
 
 ---
 
-A `contact` block supports the following:
-
-* `email` - (Required) E-mail address of the contact.
-
-* `name` - (Optional) Name of the contact.
-
-* `phone` - (Optional) Phone number of the contact.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -160,7 +152,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.

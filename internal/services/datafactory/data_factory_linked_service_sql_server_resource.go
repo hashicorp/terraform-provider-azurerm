@@ -188,15 +188,15 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = v.(string)
+		sqlServerLinkedService.ConnectionString = v.(string)
 	}
 
 	if v, ok := d.GetOk("user_name"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.UserName = v.(string)
+		sqlServerLinkedService.UserName = v.(string)
 	}
 
 	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sqlServerLinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

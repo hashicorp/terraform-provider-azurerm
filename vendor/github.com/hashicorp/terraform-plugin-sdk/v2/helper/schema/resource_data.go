@@ -15,7 +15,11 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/go-cty/cty/gocty"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/hcl2shim"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugin/convert"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -57,6 +61,105 @@ type getResult struct {
 	Computed       bool
 	Exists         bool
 	Schema         *Schema
+}
+
+// TfTypeIdentityState returns the identity data as a tftypes.Value.
+func (d *ResourceData) TfTypeIdentityState() (*tftypes.Value, error) {
+	s := schemaMap(d.identitySchema).CoreConfigSchema()
+
+	state := d.State()
+
+	if state == nil {
+		return nil, fmt.Errorf("state is nil, call SetId() on ResourceData first")
+	}
+
+	stateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Identity, s.ImpliedType())
+	if err != nil {
+		return nil, fmt.Errorf("converting identity flatmap to cty value: %+v", err)
+	}
+
+	return convert.ToTfValue(stateVal)
+}
+
+// TfTypeResourceState returns the resource data as a tftypes.Value.
+func (d *ResourceData) TfTypeResourceState() (*tftypes.Value, error) {
+	s := schemaMap(d.schema).CoreConfigSchema()
+
+	// The CoreConfigSchema method on schemaMaps doesn't automatically handle adding the id
+	// attribute or timeouts like the method on Resource does
+	if _, ok := s.Attributes["id"]; !ok {
+		s.Attributes["id"] = &configschema.Attribute{
+			Type:     cty.String,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	_, timeoutsAttr := s.Attributes[TimeoutsConfigKey]
+	_, timeoutsBlock := s.BlockTypes[TimeoutsConfigKey]
+
+	if d.timeouts != nil && !timeoutsAttr && !timeoutsBlock {
+		timeouts := configschema.Block{
+			Attributes: map[string]*configschema.Attribute{},
+		}
+
+		if d.timeouts.Create != nil {
+			timeouts.Attributes[TimeoutCreate] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Read != nil {
+			timeouts.Attributes[TimeoutRead] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Update != nil {
+			timeouts.Attributes[TimeoutUpdate] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Delete != nil {
+			timeouts.Attributes[TimeoutDelete] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Default != nil {
+			timeouts.Attributes[TimeoutDefault] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if len(timeouts.Attributes) != 0 {
+			s.BlockTypes[TimeoutsConfigKey] = &configschema.NestedBlock{
+				Nesting: configschema.NestingSingle,
+				Block:   timeouts,
+			}
+		}
+	}
+
+	state := d.State()
+	if state == nil {
+		return nil, fmt.Errorf("state is nil, call SetId() on ResourceData first")
+	}
+
+	// Although we handle adding/omitting timeouts to the schema depending on how it's been defined on the resource
+	// we don't process or convert the timeout values since they reside in Meta and aren't needed for the purposes
+	// of this function and in the context of a List.
+	stateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, s.ImpliedType())
+	if err != nil {
+		return nil, fmt.Errorf("converting resource state flatmap to cty value: %+v", err)
+	}
+
+	return convert.ToTfValue(stateVal)
 }
 
 // Get returns the data for the given key, or nil if the key doesn't exist

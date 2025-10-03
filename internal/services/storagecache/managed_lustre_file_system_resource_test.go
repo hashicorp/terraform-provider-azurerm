@@ -342,8 +342,8 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
   }
 
@@ -433,8 +433,8 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
   }
 

@@ -111,6 +111,16 @@ func resourceSubnet() *pluginsdk.Resource {
 		Delete:   resourceSubnetDelete,
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
+				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
+					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
+				}
+				return nil
+			}),
+		),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -173,6 +183,13 @@ func resourceSubnet() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
 				},
+			},
+
+			"sharing_scope": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// todo "Tenant" is only supported until https://github.com/Azure/azure-rest-api-specs/issues/36446 is addressed
+				ValidateFunc: validation.StringInSlice([]string{string(subnets.SharingScopeTenant)}, false),
 			},
 
 			"delegation": {
@@ -277,7 +294,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 // TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -335,6 +352,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
+	properties.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
+
 	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
 	delegationsRaw := d.Get("delegation").([]interface{})
@@ -379,7 +398,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -475,6 +494,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.PrivateLinkServiceNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(v)))
 	}
 
+	if d.HasChange("sharing_scope") {
+		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
+	}
+
 	if d.HasChange("service_endpoints") {
 		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
@@ -524,7 +547,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -574,7 +597,8 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
-			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
+			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
+			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
@@ -596,7 +620,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

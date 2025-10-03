@@ -102,7 +102,7 @@ func (t SubnetNatGatewayAssociationResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -128,7 +128,7 @@ func (SubnetNatGatewayAssociationResource) destroy(ctx context.Context, client *
 		return err
 	}
 
-	subnet, err := client.Network.Client.Subnets.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Network.Subnets.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", subnetId, err)
 	}
@@ -142,7 +142,7 @@ func (SubnetNatGatewayAssociationResource) destroy(ctx context.Context, client *
 
 	subnet.Model.Properties.NatGateway = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *subnetId, *subnet.Model); err != nil {
+	if err := client.Network.Subnets.CreateOrUpdateThenPoll(ctx, *subnetId, *subnet.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", subnetId, err)
 	}
 

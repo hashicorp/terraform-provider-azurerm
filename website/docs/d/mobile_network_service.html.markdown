@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Service.
 ---
 
-# azurerm_mobile_network_service
+# Data Source: azurerm_mobile_network_service
 
 Get information about a Mobile Network Service.
 
@@ -124,7 +124,7 @@ A `maximum_bit_rate` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Service.
 

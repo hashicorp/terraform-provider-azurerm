@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &ExadbVMClusterDbNodeId{}
 
-// ExadbVMClusterDbNodeId is a struct representing the Resource ID for a Exadb V M Cluster Db Node
+// ExadbVMClusterDbNodeId is a struct representing the Resource ID for a Exadb VM Cluster Db Node
 type ExadbVMClusterDbNodeId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
@@ -90,7 +90,7 @@ func (id *ExadbVMClusterDbNodeId) FromParseResult(input resourceids.ParseResult)
 	return nil
 }
 
-// ValidateExadbVMClusterDbNodeID checks that 'input' can be parsed as a Exadb V M Cluster Db Node ID
+// ValidateExadbVMClusterDbNodeID checks that 'input' can be parsed as a Exadb VM Cluster Db Node ID
 func ValidateExadbVMClusterDbNodeID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -105,13 +105,13 @@ func ValidateExadbVMClusterDbNodeID(input interface{}, key string) (warnings []s
 	return
 }
 
-// ID returns the formatted Exadb V M Cluster Db Node ID
+// ID returns the formatted Exadb VM Cluster Db Node ID
 func (id ExadbVMClusterDbNodeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Oracle.Database/exadbVmClusters/%s/dbNodes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ExadbVmClusterName, id.DbNodeName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Exadb V M Cluster Db Node ID
+// Segments returns a slice of Resource ID Segments which comprise this Exadb VM Cluster Db Node ID
 func (id ExadbVMClusterDbNodeId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -127,7 +127,7 @@ func (id ExadbVMClusterDbNodeId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Exadb V M Cluster Db Node ID
+// String returns a human-readable description of this Exadb VM Cluster Db Node ID
 func (id ExadbVMClusterDbNodeId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
@@ -135,5 +135,5 @@ func (id ExadbVMClusterDbNodeId) String() string {
 		fmt.Sprintf("Exadb Vm Cluster Name: %q", id.ExadbVmClusterName),
 		fmt.Sprintf("Db Node Name: %q", id.DbNodeName),
 	}
-	return fmt.Sprintf("Exadb V M Cluster Db Node (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Exadb VM Cluster Db Node (%s)", strings.Join(components, "\n"))
 }

@@ -47,7 +47,7 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 	}
 
 	if _, err := ParseAzureResourceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
 	}
 
 	return warnings, errors

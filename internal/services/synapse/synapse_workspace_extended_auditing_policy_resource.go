@@ -121,7 +121,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, params)

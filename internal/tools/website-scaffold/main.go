@@ -135,7 +135,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Data Source %q was not registered!", resourceName)
+			return nil, fmt.Errorf("data source %q was not registered", resourceName)
 		}
 	} else {
 		for _, service := range provider.SupportedTypedServices() {
@@ -164,7 +164,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Resource %q was not registered!", resourceName)
+			return nil, fmt.Errorf("resource %q was not registered", resourceName)
 		}
 	}
 
@@ -472,7 +472,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 	}
 	timeouts := *gen.resource.Timeouts
 
-	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:"
+	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:"
 
 	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))
@@ -831,7 +831,7 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 		field := fields[fieldName]
 
 		// compute-only fields can be omitted
-		if field.Computed && !(field.Optional || field.Required) {
+		if field.Computed && (!field.Optional && !field.Required) {
 			continue
 		}
 

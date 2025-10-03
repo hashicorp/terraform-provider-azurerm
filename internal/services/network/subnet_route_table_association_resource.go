@@ -56,7 +56,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +138,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -181,7 +181,7 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -219,6 +219,10 @@ An `endpoint` block supports the following:
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
+
 ---
 
 An `identity` block supports the following:
@@ -373,7 +377,7 @@ A `shared_access_policy` block contains the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.

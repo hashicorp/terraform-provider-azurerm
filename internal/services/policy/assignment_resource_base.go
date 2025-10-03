@@ -427,12 +427,14 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 									},
 								},
 
-								// The supported selector kinds in a policy effect override are 'PolicyDefinitionReferenceId'.
-								// https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#overrides-preview
-								// so make kind as computed for selector of override
 								"kind": {
 									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Optional: true,
+									Default:  policyassignments.SelectorKindPolicyDefinitionReferenceId,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(policyassignments.SelectorKindPolicyDefinitionReferenceId),
+										string(policyassignments.SelectorKindResourceLocation),
+									}, false),
 								},
 
 								"not_in": {
@@ -566,7 +568,7 @@ func (br assignmentBaseResource) expandOverrides(overrides []interface{}) *[]pol
 			var item policyassignments.Override
 			item.Value = pointer.To(m["value"].(string))
 			item.Kind = pointer.To(policyassignments.OverrideKindPolicyEffect)
-			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}), true)
+			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}))
 			res = append(res, item)
 		}
 	}
@@ -590,7 +592,7 @@ func (br assignmentBaseResource) expandStringSlice(in interface{}) (res []string
 	return res
 }
 
-func (br assignmentBaseResource) expandSelectors(i []interface{}, isOverride bool) *[]policyassignments.Selector {
+func (br assignmentBaseResource) expandSelectors(i []interface{}) *[]policyassignments.Selector {
 	if len(i) == 0 {
 		return nil
 	}
@@ -599,11 +601,7 @@ func (br assignmentBaseResource) expandSelectors(i []interface{}, isOverride boo
 	for _, v := range i {
 		if m, ok := v.(map[string]interface{}); ok {
 			var item policyassignments.Selector
-			if isOverride {
-				item.Kind = pointer.To(policyassignments.SelectorKindPolicyDefinitionReferenceId)
-			} else {
-				item.Kind = pointer.To(policyassignments.SelectorKind(m["kind"].(string)))
-			}
+			item.Kind = pointer.To(policyassignments.SelectorKind(m["kind"].(string)))
 			if in := br.expandStringSlice(m["in"]); len(in) > 0 {
 				item.In = pointer.To(in)
 			}
@@ -627,7 +625,7 @@ func (br assignmentBaseResource) expandResourceSelectors(rs []interface{}) *[]po
 		if m, ok := v.(map[string]interface{}); ok {
 			var item policyassignments.ResourceSelector
 			item.Name = pointer.To(m["name"].(string))
-			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}), false)
+			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}))
 			res = append(res, item)
 		}
 	}

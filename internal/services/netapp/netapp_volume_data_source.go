@@ -168,6 +168,12 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The accept grow capacity pool for short term clone split property.",
+			},
 		},
 	}
 }
@@ -213,6 +219,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {

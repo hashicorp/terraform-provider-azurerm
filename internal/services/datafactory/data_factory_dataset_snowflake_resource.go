@@ -331,7 +331,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
 	if err := d.Set("schema_column", schemaColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil

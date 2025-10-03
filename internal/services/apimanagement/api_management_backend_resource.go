@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -291,10 +291,10 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    backend.BackendProtocol(protocol),
+			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
 			Proxy:       proxy,
 			Tls:         tls,
-			Url:         url,
+			Url:         pointer.To(url),
 		},
 	}
 	if description, ok := d.GetOk("description"); ok {
@@ -308,7 +308,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		err, serviceFabricCluster := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -352,7 +352,7 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("name", pointer.From(model.Name))
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("protocol", string(props.Protocol))
+			d.Set("protocol", pointer.FromEnum(props.Protocol))
 			d.Set("resource_id", pointer.From(props.ResourceId))
 			d.Set("title", pointer.From(props.Title))
 			d.Set("url", props.Url)
@@ -463,7 +463,7 @@ func expandApiManagementBackendProxy(input []interface{}) *backend.BackendProxyC
 	return &contract
 }
 
-func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error, *backend.BackendServiceFabricClusterProperties) {
+func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backend.BackendServiceFabricClusterProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -484,7 +484,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	}
 
 	if properties.ClientCertificateId == nil && properties.ClientCertificatethumbprint == nil {
-		return errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
+		return nil, errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set")
 	}
 
 	serverCertificateThumbprintsUnset := true
@@ -498,9 +498,9 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 		serverX509NamesUnset = false
 	}
 	if serverCertificateThumbprintsUnset && serverX509NamesUnset {
-		return errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
+		return nil, errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set")
 	}
-	return nil, &properties
+	return &properties, nil
 }
 
 func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]backend.X509CertificateName {

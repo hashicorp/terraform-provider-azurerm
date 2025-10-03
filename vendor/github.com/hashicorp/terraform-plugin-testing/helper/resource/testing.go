@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 	"log"
 	"os"
 	"regexp"
@@ -640,6 +641,10 @@ type TestStep struct {
 	// Custom state checks can be created by implementing the [statecheck.StateCheck] interface, or by using a StateCheck implementation from the provided [statecheck] package.
 	ConfigStateChecks []statecheck.StateCheck
 
+	// ConfigQueryChecks allow assertions to be made against the query file during a Config test using a query check.
+	// Custom query checks can be created by implementing the [querycheck.QueryCheck] interface, or by using a QueryCheck implementation from the provided [querycheck] package.
+	ConfigQueryChecks []querycheck.QueryCheck
+
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
 	// no-op plans
@@ -674,6 +679,11 @@ type TestStep struct {
 	// ID of that resource.
 	ImportState bool
 
+	// ImportStateKind controls the method of import that is used in combination with the other import-related fields on the TestStep struct.
+	//
+	//   - By default, ImportCommandWithID is used, which tests import by using the ID string with the `terraform import` command. This was the original behavior prior to introducing the ImportStateKind field.
+	//   - ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command.
+	//   - ImportBlockWithResourceIdentity imports the state using an import configuration block with a resource identity.
 	ImportStateKind ImportStateKind
 
 	// ImportStateId is the ID to perform an ImportState operation with.
@@ -830,6 +840,9 @@ type TestStep struct {
 	// for performing import testing where the prior TestStep configuration
 	// contained a provider outside the one under test.
 	ExternalProviders map[string]ExternalProvider
+
+	// If true, the test step will run the query command
+	Query bool
 }
 
 // ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.
@@ -845,6 +858,21 @@ type ConfigPlanChecks struct {
 	// PostApplyPostRefresh runs all plan checks in the slice. This occurs after the apply and refresh of a Config test are run.
 	// All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
 	PostApplyPostRefresh []plancheck.PlanCheck
+}
+
+// ConfigQueryChecks defines the different points in a Config TestStep when query checks can be run.
+type ConfigQueryChecks struct {
+	// PreApply runs all query checks in the slice. This occurs before the apply of a Config test is run. This slice cannot be populated
+	// with TestStep.QueryOnly, as there is no PreApply query run with that flag set. All errors by query checks in this slice are aggregated, reported, and will result in a test failure.
+	PreApply []querycheck.QueryCheck
+
+	// PostApplyPreRefresh runs all query checks in the slice. This occurs after the apply and before the refresh of a Config test is run.
+	// All errors by query checks in this slice are aggregated, reported, and will result in a test failure.
+	PostApplyPreRefresh []querycheck.QueryCheck
+
+	// PostApplyPostRefresh runs all query checks in the slice. This occurs after the apply and refresh of a Config test are run.
+	// All errors by query checks in this slice are aggregated, reported, and will result in a test failure.
+	PostApplyPostRefresh []querycheck.QueryCheck
 }
 
 // ImportPlanChecks defines the different points in an Import TestStep when plan checks can be run.

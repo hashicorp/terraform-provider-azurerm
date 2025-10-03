@@ -90,11 +90,17 @@ type ProviderSchema struct {
 	// The schemas for any ephemeral resources in this provider.
 	EphemeralResourceSchemas map[string]*Schema `json:"ephemeral_resource_schemas,omitempty"`
 
+	// The schemas for any actions in this provider.
+	ActionSchemas map[string]*ActionSchema `json:"action_schemas,omitempty"`
+
 	// The definitions for any functions in this provider.
 	Functions map[string]*FunctionSignature `json:"functions,omitempty"`
 
 	// The schemas for resources identities in this provider.
 	ResourceIdentitySchemas map[string]*IdentitySchema `json:"resource_identity_schemas,omitempty"`
+
+	// The schemas for any list resources in this provider.
+	ListResourceSchemas map[string]*Schema `json:"list_resource_schemas,omitempty"`
 }
 
 // Schema is the JSON representation of a particular schema
@@ -324,4 +330,10 @@ type IdentityAttribute struct {
 	// required to be specified during import, because it can be supplied by the
 	// provider
 	OptionalForImport bool `json:"optional_for_import,omitempty"`
+}
+
+// ActionSchema is the JSON representation of an action schema
+type ActionSchema struct {
+	// The root-level block of configuration values.
+	Block *SchemaBlock `json:"block,omitempty"`
 }

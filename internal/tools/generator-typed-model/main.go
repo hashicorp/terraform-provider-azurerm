@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	. "github.com/dave/jennifer/jen"
+	"github.com/dave/jennifer/jen"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("unknown resource type: %s", rt)
 	}
 
-	f := NewFile("main")
+	f := jen.NewFile("main")
 	modelStmts := modelForSchemaMap(snake2Camel(strings.TrimPrefix(rt, "azurerm_"))+"Model", resource.Schema)
 	for _, stmt := range modelStmts {
 		stmt := stmt
@@ -49,12 +49,12 @@ func snake2Camel(input string) string {
 	return out
 }
 
-func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
-	var out []Statement
+func modelForSchemaMap(name string, sm map[string]*schema.Schema) []jen.Statement {
+	var out []jen.Statement
 
-	var thisStmt Statement
+	var thisStmt jen.Statement
 
-	fields := []Code{}
+	fields := []jen.Code{}
 
 	keys := []string{}
 	for k := range sm {
@@ -69,16 +69,16 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 
 		switch sch.Type {
 		case schema.TypeBool:
-			fields = append(fields, Id(fieldName).Bool().Tag(tag))
+			fields = append(fields, jen.Id(fieldName).Bool().Tag(tag))
 		case schema.TypeInt:
-			fields = append(fields, Id(fieldName).Int().Tag(tag))
+			fields = append(fields, jen.Id(fieldName).Int().Tag(tag))
 		case schema.TypeString:
-			fields = append(fields, Id(fieldName).String().Tag(tag))
+			fields = append(fields, jen.Id(fieldName).String().Tag(tag))
 		case schema.TypeFloat:
-			fields = append(fields, Id(fieldName).Float64().Tag(tag))
+			fields = append(fields, jen.Id(fieldName).Float64().Tag(tag))
 		case schema.TypeList,
 			schema.TypeSet:
-			field := Id(fieldName).Index()
+			field := jen.Id(fieldName).Index()
 
 			switch elemSch := sch.Elem.(type) {
 			case *schema.Resource:
@@ -102,7 +102,7 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 				panic(fmt.Errorf("unhandled type: List/Set of %t", sch.Elem))
 			}
 		case schema.TypeMap:
-			field := Id(fieldName).Map(String())
+			field := jen.Id(fieldName).Map(jen.String())
 			// Map's element must be of type *schema.Schema
 			elemSch := sch.Elem.(*schema.Schema)
 			switch elemSch.Type {
@@ -121,7 +121,7 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 			panic(fmt.Errorf("unhandled type: %s", sch.Type))
 		}
 	}
-	thisStmt = *Type().Id(name).Struct(fields...)
+	thisStmt = *jen.Type().Id(name).Struct(fields...)
 
 	out = append(out, thisStmt)
 

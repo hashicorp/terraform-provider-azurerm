@@ -15,7 +15,7 @@ func AlertProcessingRuleName(i interface{}, k string) (warning []string, errors 
 	}
 
 	if !regexp.MustCompile(`^([a-zA-Z\d])[a-zA-Z\d-_]*$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s should begin with a letter or number, contain only letters, numbers, underscores and hyphens.", k))
+		errors = append(errors, fmt.Errorf("%s should begin with a letter or number, contain only letters, numbers, underscores and hyphens", k))
 	}
 
 	return

@@ -30,7 +30,7 @@ func TestAccStorageEncryptionScope_resourceIdentity(t *testing.T) {
 			{
 				Config: r.keyVaultKey(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("encryption_scope_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("storage_account_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),

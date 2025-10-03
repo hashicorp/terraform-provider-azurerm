@@ -12,6 +12,10 @@ const (
 	// a plan-based value.
 	DataDescriptionPlan DataDescription = "plan"
 
+	// DataDescriptionResource is used for Data that represents
+	// a resource value.
+	DataDescriptionResource DataDescription = "resource"
+
 	// DataDescriptionState is used for Data that represents
 	// a state-based value.
 	DataDescriptionState DataDescription = "state"

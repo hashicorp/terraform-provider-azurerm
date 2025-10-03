@@ -177,7 +177,7 @@ resource "azuread_application_password" "test" {
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   api_management_name    = azurerm_api_management.test.name
-  client_id              = azuread_application.test.application_id
+  client_id              = azuread_application.test.client_id
   client_secret          = azuread_application_password.test.value
   allowed_tenant         = "%[4]s.onmicrosoft.com"
   signin_tenant          = "%[4]s.onmicrosoft.com"
@@ -236,7 +236,7 @@ resource "azuread_application_password" "test" {
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   api_management_name    = azurerm_api_management.test.name
-  client_id              = azuread_application.test.application_id
+  client_id              = azuread_application.test.client_id
   client_library         = "MSAL"
   client_secret          = azuread_application_password.test.value
   allowed_tenant         = "%[4]s.onmicrosoft.com"
@@ -296,7 +296,7 @@ resource "azuread_application_password" "test" {
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   api_management_name    = azurerm_api_management.test.name
-  client_id              = azuread_application.test.application_id
+  client_id              = azuread_application.test.client_id
   client_library         = "MSAL-2"
   client_secret          = azuread_application_password.test.value
   allowed_tenant         = "%[4]s.onmicrosoft.com"

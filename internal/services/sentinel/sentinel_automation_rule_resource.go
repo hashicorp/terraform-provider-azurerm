@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
@@ -88,6 +89,32 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
+		},
+
+		"action_incident_task": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"order": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"title": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 
 		"action_incident": {
@@ -309,13 +336,16 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("condition_json", conditionJSON)
 
-		actionIncident, actionPlaybook := flattenAutomationRuleActions(prop.Actions)
+		actionIncident, actionPlaybook, actionIncidentTask := flattenAutomationRuleActions(prop.Actions)
 
 		if err := d.Set("action_incident", actionIncident); err != nil {
 			return fmt.Errorf("setting `action_incident`: %v", err)
 		}
 		if err := d.Set("action_playbook", actionPlaybook); err != nil {
 			return fmt.Errorf("setting `action_playbook`: %v", err)
+		}
+		if err := d.Set("action_incident_task", actionIncidentTask); err != nil {
+			return fmt.Errorf("setting `action_incident_task`: %v", err)
 		}
 	}
 
@@ -367,19 +397,23 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	}
 	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
 
-	if len(actionIncident)+len(actionPlaybook) == 0 {
+	actionIncidentTask := expandAutomationRuleActionIncidentTask(d.Get("action_incident_task").([]interface{}))
+
+	if len(actionIncident)+len(actionPlaybook)+len(actionIncidentTask) == 0 {
 		return nil, nil
 	}
 
 	out := make([]automationrules.AutomationRuleAction, 0, len(actionIncident)+len(actionPlaybook))
 	out = append(out, actionIncident...)
 	out = append(out, actionPlaybook...)
+	out = append(out, actionIncidentTask...)
 	return out, nil
 }
 
-func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}) {
+func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}, actionIncidentTask []interface{}) {
 	actionIncident = make([]interface{}, 0)
 	actionPlaybook = make([]interface{}, 0)
+	actionIncidentTask = make([]interface{}, 0)
 
 	for _, action := range input {
 		switch action := action.(type) {
@@ -387,6 +421,8 @@ func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) 
 			actionIncident = append(actionIncident, flattenAutomationRuleActionIncident(action))
 		case automationrules.AutomationRuleRunPlaybookAction:
 			actionPlaybook = append(actionPlaybook, flattenAutomationRuleActionPlaybook(action))
+		case automationrules.AutomationRuleAddIncidentTaskAction:
+			actionIncidentTask = append(actionIncidentTask, flattenAutomationRuleACtionIncidentTask(action))
 		}
 	}
 
@@ -563,5 +599,40 @@ func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRun
 		"order":        input.Order,
 		"logic_app_id": logicAppId,
 		"tenant_id":    tenantId,
+	}
+}
+
+func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrules.AutomationRuleAction {
+	output := make([]automationrules.AutomationRuleAction, 0, len(input))
+
+	for _, task := range input {
+		task := task.(map[string]interface{})
+		output = append(output, automationrules.AutomationRuleAddIncidentTaskAction{
+			Order: int64(task["order"].(int)),
+			ActionConfiguration: &automationrules.AddIncidentTaskActionProperties{
+				Title:       task["title"].(string),
+				Description: pointer.To(task["description"].(string)),
+			},
+		})
+	}
+
+	return output
+}
+
+func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRuleAddIncidentTaskAction) map[string]interface{} {
+	var (
+		title       string
+		description string
+	)
+
+	if cfg := input.ActionConfiguration; cfg != nil {
+		title = cfg.Title
+		description = pointer.From(cfg.Description)
+	}
+
+	return map[string]interface{}{
+		"order":       input.Order,
+		"title":       title,
+		"description": description,
 	}
 }

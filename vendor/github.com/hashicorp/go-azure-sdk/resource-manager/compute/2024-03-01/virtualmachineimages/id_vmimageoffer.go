@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &VMImageOfferId{}
 
-// VMImageOfferId is a struct representing the Resource ID for a V M Image Offer
+// VMImageOfferId is a struct representing the Resource ID for a VM Image Offer
 type VMImageOfferId struct {
 	SubscriptionId string
 	LocationName   string
@@ -96,7 +96,7 @@ func (id *VMImageOfferId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateVMImageOfferID checks that 'input' can be parsed as a V M Image Offer ID
+// ValidateVMImageOfferID checks that 'input' can be parsed as a VM Image Offer ID
 func ValidateVMImageOfferID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -111,13 +111,13 @@ func ValidateVMImageOfferID(input interface{}, key string) (warnings []string, e
 	return
 }
 
-// ID returns the formatted V M Image Offer ID
+// ID returns the formatted VM Image Offer ID
 func (id VMImageOfferId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Compute/locations/%s/edgeZones/%s/publishers/%s/artifactTypes/vmImage/offers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.EdgeZoneName, id.PublisherName, id.OfferName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this V M Image Offer ID
+// Segments returns a slice of Resource ID Segments which comprise this VM Image Offer ID
 func (id VMImageOfferId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -137,7 +137,7 @@ func (id VMImageOfferId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this V M Image Offer ID
+// String returns a human-readable description of this VM Image Offer ID
 func (id VMImageOfferId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
@@ -146,5 +146,5 @@ func (id VMImageOfferId) String() string {
 		fmt.Sprintf("Publisher Name: %q", id.PublisherName),
 		fmt.Sprintf("Offer Name: %q", id.OfferName),
 	}
-	return fmt.Sprintf("V M Image Offer (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("VM Image Offer (%s)", strings.Join(components, "\n"))
 }
