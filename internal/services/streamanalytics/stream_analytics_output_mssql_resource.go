@@ -29,7 +29,7 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.AzureSqlDatabaseOutputDataSource{})),
+		}, importStreamAnalyticsOutput([]outputs.OutputDataSource{outputs.AzureSqlDatabaseOutputDataSource{}})),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
