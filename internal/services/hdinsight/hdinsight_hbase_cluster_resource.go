@@ -253,9 +253,19 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 		if err != nil {
 			return err
+		}
+		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		if diskEncryptionIdentity != nil {
+			if params.Identity == nil {
+				params.Identity = diskEncryptionIdentity
+			} else {
+				for k, v := range diskEncryptionIdentity.IdentityIds {
+					params.Identity.IdentityIds[k] = v
+				}
+			}
 		}
 	}
 
