@@ -67,9 +67,9 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this autonomous database clone from database. Changing this forces a new autonomous database clone from database to be created.
+* `name` - (Required) The name which should be used for this autonomous database clone from database. Changing this forces a new autonomous database clone  to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone  to be created.
 
 * `location` - (Required) The Azure Region where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
 
@@ -109,19 +109,19 @@ The following arguments are supported:
 
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created.
 
-* `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from database to be created.
+* `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone  to be created.
 
 ---
 
-* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses. Changing this forces a new autonomous database clone from backup to be created.
+* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses. Changing this forces a new autonomous database clone  to be created.
 
 * `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
 
-* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Changing this forces a new autonomous database clone from database to be created.
+* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Changing this forces a new autonomous database clone  to be created.
 
-* `subnet_id` - (Optional) The ID of the subnet the resource is associated with. Changing this forces a new autonomous database clone from database to be created.
+* `subnet_id` - (Optional) The ID of the subnet the resource is associated with. Changing this forces a new autonomous database clone  to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone. Changing this forces a new autonomous database clone from backup to be created.
+* `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone. Changing this forces a new autonomous database clone  to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new Autonomous Database Clone to be created.
 
