@@ -378,6 +378,39 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
+func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+	// Note: AutomaticZoneRebalancingPolicy is excluded as it's in private preview and
+	// has been removed from the schema to prevent API errors.
+	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
+		Enabled: pointer.To(resilientVMCreationEnabled),
+	}
+
+	result.ResilientVMDeletionPolicy = &virtualmachinescalesets.ResilientVMDeletionPolicy{
+		Enabled: pointer.To(resilientVMDeletionEnabled),
+	}
+
+	return result
+}
+
+func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
+	if input == nil {
+		// No ResiliencyPolicy - don't set these fields in state for backward compatibility
+		return resilientVMCreationEnabled, resilientVMDeletionEnabled
+	}
+
+	if vmCreation := input.ResilientVMCreationPolicy; vmCreation != nil {
+		resilientVMCreationEnabled = pointer.From(vmCreation.Enabled)
+	}
+
+	if vmDeletion := input.ResilientVMDeletionPolicy; vmDeletion != nil {
+		resilientVMDeletionEnabled = pointer.From(vmDeletion.Enabled)
+	}
+
+	return
+}
+
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
