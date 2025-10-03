@@ -1,34 +1,20 @@
 package manageddevopspools
 
-import (
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-)
-
 const (
 	AgentProfileKindStateless = "Stateless"
 	AgentProfileKindStateful  = "Stateful"
 )
 
-type ManagedDevOpsPoolModel struct {
-	AgentProfile               []AgentProfileModel                        `tfschema:"agent_profile"`
-	DevCenterProjectResourceId string                                     `tfschema:"dev_center_project_resource_id"`
-	FabricProfile              []FabricProfileModel                       `tfschema:"fabric_profile"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location                   string                                     `tfschema:"location"`
-	MaximumConcurrency         int64                                      `tfschema:"maximum_concurrency"`
-	Name                       string                                     `tfschema:"name"`
-	OrganizationProfile        []OrganizationProfileModel                 `tfschema:"organization_profile"`
-	ProvisioningState          string                                     `tfschema:"provisioning_state"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	Tags                       map[string]string                          `tfschema:"tags"`
+type StatefulAgentProfileModel struct {
+	GracePeriodTimeSpan                 *string                                    `tfschema:"grace_period_time_span"`
+	MaxAgentLifetime                    *string                                    `tfschema:"max_agent_lifetime"`
+	ManualResourcePredictionsProfile    []ManualResourcePredictionsProfileModel    `tfschema:"manual_resource_predictions_profile"`
+	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
 }
 
-type AgentProfileModel struct {
-	GracePeriodTimeSpan        *string                           `tfschema:"grace_period_time_span"`
-	Kind                       string                            `tfschema:"kind"`
-	MaxAgentLifetime           *string                           `tfschema:"max_agent_lifetime"`
-	ResourcePredictions        []ResourcePredictionsModel        `tfschema:"resource_predictions"`
-	ResourcePredictionsProfile []ResourcePredictionsProfileModel `tfschema:"resource_predictions_profile"`
+type StatelessAgentProfileModel struct {
+	ManualResourcePredictionsProfile    []ManualResourcePredictionsProfileModel    `tfschema:"manual_resource_predictions_profile"`
+	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
 }
 
 type ResourcePredictionsModel struct {
@@ -46,9 +32,16 @@ type ResourcePredictionsProfileModel struct {
 	PredictionPreference *string `tfschema:"prediction_preference"`
 }
 
-type FabricProfileModel struct {
+type ManualResourcePredictionsProfileModel struct {
+	ResourcePredictions []ResourcePredictionsModel `tfschema:"resource_predictions"`
+}
+
+type AutomaticResourcePredictionsProfileModel struct {
+	PredictionPreference *string `tfschema:"prediction_preference"`
+}
+
+type VmssFabricProfileModel struct {
 	Images         []ImageModel          `tfschema:"image"`
-	Kind           string                `tfschema:"kind"`
 	NetworkProfile []NetworkProfileModel `tfschema:"network_profile"`
 	OsProfile      []OsProfileModel      `tfschema:"os_profile"`
 	Sku            []DevOpsAzureSkuModel `tfschema:"sku"`
@@ -61,6 +54,7 @@ type ImageModel struct {
 	ResourceId         *string   `tfschema:"resource_id"`
 	WellKnownImageName *string   `tfschema:"well_known_image_name"`
 }
+
 type OsProfileModel struct {
 	LogonType                 string                           `tfschema:"logon_type"`
 	SecretsManagementSettings []SecretsManagementSettingsModel `tfschema:"secrets_management"`
@@ -93,10 +87,10 @@ type DataDiskModel struct {
 	StorageAccountType *string `tfschema:"storage_account_type"`
 }
 
-type OrganizationProfileModel struct {
-	Organizations     []OrganizationModel      `tfschema:"organization"`
-	PermissionProfile []PermissionProfileModel `tfschema:"permission_profile"`
-	Kind              string                   `tfschema:"kind"`
+type AzureDevOpsOrganizationProfileModel struct {
+	Organizations         []OrganizationModel                     `tfschema:"organization"`
+	PermissionProfileKind *string                                 `tfschema:"permission_profile_kind"`
+	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_accounts"`
 }
 
 type OrganizationModel struct {
@@ -105,8 +99,7 @@ type OrganizationModel struct {
 	Url         string    `tfschema:"url"`
 }
 
-type PermissionProfileModel struct {
+type AzureDevOpsAdministratorAccountsModel struct {
 	Groups *[]string `tfschema:"groups"`
-	Kind   string    `tfschema:"kind"`
 	Users  *[]string `tfschema:"users"`
 }

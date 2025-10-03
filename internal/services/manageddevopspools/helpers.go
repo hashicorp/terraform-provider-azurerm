@@ -2,83 +2,89 @@ package manageddevopspools
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 )
 
-func expandAgentProfileModel(input []AgentProfileModel) (pools.AgentProfile, error) {
+func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) (pools.AgentProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	agentProfile := input[0]
-	resourcePredictions := expandResourcePredictionsModel(agentProfile.ResourcePredictions)
-	switch agentProfile.Kind {
-	case AgentProfileKindStateful:
-		stateful := &pools.Stateful{
-			GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
-			MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
-		}
 
+	stateful := &pools.Stateful{
+		Kind:                "Stateful",
+		GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
+		MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
+	}
+
+	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
+		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
+
+		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile.ResourcePredictions)
 		if resourcePredictions != nil {
 			stateful.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
 		}
 
-		if len(agentProfile.ResourcePredictionsProfile) > 0 {
-			resourcePredictionsProfile := agentProfile.ResourcePredictionsProfile[0]
-			if resourcePredictionsProfile.Kind == string(pools.ResourcePredictionsProfileTypeAutomatic) {
-				automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
-					Kind:                 pools.ResourcePredictionsProfileTypeAutomatic,
-					PredictionPreference: (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference),
-				}
-				stateful.ResourcePredictionsProfile = automaticPredictionsProfile
-			}
-
-			if resourcePredictionsProfile.Kind == string(pools.ResourcePredictionsProfileTypeManual) {
-				manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
-					Kind: pools.ResourcePredictionsProfileTypeManual,
-				}
-				stateful.ResourcePredictionsProfile = manualPredictionsProfile
-			}
+		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
+			Kind: pools.ResourcePredictionsProfileTypeManual,
+		}
+		stateful.ResourcePredictionsProfile = manualPredictionsProfile
+	} else if len(agentProfile.AutomaticResourcePredictionsProfile) > 0 {
+		automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
+			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
 		}
 
-		return stateful, nil
-
-	case AgentProfileKindStateless:
-		stateless := &pools.StatelessAgentProfile{
-			Kind:                agentProfile.Kind,
-			ResourcePredictions: pointer.To(interface{}(expandResourcePredictionsModel(agentProfile.ResourcePredictions))),
+		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
+		if resourcePredictionsProfile.PredictionPreference != nil {
+			automaticPredictionsProfile.PredictionPreference = (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference)
 		}
 
+		stateful.ResourcePredictionsProfile = automaticPredictionsProfile
+	}
+
+	return stateful, nil
+}
+
+func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) (pools.AgentProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	agentProfile := input[0]
+
+	stateless := &pools.StatelessAgentProfile{
+		Kind: "Stateless",
+	}
+
+	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
+		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
+
+		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile.ResourcePredictions)
 		if resourcePredictions != nil {
 			stateless.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
 		}
 
-		if len(agentProfile.ResourcePredictionsProfile) > 0 {
-			resourcePredictionsProfile := agentProfile.ResourcePredictionsProfile[0]
-			if resourcePredictionsProfile.Kind == string(pools.ResourcePredictionsProfileTypeAutomatic) {
-				automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
-					Kind:                 pools.ResourcePredictionsProfileTypeAutomatic,
-					PredictionPreference: (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference),
-				}
-				stateless.ResourcePredictionsProfile = automaticPredictionsProfile
-			}
-
-			if resourcePredictionsProfile.Kind == string(pools.ResourcePredictionsProfileTypeManual) {
-				manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
-					Kind: pools.ResourcePredictionsProfileTypeManual,
-				}
-				stateless.ResourcePredictionsProfile = manualPredictionsProfile
-			}
+		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
+			Kind: pools.ResourcePredictionsProfileTypeManual,
+		}
+		stateless.ResourcePredictionsProfile = manualPredictionsProfile
+	} else if len(agentProfile.AutomaticResourcePredictionsProfile) > 0 {
+		automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
+			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
 		}
 
-		return stateless, nil
+		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
+		if resourcePredictionsProfile.PredictionPreference != nil {
+			automaticPredictionsProfile.PredictionPreference = (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference)
+		}
 
-	default:
-		return nil, fmt.Errorf("invalid agent_profile kind provided: %s", agentProfile.Kind)
+		stateless.ResourcePredictionsProfile = automaticPredictionsProfile
 	}
+
+	return stateless, nil
 }
 
 func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourcePredictionsSdkModel {
@@ -98,64 +104,59 @@ func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourceP
 	}
 }
 
-func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.OrganizationProfile, error) {
+func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) (pools.OrganizationProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	organizationProfile := input[0]
-	if organizationProfile.Kind == "AzureDevOps" {
-		poolOrganizations := []pools.Organization{}
-		for _, org := range organizationProfile.Organizations {
-			poolOrganization := pools.Organization{
-				Parallelism: org.Parallelism,
-				Projects:    org.Projects,
-				Url:         org.Url,
-			}
-			poolOrganizations = append(poolOrganizations, poolOrganization)
+	poolOrganizations := []pools.Organization{}
+	for _, org := range organizationProfile.Organizations {
+		poolOrganization := pools.Organization{
+			Parallelism: org.Parallelism,
+			Projects:    org.Projects,
+			Url:         org.Url,
 		}
-
-		azureDevOpsOrganizationProfile := pools.AzureDevOpsOrganizationProfile{
-			Kind:          organizationProfile.Kind,
-			Organizations: poolOrganizations,
-		}
-
-		poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{}
-		if len(organizationProfile.PermissionProfile) > 0 {
-			permissionProfile := organizationProfile.PermissionProfile[0]
-			poolPermissionProfile.Groups = permissionProfile.Groups
-			poolPermissionProfile.Kind = pools.AzureDevOpsPermissionType(permissionProfile.Kind)
-			poolPermissionProfile.Users = permissionProfile.Users
-
-			azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
-		}
-
-		return azureDevOpsOrganizationProfile, nil
-	} else {
-		return nil, fmt.Errorf("invalid organization_profile `Kind` Provided: %s", organizationProfile.Kind)
+		poolOrganizations = append(poolOrganizations, poolOrganization)
 	}
+
+	azureDevOpsOrganizationProfile := pools.AzureDevOpsOrganizationProfile{
+		Organizations: poolOrganizations,
+	}
+
+	poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{}
+	if organizationProfile.PermissionProfileKind != nil {
+		poolPermissionProfile.Kind = pools.AzureDevOpsPermissionType(*organizationProfile.PermissionProfileKind)
+
+		// Only set groups and users if the kind is SpecificAccounts
+		if *organizationProfile.PermissionProfileKind == string(pools.AzureDevOpsPermissionTypeSpecificAccounts) &&
+			len(organizationProfile.AdministratorAccounts) > 0 {
+			specificAccounts := organizationProfile.AdministratorAccounts[0]
+			poolPermissionProfile.Groups = specificAccounts.Groups
+			poolPermissionProfile.Users = specificAccounts.Users
+		}
+
+		azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
+	}
+
+	return azureDevOpsOrganizationProfile, nil
 }
 
-func expandFabricProfileModel(input []FabricProfileModel) (pools.FabricProfile, error) {
+func expandVmssFabricProfileModel(input []VmssFabricProfileModel) (pools.FabricProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	fabricProfile := input[0]
-	if fabricProfile.Kind == "Vmss" {
-		vmssFabricProfile := pools.VMSSFabricProfile{
-			Images:         expandImageModel(fabricProfile.Images),
-			NetworkProfile: expandNetworkProfileModel(fabricProfile.NetworkProfile),
-			OsProfile:      expandOsProfileModel(fabricProfile.OsProfile),
-			Sku:            expandDevOpsAzureSkuModel(fabricProfile.Sku),
-			StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
-			Kind:           fabricProfile.Kind,
-		}
-
-		return vmssFabricProfile, nil
-	} else {
-		return nil, fmt.Errorf("invalid fabric_profile Kind Provided: %s", fabricProfile.Kind)
+	vmssFabricProfile := pools.VMSSFabricProfile{
+		Images:         expandImageModel(fabricProfile.Images),
+		NetworkProfile: expandNetworkProfileModel(fabricProfile.NetworkProfile),
+		OsProfile:      expandOsProfileModel(fabricProfile.OsProfile),
+		Sku:            expandDevOpsAzureSkuModel(fabricProfile.Sku),
+		StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
 	}
+
+	return vmssFabricProfile, nil
 }
 
 func expandImageModel(input []ImageModel) []pools.PoolImage {
@@ -259,95 +260,113 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 	return output
 }
 
-func flattenAgentProfileToModel(input pools.AgentProfile) []AgentProfileModel {
-	if stateful, ok := input.(pools.Stateful); ok {
-		return flattenStatefulAgentProfileToModel(stateful)
+func flattenStatefulAgentProfileToModel(input pools.Stateful) []StatefulAgentProfileModel {
+	statefulAgentProfileModel := StatefulAgentProfileModel{
+		GracePeriodTimeSpan: input.GracePeriodTimeSpan,
+		MaxAgentLifetime:    input.MaxAgentLifetime,
 	}
 
-	if stateless, ok := input.(pools.StatelessAgentProfile); ok {
-		return flattenStatelessAgentProfileToModel(stateless)
-	}
+	if input.ResourcePredictionsProfile != nil {
+		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
+			statefulAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
+				{
+					PredictionPreference: pointer.To(string(pointer.From(automatic.PredictionPreference))),
+				},
+			}
+		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
+			statefulAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{
+				{
+					ResourcePredictions: []ResourcePredictionsModel{},
+				},
+			}
 
-	return nil
-}
-
-func flattenStatefulAgentProfileToModel(input pools.Stateful) []AgentProfileModel {
-	agentProfileModel := AgentProfileModel{
-		GracePeriodTimeSpan:        input.GracePeriodTimeSpan,
-		Kind:                       AgentProfileKindStateful,
-		MaxAgentLifetime:           input.MaxAgentLifetime,
-		ResourcePredictionsProfile: flattenResourcePredictionsProfileToModel(input.ResourcePredictionsProfile),
-	}
-
-	if input.ResourcePredictions != nil {
-		if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
-			agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
+			if input.ResourcePredictions != nil {
+				if predModel := flattenResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
+					if len(statefulAgentProfileModel.ManualResourcePredictionsProfile) > 0 {
+						statefulAgentProfileModel.ManualResourcePredictionsProfile[0].ResourcePredictions = []ResourcePredictionsModel{*predModel}
+					}
+				}
+			}
 		}
 	}
 
-	return []AgentProfileModel{agentProfileModel}
+	return []StatefulAgentProfileModel{statefulAgentProfileModel}
 }
 
-func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []AgentProfileModel {
-	agentProfileModel := AgentProfileModel{
-		Kind:                       AgentProfileKindStateless,
-		ResourcePredictionsProfile: flattenResourcePredictionsProfileToModel(input.ResourcePredictionsProfile),
+func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []StatelessAgentProfileModel {
+	statelessAgentProfileModel := StatelessAgentProfileModel{}
+
+	if input.ResourcePredictionsProfile != nil {
+		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
+			statelessAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
+				{
+					PredictionPreference: pointer.To(string(pointer.From(automatic.PredictionPreference))),
+				},
+			}
+		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
+			statelessAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{
+				{
+					ResourcePredictions: []ResourcePredictionsModel{}, // Will be populated below if ResourcePredictions exists
+				},
+			}
+
+			if input.ResourcePredictions != nil {
+				if predModel := flattenResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
+					if len(statelessAgentProfileModel.ManualResourcePredictionsProfile) > 0 {
+						statelessAgentProfileModel.ManualResourcePredictionsProfile[0].ResourcePredictions = []ResourcePredictionsModel{*predModel}
+					}
+				}
+			}
+		}
+	}
+	return []StatelessAgentProfileModel{statelessAgentProfileModel}
+}
+
+func flattenResourcePredictionsModel(input interface{}) *ResourcePredictionsModel {
+	if input == nil {
+		return nil
 	}
 
-	if input.ResourcePredictions != nil {
-		if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
-			agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
+	jsonBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil
+	}
+
+	var sdkModel ResourcePredictionsSdkModel
+	if err := json.Unmarshal(jsonBytes, &sdkModel); err != nil {
+		return nil
+	}
+
+	daysDataBytes, err := json.Marshal(sdkModel.DaysData)
+	if err != nil {
+		return nil
+	}
+
+	return &ResourcePredictionsModel{
+		TimeZone: sdkModel.TimeZone,
+		DaysData: string(daysDataBytes),
+	}
+}
+
+func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationProfileModel {
+	organizationProfileModel := AzureDevOpsOrganizationProfileModel{
+		Organizations: flattenOrganizationsToModel(input.Organizations),
+	}
+
+	if input.PermissionProfile != nil {
+		organizationProfileModel.PermissionProfileKind = (*string)(&input.PermissionProfile.Kind)
+
+		// Only populate specific accounts if it's SpecificAccounts type and has groups/users
+		if input.PermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts {
+			specificAccounts := AzureDevOpsAdministratorAccountsModel{
+				Groups: input.PermissionProfile.Groups,
+				Users:  input.PermissionProfile.Users,
+			}
+			organizationProfileModel.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{specificAccounts}
 		}
 	}
 
-	return []AgentProfileModel{agentProfileModel}
-}
-
-func flattenResourcePredictionsProfileToModel(input pools.ResourcePredictionsProfile) []ResourcePredictionsProfileModel {
-	if automatic, ok := input.(pools.AutomaticResourcePredictionsProfile); ok {
-		return flattenAutomaticResourcePredictionsProfileToModel(automatic)
-	}
-
-	if manual, ok := input.(pools.ManualResourcePredictionsProfile); ok {
-		return flattenManualResourcePredictionsProfileToModel(manual)
-	}
-
-	return nil
-}
-
-func flattenAutomaticResourcePredictionsProfileToModel(input pools.AutomaticResourcePredictionsProfile) []ResourcePredictionsProfileModel {
-	resourcePredictionsProfileModel := ResourcePredictionsProfileModel{
-		Kind:                 string(input.Kind),
-		PredictionPreference: pointer.To(string(pointer.From(input.PredictionPreference))),
-	}
-
-	return []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
-}
-
-func flattenManualResourcePredictionsProfileToModel(input pools.ManualResourcePredictionsProfile) []ResourcePredictionsProfileModel {
-	resourcePredictionsProfileModel := ResourcePredictionsProfileModel{
-		Kind: string(input.Kind),
-	}
-
-	return []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
-}
-
-func flattenOrganizationProfileToModel(input pools.OrganizationProfile) []OrganizationProfileModel {
-	if azureDevOps, ok := input.(pools.AzureDevOpsOrganizationProfile); ok {
-		return flattenAzureDevOpsOrganizationProfileToModel(azureDevOps)
-	}
-
-	return nil
-}
-
-func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganizationProfile) []OrganizationProfileModel {
-	organizationProfileModel := OrganizationProfileModel{
-		Kind:              input.Kind,
-		Organizations:     flattenOrganizationsToModel(input.Organizations),
-		PermissionProfile: flattenAzureDevOpsPermissionProfileToModel(input.PermissionProfile),
-	}
-
-	return []OrganizationProfileModel{organizationProfileModel}
+	return []AzureDevOpsOrganizationProfileModel{organizationProfileModel}
 }
 
 func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel {
@@ -365,39 +384,16 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 	return output
 }
 
-func flattenAzureDevOpsPermissionProfileToModel(input *pools.AzureDevOpsPermissionProfile) []PermissionProfileModel {
-	if input == nil {
-		return nil
-	}
-
-	permissionProfileModel := PermissionProfileModel{
-		Groups: input.Groups,
-		Kind:   string(input.Kind),
-		Users:  input.Users,
-	}
-
-	return []PermissionProfileModel{permissionProfileModel}
-}
-
-func flattenFabricProfileToModel(input pools.FabricProfile) []FabricProfileModel {
-	if vmssProfile, ok := input.(pools.VMSSFabricProfile); ok {
-		return flattenVmssFabricProfileToModel(vmssProfile)
-	}
-
-	return nil
-}
-
-func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []FabricProfileModel {
-	fabricProfileModel := FabricProfileModel{
+func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabricProfileModel {
+	vmssFabricProfileModel := VmssFabricProfileModel{
 		Images:         flattenImagesToModel(input.Images),
-		Kind:           input.Kind,
 		NetworkProfile: flattenNetworkProfileToModel(input.NetworkProfile),
 		OsProfile:      flattenOsProfileToModel(input.OsProfile),
 		Sku:            flattenDevOpsAzureSkuToModel(input.Sku),
 		StorageProfile: flattenStorageProfileToModel(input.StorageProfile),
 	}
 
-	return []FabricProfileModel{fabricProfileModel}
+	return []VmssFabricProfileModel{vmssFabricProfileModel}
 }
 
 func flattenNetworkProfileToModel(input *pools.NetworkProfile) []NetworkProfileModel {

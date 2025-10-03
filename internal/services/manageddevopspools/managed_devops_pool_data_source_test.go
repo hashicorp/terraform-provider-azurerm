@@ -2,6 +2,7 @@ package manageddevopspools_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -12,6 +13,10 @@ import (
 type ManagedDevOpsPoolDataSource struct{}
 
 func TestAccManagedDevOpsPoolDataSource_basic(t *testing.T) {
+	if os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL") == "" {
+		t.Skip("Skipping as `ARM_MANAGED_DEVOPS_ORG_URL` is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_devops_pool", "test")
 	r := ManagedDevOpsPoolDataSource{}
 

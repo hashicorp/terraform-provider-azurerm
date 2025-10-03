@@ -23,6 +23,20 @@ var _ sdk.Resource = ManagedDevOpsPoolResource{}
 
 type ManagedDevOpsPoolResource struct{}
 
+type ManagedDevOpsPoolModel struct {
+	DevCenterProjectResourceId     string                                `tfschema:"dev_center_project_resource_id"`
+	VmssFabricProfile              []VmssFabricProfileModel              `tfschema:"vmss_fabric_profile"`
+	Identity                       []identity.ModelUserAssigned          `tfschema:"identity"`
+	Location                       string                                `tfschema:"location"`
+	MaximumConcurrency             int64                                 `tfschema:"maximum_concurrency"`
+	Name                           string                                `tfschema:"name"`
+	AzureDevOpsOrganizationProfile []AzureDevOpsOrganizationProfileModel `tfschema:"azure_devops_organization_profile"`
+	ResourceGroupName              string                                `tfschema:"resource_group_name"`
+	Tags                           map[string]string                     `tfschema:"tags"`
+	StatefulAgentProfile           []StatefulAgentProfileModel           `tfschema:"stateful_agent_profile"`
+	StatelessAgentProfile          []StatelessAgentProfileModel          `tfschema:"stateless_agent_profile"`
+}
+
 func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -36,49 +50,168 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
-		"agent_profile": {
+		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"kind": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string("Stateless"),
-							string("Stateful"),
-						}, false),
-					},
 					"grace_period_time_span": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Default:      "00:00:00",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"max_agent_lifetime": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Default:      "7.00:00:00",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"resource_predictions":         ResourcePredictionsSchema(),
-					"resource_predictions_profile": ResourcePredictionsProfileSchema(),
+					"manual_resource_predictions_profile": {
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"stateful_agent_profile.0.automatic_resource_predictions_profile"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"resource_predictions": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"time_zone": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  "UTC",
+											},
+											"days_data": {
+												Type:             pluginsdk.TypeString,
+												Required:         true,
+												ValidateFunc:     validation.StringIsJSON,
+												DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"automatic_resource_predictions_profile": {
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"prediction_preference": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pools.PredictionPreferenceBalanced),
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForPredictionPreference(), false),
+								},
+							},
+						},
+					},
 				},
 			},
+			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
+		},
+		"stateless_agent_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"manual_resource_predictions_profile": {
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"stateless_agent_profile.0.automatic_resource_predictions_profile"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"resource_predictions": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"time_zone": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												Default:  "UTC",
+											},
+											"days_data": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsJSON,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"automatic_resource_predictions_profile": {
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"prediction_preference": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pools.PredictionPreferenceBalanced),
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForPredictionPreference(), false),
+								},
+							},
+						},
+					},
+				},
+			},
+			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
 		},
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
-		"fabric_profile": {
+		"vmss_fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"image": ImageSchema(),
-					"kind": {
-						Type:     pluginsdk.TypeString,
+					"image": {
+						Type:     pluginsdk.TypeList,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string("Vmss"),
-						}, false),
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"aliases": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"buffer": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^(?:\*|[1-9][0-9]?|100)$`),
+										`Buffer must be "*" or value between 1 and 100.`,
+									),
+								},
+								// Exactly one of resource_id and well_known_image_name can be specified
+								// However ExactlyOneOf cannot be used in TypeList with more than 1 item, we'll rely on API to validate
+								"resource_id": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+								"well_known_image_name": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
 					},
 					"network_profile": {
 						Type:     pluginsdk.TypeList,
@@ -94,7 +227,50 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"os_profile": OsProfileSchema(),
+					"os_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"logon_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pools.LogonTypeService),
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
+								},
+								"secrets_management": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"certificate_store_location": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+											},
+											"certificate_store_name": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCertificateStoreNameOption(), false),
+											},
+											"key_export_enabled": {
+												Type:     pluginsdk.TypeBool,
+												Required: true,
+											},
+											"observed_certificates": {
+												Type:     pluginsdk.TypeSet,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 					"sku": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
@@ -109,7 +285,49 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"storage_profile": StorageProfileSchema(),
+					"storage_profile": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_disk": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"caching": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
+											},
+											"disk_size_gb": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntBetween(1, 32767),
+											},
+											"drive_letter": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+											},
+											"storage_account_type": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												Default:      pools.StorageAccountTypeStandardLRS,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
+											},
+										},
+									},
+								},
+								"os_disk_storage_account_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -117,19 +335,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
-		"organization_profile": {
+		"azure_devops_organization_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"kind": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string("AzureDevOps"),
-						}, false),
-					},
 					"organization": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
@@ -154,9 +365,17 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"permission_profile": {
+					// In the Azure Rest API, kind is nested within permission profile as a required property
+					// Make it as required as API will set a default value for this if omitted
+					"permission_profile_kind": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
+					},
+					"administrator_accounts": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"groups": {
@@ -165,11 +384,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-								},
-								"kind": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
 								"users": {
 									Type:     pluginsdk.TypeSet,
@@ -184,7 +398,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.UserAssignedIdentityOptional(),
 		"tags":     commonschema.Tags(),
 	}
 }
@@ -223,24 +437,43 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+			userAssignedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			agentProfile, err := expandAgentProfileModel(config.AgentProfile)
-			if err != nil {
-				return fmt.Errorf("expanding `agent_profile`: %+v", err)
+			// Convert to LegacySystemAndUserAssignedMap for API (Azure API bug - only supports user-assigned but schema says otherwise)
+			var expandedIdentity *identity.LegacySystemAndUserAssignedMap
+			if userAssignedIdentity != nil {
+				expandedIdentity = &identity.LegacySystemAndUserAssignedMap{
+					Type:        userAssignedIdentity.Type,
+					IdentityIds: userAssignedIdentity.IdentityIds,
+				}
 			}
 
-			organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile)
-			if err != nil {
-				return fmt.Errorf("expanding `organization_profile`: %+v", err)
+			var agentProfile pools.AgentProfile
+			if config.StatefulAgentProfile != nil {
+				agentProfile, err = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
+
+				if err != nil {
+					return fmt.Errorf("expanding `stateful_agent_profile`: %+v", err)
+				}
+			} else {
+				agentProfile, err = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
+
+				if err != nil {
+					return fmt.Errorf("expanding `stateless_agent_profile`: %+v", err)
+				}
 			}
 
-			fabricProfile, err := expandFabricProfileModel(config.FabricProfile)
+			azureDevOpsOrganizationProfile, err := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
 			if err != nil {
-				return fmt.Errorf("expanding `fabric_profile`: %+v", err)
+				return fmt.Errorf("expanding `azure_devops_organization_profile`: %+v", err)
+			}
+
+			fabricProfile, err := expandVmssFabricProfileModel(config.VmssFabricProfile)
+			if err != nil {
+				return fmt.Errorf("expanding `vmss_fabric_profile`: %+v", err)
 			}
 
 			payload := pools.Pool{
@@ -251,7 +484,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 					DevCenterProjectResourceId: config.DevCenterProjectResourceId,
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
-					OrganizationProfile:        organizationProfile,
+					OrganizationProfile:        azureDevOpsOrganizationProfile,
 					FabricProfile:              fabricProfile,
 				},
 				Tags: pointer.To(config.Tags),
@@ -298,11 +531,20 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+				userAssignedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				payload.Identity = expandedIdentity
+
+				// Convert to LegacySystemAndUserAssignedMap for API (Azure API bug)
+				if userAssignedIdentity != nil {
+					payload.Identity = &identity.LegacySystemAndUserAssignedMap{
+						Type:        userAssignedIdentity.Type,
+						IdentityIds: userAssignedIdentity.IdentityIds,
+					}
+				} else {
+					payload.Identity = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("dev_center_project_resource_id") {
@@ -313,28 +555,38 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
 			}
 
-			if metadata.ResourceData.HasChange("agent_profile") {
-				agentProfile, err := expandAgentProfileModel(config.AgentProfile)
-				if err != nil {
-					return fmt.Errorf("expanding `agent_profile`: %+v", err)
+			if metadata.ResourceData.HasChange("stateful_agent_profile") || metadata.ResourceData.HasChange("stateless_agent_profile") {
+				var agentProfile pools.AgentProfile
+
+				if len(config.StatefulAgentProfile) > 0 {
+					agentProfile, err = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
+					if err != nil {
+						return fmt.Errorf("expanding `stateful_agent_profile`: %+v", err)
+					}
+				} else if len(config.StatelessAgentProfile) > 0 {
+					agentProfile, err = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
+					if err != nil {
+						return fmt.Errorf("expanding `stateless_agent_profile`: %+v", err)
+					}
 				}
+
 				payload.Properties.AgentProfile = agentProfile
 			}
 
-			if metadata.ResourceData.HasChange("organization_profile") {
-				organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile)
+			if metadata.ResourceData.HasChange("azure_devops_organization_profile") {
+				organizationProfile, err := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
 				if err != nil {
-					return fmt.Errorf("expanding `organization_profile`: %+v", err)
+					return fmt.Errorf("expanding `azure_devops_organization_profile`: %+v", err)
 				}
 				payload.Properties.OrganizationProfile = organizationProfile
 			}
 
-			if metadata.ResourceData.HasChange("fabric_profile") {
-				fabricProfile, err := expandFabricProfileModel(config.FabricProfile)
+			if metadata.ResourceData.HasChange("vmss_fabric_profile") {
+				vmssFabricProfile, err := expandVmssFabricProfileModel(config.VmssFabricProfile)
 				if err != nil {
-					return fmt.Errorf("expanding `fabric_profile`: %+v", err)
+					return fmt.Errorf("expanding `vmss_fabric_profile`: %+v", err)
 				}
-				payload.Properties.FabricProfile = fabricProfile
+				payload.Properties.FabricProfile = vmssFabricProfile
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -379,27 +631,45 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				expandedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return err
+				// API returns LegacySystemAndUserAssignedMap, but we only support UserAssigned
+				// Convert it to UserAssignedMap format for our schema
+				if model.Identity != nil {
+					userAssignedIdentity := &identity.UserAssignedMap{
+						Type:        model.Identity.Type,
+						IdentityIds: model.Identity.IdentityIds,
+					}
+					flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(userAssignedIdentity)
+					if err != nil {
+						return err
+					}
+					state.Identity = *flattenedIdentity
 				}
-				state.Identity = expandedIdentity
 
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
-						state.AgentProfile = flattenAgentProfileToModel(agentProfile)
+
+						if stateful, ok := agentProfile.(pools.Stateful); ok {
+							state.StatefulAgentProfile = flattenStatefulAgentProfileToModel(stateful)
+						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
+							state.StatelessAgentProfile = flattenStatelessAgentProfileToModel(stateless)
+						}
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-						state.OrganizationProfile = flattenOrganizationProfileToModel(organizationProfile)
+
+						if azureDevOpsOrganizationProfile, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
+							state.AzureDevOpsOrganizationProfile = flattenAzureDevOpsOrganizationProfileToModel(azureDevOpsOrganizationProfile)
+						}
 					}
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
-						state.FabricProfile = flattenFabricProfileToModel(fabricProfile)
+
+						if vmssFabricProfile, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
+							state.VmssFabricProfile = flattenVmssFabricProfileToModel(vmssFabricProfile)
+						}
 					}
 				}
 			}

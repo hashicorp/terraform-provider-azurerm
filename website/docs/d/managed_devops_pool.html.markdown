@@ -37,11 +37,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Managed DevOps Pool.
 
-* `agent_profile` - An `agent_profile` block as defined below.
+* `stateful_agent_profile` - A `stateful_agent_profile` block as defined below.
+
+* `stateless_agent_profile` - A `stateless_agent_profile` block as defined below.
 
 * `dev_center_project_resource_id` - The ID of the Dev Center project.
 
-* `fabric_profile` - A `fabric_profile` block as defined below.
+* `vmss_fabric_profile` - A `vmss_fabric_profile` block as defined below.
 
 * `identity` - An `identity` block as defined below.
 
@@ -49,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_concurrency` - The maximum number of agents that can be created.
 
-* `organization_profile` - An `organization_profile` block as defined below.
+* `azure_devops_organization_profile` - An `azure_devops_organization_profile` block as defined below.
 
 * `provisioning_state` - The status of the pool operation.
 
@@ -57,17 +59,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-An `agent_profile` block exports the following:
-
-* `kind` - Defines the type of agent profile. Possible values are: `Stateful` and `Stateless`.
+A `stateful_agent_profile` block exports the following:
 
 * `grace_period_time_span` - The amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete.
 
 * `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
 
-* `resource_predictions` - A `resource_predictions` block as defined below.
+* `manual_resource_predictions_profile` - A `manual_resource_predictions_profile` block as defined below.
 
-* `resource_predictions_profile` - A `resource_predictions_profile` block as defined below.
+* `automatic_resource_predictions_profile` - An `automatic_resource_predictions_profile` block as defined below.
+
+---
+
+A `stateless_agent_profile` block exports the following:
+
+* `manual_resource_predictions_profile` - A `manual_resource_predictions_profile` block as defined below.
+
+* `automatic_resource_predictions_profile` - An `automatic_resource_predictions_profile` block as defined below.
 
 ---
 
@@ -79,19 +87,21 @@ A `resource_predictions` block exports the following:
 
 ---
 
-A `resource_predictions_profile` block exports the following:
+A `manual_resource_predictions_profile` block exports the following:
 
-* `kind` - Determines how the stand-by scheme should be provided. Possible values are: `Manual` and `Automatic`.
+* `resource_predictions` - A `resource_predictions` block as defined below.
+
+---
+
+An `automatic_resource_predictions_profile` block exports the following:
 
 * `prediction_preference` - The desired balance between cost and performance.
 
 ---
 
-A `fabric_profile` block exports the following:
+A `vmss_fabric_profile` block exports the following:
 
 * `image` - One or more `image` blocks as defined below.
-
-* `kind` - Discriminator property for FabricProfile. Possible value is: `Vmss`.
 
 * `sku` - A `sku` block as defined below.
 
@@ -131,11 +141,11 @@ An `os_profile` block exports the following:
 
 * `logon_type` - The logon type.
 
-* `secrets_management_settings` - A `secrets_management_settings` block as defined below.
+* `secrets_management` - A `secrets_management` block as defined below.
 
 ---
 
-A `secrets_management_settings` block exports the following:
+A `secrets_management` block exports the following:
 
 * `certificate_store_location` -  The location where the certificates are stored.
 
@@ -169,43 +179,37 @@ A `data_disk` block exports the following:
 
 An `identity` block exports the following:
 
-* `identity_ids` - Specifies a list User assigned managed identity Id's.
+* `type` - The type of Managed Service Identity that is configured on this Managed DevOps Pool
 
-* `principal_id` - The principal ID for the identity.
-
-* `tenant_id` - The tenant ID for the identity.
-
-* `type` - The type of managed service identity. The only possible value is `UserAssigned`.
+* `identity_ids` - A list of User Assigned Identity IDs assigned to this Managed DevOps Pool.
 
 ---
 
-An `organization_profile` block exports the following:
+An `azure_devops_organization_profile` block exports the following:
 
-* `kind` - Discriminator property for OrganizationProfile. Possible value is`AzureDevOps` currently.
+* `organization` - One or more `organization` blocks as defined below.
 
-* `organizations` - One or more `organization` blocks as defined below.
+* `permission_profile_kind` - The type of Azure DevOps pool permission.
 
-* `permission_profile` - One or more `permission_profile` blocks as defined below.
+* `administrator_accounts` - One or more `administrator_accounts` block as defined below.
 
 ---
 
 An `organization` block exports the following:
 
-* `url` - The Azure DevOps organization URL in which the pool should be created.
+* `url` - The URL of  The Azure DevOps organization.
 
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool.
+* `parallelism` - Maximum numbers of machines in this organization out of the `maximum_concurrency` of the pool.
 
-* `projects` - (Optional) List of projects in which the pool should be created.
+* `projects` - A list of projects in which the pool should be created.
 
 ---
 
-A `permission_profile` block exports the following:
+An `administrator_accounts` block exports the following:
 
-* `kind` - Determines who has admin permissions to the Azure DevOps pool. Possible values are: `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+* `groups` - A list of group email addresses.
 
-* `groups` - (Optional) Specifies a list of group email addresses.
-
-* `users` - (Optional) Specifies a list of user email addresses.
+* `users` - A list of user email addresses.
 
 ## Timeouts
 

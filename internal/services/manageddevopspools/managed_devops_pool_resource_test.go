@@ -3,6 +3,7 @@ package manageddevopspools_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +15,21 @@ import (
 )
 
 type ManagedDevOpsPoolResource struct{}
+
+func TestAccManagedDevOpsPoolSequential(t *testing.T) {
+	if os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL") == "" {
+		t.Skip("Skipping as `ARM_MANAGED_DEVOPS_ORG_URL` is not specified")
+	}
+
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"managedDevOpsPool": {
+			"basic":          TestAccManagedDevOpsPool_basic,
+			"requiresImport": TestAccManagedDevOpsPool_requiresImport,
+			"complete":       TestAccManagedDevOpsPool_complete,
+			"update":         TestAccManagedDevOpsPool_update,
+		},
+	})
+}
 
 func TestAccManagedDevOpsPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
@@ -112,21 +128,25 @@ resource "azurerm_managed_devops_pool" "test" {
   maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
-  organization_profile {
-    kind = "AzureDevOps"
-    organizations {
+  azure_devops_organization_profile {
+    organization {
       parallelism = 1
-      url         = "https://dev.azure.com/managed-org-demo"
+      url         = "%s"
+    }
+    permission_profile_kind = "CreatorOnly"
+  }
+
+  stateless_agent_profile {
+    manual_resource_predictions_profile {
+      resource_predictions {
+        time_zone = "UTC"
+        days_data = "[{},{\"09:00:00\":1,\"17:00:00\":0},{},{},{},{},{}]"
+      }
     }
   }
 
-  agent_profile {
-    kind = "Stateless"
-  }
-
-  fabric_profile {
-    kind = "Vmss"
-    images {
+  vmss_fabric_profile {
+    image {
       resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
@@ -135,7 +155,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.Client().SubscriptionID)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }
 
 func (r ManagedDevOpsPoolResource) requiresImport(data acceptance.TestData) string {
@@ -150,21 +170,18 @@ resource "azurerm_managed_devops_pool" "import" {
   maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
-  organization_profile {
-    kind = "AzureDevOps"
-    organizations {
+  azure_devops_organization_profile {
+    organization {
       parallelism = 1
-      url         = "https://dev.azure.com/managed-org-demo"
+      url         = "%s"
     }
+    permission_profile_kind = "CreatorOnly"
   }
 
-  agent_profile {
-    kind = "Stateless"
-  }
+  stateful_agent_profile {}
 
-  fabric_profile {
-    kind = "Vmss"
-    images {
+  vmss_fabric_profile {
+    image {
       resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
@@ -173,7 +190,7 @@ resource "azurerm_managed_devops_pool" "import" {
     }
   }
 }
-`, r.basic(data))
+`, r.basic(data), os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }
 
 func (r ManagedDevOpsPoolResource) complete(data acceptance.TestData) string {
@@ -184,6 +201,101 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkeyvault${var.random_string}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge", "Recover", "Update", "List"]
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
+      "List",
+    ]
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+
+    storage_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert${var.random_string}"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
 resource "azurerm_managed_devops_pool" "test" {
   name                = "acctest-pool-%d"
   location            = azurerm_resource_group.test.location
@@ -192,30 +304,31 @@ resource "azurerm_managed_devops_pool" "test" {
   maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
-  organization_profile {
-    kind = "AzureDevOps"
-    organizations {
+  azure_devops_organization_profile {
+    organization {
       parallelism = 1
-      url         = "https://dev.azure.com/managed-org-demo"
+      url         = "%s"
     }
+    permission_profile_kind = "CreatorOnly"
   }
 
-  agent_profile {
-    kind = "Stateless"
-    resource_predictions {
-      time_zone = "UTC"
-      days_data = "[{},{\"09:00:00\":1,\"17:00:00\": 0},{},{},{},{},{}]"
-    }
-  }
+  stateful_agent_profile {}
 
-  fabric_profile {
-    kind = "Vmss"
-    images {
+  vmss_fabric_profile {
+    image {
       resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
     sku {
       name = "Standard_D2ads_v5"
+    }
+    os_profile {
+      secrets_management {
+        key_export_enabled = false
+        observed_certificates = [
+          azurerm_key_vault_certificate.test.versionless_secret_id
+        ]
+      }
     }
   }
 
@@ -224,7 +337,7 @@ resource "azurerm_managed_devops_pool" "test" {
     Project     = "Terraform"
   }
 }
-`, r.template(data), data.RandomInteger, data.Client().SubscriptionID)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {
