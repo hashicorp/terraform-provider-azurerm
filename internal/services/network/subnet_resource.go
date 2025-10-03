@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -109,6 +111,16 @@ func resourceSubnet() *pluginsdk.Resource {
 		Delete:   resourceSubnetDelete,
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
+				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
+					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
+				}
+				return nil
+			}),
+		),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -136,12 +148,24 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"address_prefixes": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+					// If `ip_address_pool` is used instead of `address_prefixes` there is a perpetual diff
+					// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+					// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_prefixes`.
+					rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+					if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+						return true
+					}
+
+					return false
 				},
 			},
 
@@ -159,6 +183,13 @@ func resourceSubnet() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
 				},
+			},
+
+			"sharing_scope": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// todo "Tenant" is only supported until https://github.com/Azure/azure-rest-api-specs/issues/36446 is addressed
+				ValidateFunc: validation.StringInSlice([]string{string(subnets.SharingScopeTenant)}, false),
 			},
 
 			"delegation": {
@@ -206,6 +237,39 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
+			"ip_address_pool": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: ipampools.ValidateIPamPoolID,
+						},
+
+						"number_of_ip_addresses": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[1-9]\d*$`),
+								"`number_of_ip_addresses` must be a string that represents a positive number",
+							),
+						},
+
+						"allocated_ip_address_prefixes": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"default_outbound_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Default:  true,
@@ -230,7 +294,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 // TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -266,6 +330,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		properties.AddressPrefixes = nil
 	}
 
+	properties.IPamPoolPrefixAllocations = expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
+
 	// To enable private endpoints you must disable the network policies for the subnet because
 	// Network policies like network security groups are not supported by private endpoints.
 	var privateEndpointNetworkPolicies subnets.VirtualNetworkPrivateEndpointNetworkPolicies
@@ -285,6 +351,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+
+	properties.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 
 	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
@@ -330,7 +398,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -367,7 +435,9 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
 		switch len(addressPrefixesRaw) {
 		case 0:
-			// Will never happen as the "MinItem: 1" constraint is set on "address_prefixes"
+			// this is the case IPAddressPool is used, so we shall clear the `AddressPrefix` and `AddressPrefixes`.
+			props.AddressPrefix = nil
+			props.AddressPrefixes = nil
 		case 1:
 			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
 			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
@@ -377,6 +447,31 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// return the `AddressPrefix` in response.
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
+		}
+	}
+
+	if d.HasChange("ip_address_pool") {
+		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
+			expandedIPAddressPool := expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
+
+			if props.IPamPoolPrefixAllocations != nil {
+				for _, existingAllocation := range *props.IPamPoolPrefixAllocations {
+					for _, expandedAllocation := range *expandedIPAddressPool {
+						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
+							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+						}
+					}
+				}
+			}
+
+			props.IPamPoolPrefixAllocations = expandedIPAddressPool
+
+			// Set nil for AddressPrefixes when changing from `AddressPrefixes` to `IPAddressPool` but the change for `AddressPrefix` is not detected due to the diffSuppressFunc.
+			props.AddressPrefix = nil
+			props.AddressPrefixes = nil
+		} else {
+			props.IPamPoolPrefixAllocations = nil
 		}
 	}
 
@@ -397,6 +492,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if d.HasChange("private_link_service_network_policies_enabled") {
 		v := d.Get("private_link_service_network_policies_enabled").(bool)
 		props.PrivateLinkServiceNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(v)))
+	}
+
+	if d.HasChange("sharing_scope") {
+		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 	}
 
 	if d.HasChange("service_endpoints") {
@@ -448,7 +547,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -493,8 +592,13 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("flattening `delegation`: %+v", err)
 			}
 
+			if err := d.Set("ip_address_pool", flattenSubnetIPAddressPool(props.IPamPoolPrefixAllocations)); err != nil {
+				return fmt.Errorf("setting `ip_address_pool`: %+v", err)
+			}
+
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
-			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
+			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
+			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
@@ -516,7 +620,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -679,6 +783,52 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 		output = append(output, id)
 	}
 	return output
+}
+
+func expandSubnetIPAddressPool(input []interface{}) *[]subnets.IPamPoolPrefixAllocation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	outputs := make([]subnets.IPamPoolPrefixAllocation, 0)
+	for _, v := range input {
+		ipPoolRaw := v.(map[string]interface{})
+		output := subnets.IPamPoolPrefixAllocation{}
+
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
+			output.NumberOfIPAddresses = pointer.To(v.(string))
+		}
+
+		if v, ok := ipPoolRaw["id"]; ok {
+			output.Pool = &subnets.IPamPoolPrefixAllocationPool{
+				Id: pointer.To(v.(string)),
+			}
+		}
+
+		outputs = append(outputs, output)
+	}
+
+	return &outputs
+}
+
+func flattenSubnetIPAddressPool(input *[]subnets.IPamPoolPrefixAllocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outputs := make([]interface{}, 0)
+	for _, v := range *input {
+		output := map[string]interface{}{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
+		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
+	}
+
+	return outputs
 }
 
 func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, id commonids.SubnetId) pluginsdk.StateRefreshFunc {

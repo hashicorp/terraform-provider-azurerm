@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type AccountResource struct{}
@@ -27,12 +27,13 @@ type AccountResource struct{}
 var _ sdk.ResourceWithUpdate = AccountResource{}
 
 type AccountModel struct {
-	Name          string                                     `tfschema:"name"`
-	ResourceGroup string                                     `tfschema:"resource_group_name"`
-	Location      string                                     `tfschema:"location"`
-	Storage       []StorageModel                             `tfschema:"storage"`
-	Identity      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags          map[string]string                          `tfschema:"tags"`
+	Name                string                                     `tfschema:"name"`
+	ResourceGroup       string                                     `tfschema:"resource_group_name"`
+	Location            string                                     `tfschema:"location"`
+	Storage             []StorageModel                             `tfschema:"storage"`
+	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccess string                                     `tfschema:"public_network_access"`
+	Tags                map[string]string                          `tfschema:"tags"`
 }
 
 type StorageModel struct {
@@ -76,7 +77,14 @@ func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
-		"tags": tags.Schema(),
+		"public_network_access": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(accounts.PublicNetworkAccessEnabled),
+			ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForPublicNetworkAccess(), false),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -128,7 +136,8 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(account.Location),
 				Tags:     pointer.To(account.Tags),
 				Properties: &accounts.AccountPropertiesForPutRequest{
-					StorageServices: expandStorageForCreate(account.Storage),
+					PublicNetworkAccess: pointer.To(accounts.PublicNetworkAccess(account.PublicNetworkAccess)),
+					StorageServices:     expandStorageForCreate(account.Storage),
 				},
 			}
 
@@ -181,6 +190,8 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("flattening `storage`: %+v", err)
 					}
+
+					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
 				}
 			}
 
@@ -223,6 +234,13 @@ func (r AccountResource) Update() sdk.ResourceFunc {
 				payload.Properties = &accounts.AccountPropertiesForPatchRequest{
 					StorageServices: expandStorageForUpdate(account.Storage),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access") {
+				if payload.Properties == nil {
+					payload.Properties = &accounts.AccountPropertiesForPatchRequest{}
+				}
+				payload.Properties.PublicNetworkAccess = pointer.To(accounts.PublicNetworkAccess(account.PublicNetworkAccess))
 			}
 
 			if _, err := client.Update(ctx, *id, payload); err != nil {

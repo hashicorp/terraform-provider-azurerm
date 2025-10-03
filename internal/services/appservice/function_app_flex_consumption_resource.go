@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -64,6 +63,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
@@ -191,6 +191,12 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IntBetween(40, 1000),
 		},
 
+		"http_concurrency": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		},
+
 		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
 		"always_ready": {
 			Type:     pluginsdk.TypeList,
@@ -299,7 +305,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -478,6 +484,14 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				AlwaysReady:          alwaysReady,
 				InstanceMemoryMB:     &functionAppFlexConsumption.InstanceMemoryInMB,
 				MaximumInstanceCount: &functionAppFlexConsumption.MaximumInstanceCount,
+			}
+
+			if functionAppFlexConsumption.HttpConcurrency >= 1 {
+				scaleAndConcurrencyConfig.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+					HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+						PerInstanceConcurrency: &functionAppFlexConsumption.HttpConcurrency,
+					},
+				}
 			}
 
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
@@ -722,6 +736,9 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						state.AlwaysReady = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
+						if faConfigScale.Triggers != nil && faConfigScale.Triggers.HTTP != nil {
+							state.HttpConcurrency = pointer.From(faConfigScale.Triggers.HTTP.PerInstanceConcurrency)
+						}
 					}
 				}
 
@@ -897,12 +914,38 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = pointer.To(state.MaximumInstanceCount)
+			}
+
+			if metadata.ResourceData.HasChange("instance_memory_in_mb") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.InstanceMemoryMB = pointer.To(state.InstanceMemoryInMB)
+			}
+
 			if metadata.ResourceData.HasChange("always_ready") {
 				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 				if err != nil {
 					return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
 				}
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
+			}
+
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = &state.MaximumInstanceCount
+			}
+
+			if metadata.ResourceData.HasChange("http_concurrency") {
+				if state.HttpConcurrency > 0 {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+							PerInstanceConcurrency: &state.HttpConcurrency,
+						},
+					}
+				} else {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: nil,
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("runtime_name") {

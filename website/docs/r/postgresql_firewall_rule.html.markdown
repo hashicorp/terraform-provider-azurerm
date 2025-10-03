@@ -10,6 +10,8 @@ description: |-
 
 Manages a Firewall Rule for a PostgreSQL Server
 
+~> **Note:** The `azurerm_postgresql_firewall_rule` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server_firewall_rule` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
 ## Example Usage (Single IP Address)
 
 ```hcl
@@ -81,7 +83,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Firewall Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Firewall Rule.
@@ -99,4 +101,4 @@ terraform import azurerm_postgresql_firewall_rule.rule1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2017-12-01
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

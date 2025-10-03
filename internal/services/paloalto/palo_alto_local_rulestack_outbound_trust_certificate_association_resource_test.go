@@ -40,7 +40,7 @@ func (r LocalRulestackOutboundTrustCertificateResource) Exists(ctx context.Conte
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.Client.CertificateObjectLocalRulestack.Get(ctx, *id)
+	resp, err := client.PaloAlto.CertificateObjectLocalRulestack.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

@@ -27,7 +27,7 @@ func newFormatErr(origin, msg string, checkBase checkBase) *formatErr {
 }
 
 func (f formatErr) String() string {
-	base := f.checkBase.Str()
+	base := f.Str()
 	switch {
 	case strings.Contains(f.msg, "block is not defined in the documentation"):
 		return fmt.Sprintf("%s %s", base, util.IssueLine(f.msg))

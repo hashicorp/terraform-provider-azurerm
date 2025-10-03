@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
@@ -173,22 +173,22 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 			keyVersion = ""
 			keyVaultURI = keyId.BaseUri()
 		} else {
-			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", managedHSMKeyId)
 		}
 	}
 
 	props := clusters.ClusterUpdate{
 		Properties: &clusters.ClusterProperties{
 			KeyVaultProperties: &clusters.KeyVaultProperties{
-				KeyName:     utils.String(keyName),
-				KeyVersion:  utils.String(keyVersion),
-				KeyVaultUri: utils.String(keyVaultURI),
+				KeyName:     pointer.To(keyName),
+				KeyVersion:  pointer.To(keyVersion),
+				KeyVaultUri: pointer.To(keyVaultURI),
 			},
 		},
 	}
 
 	if v, ok := d.GetOk("user_identity"); ok {
-		props.Properties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
+		props.Properties.KeyVaultProperties.UserIdentity = pointer.To(v.(string))
 	}
 
 	err = clusterClient.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{})
@@ -215,7 +215,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 
 	cluster, err := clusterClient.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(cluster.HttpResponse) {
+		if response.WasNotFound(cluster.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -257,7 +257,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `properties.keyVaultProperties.keyVaultUri` was nil", id)
 	}
 
-	isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+	isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 	if err != nil {
 		return err
 	}

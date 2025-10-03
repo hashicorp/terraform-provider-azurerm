@@ -123,6 +123,8 @@ An `ip_address_pool` block supports the following:
 
 * `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
 
+-> **Note:** `number_of_ip_addresses` cannot be decreased.
+
 ---
 
 The `subnet` block supports:
@@ -201,7 +203,7 @@ The `subnet` block exports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.
@@ -220,4 +222,4 @@ terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

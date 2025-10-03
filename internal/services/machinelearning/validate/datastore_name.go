@@ -16,7 +16,7 @@ func DataStoreName(i interface{}, k string) (warnings []string, errors []error) 
 	}
 
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,254}$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%s must be between 1 and 255 characters, and may only include alphanumeric characters and '-'.", k))
+		errors = append(errors, fmt.Errorf("%s must be between 1 and 255 characters, and may only include alphanumeric characters and '-'", k))
 	}
 	return
 }

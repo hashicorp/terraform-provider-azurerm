@@ -1881,7 +1881,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   rest_proxy {
-    security_group_id   = azuread_group.test.id
+    security_group_id   = azuread_group.test.object_id
     security_group_name = azuread_group.test.display_name
   }
 }

@@ -90,7 +90,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			HasError:    false,
 			ExpectValue: time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC),
 			Expect: func(v interface{}) bool {
-				return v.(time.Time) == time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC)
+				return v.(time.Time).Equal(time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC))
 			},
 		},
 	}

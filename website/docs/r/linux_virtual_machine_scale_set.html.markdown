@@ -100,7 +100,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `instances` - (Optional) The number of Virtual Machines in the Scale Set. Defaults to `0`.
 
--> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
 * `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
 
@@ -618,7 +618,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Linux Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine Scale Set.
@@ -637,4 +637,4 @@ terraform import azurerm_linux_virtual_machine_scale_set.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-11-01
+* `Microsoft.Compute` - 2024-11-01

@@ -5,6 +5,7 @@ package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -20,19 +21,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanResource struct{}
 
-var _ sdk.ResourceWithUpdate = ServicePlanResource{}
-
-var _ sdk.ResourceWithStateMigration = ServicePlanResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = ServicePlanResource{}
+var (
+	_ sdk.ResourceWithUpdate         = ServicePlanResource{}
+	_ sdk.ResourceWithStateMigration = ServicePlanResource{}
+	_ sdk.ResourceWithCustomizeDiff  = ServicePlanResource{}
+)
 
 type OSType string
 
@@ -128,7 +127,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -170,7 +169,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retreiving %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -193,19 +192,14 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.AppServiceEnvironmentId != "" {
 				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
+					return errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: utils.String(servicePlan.AppServiceEnvironmentId),
+					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
 				}
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
-					if helpers.PlanIsPremium(servicePlan.Sku) && !servicePlan.PremiumPlanAutoScaleEnabled {
-						return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
-					}
-				}
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
 			}
 
@@ -239,7 +233,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(servicePlan.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := ServicePlanModel{
@@ -275,7 +269,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 						state.AppServiceEnvironmentId = *ase.Id
 					}
 
-					if props.ElasticScaleEnabled != nil && *props.ElasticScaleEnabled && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+					if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
 						state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
 					}
 
@@ -335,7 +329,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := *existing.Model
@@ -345,7 +339,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				model.Sku.Name = utils.String(state.Sku)
+				model.Sku.Name = pointer.To(state.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -377,14 +371,6 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func isServicePlanSupportScaleOut(plan string) bool {
-	support := false
-	support = support || strings.HasPrefix(plan, "EP")
-	support = support || strings.HasPrefix(plan, "PC")
-	support = support || strings.HasPrefix(plan, "WS")
-	return support
-}
-
 func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
@@ -404,29 +390,30 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
 			if rd.HasChange("premium_plan_auto_scale_enabled") {
 				if !helpers.PlanIsPremium(servicePlanSku) && newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plan")
+					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plans")
 				}
 			}
 
 			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
-				if !isServicePlanSupportScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
+				if !helpers.PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus, or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
 				}
 			}
 
-			// Specifying the `zone_balancing_enabled` as `true`, SKU tier requires Premium.
-			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
-			if zoneBalancing {
-				if !strings.HasPrefix(servicePlanSku, "P") {
-					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is not Premium")
+			// Only specific SKUs support zone balancing/redundancy
+			if rd.Get("zone_balancing_enabled").(bool) {
+				if !helpers.PlanSupportsZoneBalancing(servicePlanSku) {
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is `%s`", servicePlanSku)
 				}
 			}
 
-			old, new := rd.GetChange("zone_balancing_enabled")
-			if old.(bool) != new.(bool) {
-				// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
-				if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
-					metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
+			o, n := rd.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
 				}
 			}
 

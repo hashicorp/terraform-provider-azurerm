@@ -98,7 +98,7 @@ resource "azurerm_automation_source_control" "test" {
     token_type = "PersonalAccessToken"
   }
 }
-`, s.template(data), data.RandomInteger, s.githubRepo.url, s.githubRepo.token)
+`, s.template(data), data.RandomInteger, s.url, s.token)
 }
 
 func (s SourceControlResource) update(data acceptance.TestData) string {
@@ -123,7 +123,7 @@ resource "azurerm_automation_source_control" "test" {
     token_type = "PersonalAccessToken"
   }
 }
-`, s.template(data), data.RandomInteger, s.githubRepo.url, s.githubRepo.token)
+`, s.template(data), data.RandomInteger, s.url, s.token)
 }
 
 func TestAccSourceControl_basic(t *testing.T) {

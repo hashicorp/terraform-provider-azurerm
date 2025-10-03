@@ -242,10 +242,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			autoUpgradeMinorVersion := false
-			if model.Version == "" {
-				autoUpgradeMinorVersion = true
-			}
+			autoUpgradeMinorVersion := model.Version == ""
 
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),

@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -106,6 +108,69 @@ func TestAccManagementGroupPolicySetDefinition_policyDefinitionVersion(t *testin
 	})
 }
 
+func TestAccManagementGroupPolicySetDefinition_removeParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
+	r := ManagementGroupPolicySetDefinitionResourceTest{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.additionalParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagementGroupPolicySetDefinition_updateMultiplePolicyDefinitionReferences(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
+	r := ManagementGroupPolicySetDefinitionResourceTest{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleReferences(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleReferencesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleReferences(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagementGroupPolicySetDefinitionResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policysetdefinitions.ParseProviders2PolicySetDefinitionID(state.ID)
 	if err != nil {
@@ -153,6 +218,59 @@ VALUES
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ManagementGroupPolicySetDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_group_policy_set_definition" "test" {
+  name                = "acctestpolset-%[2]d"
+  policy_type         = "Custom"
+  display_name        = "acctestpolset-%[2]d"
+  management_group_id = azurerm_management_group.test.id
+
+  parameters = <<PARAMETERS
+   {
+       "allowedLocations": {
+           "type": "Array",
+           "metadata": {
+               "description": "The list of allowed locations for resources.",
+               "displayName": "Allowed locations",
+               "strongType": "location"
+           }
+       },
+       "allowedResourceTypes": {
+           "type": "Array",
+           "defaultValue": [
+                "Microsoft.Compute/virtualMachines"
+            ],
+           "metadata": {
+               "description": "The list of allowed resource types.",
+               "displayName": "Allowed resource types",
+               "strongType": "resourceType"
+           }
+       }
+   }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+   {
+     "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+   }
+VALUES
+  }
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"
+    parameter_values     = <<VALUES
+  {
+      "listOfResourceTypesAllowed": {"value": "[parameters('allowedResourceTypes')]"}
+  }
+VALUES
+  }
+}`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagementGroupPolicySetDefinitionResourceTest) requiresImport(data acceptance.TestData) string {
@@ -248,6 +366,52 @@ VALUES
 `, r.template(data), data.RandomInteger, version)
 }
 
+func (r ManagementGroupPolicySetDefinitionResourceTest) multipleReferences(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_management_group_policy_set_definition" "test" {
+  name                = "acctestMGPSD-%[2]d"
+  policy_type         = "Custom"
+  display_name        = "Test Initiative"
+  management_group_id = azurerm_management_group.test.id
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference1.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference2.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference3.id
+  }
+}
+`, r.templateMultiplePolicies(data), data.RandomInteger)
+}
+
+func (r ManagementGroupPolicySetDefinitionResourceTest) multipleReferencesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_management_group_policy_set_definition" "test" {
+  name                = "acctestMGPSD-%[2]d"
+  policy_type         = "Custom"
+  display_name        = "Test Initiative"
+  management_group_id = azurerm_management_group.test.id
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference1.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference3.id
+  }
+}
+`, r.templateMultiplePolicies(data), data.RandomInteger)
+}
+
 func (r ManagementGroupPolicySetDefinitionResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -291,6 +455,30 @@ POLICY_RULE
     }
   }
 PARAMETERS
+}
+`, data.RandomInteger)
+}
+
+func (ManagementGroupPolicySetDefinitionResourceTest) templateMultiplePolicies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+  display_name = "acctestmg-%[1]d"
+}
+
+data "azurerm_policy_definition_built_in" "policyReference1" {
+  display_name = "App Service apps should require FTPS only"
+}
+
+data "azurerm_policy_definition_built_in" "policyReference2" {
+  display_name = "Storage accounts should restrict network access"
+}
+
+data "azurerm_policy_definition_built_in" "policyReference3" {
+  display_name = "Function apps should require FTPS only"
 }
 `, data.RandomInteger)
 }

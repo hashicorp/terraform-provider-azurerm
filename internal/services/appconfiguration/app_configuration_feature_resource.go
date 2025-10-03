@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -167,7 +168,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -248,7 +249,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
-			} else if kv.Response.StatusCode == 200 {
+			} else if kv.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 

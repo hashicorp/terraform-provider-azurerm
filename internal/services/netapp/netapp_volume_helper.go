@@ -13,11 +13,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -236,7 +236,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 	return &results, nil
 }
 
-func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesExportPolicy{}
 	}
@@ -248,8 +248,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 
 			ruleIndex := int64(v["rule_index"].(int))
 			allowedClients := v["allowed_clients"].(string)
-			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv41Enabled := v["nfsv41_enabled"].(bool)
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
@@ -264,6 +262,29 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 			kerberos5iReadWrite := false
 			kerberos5pReadOnly := false
 			kerberos5pReadWrite := false
+
+			var nfsv3Enabled, nfsv41Enabled bool
+
+			// If overrideProtocols is provided (during protocol conversion), use those protocols
+			// and reset the opposite protocol flag for proper PATCH operation
+			if len(overrideProtocols) > 0 {
+				nfsv41Enabled = false
+				nfsv3Enabled = false
+				for _, protocol := range overrideProtocols {
+					switch strings.ToUpper(protocol) {
+					case "NFSV3":
+						nfsv3Enabled = true
+					case "NFSV4.1":
+						nfsv41Enabled = true
+					case "CIFS":
+						cifsEnabled = true
+					}
+				}
+			} else {
+				// Use existing configuration when no protocol override is provided
+				nfsv3Enabled = v["nfsv3_enabled"].(bool)
+				nfsv41Enabled = v["nfsv41_enabled"].(bool)
+			}
 
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      utils.String(allowedClients),

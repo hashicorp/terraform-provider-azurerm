@@ -128,7 +128,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Profile.
@@ -147,4 +147,4 @@ terraform import azurerm_traffic_manager_profile.exampleProfile /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2022-04-01
+* `Microsoft.Network` - 2022-04-01
