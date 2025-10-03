@@ -112,6 +112,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"actual_used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
