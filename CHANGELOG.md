@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
 
 ## 4.48.0 (Unreleased)
 
