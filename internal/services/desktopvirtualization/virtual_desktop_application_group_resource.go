@@ -66,13 +66,10 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(applicationgroup.ApplicationGroupTypeDesktop),
-					string(applicationgroup.ApplicationGroupTypeRemoteApp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(applicationgroup.PossibleValuesForApplicationGroupType(), false),
 			},
 
 			"host_pool_id": {
