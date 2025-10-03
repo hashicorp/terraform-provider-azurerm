@@ -96,16 +96,8 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForDaysOfWeek(), false),
 							},
 						},
 
@@ -116,12 +108,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_up_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_up_minimum_hosts_percent": {
@@ -143,12 +132,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_down_start_time": {
@@ -158,12 +144,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_down_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_down_minimum_hosts_percent": {
@@ -184,12 +167,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_down_stop_hosts_when": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.StopHostsWhenZeroActiveSessions),
-								string(scalingplan.StopHostsWhenZeroSessions),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForStopHostsWhen(), false),
 						},
 
 						"ramp_down_wait_time_minutes": {
@@ -209,12 +189,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"off_peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 					},
 				},
