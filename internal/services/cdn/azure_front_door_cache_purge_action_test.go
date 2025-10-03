@@ -85,7 +85,7 @@ resource "terraform_data" "trigger" {
 action "azurerm_cdn_front_door_cache_purge" "test" {
   config {
     front_door_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
-    
+
     content_paths = [
       "/*"
     ]
