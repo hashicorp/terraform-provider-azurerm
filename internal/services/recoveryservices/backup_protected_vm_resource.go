@@ -17,11 +17,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -294,12 +297,31 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	resourceGuardProxiesClient := meta.(*clients.Client).RecoveryServices.ResourceGuardProxiesClient
+	resourceGuardProxyClient := meta.(*clients.Client).RecoveryServices.ResourceGuardProxyClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := protecteditems.ParseProtectedItemID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// map[operationName][]operationRequestUrl
+	resourceGuardOperationsMap := make(map[string][]string, 0)
+	vaultId := resourceguardproxies.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	guardProxies, err := resourceGuardProxiesClient.GetComplete(ctx, vaultId)
+	if err == nil {
+		for _, proxy := range guardProxies.Items {
+			if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
+				for _, op := range *proxy.Properties.ResourceGuardOperationDetails {
+					if op.DefaultResourceRequest != nil && op.VaultCriticalOperation != nil {
+						resourceGuardOperationsMap[*op.VaultCriticalOperation] = append(resourceGuardOperationsMap[*op.VaultCriticalOperation], *op.DefaultResourceRequest)
+					}
+				}
+			}
+		}
 	}
 
 	features := meta.(*clients.Client).Features.RecoveryService
@@ -327,8 +349,9 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 				if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 					updateInput := protecteditems.ProtectedItemResource{
 						Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-							ProtectionState:  pointer.To(desiredState),
-							SourceResourceId: vm.SourceResourceId,
+							ResourceGuardOperationRequests: pointer.To(resourceGuardOperationsMap[dataprotection.GuardOperationStopProtectionWithRetainData]),
+							ProtectionState:                pointer.To(desiredState),
+							SourceResourceId:               vm.SourceResourceId,
 						},
 					}
 
@@ -342,7 +365,20 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
+	log.Printf("[DEBUG] Deleting %s", id)
+
+	if v, ok := resourceGuardOperationsMap[dataprotection.GuardOperationDeleteProtectedItem]; ok {
+		vaultProxyId := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, VaultProxyName)
+
+		unlock := resourceguardproxy.UnlockDeleteRequest{
+			ResourceGuardOperationRequests: pointer.To(v),
+			ResourceToBeDeleted:            pointer.To(id.ID()),
+		}
+
+		if _, err = resourceGuardProxyClient.UnlockDelete(ctx, vaultProxyId, unlock); err != nil {
+			return fmt.Errorf("unlocking delete %s:%+v", id, err)
+		}
+	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
