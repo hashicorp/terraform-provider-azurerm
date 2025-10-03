@@ -1,6 +1,7 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `guestconfiguration` - update to API version `2024-04-05` [GH-30642]
 
 FEATURES:
 
