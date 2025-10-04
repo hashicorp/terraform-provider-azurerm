@@ -105,8 +105,8 @@ func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Create() sd
 			}
 			associationId := parse.NewScalingPlanHostPoolAssociationId(*scalingPlanId, *hostPoolId)
 
-			locks.ByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
-			defer locks.UnlockByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
+			locks.ByName(scalingPlanId.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(scalingPlanId.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
 
 			locks.ByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 			defer locks.UnlockByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
@@ -219,8 +219,8 @@ func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Update() sd
 				return err
 			}
 
-			locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
+			locks.ByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
 
 			locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 			defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
@@ -282,8 +282,8 @@ func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Delete() sd
 				return err
 			}
 
-			locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
+			locks.ByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
 
 			locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 			defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())

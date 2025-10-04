@@ -45,6 +45,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DesktopVirtualizationHostPoolResource{},
 		DesktopVirtualizationHostPoolRegistrationInfoResource{},
 		DesktopVirtualizationScalingPlanHostPoolAssociationResource{},
+		DesktopVirtualizationScalingPlanResource{},
 	}
 }
 
@@ -57,7 +58,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_virtual_desktop_workspace":                               resourceArmDesktopVirtualizationWorkspace(),
-		"azurerm_virtual_desktop_scaling_plan":                            resourceVirtualDesktopScalingPlan(),
 		"azurerm_virtual_desktop_workspace_application_group_association": resourceVirtualDesktopWorkspaceApplicationGroupAssociation(),
 	}
 }
