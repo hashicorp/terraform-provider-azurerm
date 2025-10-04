@@ -85,8 +85,8 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return err
 	}
 
-	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	locks.ByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+	defer locks.UnlockByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
 	// This is a virtual resource so the last segment is hardcoded
 	id := parse.NewHostPoolRegistrationInfoID(hostPoolId.SubscriptionId, hostPoolId.ResourceGroupName, hostPoolId.HostPoolName, "default")
@@ -164,8 +164,8 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 
 	hostPoolId := hostpool.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
 
-	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	locks.ByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+	defer locks.UnlockByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
 	resp, err := client.Get(ctx, hostPoolId)
 	if err != nil {

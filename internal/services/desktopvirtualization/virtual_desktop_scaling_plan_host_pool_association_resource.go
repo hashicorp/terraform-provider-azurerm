@@ -81,8 +81,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	locks.ByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
 	defer locks.UnlockByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
 
-	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	locks.ByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+	defer locks.UnlockByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
 	existing, err := client.Get(ctx, *scalingPlanId)
 	if err != nil {
@@ -185,8 +185,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
 	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
 
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
+	locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+	defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
 	existing, err := client.Get(ctx, id.ScalingPlan)
 	if err != nil {
@@ -246,8 +246,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.Res
 	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
 	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
 
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
+	locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+	defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
 	existing, err := client.Get(ctx, id.ScalingPlan)
 	if err != nil {

@@ -34,6 +34,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DesktopVirtualizationWorkspaceDataSource{},
 		DesktopVirtualizationApplicationGroupDataSource{},
+		DesktopVirtualizationHostPoolDataSource{},
 	}
 }
 
@@ -41,21 +42,19 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DesktopVirtualizationApplicationGroupResource{},
 		DesktopVirtualizationApplicationResource{},
+		DesktopVirtualizationHostPoolResource{},
 	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_virtual_desktop_host_pool": dataSourceVirtualDesktopHostPool(),
-	}
+	return map[string]*pluginsdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_virtual_desktop_workspace":                               resourceArmDesktopVirtualizationWorkspace(),
-		"azurerm_virtual_desktop_host_pool":                               resourceVirtualDesktopHostPool(),
 		"azurerm_virtual_desktop_scaling_plan":                            resourceVirtualDesktopScalingPlan(),
 		"azurerm_virtual_desktop_workspace_application_group_association": resourceVirtualDesktopWorkspaceApplicationGroupAssociation(),
 		"azurerm_virtual_desktop_scaling_plan_host_pool_association":      resourceVirtualDesktopScalingPlanHostPoolAssociation(),
