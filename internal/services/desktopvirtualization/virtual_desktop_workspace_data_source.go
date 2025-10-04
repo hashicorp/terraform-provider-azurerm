@@ -20,16 +20,6 @@ import (
 
 type DesktopVirtualizationWorkspaceDataSource struct{}
 
-type DesktopVirtualizationWorkspaceModel struct {
-	Name                string            `tfschema:"name"`
-	ResourceGroup       string            `tfschema:"resource_group_name"`
-	Location            string            `tfschema:"location"`
-	FriendlyName        string            `tfschema:"friendly_name"`
-	Description         string            `tfschema:"description"`
-	PublicNetworkAccess bool              `tfschema:"public_network_access_enabled"`
-	Tags                map[string]string `tfschema:"tags"`
-}
-
 var _ sdk.DataSource = DesktopVirtualizationWorkspaceDataSource{}
 
 func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() interface{} {

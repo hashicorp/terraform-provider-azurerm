@@ -4,6 +4,7 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,192 +13,272 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var workspaceResourceType = "azurerm_virtual_desktop_workspace"
+var (
+	_ sdk.Resource                   = DesktopVirtualizationWorkspaceResource{}
+	_ sdk.ResourceWithUpdate         = DesktopVirtualizationWorkspaceResource{}
+	_ sdk.ResourceWithStateMigration = DesktopVirtualizationWorkspaceResource{}
+)
 
-func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Read:   resourceArmDesktopVirtualizationWorkspaceRead,
-		Update: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Delete: resourceArmDesktopVirtualizationWorkspaceDelete,
+type DesktopVirtualizationWorkspaceResource struct{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
-		},
+func (DesktopVirtualizationWorkspaceResource) ModelObject() interface{} {
+	return &DesktopVirtualizationWorkspaceModel{}
+}
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workspace.ParseWorkspaceID(id)
-			return err
-		}),
+func (DesktopVirtualizationWorkspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return scalingplan.ValidateHostPoolID
+}
 
+func (DesktopVirtualizationWorkspaceResource) ResourceType() string {
+	return "azurerm_virtual_desktop_workspace"
+}
+
+func (DesktopVirtualizationWorkspaceResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.WorkspaceV0ToV1{},
-		}),
-
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceName,
-			},
-
-			"location": commonschema.Location(),
-
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"friendly_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
-			},
-
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 512),
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+type DesktopVirtualizationWorkspaceModel struct {
+	Name                string            `tfschema:"name"`
+	ResourceGroup       string            `tfschema:"resource_group_name"`
+	Location            string            `tfschema:"location"`
+	FriendlyName        string            `tfschema:"friendly_name"`
+	Description         string            `tfschema:"description"`
+	PublicNetworkAccess bool              `tfschema:"public_network_access_enabled"`
+	Tags                map[string]string `tfschema:"tags"`
+}
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace create/update")
+func (r DesktopVirtualizationWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.WorkspaceName,
+		},
 
-	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
+		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"friendly_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 64),
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 512),
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"tags": commonschema.Tags(),
+	}
+}
+
+func (r DesktopVirtualizationWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r DesktopVirtualizationWorkspaceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.WorkspacesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var model DesktopVirtualizationWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace create")
+
+			id := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroup, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID())
-		}
-	}
+			payload := workspace.Workspace{
+				Location: azure.NormalizeLocation(model.Location),
+				Tags:     pointer.To(model.Tags),
+				Properties: &workspace.WorkspaceProperties{
+					Description:  pointer.To(model.Description),
+					FriendlyName: pointer.To(model.FriendlyName),
+				},
+			}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+			publicNetworkAccess := workspace.PublicNetworkAccessEnabled
 
-	payload := workspace.Workspace{
-		Location: location,
-		Tags:     tags.Expand(t),
-		Properties: &workspace.WorkspaceProperties{
-			Description:  pointer.To(d.Get("description").(string)),
-			FriendlyName: pointer.To(d.Get("friendly_name").(string)),
+			if !model.PublicNetworkAccess {
+				publicNetworkAccess = workspace.PublicNetworkAccessDisabled
+			}
+
+			payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+			if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
 		},
 	}
-
-	publicNetworkAccess := workspace.PublicNetworkAccessEnabled
-
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = workspace.PublicNetworkAccessDisabled
-	}
-
-	payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
-
-	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
 }
 
-func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationWorkspaceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.WorkspacesClient
 
-	id, err := workspace.ParseWorkspaceID(d.Id())
-	if err != nil {
-		return err
-	}
+			state := DesktopVirtualizationWorkspaceModel{}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.WorkspaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
-			d.Set("friendly_name", props.FriendlyName)
-			publicNetworkAccess := true
-			if v := props.PublicNetworkAccess; v != nil && *v != workspace.PublicNetworkAccessEnabled {
-				publicNetworkAccess = false
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
 			}
-			d.Set("public_network_access_enabled", publicNetworkAccess)
-		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state.Name = id.WorkspaceName
+			state.ResourceGroup = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				if props := model.Properties; props != nil {
+					state.Description = pointer.From(props.Description)
+					state.FriendlyName = pointer.From(props.FriendlyName)
+					publicNetworkAccess := true
+					if v := props.PublicNetworkAccess; v != nil && *v != workspace.PublicNetworkAccessEnabled {
+						publicNetworkAccess = false
+					}
+					state.PublicNetworkAccess = publicNetworkAccess
+				}
+
+				state.Tags = pointer.From(model.Tags)
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	return nil
 }
 
-func resourceArmDesktopVirtualizationWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
+func (r DesktopVirtualizationWorkspaceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.WorkspacesClient
 
-	id, err := workspace.ParseWorkspaceID(d.Id())
-	if err != nil {
-		return err
+			var model DesktopVirtualizationWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace update")
+
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			payload := *existing.Model
+
+			if metadata.ResourceData.HasChange("friendly_name") {
+				payload.Properties.FriendlyName = pointer.To(model.FriendlyName)
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				payload.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			publicNetworkAccess := workspace.PublicNetworkAccessEnabled
+
+			if !model.PublicNetworkAccess {
+				publicNetworkAccess = workspace.PublicNetworkAccessDisabled
+			}
+
+			payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+			if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
+}
 
-	locks.ByName(id.WorkspaceName, workspaceResourceType)
-	defer locks.UnlockByName(id.WorkspaceName, workspaceResourceType)
+func (r DesktopVirtualizationWorkspaceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.WorkspacesClient
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-	if _, err = client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			locks.ByName(id.WorkspaceName, r.ResourceType())
+			defer locks.UnlockByName(id.WorkspaceName, r.ResourceType())
+
+			if _, err = client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
-
-	return nil
 }

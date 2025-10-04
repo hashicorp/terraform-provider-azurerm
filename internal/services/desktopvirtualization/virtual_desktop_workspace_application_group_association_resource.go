@@ -109,8 +109,8 @@ func (r DesktopVirtualizationWorkspaceApplicationGroupAssociationResource) Creat
 			}
 			associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId)
 
-			locks.ByName(workspaceId.WorkspaceName, workspaceResourceType)
-			defer locks.UnlockByName(workspaceId.WorkspaceName, workspaceResourceType)
+			locks.ByName(workspaceId.WorkspaceName, DesktopVirtualizationWorkspaceResource{}.ResourceType())
+			defer locks.UnlockByName(workspaceId.WorkspaceName, DesktopVirtualizationWorkspaceResource{}.ResourceType())
 
 			locks.ByName(applicationGroupId.ApplicationGroupName, DesktopVirtualizationApplicationGroupResource{}.ResourceType())
 			defer locks.UnlockByName(applicationGroupId.ApplicationGroupName, DesktopVirtualizationApplicationGroupResource{}.ResourceType())
@@ -205,8 +205,8 @@ func (r DesktopVirtualizationWorkspaceApplicationGroupAssociationResource) Delet
 				return err
 			}
 
-			locks.ByName(id.Workspace.WorkspaceName, workspaceResourceType)
-			defer locks.UnlockByName(id.Workspace.WorkspaceName, workspaceResourceType)
+			locks.ByName(id.Workspace.WorkspaceName, DesktopVirtualizationWorkspaceResource{}.ResourceType())
+			defer locks.UnlockByName(id.Workspace.WorkspaceName, DesktopVirtualizationWorkspaceResource{}.ResourceType())
 
 			locks.ByName(id.ApplicationGroup.ApplicationGroupName, DesktopVirtualizationApplicationGroupResource{}.ResourceType())
 			defer locks.UnlockByName(id.ApplicationGroup.ApplicationGroupName, DesktopVirtualizationApplicationGroupResource{}.ResourceType())
