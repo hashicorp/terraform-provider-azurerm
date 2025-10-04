@@ -77,6 +77,34 @@ func TestAccNotificationHubNamespace_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccNotificationHubNamespace_zoneRedundancy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundancy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("namespace_type"),
+	})
+}
+
+func TestAccNotificationHubNamespace_replicationRegion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicationRegion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("namespace_type"),
+	})
+}
+
 func (NotificationHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
@@ -153,4 +181,50 @@ resource "azurerm_notification_hub_namespace" "import" {
   sku_name = "Free"
 }
 `, template)
+}
+
+func (NotificationHubNamespaceResource) zoneRedundancy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                    = "acctestnhn-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  namespace_type          = "NotificationHub"
+  zone_redundancy_enabled = true
+
+  sku_name = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (NotificationHubNamespaceResource) replicationRegion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  replication_region  = "NorthEurope"
+
+  sku_name = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
