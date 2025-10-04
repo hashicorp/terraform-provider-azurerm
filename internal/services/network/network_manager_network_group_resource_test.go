@@ -152,6 +152,7 @@ resource "azurerm_network_manager_network_group" "test" {
   name               = "acctest-nmng-%d"
   network_manager_id = azurerm_network_manager.test.id
   description        = "test complete"
+  member_type        = "Subnet"
 }
 `, template, data.RandomInteger)
 }
