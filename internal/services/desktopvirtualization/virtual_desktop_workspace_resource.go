@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var workspaceResourceType = "azurerm_virtual_desktop_workspace"
@@ -116,8 +115,8 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 		Location: location,
 		Tags:     tags.Expand(t),
 		Properties: &workspace.WorkspaceProperties{
-			Description:  utils.String(d.Get("description").(string)),
-			FriendlyName: utils.String(d.Get("friendly_name").(string)),
+			Description:  pointer.To(d.Get("description").(string)),
+			FriendlyName: pointer.To(d.Get("friendly_name").(string)),
 		},
 	}
 

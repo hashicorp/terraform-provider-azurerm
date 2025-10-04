@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
@@ -96,16 +96,8 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForDaysOfWeek(), false),
 							},
 						},
 
@@ -116,12 +108,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_up_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_up_minimum_hosts_percent": {
@@ -143,12 +132,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_down_start_time": {
@@ -158,12 +144,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_down_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 
 						"ramp_down_minimum_hosts_percent": {
@@ -184,12 +167,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"ramp_down_stop_hosts_when": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.StopHostsWhenZeroActiveSessions),
-								string(scalingplan.StopHostsWhenZeroSessions),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForStopHostsWhen(), false),
 						},
 
 						"ramp_down_wait_time_minutes": {
@@ -209,12 +189,9 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 						},
 
 						"off_peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 						},
 					},
 				},
@@ -275,15 +252,15 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 
 	hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
 	payload := scalingplan.ScalingPlan{
-		Name:     utils.String(d.Get("name").(string)),
+		Name:     pointer.To(d.Get("name").(string)),
 		Location: location,
 		Tags:     tags.Expand(t),
 		Properties: scalingplan.ScalingPlanProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
+			Description:        pointer.To(d.Get("description").(string)),
+			FriendlyName:       pointer.To(d.Get("friendly_name").(string)),
 			TimeZone:           d.Get("time_zone").(string),
 			HostPoolType:       &hostPoolType,
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
+			ExclusionTag:       pointer.To(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
@@ -315,10 +292,10 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	payload := scalingplan.ScalingPlanPatch{
 		Tags: tags.Expand(t),
 		Properties: &scalingplan.ScalingPlanPatchProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           utils.String(d.Get("time_zone").(string)),
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
+			Description:        pointer.To(d.Get("description").(string)),
+			FriendlyName:       pointer.To(d.Get("friendly_name").(string)),
+			TimeZone:           pointer.To(d.Get("time_zone").(string)),
+			ExclusionTag:       pointer.To(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
@@ -425,22 +402,22 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		offPeakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["off_peak_load_balancing_algorithm"].(string))
 
 		results = append(results, scalingplan.ScalingSchedule{
-			Name:                           utils.String(name),
+			Name:                           pointer.To(name),
 			DaysOfWeek:                     &daysOfWeek,
 			RampUpStartTime:                expandScalingPlanScheduleTime(rampUpStartTime),
 			RampUpLoadBalancingAlgorithm:   &rampUpLoadBalancingAlgorithm,
-			RampUpMinimumHostsPct:          utils.Int64(int64(rampUpMinimumHostsPct)),
-			RampUpCapacityThresholdPct:     utils.Int64(int64(rampUpCapacityThresholdPct)),
+			RampUpMinimumHostsPct:          pointer.To(int64(rampUpMinimumHostsPct)),
+			RampUpCapacityThresholdPct:     pointer.To(int64(rampUpCapacityThresholdPct)),
 			PeakStartTime:                  expandScalingPlanScheduleTime(peakStartTime),
 			PeakLoadBalancingAlgorithm:     &peakLoadBalancingAlgorithm,
 			RampDownStartTime:              expandScalingPlanScheduleTime(rampDownStartTime),
 			RampDownLoadBalancingAlgorithm: &rampDownLoadBalancingAlgorithm,
-			RampDownMinimumHostsPct:        utils.Int64(int64(rampDownMinimumHostsPct)),
-			RampDownCapacityThresholdPct:   utils.Int64(int64(rampDownCapacityThresholdPct)),
-			RampDownForceLogoffUsers:       utils.Bool(rampDownForceLogoffUsers),
+			RampDownMinimumHostsPct:        pointer.To(int64(rampDownMinimumHostsPct)),
+			RampDownCapacityThresholdPct:   pointer.To(int64(rampDownCapacityThresholdPct)),
+			RampDownForceLogoffUsers:       pointer.To(rampDownForceLogoffUsers),
 			RampDownStopHostsWhen:          &rampDownStopHostsWhen,
-			RampDownWaitTimeMinutes:        utils.Int64(int64(rampDownWaitTimeMinutes)),
-			RampDownNotificationMessage:    utils.String(rampDownNotificationMessage),
+			RampDownWaitTimeMinutes:        pointer.To(int64(rampDownWaitTimeMinutes)),
+			RampDownNotificationMessage:    pointer.To(rampDownNotificationMessage),
 			OffPeakStartTime:               expandScalingPlanScheduleTime(offPeakStartTime),
 			OffPeakLoadBalancingAlgorithm:  &offPeakLoadBalancingAlgorithm,
 		})
@@ -480,8 +457,8 @@ func expandScalingPlanHostpoolReference(input []interface{}) *[]scalingplan.Scal
 		scalingPlanEnabled := v["scaling_plan_enabled"].(bool)
 
 		results = append(results, scalingplan.ScalingHostPoolReference{
-			HostPoolArmPath:    utils.String(hostPoolArmPath),
-			ScalingPlanEnabled: utils.Bool(scalingPlanEnabled),
+			HostPoolArmPath:    pointer.To(hostPoolArmPath),
+			ScalingPlanEnabled: pointer.To(scalingPlanEnabled),
 		})
 	}
 	return &results
