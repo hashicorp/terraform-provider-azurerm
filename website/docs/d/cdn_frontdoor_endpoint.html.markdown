@@ -40,6 +40,8 @@ The following attributes are exported:
 
 * `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
+* `domain_name_label_reuse_scope` - Specifies the scope level of the endpoint's domain reuse behavior.
+
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Endpoint.
 
 ## Timeouts
@@ -47,3 +49,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Endpoint.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-06-01
