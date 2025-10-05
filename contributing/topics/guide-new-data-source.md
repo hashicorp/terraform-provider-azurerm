@@ -547,13 +547,13 @@ output "id" {
 }
 [][][]
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The Name of this Resource Group.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

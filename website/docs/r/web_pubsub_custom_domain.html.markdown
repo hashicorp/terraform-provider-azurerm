@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `web_pubsub_custom_certificate_id` - (Required) Specifies the Web PubSub Custom Certificate ID of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

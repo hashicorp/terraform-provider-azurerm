@@ -117,7 +117,7 @@ A `protected_settings_from_key_vault` block supports the following:
 
 * `source_vault_id` - (Required) The ID of the source Key Vault.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -25,7 +25,7 @@ data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
 
 * `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the System Center Virtual Machine Manager Inventory Items.
 

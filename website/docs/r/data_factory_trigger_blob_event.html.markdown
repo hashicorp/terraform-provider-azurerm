@@ -101,7 +101,7 @@ A `pipeline` block supports the following:
 
 * `parameters` - (Optional) The Data Factory Pipeline parameters that the trigger will act on.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

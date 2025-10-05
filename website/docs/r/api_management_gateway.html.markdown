@@ -41,7 +41,7 @@ resource "azurerm_api_management_gateway" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ A `location_data` block supports the following:
 
 * `region` - (Optional) The country or region where the resource is located.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

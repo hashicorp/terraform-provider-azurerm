@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the Resource Group in which the Key Vault exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

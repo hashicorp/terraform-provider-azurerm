@@ -321,7 +321,7 @@ A `gremlin_database` block supports the following:
 
 * `graph_names` - (Optional) A list of the Graph names for the restore request. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

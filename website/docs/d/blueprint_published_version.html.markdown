@@ -32,7 +32,7 @@ data "azurerm_blueprint_published_version" "test" {
 
 * `version` - (Required) The Version name of the Published Version of the Blueprint Definition
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Published Version
 

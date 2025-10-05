@@ -114,7 +114,7 @@ An `persistent_disk` block supports the following:
 
 * `mount_path` - (Optional) Specifies the mount path of the persistent disk. Defaults to `/persistent`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

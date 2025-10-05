@@ -29,7 +29,7 @@ output "id" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where this Maintenance Configuration exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `location` - The Azure location where the resource exists.
 

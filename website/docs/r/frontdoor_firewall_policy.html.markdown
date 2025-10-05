@@ -229,7 +229,7 @@ The `exclusion` block supports the following:
 
 * `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

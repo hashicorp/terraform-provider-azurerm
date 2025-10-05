@@ -158,7 +158,7 @@ A `service_principal_linked_key_vault_key` block supports the following:
 
 * `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

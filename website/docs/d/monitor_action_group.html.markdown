@@ -28,7 +28,7 @@ output "action_group_id" {
 * `name` - Specifies the name of the Action Group.
 * `resource_group_name` - Specifies the name of the resource group the Action Group is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Action Group.
 * `short_name` - The short name of the action group.

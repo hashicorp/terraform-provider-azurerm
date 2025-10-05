@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `entity` - (Required) A map of key/value pairs that describe the entity to be inserted/merged in to the storage table.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

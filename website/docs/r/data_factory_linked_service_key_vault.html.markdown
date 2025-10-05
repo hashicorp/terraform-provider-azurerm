@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Key Vault.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

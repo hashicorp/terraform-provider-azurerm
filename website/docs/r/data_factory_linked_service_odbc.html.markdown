@@ -73,7 +73,7 @@ A `basic_authentication` block supports the following:
 
 * `password` - (Required) The password associated with the username, which can be used to authenticate to the ODBC endpoint.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

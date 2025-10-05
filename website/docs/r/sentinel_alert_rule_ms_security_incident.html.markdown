@@ -42,7 +42,7 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `display_name_exclude_filter` - (Optional) Only create incidents when the alert display name doesn't contain text from this list.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

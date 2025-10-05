@@ -67,7 +67,7 @@ resource "azurerm_mongo_cluster" "example_geo_replica" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

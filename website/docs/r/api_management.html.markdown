@@ -329,7 +329,7 @@ A `terms_of_service` block supports the following:
 
 * `text` - (Optional) The Terms of Service which users are required to agree to in order to sign up.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

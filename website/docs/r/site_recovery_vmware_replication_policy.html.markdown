@@ -36,7 +36,7 @@ resource "azurerm_site_recovery_vmware_replication_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `application_consistent_snapshot_frequency_in_minutes` - (Required) Specifies the frequency at which to create application consistent recovery points. Must between `0` to `720`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

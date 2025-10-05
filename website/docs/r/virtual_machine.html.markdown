@@ -390,7 +390,7 @@ A `winrm` block supports the following:
 
 -> **Note:** This can be sourced from the `secret_id` field on the `azurerm_key_vault_certificate` resource.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

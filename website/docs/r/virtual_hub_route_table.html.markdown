@@ -106,7 +106,7 @@ A `route` block supports the following:
 
 ~> **Note:** The Routes can alternatively be created using the [virtual_hub_route_table_route](virtual_hub_route_table_route.html) resource. Using both inline and external routes is not supported and may result in unexpected configuration.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

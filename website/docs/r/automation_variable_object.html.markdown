@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of the Automation Variable as a `jsonencode()` string.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

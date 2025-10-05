@@ -119,7 +119,7 @@ resource "azurerm_nginx_certificate" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `key_vault_secret_id` - (Required) Specify the ID of the Key Vault Secret for this certificate.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

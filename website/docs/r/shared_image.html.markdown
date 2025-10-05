@@ -132,7 +132,7 @@ A `purchase_plan` block supports the following:
 
 * `product` - (Optional) The Purchase Plan Product for this Gallery Image. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

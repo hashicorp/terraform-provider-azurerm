@@ -96,7 +96,7 @@ The following arguments are supported:
 
 ~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

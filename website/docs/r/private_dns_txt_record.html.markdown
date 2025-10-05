@@ -57,7 +57,7 @@ A `record` block supports the following:
 
 * `value` - (Required) The value of the TXT record. Max length: 1024 characters
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

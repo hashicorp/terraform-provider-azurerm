@@ -154,7 +154,7 @@ resource "azurerm_mssql_server_microsoft_support_auditing_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -172,7 +172,7 @@ The following arguments are supported:
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

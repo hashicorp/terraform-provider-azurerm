@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `skill_id` - (Required) The Alexa skill ID for the Alexa Channel.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

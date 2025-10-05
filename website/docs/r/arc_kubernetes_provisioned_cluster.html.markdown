@@ -43,7 +43,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) The type of the Managed Identity. The only possible value is `SystemAssigned`. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

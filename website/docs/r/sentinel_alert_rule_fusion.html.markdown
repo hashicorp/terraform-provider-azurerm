@@ -35,7 +35,7 @@ resource "azurerm_sentinel_alert_rule_fusion" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ A `sub_type` block supports the following:
 
 * `severities_allowed` - (Required) A list of severities that are enabled for this source subtype consumed in Fusion detection. Possible values for each element are `High`, `Medium`, `Low`, `Informational`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

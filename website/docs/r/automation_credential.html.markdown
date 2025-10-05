@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description associated with this Automation Credential.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

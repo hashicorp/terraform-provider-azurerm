@@ -448,7 +448,7 @@ An `feature_store` block supports the following:
 
 ~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

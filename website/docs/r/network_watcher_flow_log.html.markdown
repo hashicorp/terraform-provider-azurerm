@@ -118,7 +118,7 @@ The `traffic_analytics` block supports the following:
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
 * `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes. Defaults to `60`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

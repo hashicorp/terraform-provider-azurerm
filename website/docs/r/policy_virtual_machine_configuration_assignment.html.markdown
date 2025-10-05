@@ -116,7 +116,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -154,7 +154,7 @@ A `parameter` block supports the following:
 
 * `value` - (Required) The value to check the configuration parameter with.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

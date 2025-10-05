@@ -27,7 +27,7 @@ resource "azurerm_route_filter" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ A `rule` block supports the following:
 
 * `rule_type` - (Required) The rule type of the rule. The only possible value is `Community`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `force_customer_storage_for_profiler` - (Optional) Should the Application Insights component force users to create their own storage account for profiling? Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

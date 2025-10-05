@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **Note:** `thumbprint` must be specified when `ssl_state` is set.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

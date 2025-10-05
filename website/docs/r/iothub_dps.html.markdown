@@ -89,7 +89,7 @@ An `ip_filter_rule` block supports the following:
 
 * `target` - (Optional) Target for requests captured by this rule. Possible values are `all`, `deviceApi` and `serviceApi`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

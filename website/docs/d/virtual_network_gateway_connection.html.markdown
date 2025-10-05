@@ -28,7 +28,7 @@ output "virtual_network_gateway_connection_id" {
 * `name` - Specifies the name of the Virtual Network Gateway Connection.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway Connection is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Virtual Network Gateway Connection.
 

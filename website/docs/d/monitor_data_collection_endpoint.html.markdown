@@ -30,7 +30,7 @@ output "endpoint_id" {
 
 * `resource_group_name` - Specifies the name of the resource group the Data Collection Endpoint is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Resource.
 

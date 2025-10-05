@@ -55,7 +55,7 @@ resource "azurerm_spring_cloud_api_portal" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -89,7 +89,7 @@ A `sso` block supports the following:
 
 * `scope` - (Optional) It defines the specific actions applications can be allowed to do on a user's behalf.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

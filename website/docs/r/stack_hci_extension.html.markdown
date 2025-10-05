@@ -29,7 +29,7 @@ resource "azurerm_stack_hci_extension" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 -> **Note:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

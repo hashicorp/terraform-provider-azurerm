@@ -44,7 +44,7 @@ resource "azurerm_log_analytics_data_export_rule" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is this Log Analytics Data Export Rule enabled? Possible values include `true` or `false`. Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

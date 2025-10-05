@@ -116,7 +116,7 @@ A `recommendations_enabled` block supports the following:
 
 * `vulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

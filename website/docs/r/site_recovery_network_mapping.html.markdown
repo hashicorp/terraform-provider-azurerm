@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `target_network_id` - (Required) The id of the recovery network. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

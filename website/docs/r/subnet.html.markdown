@@ -127,7 +127,7 @@ A `service_delegation` block supports the following:
 
 -> **Note:** Azure may add default actions depending on the service delegation name and they can't be changed.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -59,7 +59,7 @@ The `bgp_settings` block supports the following:
 
 * `peer_weight` - (Optional) The weight added to routes learned from this BGP speaker.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -63,7 +63,7 @@ A `site` block has the following properties:
 
 * `storage_enabled` - (Optional) Is the storage site enabled for detailed logging? Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

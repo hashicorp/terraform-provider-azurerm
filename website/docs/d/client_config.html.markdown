@@ -25,7 +25,7 @@ output "account_id" {
 
 There are no arguments available for this data source.
 
-## Attributes Reference
+## Attribute Reference
 
 * `client_id` is set to the Azure Client ID (Application Object ID).
 * `tenant_id` is set to the Azure Tenant ID.

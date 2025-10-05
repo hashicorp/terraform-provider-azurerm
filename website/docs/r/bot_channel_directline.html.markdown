@@ -74,7 +74,7 @@ A `site` block has the following properties:
 
 * `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -48,7 +48,7 @@ VALUES
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -100,7 +100,7 @@ A `policy_definition_reference` block supports the following:
 
 * `version` - (Optional) The version of the Policy Definition to use.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

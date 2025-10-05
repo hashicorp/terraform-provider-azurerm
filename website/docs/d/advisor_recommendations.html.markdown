@@ -27,7 +27,7 @@ output "recommendations" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `filter_by_resource_groups` - (Optional) Specifies a list of resource groups about which the Advisor Recommendations will be listed.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

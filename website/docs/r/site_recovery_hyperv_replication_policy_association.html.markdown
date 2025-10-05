@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `policy_id` - (Required) The ID of the HyperV replication policy which to be associated. Changing this forces a new association to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

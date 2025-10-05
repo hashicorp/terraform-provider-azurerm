@@ -29,7 +29,7 @@ The following arguments are supported:
 
 - `resource_group_name` - The name of the Resource Group where the Function App exists.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

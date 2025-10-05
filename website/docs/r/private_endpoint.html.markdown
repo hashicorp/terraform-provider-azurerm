@@ -258,7 +258,7 @@ An `ip_configuration` block supports the following:
 
 -> **Note:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

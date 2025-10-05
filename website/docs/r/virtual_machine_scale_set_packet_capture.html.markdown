@@ -160,7 +160,7 @@ A `machine_scope` block contains:
 
 * `include_instance_ids` - (Optional) A list of Virtual Machine Scale Set instance IDs which should be included for Packet Capture, e.g. `["1", "3"]`. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

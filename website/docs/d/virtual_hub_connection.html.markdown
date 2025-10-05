@@ -34,7 +34,7 @@ The following arguments are supported:
 
 *  `virtual_hub_name` - The name of the Virtual Hub where this Connection exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

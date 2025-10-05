@@ -30,7 +30,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new Front Door Rule Set to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

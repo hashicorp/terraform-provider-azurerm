@@ -101,7 +101,7 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -157,7 +157,7 @@ A `port_range` block supports the following:
 
 * `minimum` - (Optional) Specifies the minimum port number.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Name of the resource group where resource belongs to.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

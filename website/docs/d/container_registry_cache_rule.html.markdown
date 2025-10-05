@@ -30,7 +30,7 @@ output "cache_rule_source_repo" {
 
 * `container_registry_id` - The ID of the container registry where the cache rule should apply. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

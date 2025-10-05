@@ -182,7 +182,7 @@ An `archived_restore_point` block supports the following:
 
 * `duration_type` - (Optional) The retention duration type. Possible values are `Days`, `Weeks`, `Months` and `Years`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -86,7 +86,7 @@ The following arguments are supported:
 * `floating_ip_enabled` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating" IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
 * `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

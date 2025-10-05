@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the associated Azure Site Recovery replication policy resides.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

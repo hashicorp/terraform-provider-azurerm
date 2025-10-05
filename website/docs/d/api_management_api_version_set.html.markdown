@@ -32,7 +32,7 @@ output "api_management_api_version_set_id" {
 
 * `api_management_name` - The name of the [API Management Service](api_management.html) where the API Version Set exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the API Version Set.
 

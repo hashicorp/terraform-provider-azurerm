@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `end_ip` - (Required) The highest IP address included in the range.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

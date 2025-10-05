@@ -81,7 +81,7 @@ EOT
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -131,7 +131,7 @@ A `output_target` block supports the following:
 
 * `schema_name` - (Optional) The name of the output schema. Defaults to `dbo`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

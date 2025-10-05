@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -31,7 +31,7 @@ output "postgresql_server_id" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where the PostgreSQL Server exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the PostgreSQL Server.
 

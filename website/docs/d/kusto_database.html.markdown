@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) The name of the Kusto Cluster this database is added to.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

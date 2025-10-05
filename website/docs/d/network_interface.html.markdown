@@ -28,7 +28,7 @@ output "network_interface_id" {
 * `name` - Specifies the name of the Network Interface.
 * `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Network Interface.
 * `accelerated_networking_enabled` - Indicates if accelerated networking is set on the specified Network Interface.

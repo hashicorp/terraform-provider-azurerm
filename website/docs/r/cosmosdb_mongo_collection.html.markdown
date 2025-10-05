@@ -74,7 +74,7 @@ The `index` block supports the following:
 
 ~> **Note:** An index with an "_id" key must be specified.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

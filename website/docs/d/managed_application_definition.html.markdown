@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - The Azure location where the resource exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

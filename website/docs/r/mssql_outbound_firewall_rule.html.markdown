@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The resource ID of the SQL Server on which to create the Outbound Firewall Rule. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

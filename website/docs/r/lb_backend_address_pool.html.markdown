@@ -72,7 +72,7 @@ The `tunnel_interface` block supports the following:
 
 * `port` - (Required) The port number that this Gateway Load Balancer Tunnel Interface listens to.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -90,7 +90,7 @@ A `gcm_credential` supports the following:
 
 * `api_key` - (Required) The API Key associated with the Google Cloud Messaging service.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -92,7 +92,7 @@ resource "azurerm_machine_learning_compute_instance" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -150,7 +150,7 @@ A `ssh` block supports the following:
 
 * `public_key` - (Required) Specifies the SSH rsa public key file as a string. Use "ssh-keygen -t rsa -b 2048" to generate your SSH key pairs.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

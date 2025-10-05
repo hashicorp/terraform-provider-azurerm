@@ -123,7 +123,7 @@ A `partition_key` block supports the following:
 
 * `name` - (Required) Name of the column to partition by.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -65,7 +65,7 @@ resource "azurerm_synapse_integration_runtime_self_hosted" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Integration runtime description.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

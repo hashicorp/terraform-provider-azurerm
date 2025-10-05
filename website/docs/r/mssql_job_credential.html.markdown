@@ -48,7 +48,7 @@ resource "azurerm_mssql_job_credential" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 * `password_wo_version` - (Optional) An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

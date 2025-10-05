@@ -32,7 +32,7 @@ resource "azurerm_gallery_application" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Gallery Application.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

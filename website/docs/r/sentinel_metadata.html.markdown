@@ -64,7 +64,7 @@ resource "azurerm_sentinel_metadata" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -166,7 +166,7 @@ A `support` block supports the following:
 
 * `name` - (Optional) The name of the support contact.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

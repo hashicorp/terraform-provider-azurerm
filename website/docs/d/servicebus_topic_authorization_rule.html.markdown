@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `topic_name` - The name of the ServiceBus Topic.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

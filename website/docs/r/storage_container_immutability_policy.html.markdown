@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `protected_append_writes_enabled` - (Optional) Whether to allow protected append writes to append blobs to the container. Defaults to `false`. Cannot be set with `protected_append_writes_all_enabled`.
 
-## Attributes Reference
+## Attribute Reference
 
 No additional attributes are exported.
 

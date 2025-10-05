@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Should the Virtual Network Rule be created before the Subnet has the Virtual Network Service Endpoint enabled? 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

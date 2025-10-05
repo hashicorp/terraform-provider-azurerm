@@ -36,7 +36,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "example" 
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name for the Email Communication Service Domain Sender Username resource.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

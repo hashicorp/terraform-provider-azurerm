@@ -98,7 +98,7 @@ The following arguments are supported:
 
 -> **Note:** In regions with [availability zones](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview), the Custom IP Prefix must be specified as either `Zone-redundant` or assigned to a specific zone. It can't be created with no zone specified in these regions. All IPs from the prefix must have the same zonal properties.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

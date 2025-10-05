@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `icon_index` - (Optional) The index of the icon you wish to use.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

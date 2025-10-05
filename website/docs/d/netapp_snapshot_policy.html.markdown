@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `account_name` - The name of the NetApp account where the NetApp Snapshot Policy exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

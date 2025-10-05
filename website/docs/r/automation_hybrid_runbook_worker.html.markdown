@@ -91,7 +91,7 @@ resource "azurerm_automation_hybrid_runbook_worker" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `vm_resource_id` - (Required) The ID of the virtual machine used for this HybridWorker. Changing this forces a new Automation to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

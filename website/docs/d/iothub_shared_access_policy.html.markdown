@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `iothub_name` - The name of the IoTHub to which this Shared Access Policy belongs.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

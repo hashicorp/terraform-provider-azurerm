@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `namespace_name` - Specifies the name of the EventHub Namespace.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

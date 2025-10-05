@@ -250,7 +250,7 @@ The `aad_auth` block supports the following:.
 * `identifier_uri` - (Optional) The identifier URI for AAD auth.
 * `tenant_id` - (Optional) The tenant id for AAD auth.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

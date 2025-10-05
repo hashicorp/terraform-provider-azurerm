@@ -48,7 +48,7 @@ resource "azurerm_windows_web_app_slot" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -878,7 +878,7 @@ A `virtual_directory` block supports the following:
 
 * `virtual_path` - (Optional) The Virtual Path for the Virtual Application.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

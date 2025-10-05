@@ -27,7 +27,7 @@ output "example_output" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group to which the Resource Group Template Deployment was applied.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

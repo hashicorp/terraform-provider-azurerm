@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the primary SQL Server where the Failover Group exists.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

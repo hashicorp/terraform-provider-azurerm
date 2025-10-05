@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A map of custom blob metadata.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

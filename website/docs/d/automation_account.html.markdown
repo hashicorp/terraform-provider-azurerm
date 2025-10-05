@@ -29,7 +29,7 @@ output "automation_account_id" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where the Automation Account exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Automation Account
 

@@ -36,7 +36,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -110,7 +110,7 @@ A `long_term_backup_schedule` blocks supports the following:
 
 * `enabled` - (Required) A boolean value that indicates whether the long term backup schedule is enabled. 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

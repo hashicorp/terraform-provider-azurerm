@@ -131,7 +131,7 @@ An `auth` block supports the following:
 
 -> **Note:** `managed_identity_id` is required if the auth block is defined
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

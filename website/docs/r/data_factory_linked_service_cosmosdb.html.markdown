@@ -69,7 +69,7 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

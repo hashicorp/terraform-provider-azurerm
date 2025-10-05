@@ -181,7 +181,7 @@ A `network_interface` block supports the following:
 
 * `test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

@@ -66,7 +66,7 @@ resource "azurerm_synapse_integration_runtime_azure" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `time_to_live_min` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

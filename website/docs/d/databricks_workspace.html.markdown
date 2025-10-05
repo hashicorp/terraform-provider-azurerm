@@ -28,7 +28,7 @@ output "databricks_workspace_id" {
 * `name` - The name of the Databricks Workspace.
 * `resource_group_name` - The Name of the Resource Group where the Databricks Workspace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Databricks Workspace.
 

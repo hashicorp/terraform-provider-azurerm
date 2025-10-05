@@ -224,7 +224,7 @@ resource "azurerm_virtual_network_peering" "failover_to_primary" {
 
 -> **Note:** There are many prerequisites that must be in place before creating the failover group. To see them all, refer to [Configure a failover group for Azure SQL Managed Instance](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/failover-group-configure-sql-mi).
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -250,7 +250,7 @@ A `read_write_endpoint_failover_policy` block supports the following:
 
 * `grace_minutes` - (Optional) Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

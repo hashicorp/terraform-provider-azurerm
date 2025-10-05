@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `table` - (Required) The name of the table in the Azure SQL database. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

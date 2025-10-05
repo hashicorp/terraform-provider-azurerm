@@ -30,7 +30,7 @@ output "firewall_private_ip" {
 
 * `resource_group_name` - The name of the Resource Group in which the Azure Firewall exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

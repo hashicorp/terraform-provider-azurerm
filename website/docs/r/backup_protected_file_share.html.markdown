@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) Specifies the ID of the backup policy to use. The policy must be an Azure File Share backup policy. Other types are not supported.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

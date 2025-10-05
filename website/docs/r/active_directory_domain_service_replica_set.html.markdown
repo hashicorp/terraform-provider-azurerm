@@ -286,7 +286,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set. Changing this forces a new resource to be created.
   
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

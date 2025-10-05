@@ -63,7 +63,7 @@ The following supported arguments are specific to Azure Search Linked Service:
 
 * `search_service_key` - (Required) The key of the Azure Search Service.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -38,7 +38,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `event_types` - (Required) Specifies an array of event types applied to the specified event log. Possible values include `Error`, `Warning` and `Information`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

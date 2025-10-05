@@ -85,7 +85,7 @@ resource "azurerm_extended_location_custom_location" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ An `authentication` block supports the following:
 
 * `value` - (Required) Specifies the value of authentication.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Custom Location.
 

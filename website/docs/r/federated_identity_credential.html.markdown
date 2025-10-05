@@ -34,7 +34,7 @@ resource "azurerm_federated_identity_credential" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `subject` - (Required) Specifies the subject for this Federated Identity Credential.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

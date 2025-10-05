@@ -84,7 +84,7 @@ A `network_acls` block supports the following:
 
 * `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

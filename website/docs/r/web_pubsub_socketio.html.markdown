@@ -26,7 +26,7 @@ resource "azurerm_web_pubsub_socketio" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -80,7 +80,7 @@ A `identity` block supports the following:
 
 ~> **Note:** `identity_ids` is required when `type` is `UserAssigned`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

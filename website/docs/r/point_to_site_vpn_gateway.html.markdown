@@ -147,7 +147,7 @@ A `propagated_route_table` block supports the following:
 
 * `labels` - (Optional) The list of labels to logically group Virtual Hub Route Tables which the routes will be propagated to.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

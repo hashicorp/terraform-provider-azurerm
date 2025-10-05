@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The Name of the Resource Group where the NetApp Account exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

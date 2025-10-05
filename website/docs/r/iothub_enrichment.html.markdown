@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `endpoint_names` - (Required) The list of endpoints which will be enriched.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

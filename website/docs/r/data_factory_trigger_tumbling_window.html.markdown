@@ -126,7 +126,7 @@ A `trigger_dependency` block supports the following:
 
 * `trigger_name` - (Optional) The dependency trigger name. If not specified, it will use self dependency.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

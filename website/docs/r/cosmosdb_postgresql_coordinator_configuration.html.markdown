@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `value` - (Required) The value of the Coordinator Configuration on Azure Cosmos DB for PostgreSQL Cluster.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

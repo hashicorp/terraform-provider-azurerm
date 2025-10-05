@@ -27,7 +27,7 @@ data "azurerm_storage_share" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the File Share.
 

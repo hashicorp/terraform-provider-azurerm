@@ -42,7 +42,7 @@ resource "azurerm_kubernetes_cluster_extension" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -82,7 +82,7 @@ A `plan` block supports the following:
 
 ~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Kubernetes Cluster Extension. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

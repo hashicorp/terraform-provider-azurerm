@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

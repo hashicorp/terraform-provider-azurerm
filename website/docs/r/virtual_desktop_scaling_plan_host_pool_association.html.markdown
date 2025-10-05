@@ -96,7 +96,7 @@ The following arguments are supported:
 
 - `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

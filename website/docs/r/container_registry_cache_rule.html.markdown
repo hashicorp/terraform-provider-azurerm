@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `credential_set_id` - (Optional) The ARM resource ID of the Credential Store which is associated with the Cache Rule.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

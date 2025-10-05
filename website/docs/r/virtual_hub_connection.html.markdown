@@ -98,7 +98,7 @@ A `static_vnet_route` block supports the following:
 
 * `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -279,7 +279,7 @@ A `delta_health_policy` block supports the following:
 
 * `max_upgrade_domain_delta_unhealthy_nodes_percent` - (Optional) Specifies the maximum tolerated percentage of upgrade domain delta unhealthy nodes that can have aggregated health state of error. If there is any upgrade domain where the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

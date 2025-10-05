@@ -157,7 +157,7 @@ The `retention_yearly` block supports:
 
 -> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -38,7 +38,7 @@ resource "azurerm_datadog_monitor" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -94,7 +94,7 @@ An `user` block exports the following:
 
 * `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

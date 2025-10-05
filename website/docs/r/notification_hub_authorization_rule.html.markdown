@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `listen` - (Optional) Does this Authorization Rule have Listen access to the Notification Hub? Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

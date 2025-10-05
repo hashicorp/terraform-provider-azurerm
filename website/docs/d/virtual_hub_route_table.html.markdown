@@ -33,7 +33,7 @@ The following arguments are supported:
 * `resource_group_name` - The Name of the Resource Group where the Virtual Hub Route Table exists.
 *  `virtual_hub_name` - The name which should be used for Virtual Hub Route Table.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

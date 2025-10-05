@@ -142,7 +142,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -695,7 +695,7 @@ For rules that can transform strings, the following transforms are valid:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

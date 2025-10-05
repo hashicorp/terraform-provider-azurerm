@@ -93,7 +93,7 @@ resource "azurerm_synapse_workspace_aad_admin" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

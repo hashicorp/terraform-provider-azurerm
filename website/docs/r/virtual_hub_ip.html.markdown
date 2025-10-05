@@ -59,7 +59,7 @@ resource "azurerm_virtual_hub_ip" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

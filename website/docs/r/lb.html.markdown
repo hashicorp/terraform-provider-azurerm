@@ -79,7 +79,7 @@ The `frontend_ip_configuration` block supports the following:
 * `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
 * `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

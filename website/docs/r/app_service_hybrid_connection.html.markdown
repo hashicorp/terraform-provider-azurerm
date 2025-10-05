@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `send_key_name` - (Optional) The name of the Service Bus key which has Send permissions. Defaults to `RootManageSharedAccessKey`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

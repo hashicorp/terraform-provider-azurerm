@@ -34,7 +34,7 @@ output "dns_ns_record_id" {
 
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The DNS NS Record ID.
 

@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `tags_filter` - A mapping of tags to filter the list of images against.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

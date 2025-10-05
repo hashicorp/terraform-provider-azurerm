@@ -39,7 +39,7 @@ resource "azurerm_dev_center_catalog" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ The `catalog_adogit` block supports the following:
 
 * `uri` - (Required) The Git URI of the Dev Center Catalog.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

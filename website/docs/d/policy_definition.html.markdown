@@ -32,7 +32,7 @@ output "id" {
 
 * `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Policy Definition.
 

@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `support_ordering` - (Optional) Boolean flag which controls whether the Topic supports ordering.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

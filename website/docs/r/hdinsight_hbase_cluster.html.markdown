@@ -431,7 +431,7 @@ A `security_profile` block supports the following:
 
 * `cluster_users_group_dns` - (Optional) A list of the distinguished names for the cluster user groups. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -29,7 +29,7 @@ resource "azurerm_elastic_san" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The `sku` block supports the following arguments:
 
 * `tier` - (Optional) The SKU tier. The only possible value is `Premium`. Defaults to `Premium`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

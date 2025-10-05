@@ -32,7 +32,7 @@ output "private_dns_zone_id" {
 If the Name of the Resource Group is not provided, the first Private DNS Zone from the list of Private
 DNS Zones in your subscription that matches `name` will be returned.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Private DNS Zone.
 

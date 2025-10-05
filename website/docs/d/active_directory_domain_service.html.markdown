@@ -27,7 +27,7 @@ data "azurerm_active_directory_domain_service" "example" {
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Domain Service should exist. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Domain Service.
 

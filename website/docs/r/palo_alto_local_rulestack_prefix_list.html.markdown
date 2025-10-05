@@ -31,7 +31,7 @@ resource "azurerm_palo_alto_local_rulestack_prefix_list" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for the Prefix List.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

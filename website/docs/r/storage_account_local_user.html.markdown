@@ -62,7 +62,7 @@ resource "azurerm_storage_account_local_user" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -114,7 +114,7 @@ A `ssh_authorized_key` block supports the following:
 
 * `description` - (Optional) The description of this SSH authorized key.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

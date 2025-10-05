@@ -52,7 +52,7 @@ resource "azurerm_spring_cloud_application_insights_application_performance_moni
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `sampling_requests_per_second` - (Optional) Specifies the number of requests per second for the rate-limited sampling. 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

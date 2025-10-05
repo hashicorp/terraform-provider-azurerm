@@ -82,7 +82,7 @@ The following arguments are supported:
 * `destination_fqdn` - (Required) Specifies the fully qualified domain name to allow for outbound traffic.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -29,7 +29,7 @@ output "cidrs" {
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the IP Group exists
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the IP Group.
 

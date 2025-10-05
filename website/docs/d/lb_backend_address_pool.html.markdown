@@ -39,7 +39,7 @@ output "backend_ip_configuration_ids" {
 
 * `loadbalancer_id` - The ID of the Load Balancer in which the Backend Address Pool exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

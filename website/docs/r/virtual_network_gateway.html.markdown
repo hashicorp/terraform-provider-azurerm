@@ -314,7 +314,7 @@ The `virtual_network_gateway_client_connection` block supports:
 
 * `address_prefixes` - (Required) A list of address prefixes for P2S VPN Client.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

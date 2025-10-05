@@ -81,7 +81,7 @@ The following arguments are supported:
 
 ~> **Note:** This field takes effect only when `principal_id` is a `Service Principal` identity.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -111,7 +111,7 @@ resource "azurerm_dedicated_hardware_security_module" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -151,7 +151,7 @@ A `management_network_profile` block exports the following:
 
 * `subnet_id` - (Required) The ID of the subnet. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

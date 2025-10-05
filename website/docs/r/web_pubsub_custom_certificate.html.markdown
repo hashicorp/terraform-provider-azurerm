@@ -108,7 +108,7 @@ The following arguments are supported:
 
 -> **Note:** Self assigned certificate is not supported and the provisioning status will fail.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

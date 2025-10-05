@@ -31,7 +31,7 @@ output "scope_map_id" {
 * `container_registry_name` - The Name of the Container Registry where the token exists.
 * `resource_group_name` - The Name of the Resource Group where this Container Registry token exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -45,7 +45,7 @@ resource "azurerm_service_fabric_managed_cluster" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -193,7 +193,7 @@ A `vm_secrets` block supports the following:
 
 * `vault_id` - (Required) The ID of the Vault that contain the certificates.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

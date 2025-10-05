@@ -32,7 +32,7 @@ output "id" {
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Notification Hub.
 

@@ -22,13 +22,13 @@ output "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
 * `cloud_vm_cluster_id` - (Required) The id of the Cloud VM cluster.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

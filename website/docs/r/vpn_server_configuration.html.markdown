@@ -174,7 +174,7 @@ A `server_root_certificate` block supports the following:
 
 * `public_cert_data` - (Required) The Public Key Data associated with the Certificate.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

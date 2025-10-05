@@ -29,7 +29,7 @@ output "cdn_profile_id" {
 
 * `resource_group_name` - The name of the resource group in which the CDN Profile exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `location` - The Azure Region where the resource exists.
 

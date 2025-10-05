@@ -63,7 +63,7 @@ resource "azurerm_mssql_job_schedule" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `start_time` - (Optional) The start time of the schedule. Must be in RFC3339 format.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -29,7 +29,7 @@ output "public_ip_prefix" {
 * `name` - Specifies the name of the public IP prefix.
 * `resource_group_name` - Specifies the name of the resource group.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Public IP Prefix.
 * `ip_prefix` - The Public IP address range, in CIDR notation.

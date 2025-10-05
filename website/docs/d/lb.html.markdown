@@ -30,7 +30,7 @@ output "loadbalancer_id" {
 
 * `resource_group_name` - The name of the Resource Group in which the Load Balancer exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

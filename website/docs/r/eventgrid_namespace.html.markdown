@@ -105,7 +105,7 @@ A `static_routing_enrichment` block supports the following:
 * `value` - (Required) The enrichment value.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

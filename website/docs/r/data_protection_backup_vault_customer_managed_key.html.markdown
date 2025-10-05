@@ -113,7 +113,7 @@ resource "azurerm_data_protection_backup_vault_customer_managed_key" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Backup Vault.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

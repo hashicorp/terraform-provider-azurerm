@@ -32,7 +32,7 @@ output "name" {
 
 * `recur_every` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
 
-## Attributes Reference
+## Attribute Reference
 
 * `configs` - A `configs` block as defined below.
 

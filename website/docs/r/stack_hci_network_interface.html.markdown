@@ -64,7 +64,7 @@ resource "azurerm_stack_hci_network_interface" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -94,7 +94,7 @@ An `ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The IPv4 address of the IP configuration. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

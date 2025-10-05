@@ -31,7 +31,7 @@ data "azurerm_eventhub_authorization_rule" "test" {
 
 * `resource_group_name` - The name of the resource group in which the EventHub Authorization Rule's grandparent Namespace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -25,7 +25,7 @@ resource "azurerm_static_web_app" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ A `basic_auth` block supports the following:
 
 * `environments` - (Required) The Environment types to use the Basic Auth for access. Possible values include `AllEnvironments` and `StagingEnvironments`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

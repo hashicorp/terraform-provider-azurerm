@@ -43,7 +43,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Discovery Virtual Instance.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

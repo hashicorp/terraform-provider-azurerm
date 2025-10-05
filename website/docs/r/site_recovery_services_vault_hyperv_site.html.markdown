@@ -34,7 +34,7 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the Site created. Changing this forces a new Site to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

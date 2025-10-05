@@ -66,7 +66,7 @@ resource "azurerm_virtual_hub_bgp_connection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `virtual_network_connection_id` - (Optional) The ID of virtual network connection.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

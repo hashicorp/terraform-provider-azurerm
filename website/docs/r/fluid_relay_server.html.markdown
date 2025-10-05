@@ -29,7 +29,7 @@ resource "azurerm_fluid_relay_server" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -63,7 +63,7 @@ An `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

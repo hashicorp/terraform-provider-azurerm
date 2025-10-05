@@ -29,7 +29,7 @@ output "azurerm_vpn_gateway_id" {
 
 * `resource_group_name` - (Required) The name of the Resource Group where the VPN Gateway exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the VPN Gateway.
 

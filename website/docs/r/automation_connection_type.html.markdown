@@ -43,7 +43,7 @@ resource "azurerm_automation_connection_type" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ A `field` block supports the following:
 
 * `is_optional` - (Optional) Whether to set the isOptional flag of the connection field definition.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

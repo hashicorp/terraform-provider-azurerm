@@ -31,7 +31,7 @@ output "app_service_id" {
 
 * `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the App Service.
 

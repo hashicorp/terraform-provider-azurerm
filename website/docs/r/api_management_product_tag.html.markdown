@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this API Management Tag. Changing this forces a new API Management Tag to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

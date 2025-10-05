@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `sort_versions_by_semver` - (Optional) Sort available versions taking SemVer versioning scheme into account. Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

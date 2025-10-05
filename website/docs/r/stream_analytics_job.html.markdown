@@ -114,7 +114,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

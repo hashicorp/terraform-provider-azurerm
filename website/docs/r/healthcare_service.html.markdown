@@ -98,7 +98,7 @@ A `cors_configuration` block supports the following:
 * `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
 * `allow_credentials` - (Optional) (Boolean) If credentials are allowed via CORS.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -19,7 +19,7 @@ const (
 )
 
 func TestResourceArgumentBlock(t *testing.T) {
-	expectedOut := strings.ReplaceAll(`## Arguments Reference
+	expectedOut := strings.ReplaceAll(`## Argument Reference
 
 The following arguments are supported:
 

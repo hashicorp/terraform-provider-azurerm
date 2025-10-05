@@ -293,7 +293,7 @@ For more information on Azure NetApp Files Backup feature please see [Understand
   
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

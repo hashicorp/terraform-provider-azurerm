@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the resource group in which the CosmosDB Account resides.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -33,7 +33,7 @@ The following arguments are supported:
 * `recovery_vault_id` - (Required) The ID of the vault that should be updated.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `destination_fhir_mapping_json` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
 
-## Attributes Reference
+## Attribute Reference
 
 The following arguments are supported:
 

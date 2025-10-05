@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the Virtual Desktop Host Pool exists.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

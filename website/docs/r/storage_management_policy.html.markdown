@@ -181,7 +181,7 @@ The `match_blob_index_tag` block supports the following:
 * `operation` - (Optional) The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.
 * `value` - (Required) The filter tag value used for tag based filtering for blob objects.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

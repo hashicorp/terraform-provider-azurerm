@@ -24,7 +24,7 @@ data "azurerm_mobile_network_data_network" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `mobile_network_id` - (Required) Specifies the ID of the Mobile Network. 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

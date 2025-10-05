@@ -109,7 +109,7 @@ The `per_database_settings` block supports the following:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

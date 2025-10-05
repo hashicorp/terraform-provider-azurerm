@@ -57,7 +57,7 @@ resource "azurerm_storage_blob_inventory_policy" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -107,7 +107,7 @@ A `rules` block supports the following:
 
 * `filter` - (Optional) A `filter` block as defined above.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

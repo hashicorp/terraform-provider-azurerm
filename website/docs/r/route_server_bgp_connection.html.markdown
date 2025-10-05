@@ -62,7 +62,7 @@ resource "azurerm_route_server_bgp_connection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `peer_ip` - (Required) The peer ip address for the Route Server Bgp Connection. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

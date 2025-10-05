@@ -39,7 +39,7 @@ resource "azurerm_search_shared_private_link_service" "test" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

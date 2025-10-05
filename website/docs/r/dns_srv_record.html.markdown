@@ -72,7 +72,7 @@ The `record` block supports:
 
 * `target` - (Required) FQDN of the service.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

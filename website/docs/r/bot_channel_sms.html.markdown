@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `sms_channel_auth_token` - (Required) The authorization token for the SMS Channel.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

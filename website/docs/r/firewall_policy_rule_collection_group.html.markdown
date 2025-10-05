@@ -77,7 +77,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -223,7 +223,7 @@ A `http_headers` block supports the following:
 
 * `value` - (Required) Specifies the value of the value.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

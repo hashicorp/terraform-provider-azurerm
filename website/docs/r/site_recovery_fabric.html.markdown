@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `location` - (Required) In what region should the fabric be located. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

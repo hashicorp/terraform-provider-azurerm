@@ -45,7 +45,7 @@ resource "azurerm_app_service_public_certificate" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `blob` - (Required) The base64-encoded contents of the certificate. Changing this forces a new App Service Public Certificate to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

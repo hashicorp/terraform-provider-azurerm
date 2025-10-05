@@ -121,7 +121,7 @@ resource "azurerm_elastic_san_volume_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -165,7 +165,7 @@ A `network_rule` block supports the following arguments:
 
 * `action` - (Optional) The action to take when the Subnet attempts to access this Elastic SAN Volume Group. The only possible value is `Allow`. Defaults to `Allow`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

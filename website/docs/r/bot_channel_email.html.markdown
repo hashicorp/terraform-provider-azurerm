@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `magic_code` - (Optional) The magic code used to set up OAUTH authentication.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

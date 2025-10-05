@@ -118,7 +118,7 @@ A `custom_header` block supports the following:
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

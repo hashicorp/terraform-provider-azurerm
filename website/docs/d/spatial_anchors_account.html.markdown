@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Spatial Anchors Account.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

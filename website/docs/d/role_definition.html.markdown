@@ -58,7 +58,7 @@ output "contributor_role_definition_id" {
 
 ~> **Note:** One of `name` or `role_definition_id` must be specified.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the built-in Role Definition.
 

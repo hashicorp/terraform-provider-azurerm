@@ -68,7 +68,7 @@ The `page` block supports the following:
 
 * `access_token` - (Required) The Facebook Page Access Token for the Facebook Channel.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -69,7 +69,7 @@ The following arguments are supported:
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
 * `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
