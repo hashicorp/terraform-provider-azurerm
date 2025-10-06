@@ -3,7 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
-* `azurerm_network_watcher_flow_log` - the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
+* `azurerm_network_watcher_flow_log` - changing the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
 * dependencies: `guestconfiguration` - update to API version `2024-04-05` [GH-30642]
 * dependencies: `go-azure-sdk` - update to `v0.20250925.1224537` [GH-30719]
 * dependencies: `containerservice` - update to API version `2025-07-01` [GH-30719]
@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster_node_pool` - add support for `AzureLinux3` and `Ubuntu2204` to the `os_sku` property [GH-30719]
 
 BUG FIXES:
+* `azurerm_network_watcher_flow_log` - the `target_resource_id` property is now included in the update request payload resolving an issue where changing it failed to recreate or update the resource [GH-30776]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - fix read error when in replica set in failover state [GH-30789]
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
 
