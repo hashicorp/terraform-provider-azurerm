@@ -31,16 +31,12 @@ type ExascaleDatabaseStorageVaultResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
 
-	AdditionalFlashCachePercentage int64                                      `tfschema:"additional_flash_cache_percentage"`
-	Description                    string                                     `tfschema:"description"`
-	DisplayName                    string                                     `tfschema:"display_name"`
-	HighCapacityDatabaseStorage    []ExascaleDatabaseStorageInputDetailsModel `tfschema:"high_capacity_database_storage"`
+	AdditionalFlashCachePercentage int64                           `tfschema:"additional_flash_cache_percentage"`
+	Description                    string                          `tfschema:"description"`
+	DisplayName                    string                          `tfschema:"display_name"`
+	HighCapacityDatabaseStorage    []ExascaleDbStorageDetailsModel `tfschema:"high_capacity_database_storage"`
 
 	TimeZone string `tfschema:"time_zone"`
-}
-
-type ExascaleDatabaseStorageInputDetailsModel struct {
-	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
 }
 
 func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
@@ -94,6 +90,10 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeInt,
 						Required: true,
 						ForceNew: true,
+					},
+					"available_size_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 				},
 			},
@@ -242,7 +242,7 @@ func (ExascaleDatabaseStorageVaultResource) Read() sdk.ResourceFunc {
 					state.DisplayName = props.DisplayName
 					state.AdditionalFlashCachePercentage = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.Description = pointer.From(props.Description)
-					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorageInterface(props.HighCapacityDatabaseStorage)
+					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)
 					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
@@ -273,13 +273,4 @@ func (ExascaleDatabaseStorageVaultResource) Delete() sdk.ResourceFunc {
 
 func (ExascaleDatabaseStorageVaultResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
-}
-
-func flattenHighCapacityDatabaseStorageInterface(input *exascaledbstoragevaults.ExascaleDbStorageDetails) []ExascaleDatabaseStorageInputDetailsModel {
-	output := make([]ExascaleDatabaseStorageInputDetailsModel, 0)
-	storageInput := ExascaleDatabaseStorageInputDetailsModel{
-		TotalSizeInGb: pointer.From(input.TotalSizeInGbs),
-	}
-	output = append(output, storageInput)
-	return output
 }

@@ -40,11 +40,6 @@ type ExascaleDatabaseStorageVaultDataModel struct {
 	VirtualMachineClusterCount     int64                           `tfschema:"virtual_machine_cluster_count"`
 }
 
-type ExascaleDbStorageDetailsModel struct {
-	AvailableSizeInGb int64 `tfschema:"available_size_in_gb"`
-	TotalSizeInGb     int64 `tfschema:"total_size_in_gb"`
-}
-
 func (d ExascaleDatabaseStorageVaultDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -186,15 +181,4 @@ func (d ExascaleDatabaseStorageVaultDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func flattenHighCapacityDatabaseStorage(input *exascaledbstoragevaults.ExascaleDbStorageDetails) []ExascaleDbStorageDetailsModel {
-	output := make([]ExascaleDbStorageDetailsModel, 0)
-	if input != nil {
-		return append(output, ExascaleDbStorageDetailsModel{
-			AvailableSizeInGb: pointer.From(input.AvailableSizeInGbs),
-			TotalSizeInGb:     pointer.From(input.TotalSizeInGbs),
-		})
-	}
-	return output
 }
