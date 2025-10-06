@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_network_watcher_flow_log` - the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
 * dependencies: `guestconfiguration` - update to API version `2024-04-05` [GH-30642]
 * dependencies: `go-azure-sdk` - update to `v0.20250925.1224537` [GH-30719]
 * dependencies: `containerservice` - update to API version `2025-07-01` [GH-30719]
