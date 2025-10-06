@@ -57,7 +57,7 @@ resource "azurerm_network_manager_routing_rule" "example" {
 
   destination {
     type    = "AddressPrefix"
-    address = "10.0.0.0/16"
+    address = "10.0.0.0/24"
   }
 
   next_hop {
@@ -98,7 +98,7 @@ A `next_hop` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Manager Routing Rule.
 
