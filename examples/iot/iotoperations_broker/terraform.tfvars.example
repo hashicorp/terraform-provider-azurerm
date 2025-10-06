@@ -1,0 +1,14 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and update with your values
+
+# Prefix for resource naming
+prefix = "example"
+
+# Existing Resource Group
+resource_group_name = "existing-resource-group-name"
+
+# Existing IoT Operations Instance
+instance_name = "existing-iotoperations-instance"
+
+# Custom Location (Arc-enabled Kubernetes cluster)
+custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ExtendedLocation/customLocations/example-location"
