@@ -115,7 +115,19 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				}
 
 				return nil
-			}),
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") {
+					if d.Get("min_capacity").(float64) != 0 {
+						return fmt.Errorf("`min_capacity` should only be specified when using serverless databases")
+					}
+					if d.Get("auto_pause_delay_in_minutes").(int) != 0 {
+						return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using serverless databases")
+					}
+				}
+				return nil
+			},
+		),
 	}
 }
 
