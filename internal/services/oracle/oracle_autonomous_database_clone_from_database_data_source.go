@@ -557,7 +557,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.SupportedRegionsToCloneTo = pointer.From(props.SupportedRegionsToCloneTo)
 				state.TimeCreatedUtc = pointer.From(props.TimeCreated)
 				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
-				state.TimeDeletionOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
+				state.TimeDeletionOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeDeletionOfFreeAutonomousDatabase)
 				state.TimeLocalDataGuardEnabledInUtc = pointer.From(props.TimeLocalDataGuardEnabled)
 				state.TimeMaintenanceBeginInUtc = pointer.From(props.TimeMaintenanceBegin)
 				state.TimeMaintenanceEndInUtc = pointer.From(props.TimeMaintenanceEnd)
