@@ -69,11 +69,12 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
 		},
+
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
-		// Clone-specific required fields
+		// Clone from backup specific required fields
 
 		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
 
@@ -180,7 +181,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		// Optional clone-specific fields
+		//  clone from backup specific  Optional fields
 		"allowed_ip_addresses": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,

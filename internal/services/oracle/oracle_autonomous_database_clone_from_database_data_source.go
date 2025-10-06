@@ -568,7 +568,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
 				state.TimeReclamationOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
 				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
-				state.UsedDataStorageSizeInTb = pointer.From(props.UsedDataStorageSizeInGbs)
+				state.UsedDataStorageSizeInTb = pointer.From(props.UsedDataStorageSizeInTbs)
 				state.UsedDataStorageSizeInGb = pointer.From(props.UsedDataStorageSizeInGbs)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.VnetId = pointer.From(props.VnetId)

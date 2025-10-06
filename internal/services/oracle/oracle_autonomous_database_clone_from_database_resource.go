@@ -24,7 +24,7 @@ var _ sdk.ResourceWithCustomizeDiff = AutonomousDatabaseCloneFromDatabaseResourc
 
 type AutonomousDatabaseCloneFromDatabaseResource struct{}
 
-type AutonomousDatabaseCloneResourceModel struct {
+type AutonomousDatabaseCloneFromDatabaseResourceModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -73,7 +73,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 
 		"location": commonschema.Location(),
 
-		// Clone-specific required fields
+		// Clone from database specific required fields
 
 		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
 
@@ -83,7 +83,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForCloneType(), false),
 		},
-		// optional
+		//  clone from database specific optional fields
 
 		"refreshable_model": {
 			Type:         pluginsdk.TypeString,
@@ -190,7 +190,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		// Optional clone-specific fields
+		// Optional
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -239,7 +239,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Attributes() map[string]*plug
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() interface{} {
-	return &AutonomousDatabaseCloneResourceModel{}
+	return &AutonomousDatabaseCloneFromDatabaseResourceModel{}
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) ResourceType() string {
@@ -253,7 +253,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AutonomousDatabaseCloneResourceModel
+			var model AutonomousDatabaseCloneFromDatabaseResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -283,7 +283,6 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 				Source:       pointer.To(autonomousdatabases.SourceTypeDatabase),
 				DataBaseType: autonomousdatabases.DataBaseTypeClone,
 
-				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
 				CharacterSet:                   pointer.To(model.CharacterSet),
@@ -343,7 +342,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var state AutonomousDatabaseCloneResourceModel
+			var state AutonomousDatabaseCloneFromDatabaseResourceModel
 
 			if v, ok := metadata.ResourceData.GetOk("refreshable_model"); ok {
 				state.RefreshableModel = v.(string)
@@ -370,7 +369,6 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 					state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
-					state.DatabaseVersion = pointer.From(props.DbVersion)
 					state.DatabaseVersion = pointer.From(props.DbVersion)
 					state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
 					state.DisplayName = pointer.From(props.DisplayName)
@@ -416,6 +414,12 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) IDValidationFunc() pluginsd
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
+	workloadMatrixForClone := map[string][]string{
+		"DW":   {"OLTP", "DW"},
+		"OLTP": {"DW", "OLTP"},
+		"AJD":  {"OLTP", "DW", "APEX"},
+		"APEX": {"AJD", "OLTP", "DW"},
+	}
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Second,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -455,13 +459,6 @@ func (AutonomousDatabaseCloneFromDatabaseResource) CustomizeDiff() sdk.ResourceF
 	}
 }
 
-var workloadMatrixForClone = map[string][]string{
-	"DW":   {"OLTP", "DW"},
-	"OLTP": {"DW", "OLTP"},
-	"AJD":  {"OLTP", "DW", "APEX"},
-	"APEX": {"AJD", "OLTP", "DW"},
-}
-
 func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(sourceId)
 	if err != nil {
@@ -471,7 +468,7 @@ func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sd
 	client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return "", fmt.Errorf("retrieving %s", err)
+		return "", fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.Model == nil {

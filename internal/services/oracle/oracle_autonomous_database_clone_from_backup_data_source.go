@@ -485,7 +485,6 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				}
 				state.SourceAutonomousDatabaseId = props.SourceId
 
-				// Base properties
 				state.ActualUsedDataStorageSizeInTb = pointer.From(props.ActualUsedDataStorageSizeInTbs)
 				state.AllocatedStorageSizeInTb = pointer.From(props.AllocatedStorageSizeInTbs)
 				state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
