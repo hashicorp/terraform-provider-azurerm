@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster_node_pool` - add support for `AzureLinux3` and `Ubuntu2204` to the `os_sku` property [GH-30719]
 
 BUG FIXES:
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - fix read error when in replica set in failover state [GH-30789]
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
 
 ## 4.47.0 (October 02, 2025)
