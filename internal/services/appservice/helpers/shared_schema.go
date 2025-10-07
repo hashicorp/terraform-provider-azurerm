@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"math"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -472,16 +472,9 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 			oldAuth := oldVal.([]any)
 			if len(oldAuth) > 0 {
 				if oldAuthMap, ok := oldAuth[0].(map[string]any); ok {
-					// if authentication was enabled, we don't want to suppress the diff so `auth_settings` can be removed/reverted to default values.
+					// Suppress removal of `auth_settings` block if `auth_settings` was disabled (either explicitly or by omitting `auth_settings` block)
 					if !oldAuthMap["enabled"].(bool) && o == "1" && n == "0" {
 						return true
-					}
-
-					// If there's a diff and `auth_settings` is not in config, ignore it.
-					if rawAuth, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings")); !diags.HasError() {
-						if rawAuth.IsNull() {
-							return true
-						}
 					}
 				}
 			}
@@ -556,8 +549,8 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
 						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
 						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings"))
-						if !authSettingsDiags.HasError() && !authSettingsVal.IsNull() && authSettingsVal.IsKnown() {
-							return len(authSettingsVal.AsValueSlice()) == 0 && o == "0" && n == "72"
+						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
+							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
 						}
 
 						return false
