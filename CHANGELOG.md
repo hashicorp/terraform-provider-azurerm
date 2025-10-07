@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource**: `azurerm_oracle_autonomous_database_clone_from_database` [GH-29633]
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20251007.1195632` [GH-30799]
 * `azurerm_network_watcher_flow_log` - changing the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
 * dependencies: `guestconfiguration` - update to API version `2024-04-05` [GH-30642]
 * dependencies: `go-azure-sdk` - update to `v0.20250925.1224537` [GH-30719]
