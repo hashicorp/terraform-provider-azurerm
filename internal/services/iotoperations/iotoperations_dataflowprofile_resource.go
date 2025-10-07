@@ -6,358 +6,598 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/!azure/azure-sdk-for-go/sdk/resourcemanager/iotoperations/armiotoperations"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/dataflowprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func resourceIotOperationsDataflowProfile() *schema.Resource {
-    return &schema.Resource{
-        Create: resourceIotOperationsDataflowProfileCreate,
-        Read:   resourceIotOperationsDataflowProfileRead,
-        Update: resourceIotOperationsDataflowProfileUpdate,
-        Delete: resourceIotOperationsDataflowProfileDelete,
-        Timeouts: &schema.ResourceTimeout{
-            Create: schema.DefaultTimeout(30 * time.Minute),
-            Update: schema.DefaultTimeout(30 * time.Minute),
-            Delete: schema.DefaultTimeout(30 * time.Minute),
-        },
-        Schema: map[string]*schema.Schema{
-            "dataflow_profile_name": {
-                Type:         schema.TypeString,
-                Required:     true,
-                ValidateFunc: validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
-                MinLen:       3,
-                MaxLen:       63,
-            },
-            "instance_name": {
-                Type:         schema.TypeString,
-                Required:     true,
-                ValidateFunc: validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
-                MinLen:       3,
-                MaxLen:       63,
-            },
-            "resource_group_name": {
-                Type:         schema.TypeString,
-                Required:     true,
-                MinLen:       1,
-                MaxLen:       90,
-            },
-            "subscription_id": {
-                Type:         schema.TypeString,
-                Required:     true,
-                ValidateFunc: validation.IsUUID,
-            },
-            "api_version": {
-                Type:         schema.TypeString,
-                Required:     true,
-                MinLen:       1,
-            },
-            "extended_location": {
-                Type:     schema.TypeList,
-                Optional: true,
-                MaxItems: 1,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "name": {
-                            Type:     schema.TypeString,
-                            Optional: true,
-                        },
-                        "type": {
-                            Type:     schema.TypeString,
-                            Optional: true,
-                        },
-                    },
-                },
-            },
-            "properties": {
-                Type:     schema.TypeList,
-                Optional: true,
-                MaxItems: 1,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "instance_count": {
-                            Type:     schema.TypeInt,
-                            Optional: true,
-                        },
-                        "diagnostics": {
-                            Type:     schema.TypeList,
-                            Optional: true,
-                            MaxItems: 1,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "logs": {
-                                        Type:     schema.TypeList,
-                                        Optional: true,
-                                        MaxItems: 1,
-                                        Elem: &schema.Resource{
-                                            Schema: map[string]*schema.Schema{
-                                                "level": {
-                                                    Type:     schema.TypeString,
-                                                    Optional: true,
-                                                },
-                                            },
-                                        },
-                                    },
-                                    "metrics": {
-                                        Type:     schema.TypeList,
-                                        Optional: true,
-                                        MaxItems: 1,
-                                        Elem: &schema.Resource{
-                                            Schema: map[string]*schema.Schema{
-                                                "prometheus_port": {
-                                                    Type:     schema.TypeInt,
-                                                    Optional: true,
-                                                },
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                        "provisioning_state": {
-                            Type:     schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
-            "id": {
-                Type:     schema.TypeString,
-                Computed: true,
-            },
-            "system_data": {
-                Type:     schema.TypeMap,
-                Computed: true,
-            },
-        },
-    }
+type DataflowProfileResource struct{}
+
+var _ sdk.ResourceWithUpdate = DataflowProfileResource{}
+
+type DataflowProfileModel struct {
+	Name              string                           `tfschema:"name"`
+	ResourceGroupName string                           `tfschema:"resource_group_name"`
+	InstanceName      string                           `tfschema:"instance_name"`
+	InstanceCount     *int                             `tfschema:"instance_count"`
+	Diagnostics       *DataflowProfileDiagnosticsModel `tfschema:"diagnostics"`
+	ExtendedLocation  *ExtendedLocationModel           `tfschema:"extended_location"`
+	Tags              map[string]string                `tfschema:"tags"`
+	ProvisioningState *string                          `tfschema:"provisioning_state"`
 }
 
-func resourceIotOperationsDataflowProfileCreate(d *schema.ResourceData, meta interface{}) error {
-    ctx := context.Background()
-
-    name := d.Get("name").(string)
-    rg := d.Get("resource_group_name").(string)
-    instance := d.Get("instance_name").(string)
-
-    top := meta.(*clients.Client)
-    if top.IoTOperations == nil || top.IoTOperations.DataflowProfileClient == nil {
-        return fmt.Errorf("iotoperations client is not configured")
-    }
-    svc := top.IoTOperations
-
-    // build resource
-    profile := armiotoperations.DataflowProfileResource{}
-    if v, ok := d.GetOk("properties"); ok {
-        if props, err := expandDataflowProfileProperties(v.([]interface{})); err == nil && props != nil {
-            profile.Properties = props
-        } else if err != nil {
-            return fmt.Errorf("expanding properties: %+v", err)
-        }
-    }
-
-    // extended location
-    if v, ok := d.GetOk("extended_location"); ok && len(v.([]interface{})) > 0 {
-        el := v.([]interface{})[0].(map[string]interface{})
-        profile.ExtendedLocation = &armiotoperations.ExtendedLocation{}
-        if v2, ok2 := el["name"].(string); ok2 && v2 != "" {
-            profile.ExtendedLocation.Name = to.Ptr(v2)
-        }
-        if v2, ok2 := el["type"].(string); ok2 && v2 != "" {
-            profile.ExtendedLocation.Type = to.Ptr(armiotoperations.ExtendedLocationType(v2))
-        }
-    }
-
-    poller, err := svc.DataflowProfileClient.BeginCreateOrUpdate(ctx, rg, instance, name, profile, nil)
-    if err != nil {
-        return fmt.Errorf("starting DataflowProfile create/update: %+v", err)
-    }
-    res, err := poller.PollUntilDone(ctx, nil)
-    if err != nil {
-        return fmt.Errorf("waiting for DataflowProfile create/update: %+v", err)
-    }
-
-    // set ID
-    if res.DataflowProfileResource.ID != nil {
-        d.SetId(*res.DataflowProfileResource.ID)
-    } else {
-        d.SetId(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.IoTOperations/instances/%s/dataflowProfiles/%s", top.SubscriptionID(), rg, instance, name))
-    }
-
-    if err := d.Set("properties", []interface{}{flattenDataflowProfileProperties(res.DataflowProfileResource.Properties)}); err != nil {
-        return fmt.Errorf("setting properties: %+v", err)
-    }
-
-    return nil
+type DataflowProfileDiagnosticsModel struct {
+	Logs    *DataflowProfileDiagnosticsLogsModel    `tfschema:"logs"`
+	Metrics *DataflowProfileDiagnosticsMetricsModel `tfschema:"metrics"`
 }
 
-func resourceIotOperationsDataflowProfileRead(d *schema.ResourceData, meta interface{}) error {
-    ctx := context.Background()
-
-    name := d.Get("name").(string)
-    rg := d.Get("resource_group_name").(string)
-    instance := d.Get("instance_name").(string)
-
-    top := meta.(*clients.Client)
-    if top.IoTOperations == nil || top.IoTOperations.DataflowProfileClient == nil {
-        return fmt.Errorf("iotoperations client is not configured")
-    }
-    svc := top.IoTOperations
-
-    res, err := svc.DataflowProfileClient.Get(ctx, rg, instance, name, nil)
-    if err != nil {
-        return fmt.Errorf("failed to get DataflowProfile: %+v", err)
-    }
-
-    if err := d.Set("properties", []interface{}{flattenDataflowProfileProperties(res.DataflowProfileResource.Properties)}); err != nil {
-        return fmt.Errorf("setting properties: %+v", err)
-    }
-
-    return nil
+type DataflowProfileDiagnosticsLogsModel struct {
+	Level           *string `tfschema:"level"`
+	OpenTelemetryExportConfig *DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel `tfschema:"open_telemetry_export_config"`
 }
 
-func resourceIotOperationsDataflowProfileUpdate(d *schema.ResourceData, meta interface{}) error {
-    ctx := context.Background()
-
-    name := d.Get("name").(string)
-    rg := d.Get("resource_group_name").(string)
-    instance := d.Get("instance_name").(string)
-
-    top := meta.(*clients.Client)
-    if top.IoTOperations == nil || top.IoTOperations.DataflowProfileClient == nil {
-        return fmt.Errorf("iotoperations client is not configured")
-    }
-    svc := top.IoTOperations
-
-    profile := armiotoperations.DataflowProfileResource{}
-    if v, ok := d.GetOk("properties"); ok {
-        if props, err := expandDataflowProfileProperties(v.([]interface{})); err == nil && props != nil {
-            profile.Properties = props
-        } else if err != nil {
-            return fmt.Errorf("expanding properties: %+v", err)
-        }
-    }
-
-    // extended location
-    if v, ok := d.GetOk("extended_location"); ok && len(v.([]interface{})) > 0 {
-        el := v.([]interface{})[0].(map[string]interface{})
-        profile.ExtendedLocation = &armiotoperations.ExtendedLocation{}
-        if v2, ok2 := el["name"].(string); ok2 && v2 != "" {
-            profile.ExtendedLocation.Name = to.Ptr(v2)
-        }
-        if v2, ok2 := el["type"].(string); ok2 && v2 != "" {
-            profile.ExtendedLocation.Type = to.Ptr(armiotoperations.ExtendedLocationType(v2))
-        }
-    }
-
-    poller, err := svc.DataflowProfileClient.BeginCreateOrUpdate(ctx, rg, instance, name, profile, nil)
-    if err != nil {
-        return fmt.Errorf("starting DataflowProfile update: %+v", err)
-    }
-    res, err := poller.PollUntilDone(ctx, nil)
-    if err != nil {
-        return fmt.Errorf("waiting for DataflowProfile update: %+v", err)
-    }
-
-    if err := d.Set("properties", []interface{}{flattenDataflowProfileProperties(res.DataflowProfileResource.Properties)}); err != nil {
-        return fmt.Errorf("setting properties: %+v", err)
-    }
-
-    return nil
+type DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel struct {
+	Level    string  `tfschema:"level"`
+	OtlpGrpcEndpoint *string `tfschema:"otlp_grpc_endpoint"`
+	IntervalSeconds  *int    `tfschema:"interval_seconds"`
 }
 
-func resourceIotOperationsDataflowProfileDelete(d *schema.ResourceData, meta interface{}) error {
-    ctx := context.Background()
-
-    name := d.Get("name").(string)
-    rg := d.Get("resource_group_name").(string)
-    instance := d.Get("instance_name").(string)
-
-    top := meta.(*clients.Client)
-    if top.IoTOperations == nil || top.IoTOperations.DataflowProfileClient == nil {
-        return fmt.Errorf("iotoperations client is not configured")
-    }
-    svc := top.IoTOperations
-
-    poller, err := svc.DataflowProfileClient.BeginDelete(ctx, rg, instance, name, nil)
-    if err != nil {
-        return fmt.Errorf("failed to start delete DataflowProfile: %+v", err)
-    }
-    _, err = poller.PollUntilDone(ctx, nil)
-    if err != nil {
-        return fmt.Errorf("failed to poll delete DataflowProfile: %+v", err)
-    }
-
-    return nil
+type DataflowProfileDiagnosticsMetricsModel struct {
+	PrometheusPort            *int    `tfschema:"prometheus_port"`
+	OpenTelemetryExportConfig *DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel `tfschema:"open_telemetry_export_config"`
 }
 
-// flatten helpers
-func flattenDataflowProfileProperties(props *armiotoperations.DataflowProfileProperties) map[string]interface{} {
-    if props == nil {
-        return nil
-    }
-
-    m := make(map[string]interface{})
-
-    if props.InstanceCount != nil {
-        m["instance_count"] = int(*props.InstanceCount)
-    }
-
-    if props.Diagnostics != nil {
-        diag := make(map[string]interface{})
-        if props.Diagnostics.Logs != nil && props.Diagnostics.Logs.Level != nil {
-            diag["logs"] = []interface{}{map[string]interface{}{"level": *props.Diagnostics.Logs.Level}}
-        }
-        if props.Diagnostics.Metrics != nil {
-            metrics := make(map[string]interface{})
-            if props.Diagnostics.Metrics.PrometheusPort != nil {
-                metrics["prometheus_port"] = int(*props.Diagnostics.Metrics.PrometheusPort)
-            }
-            diag["metrics"] = []interface{}{metrics}
-        }
-        m["diagnostics"] = []interface{}{diag}
-    }
-
-    if props.ProvisioningState != nil {
-        m["provisioning_state"] = string(*props.ProvisioningState)
-    }
-
-    return m
+type DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel struct {
+	Level    string  `tfschema:"level"`
+	OtlpGrpcEndpoint *string `tfschema:"otlp_grpc_endpoint"`
+	IntervalSeconds  *int    `tfschema:"interval_seconds"`
 }
 
-// expand helpers
-func expandDataflowProfileProperties(v []interface{}) (*armiotoperations.DataflowProfileProperties, error) {
-    if len(v) == 0 {
-        return nil, nil
-    }
-    m := v[0].(map[string]interface{})
-    props := &armiotoperations.DataflowProfileProperties{}
+func (r DataflowProfileResource) ModelObject() interface{} {
+	return &DataflowProfileModel{}
+}
 
-    if v, ok := m["instance_count"]; ok {
-        props.InstanceCount = to.Ptr[int32](int32(v.(int)))
-    }
+func (r DataflowProfileResource) ResourceType() string {
+	return "azurerm_iotoperations_dataflow_profile"
+}
 
-    if v, ok := m["diagnostics"]; ok && len(v.([]interface{})) > 0 {
-        el := v.([]interface{})[0].(map[string]interface{})
-        props.Diagnostics = &armiotoperations.ProfileDiagnostics{}
-        if v2, ok2 := el["logs"]; ok2 && len(v2.([]interface{})) > 0 {
-            logMap := v2.([]interface{})[0].(map[string]interface{})
-            props.Diagnostics.Logs = &armiotoperations.DiagnosticsLogs{}
-            if lvl, ok3 := logMap["level"].(string); ok3 && lvl != "" {
-                props.Diagnostics.Logs.Level = to.Ptr(lvl)
-            }
-        }
-        if v2, ok2 := el["metrics"]; ok2 && len(v2.([]interface{})) > 0 {
-            metMap := v2.([]interface{})[0].(map[string]interface{})
-            props.Diagnostics.Metrics = &armiotoperations.Metrics{}
-            if p, ok3 := metMap["prometheus_port"].(int); ok3 {
-                props.Diagnostics.Metrics.PrometheusPort = to.Ptr[int32](int32(p))
-            }
+func (r DataflowProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return dataflowprofile.ValidateDataflowProfileID
+}
 
-        }
-    }
-    return props, nil
+func (r DataflowProfileResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(3, 63),
+				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
+			),
+		},
+		"resource_group_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(1, 90),
+		},
+		"instance_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(3, 63),
+				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
+			),
+		},
+		"instance_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1,
+			ValidateFunc: validation.IntBetween(1, 16),
+		},
+		"diagnostics": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"logs": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"level": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"Debug",
+										"Info",
+										"Warn",
+										"Error",
+										"Trace",
+									}, false),
+								},
+								"open_telemetry_export_config": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"level": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"Debug",
+													"Info",
+													"Warn",
+													"Error",
+													"Trace",
+												}, false),
+											},
+											"otlp_grpc_endpoint": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 253),
+											},
+											"interval_seconds": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntBetween(1, 3600),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"prometheus_port": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1024, 65535),
+								},
+								"open_telemetry_export_config": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"level": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"Debug",
+													"Info",
+													"Warn",
+													"Error",
+													"Trace",
+												}, false),
+											},
+											"otlp_grpc_endpoint": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 253),
+											},
+											"interval_seconds": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntBetween(1, 3600),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"extended_location": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CustomLocation",
+						}, false),
+					},
+				},
+			},
+		},
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+	}
+}
+
+func (r DataflowProfileResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"provisioning_state": {
+			Type:     pluginsdk.TypeString,
+			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
+			Computed: true,
+		},
+	}
+}
+
+func (r DataflowProfileResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.IoTOperations.DataflowProfileClient
+
+			var model DataflowProfileModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			id := dataflowprofile.NewDataflowProfileID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.Name)
+
+			// Build payload
+			payload := dataflowprofile.DataflowProfileResource{
+				Properties: expandDataflowProfileProperties(model),
+			}
+
+			if model.ExtendedLocation != nil {
+				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
+			}
+
+			if len(model.Tags) > 0 {
+				payload.Tags = &model.Tags
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r DataflowProfileResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.IoTOperations.DataflowProfileClient
+
+			id, err := dataflowprofile.ParseDataflowProfileID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			model := DataflowProfileModel{
+				Name:              id.DataflowProfileName,
+				ResourceGroupName: id.ResourceGroupName,
+				InstanceName:      id.InstanceName,
+			}
+
+			if respModel := resp.Model; respModel != nil {
+				if respModel.ExtendedLocation != nil {
+					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
+				}
+
+				if respModel.Tags != nil {
+					model.Tags = *respModel.Tags
+				}
+
+				if respModel.Properties != nil {
+					flattenDataflowProfileProperties(respModel.Properties, &model)
+					
+					if respModel.Properties.ProvisioningState != nil {
+						provisioningState := string(*respModel.Properties.ProvisioningState)
+						model.ProvisioningState = &provisioningState
+					}
+				}
+			}
+
+			return metadata.Encode(&model)
+		},
+	}
+}
+
+func (r DataflowProfileResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.IoTOperations.DataflowProfileClient
+
+			id, err := dataflowprofile.ParseDataflowProfileID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model DataflowProfileModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Check if anything actually changed before making API call
+			if !metadata.ResourceData.HasChange("tags") && 
+			   !metadata.ResourceData.HasChange("instance_count") &&
+			   !metadata.ResourceData.HasChange("diagnostics") {
+				return nil
+			}
+
+			payload := dataflowprofile.DataflowProfilePatchModel{}
+			hasChanges := false
+
+			// Only include tags if they changed
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = &model.Tags
+				hasChanges = true
+			}
+
+			// Only include properties if they changed
+			if metadata.ResourceData.HasChange("instance_count") || metadata.ResourceData.HasChange("diagnostics") {
+				payload.Properties = &dataflowprofile.DataflowProfilePropertiesPatch{
+					InstanceCount: expandInstanceCount(model.InstanceCount),
+					Diagnostics:   expandDataflowProfileDiagnosticsPatch(model.Diagnostics),
+				}
+				hasChanges = true
+			}
+
+			// Only make API call if something actually changed
+			if !hasChanges {
+				return nil
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r DataflowProfileResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.IoTOperations.DataflowProfileClient
+
+			id, err := dataflowprofile.ParseDataflowProfileID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+// Helper functions for expand/flatten operations
+func expandDataflowProfileProperties(model DataflowProfileModel) *dataflowprofile.DataflowProfileProperties {
+	props := &dataflowprofile.DataflowProfileProperties{}
+
+	if model.InstanceCount != nil {
+		props.InstanceCount = expandInstanceCount(model.InstanceCount)
+	}
+
+	if model.Diagnostics != nil {
+		props.Diagnostics = expandDataflowProfileDiagnostics(*model.Diagnostics)
+	}
+
+	return props
+}
+
+func expandInstanceCount(instanceCount *int) *int64 {
+	if instanceCount == nil {
+		return nil
+	}
+	count := int64(*instanceCount)
+	return &count
+}
+
+func expandDataflowProfileDiagnostics(model DataflowProfileDiagnosticsModel) *dataflowprofile.ProfileDiagnostics {
+	diagnostics := &dataflowprofile.ProfileDiagnostics{}
+
+	if model.Logs != nil {
+		diagnostics.Logs = expandDataflowProfileDiagnosticsLogs(*model.Logs)
+	}
+
+	if model.Metrics != nil {
+		diagnostics.Metrics = expandDataflowProfileDiagnosticsMetrics(*model.Metrics)
+	}
+
+	return diagnostics
+}
+
+func expandDataflowProfileDiagnosticsLogs(model DataflowProfileDiagnosticsLogsModel) *dataflowprofile.DiagnosticsLogs {
+	logs := &dataflowprofile.DiagnosticsLogs{}
+
+	if model.Level != nil {
+		level := dataflowprofile.Level(*model.Level)
+		logs.Level = &level
+	}
+
+	if model.OpenTelemetryExportConfig != nil {
+		logs.OpenTelemetryExportConfig = expandDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(*model.OpenTelemetryExportConfig)
+	}
+
+	return logs
+}
+
+func expandDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(model DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel) *dataflowprofile.OpenTelemetryExportConfig {
+	config := &dataflowprofile.OpenTelemetryExportConfig{
+		Level: dataflowprofile.Level(model.Level),
+	}
+
+	if model.OtlpGrpcEndpoint != nil {
+		config.OtlpGrpcEndpoint = model.OtlpGrpcEndpoint
+	}
+
+	if model.IntervalSeconds != nil {
+		intervalSeconds := int64(*model.IntervalSeconds)
+		config.IntervalSeconds = &intervalSeconds
+	}
+
+	return config
+}
+
+func expandDataflowProfileDiagnosticsMetrics(model DataflowProfileDiagnosticsMetricsModel) *dataflowprofile.Metrics {
+	metrics := &dataflowprofile.Metrics{}
+
+	if model.PrometheusPort != nil {
+		prometheusPort := int64(*model.PrometheusPort)
+		metrics.PrometheusPort = &prometheusPort
+	}
+
+	if model.OpenTelemetryExportConfig != nil {
+		metrics.OpenTelemetryExportConfig = expandDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(*model.OpenTelemetryExportConfig)
+	}
+
+	return metrics
+}
+
+func expandDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(model DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel) *dataflowprofile.OpenTelemetryExportConfig {
+	config := &dataflowprofile.OpenTelemetryExportConfig{
+		Level: dataflowprofile.Level(model.Level),
+	}
+
+	if model.OtlpGrpcEndpoint != nil {
+		config.OtlpGrpcEndpoint = model.OtlpGrpcEndpoint
+	}
+
+	if model.IntervalSeconds != nil {
+		intervalSeconds := int64(*model.IntervalSeconds)
+		config.IntervalSeconds = &intervalSeconds
+	}
+
+	return config
+}
+
+func flattenDataflowProfileProperties(props *dataflowprofile.DataflowProfileProperties, model *DataflowProfileModel) {
+	if props == nil {
+		return
+	}
+
+	if props.InstanceCount != nil {
+		instanceCount := int(*props.InstanceCount)
+		model.InstanceCount = &instanceCount
+	}
+
+	if props.Diagnostics != nil {
+		model.Diagnostics = flattenDataflowProfileDiagnostics(*props.Diagnostics)
+	}
+}
+
+func flattenDataflowProfileDiagnostics(diagnostics dataflowprofile.ProfileDiagnostics) *DataflowProfileDiagnosticsModel {
+	result := &DataflowProfileDiagnosticsModel{}
+
+	if diagnostics.Logs != nil {
+		result.Logs = flattenDataflowProfileDiagnosticsLogs(*diagnostics.Logs)
+	}
+
+	if diagnostics.Metrics != nil {
+		result.Metrics = flattenDataflowProfileDiagnosticsMetrics(*diagnostics.Metrics)
+	}
+
+	return result
+}
+
+func flattenDataflowProfileDiagnosticsLogs(logs dataflowprofile.DiagnosticsLogs) *DataflowProfileDiagnosticsLogsModel {
+	result := &DataflowProfileDiagnosticsLogsModel{}
+
+	if logs.Level != nil {
+		level := string(*logs.Level)
+		result.Level = &level
+	}
+
+	if logs.OpenTelemetryExportConfig != nil {
+		result.OpenTelemetryExportConfig = flattenDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(*logs.OpenTelemetryExportConfig)
+	}
+
+	return result
+}
+
+func flattenDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(config dataflowprofile.OpenTelemetryExportConfig) *DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel {
+	result := &DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel{
+		Level: string(config.Level),
+	}
+
+	if config.OtlpGrpcEndpoint != nil {
+		result.OtlpGrpcEndpoint = config.OtlpGrpcEndpoint
+	}
+
+	if config.IntervalSeconds != nil {
+		intervalSeconds := int(*config.IntervalSeconds)
+		result.IntervalSeconds = &intervalSeconds
+	}
+
+	return result
+}
+
+func flattenDataflowProfileDiagnosticsMetrics(metrics dataflowprofile.Metrics) *DataflowProfileDiagnosticsMetricsModel {
+	result := &DataflowProfileDiagnosticsMetricsModel{}
+
+	if metrics.PrometheusPort != nil {
+		prometheusPort := int(*metrics.PrometheusPort)
+		result.PrometheusPort = &prometheusPort
+	}
+
+	if metrics.OpenTelemetryExportConfig != nil {
+		result.OpenTelemetryExportConfig = flattenDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(*metrics.OpenTelemetryExportConfig)
+	}
+
+	return result
+}
+
+func flattenDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(config dataflowprofile.OpenTelemetryExportConfig) *DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel {
+	result := &DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel{
+		Level: string(config.Level),
+	}
+
+	if config.OtlpGrpcEndpoint != nil {
+		result.OtlpGrpcEndpoint = config.OtlpGrpcEndpoint
+	}
+
+	if config.IntervalSeconds != nil {
+		intervalSeconds := int(*config.IntervalSeconds)
+		result.IntervalSeconds = &intervalSeconds
+	}
+
+	return result
+}
+
+// Patch functions for update operations
+func expandDataflowProfileDiagnosticsPatch(model *DataflowProfileDiagnosticsModel) *dataflowprofile.ProfileDiagnostics {
+	if model == nil {
+		return nil
+	}
+	return expandDataflowProfileDiagnostics(*model)
 }

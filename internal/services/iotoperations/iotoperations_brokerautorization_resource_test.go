@@ -1,17 +1,11 @@
 package iotoperations
 
 import (
-    "context"
-    "fmt"
-    "testing"
-    "time"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerauthorization"
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acctest"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
 
 func TestAccBrokerAuthorization_basic(t *testing.T) {
@@ -40,18 +34,48 @@ func TestAccBrokerAuthorization_basic(t *testing.T) {
     })
 }
 
-func testAccBrokerAuthorization_basic(rgName, instanceName, brokerName, authName string) string {
-    return acctest.Config(`
+func (r BrokerAuthorizationResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "` + rgName + `"
-  location = "eastus"
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iotoperations_instance" "test" {
+  name                = "resource-name123"
+  resource_group_name = azurerm_resource_group.test.name
+  location           = azurerm_resource_group.test.location
+
+  extended_location {
+    name = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ExtendedLocation/customLocations/location1"
+    type = "CustomLocation"
+  }
+}
+
+resource "azurerm_iotoperations_broker" "test" {
+  name                = "resource-name123"
+  resource_group_name = azurerm_resource_group.test.name
+  instance_name       = azurerm_iotoperations_instance.test.name
+
+  properties {
+    memory_profile = "Tiny"
+  }
+
+  extended_location {
+    name = azurerm_iotoperations_instance.test.extended_location[0].name
+    type = azurerm_iotoperations_instance.test.extended_location[0].type
+  }
 }
 
 resource "azurerm_iotoperations_broker_authorization" "test" {
-  name                = "` + authName + `"
+  name                = "resource-name123"
   resource_group_name = azurerm_resource_group.test.name
-  instance_name       = "` + instanceName + `"
-  broker_name         = "` + brokerName + `"
+  instance_name       = azurerm_iotoperations_instance.test.name
+  broker_name         = azurerm_iotoperations_broker.test.name
 
   authorization_policies {
     cache = "Enabled"
@@ -69,15 +93,14 @@ resource "azurerm_iotoperations_broker_authorization" "test" {
       state_store_resources {
         key_type = "Pattern"
         keys     = ["tkounsqtwvzyaklxjqoerpu"]
-        method   = "Read"
       }
     }
   }
 
   extended_location {
-    name = "/subscriptions/F8C729F9-DF9C-4743-848F-96EE433D8E53/resourceGroups/rgiotoperations/providers/Microsoft.ExtendedLocation/customLocations/resource-123"
-    type = "CustomLocation"
+    name = azurerm_iotoperations_instance.test.extended_location[0].name
+    type = azurerm_iotoperations_instance.test.extended_location[0].type
   }
 }
-`)
+`, data.RandomInteger, data.Locations.Primary, data.Client().SubscriptionID, data.RandomStringOfLength(10))
 }

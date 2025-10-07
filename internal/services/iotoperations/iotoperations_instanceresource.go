@@ -39,6 +39,10 @@ func (r InstanceResource) ResourceType() string {
 	return "azurerm_iotoperations_instance"
 }
 
+func (r InstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return instance.ValidateInstanceID
+}
+
 func (r InstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

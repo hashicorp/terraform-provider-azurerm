@@ -15,6 +15,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
 }
 
+// Resources returns the typed resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		InstanceResource{},
@@ -48,13 +49,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		// Instance resource is now typed and auto-registered through Resources() method
-		"azurerm_iotoperations_broker":                resourceBroker(),
-		"azurerm_iotoperations_broker_authentication": resourceBrokerAuthentication(),
-		"azurerm_iotoperations_broker_authorization":  resourceBrokerAuthorization(),
-		"azurerm_iotoperations_broker_listener":       resourceBrokerListener(),
-		"azurerm_iotoperations_dataflow":              resourceDataflow(),
-		"azurerm_iotoperations_dataflow_endpoint":     resourceDataflowEndpoint(),
-		"azurerm_iotoperations_dataflow_profile":      resourceDataflowProfile(),
+		// All IoT Operations resources are now typed and auto-registered through Resources() method
 	}
 }
