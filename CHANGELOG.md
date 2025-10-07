@@ -1,6 +1,10 @@
 ## 4.48.0 (Unreleased)
 
 FEATURES:
+* **New Data Source**: `azurerm_oracle_autonomous_database_clone_from_backup` [GH-29633]
+* **New Data Source**: `azurerm_oracle_autonomous_database_clone_from_database` [GH-29633]
+* **New Resource**: `azurerm_oracle_autonomous_database_clone_from_backup` [GH-29633]
+* **New Resource**: `azurerm_oracle_autonomous_database_clone_from_database` [GH-29633]
 
 ENHANCEMENTS:
 * `azurerm_network_watcher_flow_log` - changing the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
