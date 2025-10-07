@@ -6,6 +6,7 @@ package notificationhub
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"log"
 	"strconv"
 	"time"
@@ -95,10 +96,11 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			},
 
 			"replication_region": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), false),
-				ForceNew:     true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), false),
+				ForceNew:         true,
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
 			"tags": commonschema.Tags(),
@@ -150,7 +152,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
-		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(v.(string)))
+		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(azure.NormalizeLocation(v.(string))))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -241,7 +243,7 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 			d.Set("zone_redundancy_enabled", pointer.From(props.ZoneRedundancy) == namespaces.ZoneRedundancyPreferenceEnabled)
-			d.Set("replication_region", string(pointer.From(props.ReplicationRegion)))
+			d.Set("replication_region", azure.NormalizeLocation(pointer.FromEnum(props.ReplicationRegion)))
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
