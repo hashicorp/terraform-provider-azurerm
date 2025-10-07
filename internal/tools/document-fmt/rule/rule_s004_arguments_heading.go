@@ -2,6 +2,7 @@ package rule
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 )
