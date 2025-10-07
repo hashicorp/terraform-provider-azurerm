@@ -97,13 +97,19 @@ resource "azurerm_synapse_workspace_sql_aad_admin" "example" {
 
 The following arguments are supported:
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured.
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD SQL Administrator should be configured.
 
-* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
+* `login` - (Required) The login name of the Azure AD SQL Administrator of this Synapse Workspace.
 
-* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
+* `object_id` - (Required) The object id of the Azure AD SQL Administrator of this Synapse Workspace.
 
-* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+* `tenant_id` - (Required) The tenant id of the Azure AD SQL Administrator of this Synapse Workspace.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Synapse Workspace Azure AD SQL Administrator.
 
 ## Timeouts
 
@@ -116,7 +122,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Synapse Workspace Azure AD Administrator can be imported using the `resource id`, e.g.
+Synapse Workspace Azure AD SQL Administrator can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_synapse_workspace_sql_aad_admin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlAdministrators/activeDirectory

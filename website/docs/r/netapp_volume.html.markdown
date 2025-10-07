@@ -133,7 +133,7 @@ resource "azurerm_netapp_volume" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

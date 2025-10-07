@@ -24,7 +24,7 @@ output "subnet_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Subnet.
 * `virtual_network_name` - Specifies the name of the Virtual Network this Subnet is located within.

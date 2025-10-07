@@ -82,7 +82,7 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

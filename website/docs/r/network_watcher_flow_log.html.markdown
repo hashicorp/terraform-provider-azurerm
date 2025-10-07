@@ -75,7 +75,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

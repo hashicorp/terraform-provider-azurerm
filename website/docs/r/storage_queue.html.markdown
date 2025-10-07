@@ -32,7 +32,7 @@ resource "azurerm_storage_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

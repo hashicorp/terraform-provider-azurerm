@@ -31,7 +31,7 @@ output "redis_enterprise_database_secondary_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Redis Enterprise Database.
 

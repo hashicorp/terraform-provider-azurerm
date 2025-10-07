@@ -37,7 +37,7 @@ resource "azurerm_express_route_circuit" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -75,7 +75,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "example" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -40,7 +40,7 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
