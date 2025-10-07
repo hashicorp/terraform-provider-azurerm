@@ -29,7 +29,81 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("categories"),
+	})
+}
+
+func TestAccLogAnalyticsWorkspaceTableCustomLog_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
+	r := LogAnalyticsWorkspaceTableCustomLogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccLogAnalyticsWorkspaceTableCustomLog_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
+	r := LogAnalyticsWorkspaceTableCustomLogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("categories"),
+	})
+}
+
+func TestAccLogAnalyticsWorkspaceTableCustomLog_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
+	r := LogAnalyticsWorkspaceTableCustomLogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("categories"),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("categories"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("categories"),
+	})
+}
+
+func TestAccLogAnalyticsWorkspaceTableCustomLog_planBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
+	r := LogAnalyticsWorkspaceTableCustomLogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("categories"),
 	})
 }
 
@@ -112,10 +186,106 @@ func (t LogAnalyticsWorkspaceTableCustomLogResource) basic(data acceptance.TestD
 %s
 
 resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
-  name                    = "acctestlawdcr%d_CL"
-  workspace_id            = azurerm_log_analytics_workspace.test.id
+  name         = "acctestlawdcr%d_CL"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  column {
+    display_by_default = false
+    name               = "TimeGenerated"
+    type               = "dateTime"
+  }
+  column {
+    display_by_default = false
+    name               = "Application"
+    type               = "string"
+  }
+  column {
+    display_by_default = false
+    name               = "RawData"
+    type               = "string"
+  }
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (r LogAnalyticsWorkspaceTableCustomLogResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_table_custom_log" "import" {
+  name                    = azurerm_log_analytics_workspace_table_custom_log.test.name
+  workspace_id            = azurerm_log_analytics_workspace_table_custom_log.test.workspace_id
   total_retention_in_days = 30
   retention_in_days       = 30
+  column {
+    display_by_default = false
+    name               = "TimeGenerated"
+    type               = "dateTime"
+  }
+  column {
+    display_by_default = false
+    name               = "Application"
+    type               = "string"
+  }
+  column {
+    display_by_default = false
+    name               = "RawData"
+    type               = "string"
+  }
+}
+`, template)
+}
+
+func (t LogAnalyticsWorkspaceTableCustomLogResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
+  name                    = "acctestlawdcr%d_CL"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  display_name            = "Test Custom Log Table"
+  description             = "This is a test custom log table"
+  plan                    = "Analytics"
+  total_retention_in_days = 60
+  retention_in_days       = 20
+
+  categories = ["LogManagement", "AnotherCategory"]
+  labels     = ["test", "custom"]
+
+  column {
+    display_by_default = true
+    display_name       = "TimeGenerated"
+    description        = "The timestamp when the log was generated"
+    name               = "TimeGenerated"
+    type               = "dateTime"
+  }
+  column {
+    display_by_default = true
+    display_name       = "ApplicationName"
+    description        = "The name of the application"
+    name               = "Application"
+    type               = "string"
+  }
+  column {
+    display_by_default = false
+    display_name       = "RawLogData"
+    description        = "The raw log data content"
+    name               = "RawData"
+    type               = "string"
+  }
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t LogAnalyticsWorkspaceTableCustomLogResource) basicPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
+  name         = "acctestlawdcr%d_CL"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  plan         = "Basic"
+
   column {
     display_by_default = false
     name               = "TimeGenerated"

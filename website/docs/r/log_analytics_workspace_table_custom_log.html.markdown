@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
+~> **Note:** Changing the table's `plan` is limited to once a week.
+
 * `retention_in_days` - (Optional) The table's retention in days. Possible values range between `4` and `730`.
 
 ~> **Note:** `retention_in_days` cannot be set when `plan` is set to `Basic` because the retention is fixed at eight days on the Basic plan.
