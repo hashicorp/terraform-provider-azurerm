@@ -12,22 +12,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 func init() {
-	recaser.RegisterResourceId(&SiteDomainOwnershipIdentifierId{})
+	recaser.RegisterResourceId(&DomainOwnershipIdentifierId{})
 }
 
-var _ resourceids.ResourceId = &SiteDomainOwnershipIdentifierId{}
+var _ resourceids.ResourceId = &DomainOwnershipIdentifierId{}
 
-// SiteDomainOwnershipIdentifierId is a struct representing the Resource ID for a Site Domain Ownership Identifier
-type SiteDomainOwnershipIdentifierId struct {
+// DomainOwnershipIdentifierId is a struct representing the Resource ID for a Domain Ownership Identifier
+type DomainOwnershipIdentifierId struct {
 	SubscriptionId                string
 	ResourceGroupName             string
 	SiteName                      string
 	DomainOwnershipIdentifierName string
 }
 
-// NewSiteDomainOwnershipIdentifierID returns a new SiteDomainOwnershipIdentifierId struct
-func NewSiteDomainOwnershipIdentifierID(subscriptionId string, resourceGroupName string, siteName string, domainOwnershipIdentifierName string) SiteDomainOwnershipIdentifierId {
-	return SiteDomainOwnershipIdentifierId{
+// NewDomainOwnershipIdentifierID returns a new DomainOwnershipIdentifierId struct
+func NewDomainOwnershipIdentifierID(subscriptionId string, resourceGroupName string, siteName string, domainOwnershipIdentifierName string) DomainOwnershipIdentifierId {
+	return DomainOwnershipIdentifierId{
 		SubscriptionId:                subscriptionId,
 		ResourceGroupName:             resourceGroupName,
 		SiteName:                      siteName,
@@ -35,15 +35,15 @@ func NewSiteDomainOwnershipIdentifierID(subscriptionId string, resourceGroupName
 	}
 }
 
-// ParseSiteDomainOwnershipIdentifierID parses 'input' into a SiteDomainOwnershipIdentifierId
-func ParseSiteDomainOwnershipIdentifierID(input string) (*SiteDomainOwnershipIdentifierId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&SiteDomainOwnershipIdentifierId{})
+// ParseDomainOwnershipIdentifierID parses 'input' into a DomainOwnershipIdentifierId
+func ParseDomainOwnershipIdentifierID(input string) (*DomainOwnershipIdentifierId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&DomainOwnershipIdentifierId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := SiteDomainOwnershipIdentifierId{}
+	id := DomainOwnershipIdentifierId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -51,16 +51,16 @@ func ParseSiteDomainOwnershipIdentifierID(input string) (*SiteDomainOwnershipIde
 	return &id, nil
 }
 
-// ParseSiteDomainOwnershipIdentifierIDInsensitively parses 'input' case-insensitively into a SiteDomainOwnershipIdentifierId
+// ParseDomainOwnershipIdentifierIDInsensitively parses 'input' case-insensitively into a DomainOwnershipIdentifierId
 // note: this method should only be used for API response data and not user input
-func ParseSiteDomainOwnershipIdentifierIDInsensitively(input string) (*SiteDomainOwnershipIdentifierId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&SiteDomainOwnershipIdentifierId{})
+func ParseDomainOwnershipIdentifierIDInsensitively(input string) (*DomainOwnershipIdentifierId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&DomainOwnershipIdentifierId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := SiteDomainOwnershipIdentifierId{}
+	id := DomainOwnershipIdentifierId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func ParseSiteDomainOwnershipIdentifierIDInsensitively(input string) (*SiteDomai
 	return &id, nil
 }
 
-func (id *SiteDomainOwnershipIdentifierId) FromParseResult(input resourceids.ParseResult) error {
+func (id *DomainOwnershipIdentifierId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
@@ -90,29 +90,29 @@ func (id *SiteDomainOwnershipIdentifierId) FromParseResult(input resourceids.Par
 	return nil
 }
 
-// ValidateSiteDomainOwnershipIdentifierID checks that 'input' can be parsed as a Site Domain Ownership Identifier ID
-func ValidateSiteDomainOwnershipIdentifierID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateDomainOwnershipIdentifierID checks that 'input' can be parsed as a Domain Ownership Identifier ID
+func ValidateDomainOwnershipIdentifierID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseSiteDomainOwnershipIdentifierID(v); err != nil {
+	if _, err := ParseDomainOwnershipIdentifierID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Site Domain Ownership Identifier ID
-func (id SiteDomainOwnershipIdentifierId) ID() string {
+// ID returns the formatted Domain Ownership Identifier ID
+func (id DomainOwnershipIdentifierId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/domainOwnershipIdentifiers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.DomainOwnershipIdentifierName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Site Domain Ownership Identifier ID
-func (id SiteDomainOwnershipIdentifierId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Domain Ownership Identifier ID
+func (id DomainOwnershipIdentifierId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -127,13 +127,13 @@ func (id SiteDomainOwnershipIdentifierId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Site Domain Ownership Identifier ID
-func (id SiteDomainOwnershipIdentifierId) String() string {
+// String returns a human-readable description of this Domain Ownership Identifier ID
+func (id DomainOwnershipIdentifierId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Site Name: %q", id.SiteName),
 		fmt.Sprintf("Domain Ownership Identifier Name: %q", id.DomainOwnershipIdentifierName),
 	}
-	return fmt.Sprintf("Site Domain Ownership Identifier (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Domain Ownership Identifier (%s)", strings.Join(components, "\n"))
 }
