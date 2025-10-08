@@ -193,7 +193,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name = "acctest-amr-%[1]d"
+  name                = "acctest-amr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
@@ -295,7 +295,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name = "acctest-amr-%[1]d"
+  name                = "acctest-amr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
@@ -425,7 +425,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name = "acctest-amr-%[1]d"
+  name                = "acctest-amr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
@@ -476,8 +476,8 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-amr-%[1]d"
-  location            = azurerm_virtual_network.test.location
+  name     = "acctest-amr-%[1]d"
+  location = azurerm_virtual_network.test.location
 
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Balanced_B3"
@@ -510,8 +510,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-invalid"
-  location            = "japanwest"
+  name     = "acctest-invalid"
+  location = "japanwest"
 
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
@@ -526,8 +526,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-invalid"
-  location            = "eastus"
+  name     = "acctest-invalid"
+  location = "eastus"
 
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
@@ -546,8 +546,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-invalid"
-  location            = "eastus"
+  name     = "acctest-invalid"
+  location = "eastus"
 
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B3"
@@ -570,8 +570,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-invalid"
-  location            = "eastus"
+  name     = "acctest-invalid"
+  location = "eastus"
 
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
@@ -594,8 +594,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name                = "acctest-invalid"
-  location            = "eastus"
+  name     = "acctest-invalid"
+  location = "eastus"
 
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"

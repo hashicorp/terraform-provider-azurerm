@@ -254,15 +254,15 @@ resource "azurerm_managed_redis_geo_replication" "test" {
 func (r ManagedRedisGeoReplicationResource) doesNotContainSelf() string {
 	return `
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_managed_redis_geo_replication" "test" {
   managed_redis_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1"
-	linked_managed_redis_ids = [
-		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2",
-		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr3",
-	]
+  linked_managed_redis_ids = [
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2",
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr3",
+  ]
 }
 `
 }

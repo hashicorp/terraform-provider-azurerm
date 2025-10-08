@@ -125,9 +125,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_managed_redis" "test" {
-  name = "acctest-amr-%[1]d"
+  name                = "acctest-amr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  
+
   location = "%[2]s"
   sku_name = "Balanced_B3"
 
@@ -152,8 +152,8 @@ resource "azurerm_managed_redis" "test" {
 }
 
 data "azurerm_managed_redis" "test" {
-	name                = azurerm_managed_redis.test.name
-	resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_managed_redis.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
