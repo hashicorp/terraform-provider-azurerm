@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `zone_redundancy_enabled` - (Optional) Is Zone Redundancy Enabled for the Notification Hub Namespace. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `replication_region` - (Optional) The allowed Replication Region for the Notification Hub Namespace. Valid values include `Default`, `None`, `AustraliaEast`, `BrazilSouth`, `NorthEurope`, `SouthAfricaNorth`, `SouthEastAsia`, `WestUs2`.Changing this forces a new resource to be created.
+* `replication_region` - (Optional) The allowed Replication Region for the Notification Hub Namespace. Possible values are `Default`, `None`, `AustraliaEast`, `BrazilSouth`, `NorthEurope`, `SouthAfricaNorth`, `SouthEastAsia`, `WestUs2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

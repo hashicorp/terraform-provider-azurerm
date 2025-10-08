@@ -96,7 +96,35 @@ func TestAccNotificationHubNamespace_replicationRegion(t *testing.T) {
 	r := NotificationHubNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.replicationRegion(data),
+			Config: r.replicationRegion(data, "NorthEurope"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("namespace_type"),
+	})
+}
+
+func TestAccNotificationHubNamespace_replicationRegionNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicationRegion(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("namespace_type"),
+	})
+}
+
+func TestAccNotificationHubNamespace_replicationRegionDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicationRegion(data, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -206,7 +234,7 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (NotificationHubNamespaceResource) replicationRegion(data acceptance.TestData) string {
+func (NotificationHubNamespaceResource) replicationRegion(data acceptance.TestData, replicationRegion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -222,9 +250,9 @@ resource "azurerm_notification_hub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
-  replication_region  = "NorthEurope"
+  replication_region  = "%s"
 
   sku_name = "Basic"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
 }

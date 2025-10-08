@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
@@ -98,8 +97,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"replication_region": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), true),
 				ForceNew:         true,
+				Default:          namespaces.ReplicationRegionDefault,
+				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), true),
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
@@ -152,7 +152,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
-		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(azure.NormalizeLocation(v.(string))))
+		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(location.Normalize(v.(string))))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -243,7 +243,11 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 			d.Set("zone_redundancy_enabled", pointer.From(props.ZoneRedundancy) == namespaces.ZoneRedundancyPreferenceEnabled)
-			d.Set("replication_region", azure.NormalizeLocation(pointer.FromEnum(props.ReplicationRegion)))
+			replicationRegion := string(namespaces.ReplicationRegionDefault)
+			if v := pointer.FromEnum(props.ReplicationRegion); v != "" {
+				replicationRegion = v
+			}
+			d.Set("replication_region", location.Normalize(replicationRegion))
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
