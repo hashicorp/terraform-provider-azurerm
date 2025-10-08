@@ -142,7 +142,7 @@ func TestAccManagedRedis_moduleDoesNotSupportGeoReplication(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.moduleDoesNotSupportGeoReplication(),
-			ExpectError: regexp.MustCompile(`invalid module .*, only following modules are supported when geo-replication is enabled`),
+			ExpectError: regexp.MustCompile(`invalid module .*, only following modules are supported`),
 		},
 	})
 }

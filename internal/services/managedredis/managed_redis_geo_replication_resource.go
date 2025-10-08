@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -241,7 +242,7 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 	}
 
 	fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
-	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, id.ID())
+	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, id)
 	if err != nil {
 		return err
 	}
@@ -273,7 +274,7 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 	return nil
 }
 
-func toDbIds(otherClusterIds []string, selfDbId string) ([]string, error) {
+func toDbIds(otherClusterIds []string, selfDbId databases.DatabaseId) ([]string, error) {
 	dbIds := make([]string, 0, len(otherClusterIds)+1)
 	containsSelf := false
 
@@ -284,7 +285,7 @@ func toDbIds(otherClusterIds []string, selfDbId string) ([]string, error) {
 		}
 		otherDbId := databases.NewDatabaseID(cId.SubscriptionId, cId.ResourceGroupName, cId.RedisEnterpriseName, DefaultDatabaseName)
 
-		if otherDbId.ID() == selfDbId {
+		if resourceids.Match(&otherDbId, &selfDbId) {
 			containsSelf = true
 		}
 
@@ -292,7 +293,7 @@ func toDbIds(otherClusterIds []string, selfDbId string) ([]string, error) {
 	}
 
 	if !containsSelf {
-		dbIds = append(dbIds, selfDbId)
+		dbIds = append(dbIds, selfDbId.ID())
 	}
 
 	return dbIds, nil

@@ -582,7 +582,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 					// Only certain modules are supported when geo-replication is enabled
 					for _, module := range dbModel.Module {
 						if module.Name != "" && !slices.Contains(validate.DatabaseModulesSupportingGeoReplication(), module.Name) {
-							return fmt.Errorf("invalid module %q, only following modules are supported when geo-replication is enabled: %s", module.Name, strings.Join(validate.DatabaseModulesSupportingGeoReplication(), ", "))
+							return fmt.Errorf("invalid module %q, only following modules are supported when `geo_replication_group_name` is not empty: %s", module.Name, strings.Join(validate.DatabaseModulesSupportingGeoReplication(), ", "))
 						}
 					}
 				}
