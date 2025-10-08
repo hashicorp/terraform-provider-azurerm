@@ -37,7 +37,7 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_database.0.port").HasValue("10000"),
 				check.That(data.ResourceName).Key("default_database.0.primary_access_key").IsNotEmpty(),
 				check.That(data.ResourceName).Key("default_database.0.secondary_access_key").IsNotEmpty(),
-				check.That(data.ResourceName).Key("high_availability_enabled").HasValue("false"), //
+				check.That(data.ResourceName).Key("high_availability_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("hostname").IsNotEmpty(),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),

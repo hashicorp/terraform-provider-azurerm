@@ -587,11 +587,18 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
-				// Eviction policy must be NoEviction when using RediSearch module
 				if dbModel.EvictionPolicy != "" {
 					for _, module := range dbModel.Module {
-						if module.Name != "" && module.Name == "RediSearch" && dbModel.EvictionPolicy != string(redisenterprise.EvictionPolicyNoEviction) {
-							return fmt.Errorf("invalid eviction_policy %q, when using RediSearch module, eviction_policy must be set to NoEviction", dbModel.EvictionPolicy)
+						if module.Name != "" && module.Name == "RediSearch" {
+							// Eviction policy must be NoEviction when using RediSearch module
+							if dbModel.EvictionPolicy != string(redisenterprise.EvictionPolicyNoEviction) {
+								return fmt.Errorf("invalid eviction_policy %q, when using RediSearch module, eviction_policy must be set to NoEviction", dbModel.EvictionPolicy)
+							}
+
+							// Clustering policy must be Enterprise when using RediSearch module
+							if dbModel.ClusteringPolicy != string(redisenterprise.ClusteringPolicyEnterpriseCluster) {
+								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
+							}
 						}
 					}
 				}

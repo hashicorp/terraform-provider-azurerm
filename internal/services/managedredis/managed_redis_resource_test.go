@@ -158,6 +158,17 @@ func TestAccManagedRedis_hasToUseNoEvictionWithRediSearch(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedis_hasToUseEnterpriseClusteringWithRediSearch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.hasToUseEnterpriseClusteringWithRediSearch(),
+			ExpectError: regexp.MustCompile(`invalid clustering_policy .*, when using RediSearch module, clustering_policy must be set to EnterpriseCluster`),
+		},
+	})
+}
+
 func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -298,7 +309,7 @@ resource "azurerm_managed_redis" "test" {
   default_database {
     access_keys_authentication_enabled = true
     client_protocol                    = "Encrypted"
-    clustering_policy                  = "OSSCluster"
+    clustering_policy                  = "EnterpriseCluster"
     eviction_policy                    = "NoEviction"
     geo_replication_group_name         = "acctest-amr-georep-%[1]d"
 
@@ -469,7 +480,7 @@ resource "azurerm_managed_redis" "test" {
   location            = azurerm_virtual_network.test.location
 
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Balanced_B0"
+  sku_name            = "Balanced_B3"
 
   default_database {
     geo_replication_group_name = "acctest-amr-georep-%[1]d"
@@ -489,7 +500,7 @@ resource "azurerm_private_endpoint" "test" {
     subresource_names              = ["redisEnterprise"]
   }
 }
-	`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisResource) invalidLocation() string {
@@ -501,7 +512,7 @@ provider "azurerm" {
 resource "azurerm_managed_redis" "test" {
   name                = "acctest-invalid"
   location            = "japanwest"
-	
+
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
 }
@@ -517,13 +528,13 @@ provider "azurerm" {
 resource "azurerm_managed_redis" "test" {
   name                = "acctest-invalid"
   location            = "eastus"
-	
+
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
 
-	default_database {
-		geo_replication_group_name = "acctest-amr"
-	}
+  default_database {
+    geo_replication_group_name = "acctest-amr"
+  }
 }
 `
 }
@@ -537,17 +548,17 @@ provider "azurerm" {
 resource "azurerm_managed_redis" "test" {
   name                = "acctest-invalid"
   location            = "eastus"
-	
+
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B3"
 
-	default_database {
-		geo_replication_group_name = "acctest-amr"
+  default_database {
+    geo_replication_group_name = "acctest-amr"
 
     module {
       name = "RedisTimeSeries"
     }
-	}
+  }
 }
 `
 }
@@ -561,16 +572,41 @@ provider "azurerm" {
 resource "azurerm_managed_redis" "test" {
   name                = "acctest-invalid"
   location            = "eastus"
-	
+
   resource_group_name = "my-rg"
   sku_name            = "Balanced_B0"
 
-	default_database {
-		module {
-			name = "RediSearch"
-		}
-		eviction_policy = "AllKeysLRU"
-	}
+  default_database {
+    clustering_policy = "EnterpriseCluster"
+    module {
+      name = "RediSearch"
+    }
+    eviction_policy = "AllKeysLRU"
+  }
+}
+`
+}
+
+func (r ManagedRedisResource) hasToUseEnterpriseClusteringWithRediSearch() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-invalid"
+  location            = "eastus"
+
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B0"
+
+  default_database {
+    clustering_policy = "OSSCluster"
+    module {
+      name = "RediSearch"
+    }
+    eviction_policy = "NoEviction"
+  }
 }
 `
 }

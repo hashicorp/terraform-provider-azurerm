@@ -11,9 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -67,23 +69,33 @@ func TestAccManagedRedisDatabaseGeoReplication_linkedDbDoesNotContainSelf(t *tes
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.doesNotContainSelf(),
-			ExpectError: regexp.MustCompile("`linked_database_ids` must include `database_id`"),
+			ExpectError: regexp.MustCompile("`linked_managed_redis_ids` must include `managed_redis_id`"),
 		},
 	})
 }
 
 func (r ManagedRedisGeoReplicationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := databases.ParseDatabaseID(state.ID)
+	clusterId, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.ManagedRedis.DatabaseClient.Get(ctx, *id)
+	dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, managedredis.DefaultDatabaseName)
+
+	resp, err := client.ManagedRedis.DatabaseClient.Get(ctx, dbId)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", dbId, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if geoProps := props.GeoReplication; geoProps != nil {
+				return pointer.To(len(pointer.From(geoProps.LinkedDatabases)) > 0), nil
+			}
+		}
+	}
+
+	return pointer.To(false), nil
 }
 
 func (r ManagedRedisGeoReplicationResource) basic(data acceptance.TestData) string {
