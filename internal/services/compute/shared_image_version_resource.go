@@ -767,7 +767,7 @@ func flattenUefiKey(input *galleryimageversions.UefiKey) []interface{} {
 
 	result := make(map[string]interface{})
 	if input.Value != nil && len(*input.Value) > 0 {
-		result["certificate_base64"] = (*input.Value)[0]
+		result["certificate_base64"] = *input.Value
 	}
 	if input.Type != nil {
 		result["type"] = pointer.From(input.Type)
