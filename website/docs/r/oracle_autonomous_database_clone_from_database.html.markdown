@@ -19,9 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_oracle_autonomous_database" "example" {
-  name                             = "example"
-  resource_group_name              = azurerm_resource_group.example.name
-  location                         = azurerm_resource_group.example.location
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
@@ -41,12 +41,12 @@ resource "azurerm_oracle_autonomous_database" "example" {
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
-  name                             = "example"
-  resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
-  location                         = azurerm_oracle_autonomous_database.example.location
-  source_autonomous_database_id    = azurerm_oracle_autonomous_database.example.id
+  name                          = "example"
+  resource_group_name           = azurerm_oracle_autonomous_database.example.resource_group_name
+  location                      = azurerm_oracle_autonomous_database.example.location
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.example.id
 
-  clone_type                       = "Full"
+  clone_type = "Full"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
