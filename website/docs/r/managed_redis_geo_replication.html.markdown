@@ -48,7 +48,7 @@ resource "azurerm_managed_redis_database" "d2" {
 
 resource "azurerm_managed_redis_database_geo_replication" "example" {
   database_id = azurerm_managed_redis_database.d1.id
-  
+
   linked_database_ids = [
     azurerm_managed_redis_database.d1.id,
     azurerm_managed_redis_database.d2.id,
