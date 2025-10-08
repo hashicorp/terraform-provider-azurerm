@@ -36,9 +36,7 @@ import (
 
 type ManagedRedisResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = ManagedRedisResource{}
-)
+var _ sdk.ResourceWithUpdate = ManagedRedisResource{}
 
 type ManagedRedisResourceModel struct {
 	Name              string `tfschema:"name"`
@@ -492,15 +490,16 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("default_database") {
 				old, new := metadata.ResourceData.GetChange("default_database")
-				if dbLen(old) == 1 && dbLen(new) == 0 {
+				switch {
+				case dbLen(old) == 1 && dbLen(new) == 0:
 					if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
 						return fmt.Errorf("deleting database %s: %+v", dbId, err)
 					}
-				} else if dbLen(old) == 0 && dbLen(new) == 1 {
+				case dbLen(old) == 0 && dbLen(new) == 1:
 					if err := createDb(ctx, dbClient, dbId, state.DefaultDatabase[0]); err != nil {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
-				} else if dbLen(old) == 1 && dbLen(new) == 1 {
+				case dbLen(old) == 1 && dbLen(new) == 1:
 					existingDb, err := dbClient.Get(ctx, dbId)
 					if err != nil {
 						return fmt.Errorf("retrieving existing %s: %+v", dbId, err)
@@ -583,7 +582,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 					// Only certain modules are supported when geo-replication is enabled
 					for _, module := range dbModel.Module {
 						if module.Name != "" && !slices.Contains(validate.DatabaseModulesSupportingGeoReplication(), module.Name) {
-							return fmt.Errorf("Invalid module %q, only following modules are supported when geo-replication is enabled: %s", module.Name, strings.Join(validate.DatabaseModulesSupportingGeoReplication(), ", "))
+							return fmt.Errorf("invalid module %q, only following modules are supported when geo-replication is enabled: %s", module.Name, strings.Join(validate.DatabaseModulesSupportingGeoReplication(), ", "))
 						}
 					}
 				}
@@ -592,7 +591,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				if dbModel.EvictionPolicy != "" {
 					for _, module := range dbModel.Module {
 						if module.Name != "" && module.Name == "RediSearch" && dbModel.EvictionPolicy != string(redisenterprise.EvictionPolicyNoEviction) {
-							return fmt.Errorf("Invalid eviction_policy %q, when using RediSearch module, eviction_policy must be set to NoEviction", dbModel.EvictionPolicy)
+							return fmt.Errorf("invalid eviction_policy %q, when using RediSearch module, eviction_policy must be set to NoEviction", dbModel.EvictionPolicy)
 						}
 					}
 				}

@@ -136,13 +136,24 @@ func TestAccManagedRedis_skuDoesNotSupportGeoReplication(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedis_moduleDoesNotSupportGeoReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.moduleDoesNotSupportGeoReplication(),
+			ExpectError: regexp.MustCompile(`invalid module .*, only following modules are supported when geo-replication is enabled`),
+		},
+	})
+}
+
 func TestAccManagedRedis_hasToUseNoEvictionWithRediSearch(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.hasToUseNoEvictionWithRediSearch(),
-			ExpectError: regexp.MustCompile(`Invalid eviction_policy .*, when using RediSearch module, eviction_policy must be set to NoEviction`),
+			ExpectError: regexp.MustCompile(`invalid eviction_policy .*, when using RediSearch module, eviction_policy must be set to NoEviction`),
 		},
 	})
 }
@@ -512,6 +523,30 @@ resource "azurerm_managed_redis" "test" {
 
 	default_database {
 		geo_replication_group_name = "acctest-amr"
+	}
+}
+`
+}
+
+func (r ManagedRedisResource) moduleDoesNotSupportGeoReplication() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-invalid"
+  location            = "eastus"
+	
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B3"
+
+	default_database {
+		geo_replication_group_name = "acctest-amr"
+
+    module {
+      name = "RedisTimeSeries"
+    }
 	}
 }
 `
