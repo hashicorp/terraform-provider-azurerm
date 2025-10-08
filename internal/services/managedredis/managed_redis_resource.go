@@ -92,14 +92,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": func() *pluginsdk.Schema {
-			location := commonschema.Location()
-			location.ValidateFunc = validation.All(
-				location.ValidateFunc,
-				validate.ManagedRedisSupportedLocations,
-			)
-			return location
-		}(),
+		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
@@ -412,8 +405,8 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("listing keys for %s: %+v", dbId, err)
 						}
 						if keysModel := keysResp.Model; keysModel != nil {
-							defaultDb.PrimaryAccessKey = pointer.From(keysResp.Model.PrimaryKey)
-							defaultDb.SecondaryAccessKey = pointer.From(keysResp.Model.SecondaryKey)
+							defaultDb.PrimaryAccessKey = pointer.From(keysModel.PrimaryKey)
+							defaultDb.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
 						}
 					}
 

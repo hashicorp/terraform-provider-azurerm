@@ -114,17 +114,6 @@ func TestAccManagedRedis_withPrivateEndpoint(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedis_invalidLocation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-	r := ManagedRedisResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.invalidLocation(),
-			ExpectError: regexp.MustCompile(`location .* does not support Managed Redis`),
-		},
-	})
-}
-
 func TestAccManagedRedis_skuDoesNotSupportGeoReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
@@ -501,22 +490,6 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r ManagedRedisResource) invalidLocation() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_managed_redis" "test" {
-  name     = "acctest-invalid"
-  location = "japanwest"
-
-  resource_group_name = "my-rg"
-  sku_name            = "Balanced_B0"
-}
-`
 }
 
 func (r ManagedRedisResource) skuDoesNotSupportGeoReplication() string {
