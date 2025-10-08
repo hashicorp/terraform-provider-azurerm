@@ -72,7 +72,7 @@ func (r ManagedRedisGeoReplicationResource) ResourceType() string {
 }
 
 func (r ManagedRedisGeoReplicationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return databases.ValidateDatabaseID
+	return redisenterprise.ValidateRedisEnterpriseID
 }
 
 func (r ManagedRedisGeoReplicationResource) Create() sdk.ResourceFunc {
