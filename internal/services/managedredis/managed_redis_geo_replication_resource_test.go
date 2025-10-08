@@ -40,27 +40,19 @@ func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
 	r := ManagedRedisGeoReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.threeClusters(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addThirdCluster(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.1").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr3`)),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.removeSecondCluster(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr3`)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeCluster3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
 			),
 		},
 		data.ImportStep(),
@@ -133,7 +125,7 @@ resource "azurerm_managed_redis_geo_replication" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (r ManagedRedisGeoReplicationResource) addThirdCluster(data acceptance.TestData) string {
+func (r ManagedRedisGeoReplicationResource) threeClusters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -179,7 +171,6 @@ resource "azurerm_managed_redis" "amr3" {
 
 resource "azurerm_managed_redis_geo_replication" "test" {
   managed_redis_id = azurerm_managed_redis.amr1.id
-
   linked_managed_redis_ids = [
     azurerm_managed_redis.amr2.id,
     azurerm_managed_redis.amr3.id,
@@ -188,7 +179,7 @@ resource "azurerm_managed_redis_geo_replication" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
-func (r ManagedRedisGeoReplicationResource) removeSecondCluster(data acceptance.TestData) string {
+func (r ManagedRedisGeoReplicationResource) removeCluster3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,9 +225,8 @@ resource "azurerm_managed_redis" "amr3" {
 
 resource "azurerm_managed_redis_geo_replication" "test" {
   managed_redis_id = azurerm_managed_redis.amr1.id
-
   linked_managed_redis_ids = [
-    azurerm_managed_redis.amr3.id,
+    azurerm_managed_redis.amr2.id,
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)

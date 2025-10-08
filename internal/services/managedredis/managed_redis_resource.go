@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -324,6 +326,14 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
+			// on subsequent operations
+			pollerType := custompollers.NewClusterStatePoller(clusterClient, clusterId)
+			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
+			}
+
 			metadata.SetID(clusterId)
 			return nil
 		},
@@ -516,6 +526,14 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("updating %s: %+v", dbId, err)
 					}
 				}
+			}
+
+			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
+			// on subsequent operations
+			pollerType := custompollers.NewClusterStatePoller(clusterClient, *clusterId)
+			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
 			}
 
 			return nil
