@@ -219,12 +219,6 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		},
 		"tags": commonschema.TagsForceNew(),
 
-		"use_latest_available_backup_timestamp_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
-		},
 		"virtual_network_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
