@@ -97,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
+* `virtual_network_image_pull_enabled` - Whether traffic for the image pull is routed over the virtual network. 
+
 * `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.

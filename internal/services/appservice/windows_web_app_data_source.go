@@ -59,6 +59,7 @@ type WindowsWebAppDataSourceModel struct {
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	Tags                               map[string]string                          `tfschema:"tags"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
@@ -219,6 +220,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -350,6 +356,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
 
 					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					webApp.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						webApp.VirtualNetworkSubnetID = subnetId

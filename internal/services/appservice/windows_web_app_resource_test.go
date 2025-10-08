@@ -2629,6 +2629,8 @@ resource "azurerm_windows_web_app" "test" {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
+    virtual_network_image_pull_enabled = true
+
     // auto_swap_slot_name = // TODO
     virtual_application {
       virtual_path  = "/"

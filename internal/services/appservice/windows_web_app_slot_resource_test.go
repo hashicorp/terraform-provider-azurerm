@@ -1641,6 +1641,8 @@ resource "azurerm_windows_web_app_slot" "test" {
 
     auto_swap_slot_name = "Production"
 
+    virtual_network_image_pull_enabled = true
+
     virtual_application {
       virtual_path  = "/"
       physical_path = "site\\wwwroot"
