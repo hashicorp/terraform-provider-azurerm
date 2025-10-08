@@ -65,6 +65,8 @@ The following arguments are supported:
   * DW - indicates an Autonomous Data Warehouse database
   * AJD - indicates an Autonomous JSON Database
   * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type.
+   
+~> **Note:** When Provisioning Database with `APEX` workload `mtls_connection_required` must be set to `true`.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. The name does not have to be unique. Changing this forces a new Autonomous Database to be created.
 
@@ -118,7 +120,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Autonomous Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.

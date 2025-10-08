@@ -30,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -1139,10 +1140,21 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 
 				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
-					if _, ok := d.GetOk("queue_properties"); ok {
+					rawQueueProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("queue_properties"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawQueueProperties.IsNull() && rawQueueProperties.IsKnown() && rawQueueProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
-					if _, ok := d.GetOk("static_website"); ok {
+
+					rawStaticWebsiteProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("static_website"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawStaticWebsiteProperties.IsNull() && rawStaticWebsiteProperties.IsKnown() && rawStaticWebsiteProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 				}

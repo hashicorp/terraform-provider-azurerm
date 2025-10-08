@@ -1,5 +1,5 @@
 ---
-subcategory: "Storage"
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_power"
 description: |-

@@ -31,7 +31,7 @@ func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors 
 	}
 
 	if len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 30 characers max", k))
+		return []string{}, append(errors, fmt.Errorf("%v must be 30 characters max", k))
 	}
 
 	return []string{}, []error{}
