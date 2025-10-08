@@ -44,7 +44,8 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("sku_name").HasValue(string(redisenterprise.SkuNameBalancedBThree)),
-				check.That(data.ResourceName).Key("tags.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("testing"),
 			),
 		},
 	})
