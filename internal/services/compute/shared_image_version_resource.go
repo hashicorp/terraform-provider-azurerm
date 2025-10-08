@@ -592,25 +592,6 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 	return &results, nil
 }
 
-func uefiKeySchema() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Schema: map[string]*pluginsdk.Schema{
-			"certificate_base64": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-			"type": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiKeyType(), false),
-			},
-		},
-	}
-}
-
 func expandUefiSettings(input []interface{}) *galleryimageversions.GalleryImageVersionUefiSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
