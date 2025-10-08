@@ -179,19 +179,21 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.ManagedRedis.DatabaseClient
 
-			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
+			clusterId, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+
+			existing, err := client.Get(ctx, dbId)
 			if err != nil {
 				return err
 			}
 
 			if existing.Model.Properties != nil && existing.Model.Properties.GeoReplication != nil {
 				fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
-				toDbIds := []string{id.ID()}
+				toDbIds := []string{dbId.ID()}
 
 				dbIdsToUnlink := databaselink.DbIdsToUnlink(fromDbIds, toDbIds)
 
@@ -199,8 +201,8 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 					params := databases.ForceUnlinkParameters{
 						Ids: dbIdsToUnlink,
 					}
-					if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
-						return fmt.Errorf("force unlink %s: %+v", *id, err)
+					if err := client.ForceUnlinkThenPoll(ctx, dbId, params); err != nil {
+						return fmt.Errorf("force unlink %s: %+v", dbId, err)
 					}
 				}
 			}
