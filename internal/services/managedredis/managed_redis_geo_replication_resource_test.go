@@ -43,7 +43,7 @@ func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/amr2`)),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
 			),
 		},
 		data.ImportStep(),
@@ -51,8 +51,8 @@ func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
 			Config: r.addThirdCluster(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/amr2`)),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.1").MatchesRegex(regexp.MustCompile(`redisEnterprise/amr3`)),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.1").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr3`)),
 			),
 		},
 		data.ImportStep(),
@@ -60,7 +60,7 @@ func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
 			Config: r.removeSecondCluster(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/amr3`)),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr3`)),
 			),
 		},
 		data.ImportStep(),
