@@ -187,10 +187,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **Note:** `resilient_vm_creation_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
 
-~> **Note:** Removing the `resilient_vm_creation_enabled` field from the configuration after it has been set to `true` will force a new resource to be created.
-
-!> **Note:** Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`.
-
 * `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
 
 -> **Note:** `resilient_vm_deletion_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.

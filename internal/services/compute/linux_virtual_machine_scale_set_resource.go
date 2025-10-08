@@ -82,7 +82,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				networkInterfaces := diff.Get("network_interface").([]interface{})
 				for _, v := range networkInterfaces {
 					raw := v.(map[string]interface{})
