@@ -130,11 +130,13 @@ func (r ManagedRedisGeoReplicationResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil && props.GeoReplication != nil {
 					state.LinkedManagedRedisIds = make([]string, 0, len(pointer.From(props.GeoReplication.LinkedDatabases)))
 					for _, db := range pointer.From(props.GeoReplication.LinkedDatabases) {
-						clusterId, err := toClusterId(pointer.From(db.Id))
+						cId, err := toClusterId(pointer.From(db.Id))
 						if err != nil {
 							return err
 						}
-						state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, clusterId)
+						if !resourceids.Match(cId, clusterId) {
+							state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, cId.ID())
+						}
 					}
 				}
 			}
@@ -299,13 +301,12 @@ func toDbIds(otherClusterIds []string, selfDbId databases.DatabaseId) ([]string,
 	return dbIds, nil
 }
 
-func toClusterId(dbIdStr string) (string, error) {
+func toClusterId(dbIdStr string) (*redisenterprise.RedisEnterpriseId, error) {
 	dbId, err := databases.ParseDatabaseID(dbIdStr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	clusterId := redisenterprise.NewRedisEnterpriseID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.RedisEnterpriseName)
-	return clusterId.ID(), nil
+	return pointer.To(redisenterprise.NewRedisEnterpriseID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.RedisEnterpriseName)), nil
 }
 
 func flattenLinkedDatabases(dbs *[]databases.LinkedDatabase) []string {
