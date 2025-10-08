@@ -178,7 +178,7 @@ func TestAccSharedImageVersion_uefiSettingsDb(t *testing.T) {
 	r := SharedImageVersionResource{}
 
 	signatureTemplateNames := `["MicrosoftUefiCertificateAuthorityTemplate"]`
-	certDb := "MIIDNzCCAh+gAwIBAgIRANcuAK10JUqNpehWlkldzxEwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMB4XDTIzMDYxOTEwNTI0MloXDTMzMDYxNjEwNTI0MlowFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq+QdB6n3TDk12Qa/JcbmdfEpIrx4dKG9d5D/SRHWfJACInxtH64jzvGohVnAqIDqcKK+FvVLDPrqD7hbzV34AOXkyVoRtHEsdDErkG9CVBJlWleuew+if9TkW8wabFT3/sHSzVbG6+6AFOHsnDbO1Rpvh1ZPp2AgqiNg7XUHQM9zH00BYz7xtL9XEr+sRRgp0Bn0PGQGQU1Q302TK6jlHwJGMidke4Le2IIDJTUTGx3yWuX7f/T/u6alZeKjg+hYysJ7dpaaC5DyRTT5pJv62pZBJa3DkwWWSKroJozp9ujf93KYP7NoCLHkyiITAUK04hsHm/UvIt7ZhayTS24MbwIDAQABo34wfDAfBgNVHSMEGDAWgBQBXPUO5tTx8gh9G1iwS1KMwXUi/zAVBglghkgBhvhCAQEBAf8EBQMDAPABMBMGA1UdJQQMMAoGCCsGAQUFBwMDMA4GA1UdDwEB/wQEAwIEsDAdBgNVHQ4EFgQUAVz1DubU8fIIfRtYsEtSjMF1Iv8wDQYJKoZIhvcNAQELBQADggEBAA4xZmr3HhDOc2xzDMjqiVnCBMPT8nS9P+jCXezTeG1SIWrMmQUSs8rtU0YoNRIq1wbT/rqbYIwwhRfth0nUGf22zp4UdigVcpt+FQj9eGgeF6sJyHVWmMZu8rEi8BhHEsS6jHqExckp0vshhyW5whr86znWFWf/EsVGFkxd7kjv/KB0ff2ide5vLOWxoTfYmSxYyg2K1FQXP7L87Rb7O6PKzo0twVgeZ616e/yFLcmUQgnHBhb2IKtdo+CdTCxcw9/nNqGPwsNLsti2jyr5oNm9mX6wVaAuXCC3maX35DdWFVK0gXcENEw+Q6+JSyPV1ItXc5CD0NU9pd+R85qsFlY="
+	certDb := "testdata/uefi_test_certificate.pem"
 	keyType := "x509"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -220,7 +220,7 @@ func TestAccSharedImageVersion_uefiSettingsPk(t *testing.T) {
 
 	// Test with NoSignatureTemplate and DB, DBX, KEK, PK
 	signatureTemplateNames := `["NoSignatureTemplate"]`
-	certDb := "MIIDNzCCAh+gAwIBAgIRANcuAK10JUqNpehWlkldzxEwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMB4XDTIzMDYxOTEwNTI0MloXDTMzMDYxNjEwNTI0MlowFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq+QdB6n3TDk12Qa/JcbmdfEpIrx4dKG9d5D/SRHWfJACInxtH64jzvGohVnAqIDqcKK+FvVLDPrqD7hbzV34AOXkyVoRtHEsdDErkG9CVBJlWleuew+if9TkW8wabFT3/sHSzVbG6+6AFOHsnDbO1Rpvh1ZPp2AgqiNg7XUHQM9zH00BYz7xtL9XEr+sRRgp0Bn0PGQGQU1Q302TK6jlHwJGMidke4Le2IIDJTUTGx3yWuX7f/T/u6alZeKjg+hYysJ7dpaaC5DyRTT5pJv62pZBJa3DkwWWSKroJozp9ujf93KYP7NoCLHkyiITAUK04hsHm/UvIt7ZhayTS24MbwIDAQABo34wfDAfBgNVHSMEGDAWgBQBXPUO5tTx8gh9G1iwS1KMwXUi/zAVBglghkgBhvhCAQEBAf8EBQMDAPABMBMGA1UdJQQMMAoGCCsGAQUFBwMDMA4GA1UdDwEB/wQEAwIEsDAdBgNVHQ4EFgQUAVz1DubU8fIIfRtYsEtSjMF1Iv8wDQYJKoZIhvcNAQELBQADggEBAA4xZmr3HhDOc2xzDMjqiVnCBMPT8nS9P+jCXezTeG1SIWrMmQUSs8rtU0YoNRIq1wbT/rqbYIwwhRfth0nUGf22zp4UdigVcpt+FQj9eGgeF6sJyHVWmMZu8rEi8BhHEsS6jHqExckp0vshhyW5whr86znWFWf/EsVGFkxd7kjv/KB0ff2ide5vLOWxoTfYmSxYyg2K1FQXP7L87Rb7O6PKzo0twVgeZ616e/yFLcmUQgnHBhb2IKtdo+CdTCxcw9/nNqGPwsNLsti2jyr5oNm9mX6wVaAuXCC3maX35DdWFVK0gXcENEw+Q6+JSyPV1ItXc5CD0NU9pd+R85qsFlY="
+	certDb := "testdata/uefi_test_certificate.pem"
 	certDbx := certDb // Using same cert for simplicity
 	certKek := certDb
 	certPk := certDb
@@ -633,7 +633,7 @@ resource "azurerm_shared_image_version" "test" {
     additional_signatures {
       db {
         type               = "%s"
-        certificate_base64 = ["%s"]
+        certificate_base64 = [filebase64("%s")]
       }
     }
   }
@@ -664,19 +664,19 @@ resource "azurerm_shared_image_version" "test" {
     additional_signatures {
       db {
         type               = "%s"
-        certificate_base64 = ["%s"]
+        certificate_base64 = [filebase64("%s")]
       }
       dbx {
         type               = "%s"
-        certificate_base64 = ["%s"]
+        certificate_base64 = [filebase64("%s")]
       }
       kek {
         type               = "%s"
-        certificate_base64 = ["%s"]
+        certificate_base64 = [filebase64("%s")]
       }
       pk {
         type               = "%s"
-        certificate_base64 = ["%s"]
+        certificate_base64 = [filebase64("%s")]
       }
     }
   }
