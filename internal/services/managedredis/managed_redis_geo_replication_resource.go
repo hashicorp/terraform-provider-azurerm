@@ -6,7 +6,6 @@ package managedredis
 import (
 	"context"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -50,7 +49,7 @@ func (r ManagedRedisGeoReplicationResource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 5,
+			MaxItems: 4,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
@@ -221,12 +220,6 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			if model.ManagedRedisId != "" && len(model.LinkedManagedRedisIds) > 0 {
-				if linkedAmrsIncludeSelf := slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId); !linkedAmrsIncludeSelf {
-					return fmt.Errorf("`linked_managed_redis_ids` must include `managed_redis_id`: %s", model.ManagedRedisId)
-				}
-			}
-
 			return nil
 		},
 	}
@@ -247,14 +240,8 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 		return fmt.Errorf("geo_replication_group_name has to be set on database %s", id)
 	}
 
-	// Additional validation to improve error message, otherwise user will get generic 400 error message.
-	// This validation often gets skipped in CustomizeDiff because the value is not known before apply
-	if linkedAmrsIncludeSelf := slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId); !linkedAmrsIncludeSelf {
-		return fmt.Errorf("`linked_managed_redis_ids` must include `manage_redis_id`: %s", model.ManagedRedisId)
-	}
-
 	fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
-	toDbIds, err := toDbIds(model.LinkedManagedRedisIds)
+	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, id.ID())
 	if err != nil {
 		return err
 	}
@@ -286,16 +273,28 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 	return nil
 }
 
-func toDbIds(clusterIds []string) ([]string, error) {
-	dbIds := make([]string, 0, len(clusterIds))
-	for _, cIdStr := range clusterIds {
+func toDbIds(otherClusterIds []string, selfDbId string) ([]string, error) {
+	dbIds := make([]string, 0, len(otherClusterIds)+1)
+	containsSelf := false
+
+	for _, cIdStr := range otherClusterIds {
 		cId, err := redisenterprise.ParseRedisEnterpriseID(cIdStr)
 		if err != nil {
 			return nil, err
 		}
-		dbId := databases.NewDatabaseID(cId.SubscriptionId, cId.ResourceGroupName, cId.RedisEnterpriseName, DefaultDatabaseName)
-		dbIds = append(dbIds, dbId.ID())
+		otherDbId := databases.NewDatabaseID(cId.SubscriptionId, cId.ResourceGroupName, cId.RedisEnterpriseName, DefaultDatabaseName)
+
+		if otherDbId.ID() == selfDbId {
+			containsSelf = true
+		}
+
+		dbIds = append(dbIds, otherDbId.ID())
 	}
+
+	if !containsSelf {
+		dbIds = append(dbIds, selfDbId)
+	}
+
 	return dbIds, nil
 }
 

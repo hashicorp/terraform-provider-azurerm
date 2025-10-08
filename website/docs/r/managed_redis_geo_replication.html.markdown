@@ -48,7 +48,6 @@ resource "azurerm_managed_redis_geo_replication" "example" {
   managed_redis_id = azurerm_managed_redis.amr1.id
 
   linked_managed_redis_ids = [
-    azurerm_managed_redis.amr1.id,
     azurerm_managed_redis.amr2.id,
   ]
 }
@@ -60,7 +59,7 @@ The following arguments are supported:
 
 * `managed_redis_id` - (Required) The ID of the Managed Redis through which geo-replication group will be managed. Linking is reciprocal, if A is linked to B, both A and B will have the same linking state. There is no need to have duplicate `azurerm_managed_redis_geo_replication` resources for each. Changing this forces a new resource to be created.
 
-* `linked_managed_redis_ids` - (Required) A set of Managed Redis IDs to link together in the geo-replication group. Must include the `managed_redis_id` and can contain up to 5 Managed Redis IDs total. All Managed Redis must have the same `geo_replication_group_name` configured. Once linked, the geo-replication state of all databases will be updated.
+* `linked_managed_redis_ids` - (Required) A set of other Managed Redis IDs to link together in the geo-replication group. The ID of this Managed Redis is always included by default and does not need to be provided here. Can contain up to 4 Managed Redis IDs, making up a group of 5 in total. All Managed Redis must have the same `geo_replication_group_name` configured. Once linked, the geo-replication state of all Managed Redis will be updated.
 
 ## Attributes Reference
 
