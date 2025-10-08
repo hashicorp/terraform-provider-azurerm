@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster_node_pool` - add support for `AzureLinux3` and `Ubuntu2204` to the `os_sku` property [GH-30719]
 
 BUG FIXES:
+`azurerm_oracle_autonomous_database_clone_from_backup` - remove unused property `use_latest_available_backup_timestamp_enabled` [GH-30802]
 * `azurerm_network_watcher_flow_log` - the `target_resource_id` property is now included in the update request payload resolving an issue where changing it failed to recreate or update the resource [GH-30776]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - fix read error when in replica set in failover state [GH-30789]
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
