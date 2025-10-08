@@ -291,7 +291,7 @@ service/redhatopenshift:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redhat_openshift_cluster((.|\n)*)###'
 
 service/redis:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(managed_redis_|redis_|resource_deployment_script_azure_cli\W+|resource_deployment_script_azure_power_shell\W+|resource_management_private_link\W+|resource_management_private_link_association\W+|resource_provider_registration\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(managed_redis|redis_|resource_deployment_script_azure_cli\W+|resource_deployment_script_azure_power_shell\W+|resource_management_private_link\W+|resource_management_private_link_association\W+|resource_provider_registration\W+)((.|\n)*)###'
 
 service/relay:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_relay_((.|\n)*)###'
