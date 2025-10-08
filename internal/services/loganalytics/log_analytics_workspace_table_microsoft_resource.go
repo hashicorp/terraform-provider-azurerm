@@ -105,6 +105,15 @@ func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schem
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableSubTypeEnum(), false),
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				// Microsoft tables can flap between "Any" and "DataCollectionRuleBased"
+				// This is due to Azure API behavior, not user changes
+				if (old == "Any" && new == "DataCollectionRuleBased") ||
+					(old == "DataCollectionRuleBased" && new == "Any") {
+					return true
+				}
+				return false
+			},
 		},
 
 		"plan": {
@@ -168,7 +177,42 @@ func (r WorkspaceTableMicrosoftResource) Attributes() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: columnSchema(),
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"display_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"type_hint": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"hidden": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+
+					"display_by_default": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+				},
 			},
 		},
 	}
@@ -256,6 +300,88 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 	}
 }
 
+func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := tables.ParseTableID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var workspaceId *workspaces.WorkspaceId
+			if workspaceStateId, ok := metadata.ResourceData.GetOk("workspace_id"); ok {
+				workspaceId, err = workspaces.ParseWorkspaceID(workspaceStateId.(string))
+				if err != nil {
+					return err
+				}
+			} else {
+				workspaceId = pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
+			}
+
+			client := metadata.Client.LogAnalytics.TablesClient
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving Log Analytics Workspace Table %s: %+v", *id, err)
+			}
+
+			state := WorkspaceTableMicrosoftResourceModel{
+				Name:        id.TableName,
+				WorkspaceId: workspaceId.ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
+						if !pointer.From(props.RetentionInDaysAsDefault) {
+							state.RetentionInDays = pointer.From(props.RetentionInDays)
+						}
+						if !pointer.From(props.TotalRetentionInDaysAsDefault) {
+							state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
+						}
+					}
+					state.Plan = pointer.FromEnum(props.Plan)
+
+					if props.Schema != nil {
+						state.DisplayName = pointer.From(props.Schema.DisplayName)
+						state.Description = pointer.From(props.Schema.Description)
+						state.SubType = pointer.FromEnum(props.Schema.TableSubType)
+
+						if categories, ok := metadata.ResourceData.GetOk("categories"); ok {
+							// Preserve configured categories if API doesn't return them
+							categoriesSet := categories.(*pluginsdk.Set)
+							categories := make([]string, 0, categoriesSet.Len())
+							for _, item := range categoriesSet.List() {
+								categories = append(categories, item.(string))
+							}
+							state.Categories = categories
+						}
+
+						state.Labels = pointer.From(props.Schema.Labels)
+						state.Solutions = pointer.From(props.Schema.Solutions)
+
+						if props.Schema.Columns != nil {
+							state.Columns = flattenColumns(props.Schema.Columns)
+						} else {
+							state.Columns = nil
+						}
+
+						if props.Schema.StandardColumns != nil {
+							state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
+						}
+					}
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
 func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -337,79 +463,6 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
-		},
-	}
-}
-
-func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := tables.ParseTableID(metadata.ResourceData.Id())
-			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
-			}
-
-			var workspaceId *workspaces.WorkspaceId
-			if workspaceStateId, ok := metadata.ResourceData.GetOk("workspace_id"); ok {
-				workspaceId, err = workspaces.ParseWorkspaceID(workspaceStateId.(string))
-				if err != nil {
-					return fmt.Errorf("while parsing resource ID: %+v", err)
-				}
-			} else {
-				workspaceId = pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
-			}
-
-			client := metadata.Client.LogAnalytics.TablesClient
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving Log Analytics Workspace Table %s: %+v", *id, err)
-			}
-
-			state := WorkspaceTableMicrosoftResourceModel{
-				Name:        id.TableName,
-				WorkspaceId: workspaceId.ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
-						if !pointer.From(props.RetentionInDaysAsDefault) {
-							state.RetentionInDays = pointer.From(props.RetentionInDays)
-						}
-						if !pointer.From(props.TotalRetentionInDaysAsDefault) {
-							state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-						}
-					}
-					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-					state.Plan = pointer.FromEnum(props.Plan)
-
-					if props.Schema != nil {
-						state.DisplayName = pointer.From(props.Schema.DisplayName)
-						state.Description = pointer.From(props.Schema.Description)
-						state.SubType = pointer.FromEnum(props.Schema.TableSubType)
-						state.Categories = pointer.From(props.Schema.Categories)
-						state.Labels = pointer.From(props.Schema.Labels)
-						state.Solutions = pointer.From(props.Schema.Solutions)
-
-						if props.Schema.Columns != nil {
-							state.Columns = flattenColumns(props.Schema.Columns)
-						} else {
-							state.Columns = nil
-						}
-
-						if props.Schema.StandardColumns != nil {
-							state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
-						}
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
 		},
 	}
 }

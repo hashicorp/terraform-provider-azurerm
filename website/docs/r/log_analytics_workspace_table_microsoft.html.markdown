@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) the table retention in days, between 4 and 730. Setting this property to -1 will default to the workspace retention.
 
-* `sub_type` - (Optional) the API and feature subtype of the table. Possible values are `Any`, `Classic`, and `DataCollectionRuleBased`. Defaults to `Any`. Changing this forces a new resource to be created.
+* `sub_type` - (Required) the API and feature subtype of the table. Possible values are `Any`, `Classic`, and `DataCollectionRuleBased`. Changing this forces a new resource to be created.
 
 * `total_retention_in_days` - (Optional) the table total retention in days, between 4 and 4383. Setting this property to -1 will default to table retention.
 
