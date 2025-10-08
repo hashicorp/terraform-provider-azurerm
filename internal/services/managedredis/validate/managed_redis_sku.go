@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
@@ -16,5 +17,18 @@ func PossibleValuesForSkuName() []string {
 		}
 		validSkus = append(validSkus, sku)
 	}
+	slices.Sort(validSkus)
 	return validSkus
+}
+
+func SKUsSupportingGeoReplication() []string {
+	skus := make([]string, 0, len(PossibleValuesForSkuName()))
+	for _, sku := range PossibleValuesForSkuName() {
+		if sku == string(redisenterprise.SkuNameBalancedBZero) ||
+			sku == string(redisenterprise.SkuNameBalancedBOne) {
+			continue
+		}
+		skus = append(skus, sku)
+	}
+	return skus
 }

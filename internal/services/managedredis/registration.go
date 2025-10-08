@@ -25,14 +25,13 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ManagedRedisDatabaseDataSource{},
+		ManagedRedisDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagedRedisClusterResource{},
-		ManagedRedisDatabaseResource{},
-		ManagedRedisDatabaseGeoReplicationResource{},
+		ManagedRedisGeoReplicationResource{},
+		ManagedRedisResource{},
 	}
 }

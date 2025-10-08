@@ -20,7 +20,7 @@ func ManagedRedisSupportedLocations(i interface{}, k string) (warnings []string,
 	v = location.Normalize(v)
 
 	// Only limited locations are supported, check the list in https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table
-	// under "Redis Enterprise".
+	// under "Redis Cache".
 	// Note that the API in other locations might give the impression Managed Redis is supported,
 	// however subsequent operations (eg: linking geo-replication) then fails / times out.
 	locations := []string{
