@@ -24,12 +24,16 @@ resource "azurerm_subnet" "endpoint" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_managed_redis_cluster" "example" {
+resource "azurerm_managed_redis" "example" {
   name                = "${var.prefix}-managed-redis"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "Balanced_B3"
+
+  default_database {
+    geo_replication_group_name = "my-geo-group"
+  }
 }
 
 resource "azurerm_private_endpoint" "example" {
@@ -41,7 +45,7 @@ resource "azurerm_private_endpoint" "example" {
   private_service_connection {
     name                           = "managed-redis-connection"
     is_manual_connection           = false
-    private_connection_resource_id = azurerm_managed_redis_cluster.example.id
+    private_connection_resource_id = azurerm_managed_redis.example.id
     subresource_names              = ["redisEnterprise"]
   }
 }
