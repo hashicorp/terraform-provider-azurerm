@@ -98,7 +98,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"replication_region": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), false),
+				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), true),
 				ForceNew:         true,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
