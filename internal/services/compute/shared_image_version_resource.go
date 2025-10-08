@@ -673,10 +673,7 @@ func expandUefiKey(input []interface{}) *galleryimageversions.UefiKey {
 		return nil
 	}
 
-	data, ok := input[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
+	data := input[0].(map[string]interface{})
 
 	certData := make([]string, 0)
 	if certList, ok := data["certificate_base64"].([]interface{}); ok {
@@ -687,10 +684,7 @@ func expandUefiKey(input []interface{}) *galleryimageversions.UefiKey {
 		}
 	}
 
-	typeStr, ok := data["type"].(string)
-	if !ok {
-		return nil
-	}
+	typeStr := data["type"].(string)
 
 	return &galleryimageversions.UefiKey{
 		Type:  pointer.To(galleryimageversions.UefiKeyType(typeStr)),
