@@ -125,6 +125,13 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+// Wait for key vault permissions to propagate
+resource "time_sleep" "wait_key_vault_key" {
+  depends_on = [azurerm_key_vault_key.test]
+
+  create_duration = "30s"
+}
+
 resource "azurerm_managed_redis" "test" {
   name                = "acctest-amr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -150,6 +157,8 @@ resource "azurerm_managed_redis" "test" {
   tags = {
     env = "testing"
   }
+
+  depends_on = [time_sleep.wait_key_vault_key]
 }
 
 data "azurerm_managed_redis" "test" {
