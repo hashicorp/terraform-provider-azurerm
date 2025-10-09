@@ -80,6 +80,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*plugin
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"value": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
