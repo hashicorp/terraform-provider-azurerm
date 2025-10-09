@@ -79,6 +79,7 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 						ExactlyOneOf: []string{"application_insights.0.connection_string", "application_insights.0.instrumentation_key"},
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"instrumentation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -129,6 +130,7 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 						},
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"endpoint_uri": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -138,6 +140,7 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 							"eventhub.0.endpoint_uri",
 						},
 					},
+
 					"user_assigned_identity_client_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
