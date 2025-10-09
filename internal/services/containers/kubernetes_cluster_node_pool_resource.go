@@ -1396,12 +1396,22 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
+	useMaxSurge := false
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		// If max_surge is set, max_unavailable must be "0"
+		if maxSurgeRaw != "0" {
+			useMaxSurge = true
+			setting.MaxUnavailable = pointer.To("0")
+		}
 	}
-	if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
-		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+
+	if !useMaxSurge {
+		if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
+			setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		}
 	}
+
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
