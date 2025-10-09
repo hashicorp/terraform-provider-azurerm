@@ -3,21 +3,38 @@ subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_table_microsoft"
 description: |-
-  Manages a Log Analytics Workspace Table Microsoft.
+  Manages a Microsoft Table in a Log Analytics (formally Operational Insights) Workspace.
 ---
 
 # azurerm_log_analytics_workspace_table_microsoft
 
-Manages a Log Analytics Workspace Table Microsoft.
+Manages a Microsoft Table in a Log Analytics (formally Operational Insights) Workspace.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_log_analytics_workspace" "example" {
-  name = "example"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  retention_in_days   = 30
+}
+
+# NB: Comment out the rest of this configuration until the workspace has been created
+import {
+  id = "${azurerm_log_analytics_workspace.example.id}/tables/AppCenterError"
+  to = azurerm_log_analytics_workspace_table_microsoft.example
+}
+
 resource "azurerm_log_analytics_workspace_table_microsoft" "example" {
-  name         = "example"
+  name         = "AppCenterError"
+  display_name = "AppCenterError"
+  sub_type     = "Any"
   workspace_id = azurerm_log_analytics_workspace.example.id
 }
 ```
@@ -45,6 +62,8 @@ The following arguments are supported:
 * `plan` - (Optional) the plan by which the logs that are ingested to this table are handled and charged. Possible values are `Basic` and `Analytics`. Defaults to `Analytics`.
 
 * `retention_in_days` - (Optional) the table retention in days, between 4 and 730. Setting this property to -1 will default to the workspace retention.
+
+-> **Note:** `retention_in_days` must be less than or equal to `total_retention_in_days`.
 
 * `sub_type` - (Required) the API and feature subtype of the table. Possible values are `Any`, `Classic`, and `DataCollectionRuleBased`. Changing this forces a new resource to be created.
 
