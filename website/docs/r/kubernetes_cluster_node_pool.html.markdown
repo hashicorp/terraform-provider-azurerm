@@ -312,9 +312,7 @@ A `upgrade_settings` block supports the following:
 
 * `max_surge` - (Optional) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
-* `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade. 
-
--> **Note:** `max_unavailable` conflicts with `max_surge`. Only one of them should be set. Using both with percentages that violate upgrade constraints is not supported.
+* `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade. The `max_surge` must be set to 0 for `max_unavailable` to be set. The two values can't both be active at the same time.
 
 * `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 

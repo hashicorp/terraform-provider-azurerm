@@ -2328,6 +2328,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
   upgrade_settings {
+    max_surge                     = "0"
     max_unavailable               = %q
     drain_timeout_in_minutes      = %d
     node_soak_duration_in_minutes = %d
