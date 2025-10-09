@@ -24,7 +24,7 @@ type ManagedLustreFileSystemAutoExportJobModel struct {
 	AmlFileSystemName  string            `tfschema:"aml_file_system_name"`
 	Location           string            `tfschema:"location"`
 	AutoExportPrefixes []string          `tfschema:"auto_export_prefixes"`
-	AdminStatus        string            `tfschema:"admin_status"`
+	AdminStatusEnabled bool              `tfschema:"admin_status_enabled"`
 	Tags               map[string]string `tfschema:"tags"`
 }
 
@@ -74,14 +74,10 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 			},
 		},
 
-		"admin_status": {
-			Type:     pluginsdk.TypeString,
+		"admin_status_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autoexportjob.AutoExportJobAdminStatusEnable),
-				string(autoexportjob.AutoExportJobAdminStatusDisable),
-			}, false),
-			Default: string(autoexportjob.AutoExportJobAdminStatusEnable),
+			Default:  true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -114,15 +110,20 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 			props := autoexportjob.AutoExportJob{
 				Location: location.Normalize(model.Location),
 				Properties: pointer.To(autoexportjob.AutoExportJobProperties{
-					AdminStatus:        pointer.To(autoexportjob.AutoExportJobAdminStatus(model.AdminStatus)),
 					AutoExportPrefixes: pointer.To(model.AutoExportPrefixes),
 				}),
 				Tags: pointer.To(model.Tags),
 			}
 
+			if model.AdminStatusEnabled {
+				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusEnable)
+			} else {
+				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusDisable)
+			}
+
 			autoExportJobId := autoexportjob.NewAutoExportJobID(subscriptionId, model.ResourceGroupName, model.AmlFileSystemName, model.Name)
 			if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, props); err != nil {
-				return fmt.Errorf("creating Auto Export Job %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(autoExportJobId)
@@ -148,7 +149,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving Auto Export Job %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := ManagedLustreFileSystemAutoExportJobModel{}
@@ -161,7 +162,11 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.AutoExportPrefixes = pointer.From(props.AutoExportPrefixes)
-					state.AdminStatus = string(pointer.From(props.AdminStatus))
+					if props.AdminStatus != nil && string(pointer.From(props.AdminStatus)) == string(autoexportjob.AutoExportJobAdminStatusEnable) {
+						state.AdminStatusEnabled = true
+					} else {
+						state.AdminStatusEnabled = false
+					}
 				}
 			}
 
@@ -181,7 +186,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Delete() sdk.ResourceFunc 
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting Auto Export Job %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
@@ -217,8 +222,12 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 				props.Properties.AutoExportPrefixes = pointer.To(model.AutoExportPrefixes)
 			}
 
-			if metadata.ResourceData.HasChange("admin_status") {
-				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatus(model.AdminStatus))
+			if metadata.ResourceData.HasChange("admin_status_enabled") {
+				if model.AdminStatusEnabled {
+					props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusEnable)
+				} else {
+					props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusDisable)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -226,7 +235,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-				return fmt.Errorf("updating Auto Export Job %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil

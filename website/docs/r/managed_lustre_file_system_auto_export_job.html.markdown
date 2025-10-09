@@ -179,7 +179,7 @@ The following arguments are supported:
 
 * `auto_export_prefixes` - (Required) A list of prefixes that get auto exported to the cluster namespace.
 
-* `admin_status` - (Optional) The administrative status of the Auto Export Job. Possible values are `Enable` and `Disable`. Defaults to `Enable`.
+* `admin_status_enabled` - (Optional) Whether the administrative status of the Auto Export Job is enabled. Possible values are `true` and `false`. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System Auto Export Job.
 

@@ -126,7 +126,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   location             = azurerm_resource_group.test.location
 
   auto_export_prefixes = ["/"]
-  admin_status         = "Enable"
+  admin_status_enabled = true
 }
 `, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
 }
@@ -142,7 +142,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "import" {
   location             = azurerm_managed_lustre_file_system_auto_export_job.test.location
 
   auto_export_prefixes = azurerm_managed_lustre_file_system_auto_export_job.test.auto_export_prefixes
-  admin_status         = azurerm_managed_lustre_file_system_auto_export_job.test.admin_status
+  admin_status_enabled = azurerm_managed_lustre_file_system_auto_export_job.test.admin_status_enabled
 }
 `, r.basic(data))
 }
