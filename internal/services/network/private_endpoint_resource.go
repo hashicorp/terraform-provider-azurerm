@@ -186,7 +186,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"status": {
+									"actions_required": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
@@ -194,7 +194,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
-									"actions_required": {
+									"status": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
