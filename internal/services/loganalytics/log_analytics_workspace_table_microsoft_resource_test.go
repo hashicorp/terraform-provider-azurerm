@@ -168,6 +168,12 @@ resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   plan                    = "Analytics"
   categories              = ["AppCenter"] # NOT RETURNED BY API
   labels                  = ["label1", "label2"]
+  column {
+    name               = "mycustom_CF"
+    description        = "test"
+    type               = "string"
+    display_by_default = false
+  }
 }
 `, t.template(data))
 }
