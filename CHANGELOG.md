@@ -21,7 +21,6 @@ BUG FIXES:
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
 * `azurerm_mssql_database` - add validation to ensure that `min_capacity` and `auto_pause_delay_in_minutes` can only be set on serverless dbs [GH-30790]
 * `azurerm_network_watcher_flow_log` - the `target_resource_id` property is now included in the update request payload resolving an issue where changing it failed to recreate or update the resource [GH-30776]
-* `azurerm_oracle_autonomous_database_clone_from_backup` - remove unused property `use_latest_available_backup_timestamp_enabled` [GH-30802]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - fix read error when in replica set in failover state [GH-30789]
 * `azurerm_mssql_server` - the `azuread_administrator` block now updates in place rather than being deleted/recreated [GH-30742]
 
