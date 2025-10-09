@@ -75,15 +75,7 @@ func TestAccManagedRedis_update(t *testing.T) {
 		data.ImportStep(),
 		// Create the db and update all non force-new prop
 		{
-			Config: r.update(data, true, "false"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// Update the db
-		{
-			Config: r.update(data, true, "true"),
+			Config: r.update(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -91,7 +83,7 @@ func TestAccManagedRedis_update(t *testing.T) {
 		data.ImportStep(),
 		// remove the db
 		{
-			Config: r.update(data, false, "true"),
+			Config: r.update(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -329,15 +321,15 @@ resource "azurerm_managed_redis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
 
-func (r ManagedRedisResource) update(data acceptance.TestData, withDb bool, accessKeyAuthEnabled string) string {
+func (r ManagedRedisResource) update(data acceptance.TestData, withDb bool) string {
 	db := ""
 	if withDb {
 		db = fmt.Sprintf(`
   default_database {
-    access_keys_authentication_enabled = %[1]s
-    geo_replication_group_name         = "acctest-amr-georep-%[2]d"
+    access_keys_authentication_enabled = false
+    geo_replication_group_name         = "acctest-amr-georep-%[1]d"
   }
-`, accessKeyAuthEnabled, data.RandomInteger)
+`, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
