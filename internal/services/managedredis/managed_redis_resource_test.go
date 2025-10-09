@@ -303,8 +303,6 @@ resource "azurerm_managed_redis" "test" {
       name = "RedisJSON"
       args = ""
     }
-
-    port = 10000
   }
 
   high_availability_enabled = true

@@ -69,8 +69,8 @@ type DefaultDatabaseModel struct {
 	EvictionPolicy                  string        `tfschema:"eviction_policy"`
 	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
 	Module                          []ModuleModel `tfschema:"module"`
-	Port                            int64         `tfschema:"port"`
 
+	Port               int64  `tfschema:"port"`
 	PrimaryAccessKey   string `tfschema:"primary_access_key"`
 	SecondaryAccessKey string `tfschema:"secondary_access_key"`
 }
@@ -194,10 +194,8 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"port": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      10000,
-						ValidateFunc: validation.IntBetween(0, 65353),
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 
 					"primary_access_key": {
@@ -649,7 +647,6 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 			ClientProtocol:           pointer.To(databases.Protocol(dbModel.ClientProtocol)),
 			ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(dbModel.ClusteringPolicy)),
 			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
-			Port:                     pointer.To(dbModel.Port),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
 		},

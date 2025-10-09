@@ -154,8 +154,6 @@ A `default_database` block supports the following:
 
 * `module` - (Optional) A `module` block as defined below.
 
-* `port` - (Optional) TCP port of the database endpoint. Specified at create time. Defaults to `10000`.
-
 ---
 
 A `customer_managed_key` block supports the following:
@@ -196,9 +194,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `default_database` block exports the following:
 
-* `primary_access_key` - The Primary Access Key for the Managed Redis Database Instance.
+* `port` - TCP port of the database endpoint.
 
-* `secondary_access_key` - The Secondary Access Key for the Managed Redis Database Instance.
+* `primary_access_key` - The Primary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.
+
+* `secondary_access_key` - The Secondary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.
 
 ---
 
