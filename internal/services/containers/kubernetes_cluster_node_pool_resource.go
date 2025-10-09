@@ -1263,10 +1263,12 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"upgrade_settings.0.max_unavailable",
 					},
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
 				},
 				"max_unavailable": {
 					Type:     pluginsdk.TypeString,
@@ -1276,6 +1278,7 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"upgrade_settings.0.max_surge",
 					},
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
