@@ -318,7 +318,7 @@ resource "azurerm_managed_redis" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ManagedRedisResource) update(data acceptance.TestData, withDb bool) string {
@@ -428,7 +428,7 @@ resource "azurerm_managed_redis" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5), db)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, db)
 }
 
 func (r ManagedRedisResource) withPrivateEndpoint(data acceptance.TestData) string {

@@ -156,5 +156,5 @@ data "azurerm_managed_redis" "test" {
   name                = azurerm_managed_redis.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
