@@ -20,12 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type WorkspaceTableMicrosoftResource struct{}
-
 var (
 	_ sdk.ResourceWithUpdate        = WorkspaceTableMicrosoftResource{}
 	_ sdk.ResourceWithCustomizeDiff = WorkspaceTableMicrosoftResource{}
 )
+
+type WorkspaceTableMicrosoftResource struct{}
 
 type WorkspaceTableMicrosoftResourceModel struct {
 	Name                 string   `tfschema:"name"`
@@ -75,17 +75,18 @@ func (r WorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schema {
 	args := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
-		},
-
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
 		},
 
 		"display_name": {
@@ -232,7 +233,7 @@ func (r WorkspaceTableMicrosoftResource) IDValidationFunc() pluginsdk.SchemaVali
 
 func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 5 * time.Minute, // NOT 30m like other resources, as Microsoft tables are made with the log analytics workspace
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model WorkspaceTableMicrosoftResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -251,7 +252,7 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("error checking for presence of existing table %s: %v", tableName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", tableName, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -261,7 +262,7 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 				return errors.New("sub_type 'Classic' tables cannot be created with this resource")
 			}
 
-			updateInput := tables.Table{
+			param := tables.Table{
 				Properties: &tables.TableProperties{
 					Plan: pointer.To(tables.TablePlanEnum(model.Plan)),
 					Schema: &tables.Schema{
@@ -279,19 +280,19 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
 				if model.RetentionInDays == 0 {
-					updateInput.Properties.RetentionInDays = defaultRetentionInDays
+					param.Properties.RetentionInDays = defaultRetentionInDays
 				} else {
-					updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+					param.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
 				}
 				if model.TotalRetentionInDays == 0 {
-					updateInput.Properties.TotalRetentionInDays = defaultRetentionInDays
+					param.Properties.TotalRetentionInDays = defaultRetentionInDays
 				} else {
-					updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
+					param.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
-				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -326,7 +327,7 @@ func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving Log Analytics Workspace Table %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := WorkspaceTableMicrosoftResourceModel{
@@ -392,8 +393,8 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state WorkspaceTableMicrosoftResourceModel
-			if err := metadata.Decode(&state); err != nil {
+			var config WorkspaceTableMicrosoftResourceModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -412,54 +413,54 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("properties is nil: %+v", existing)
 			}
 
-			updateInput := existing.Model
+			param := existing.Model
 
 			// Create / Update requests MUST have a nil value for `StandardColumns`
-			updateInput.Properties.Schema.StandardColumns = nil
+			param.Properties.Schema.StandardColumns = nil
 
 			if metadata.ResourceData.HasChange("plan") {
-				updateInput.Properties.Plan = pointer.To(tables.TablePlanEnum(state.Plan))
+				param.Properties.Plan = pointer.To(tables.TablePlanEnum(config.Plan))
 			}
 
-			if state.Plan == string(tables.TablePlanEnumAnalytics) {
+			if config.Plan == string(tables.TablePlanEnumAnalytics) {
 				if metadata.ResourceData.HasChange("retention_in_days") {
-					updateInput.Properties.RetentionInDays = defaultRetentionInDays
-					if state.RetentionInDays != 0 {
-						updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
+					param.Properties.RetentionInDays = defaultRetentionInDays
+					if config.RetentionInDays != 0 {
+						param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
 					}
 				}
 
 				if metadata.ResourceData.HasChange("total_retention_in_days") {
-					if state.TotalRetentionInDays == 0 {
-						updateInput.Properties.TotalRetentionInDays = defaultRetentionInDays
+					if config.TotalRetentionInDays == 0 {
+						param.Properties.TotalRetentionInDays = defaultRetentionInDays
 					} else {
-						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
+						param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 					}
 				}
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				updateInput.Properties.Schema.DisplayName = pointer.To(state.DisplayName)
+				param.Properties.Schema.DisplayName = pointer.To(config.DisplayName)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				updateInput.Properties.Schema.Description = pointer.To(state.Description)
+				param.Properties.Schema.Description = pointer.To(config.Description)
 			}
 
 			if metadata.ResourceData.HasChange("categories") {
-				updateInput.Properties.Schema.Categories = pointer.To(state.Categories)
+				param.Properties.Schema.Categories = pointer.To(config.Categories)
 			}
 
 			if metadata.ResourceData.HasChange("labels") {
-				updateInput.Properties.Schema.Labels = pointer.To(state.Labels)
+				param.Properties.Schema.Labels = pointer.To(config.Labels)
 			}
 
 			if metadata.ResourceData.HasChange("column") {
-				updateInput.Properties.Schema.Columns = expandColumns(&state.Columns)
+				param.Properties.Schema.Columns = expandColumns(&config.Columns)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(updateInput)); err != nil {
-				return fmt.Errorf("failed to update table: %s: %+v", id.TableName, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
+				return fmt.Errorf("updating %s: %+v", id.TableName, err)
 			}
 
 			return nil
@@ -494,7 +495,7 @@ func (r WorkspaceTableMicrosoftResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
-				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", id.TableName, id.WorkspaceName, id.ResourceGroupName, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
