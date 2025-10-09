@@ -395,8 +395,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
-	if autoscaleConfiguration := d.Get("autoscale").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
-		configuration, err := expandAutoscaleConfiguration(autoscaleConfiguration)
+	configuration, err := expandAutoscaleConfiguration(d.Get("autoscale").([]any))
 		if err != nil {
 			return err
 		}
