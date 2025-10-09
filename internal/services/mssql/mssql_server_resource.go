@@ -465,7 +465,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
 			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
 			if err != nil {
-				return fmt.Errorf("creating Azure Active Directory Administrator %s: %+v", id, err)
+				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		} else {
 			_, err := adminClient.Get(ctx, *id)
