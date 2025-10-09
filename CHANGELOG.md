@@ -13,7 +13,9 @@ ENHANCEMENTS:
 * dependencies: `guestconfiguration` - update to API version `2024-04-05` [GH-30642]
 * `azurerm_kubernetes_cluster_node_pool` - add support for `AzureLinux3` and `Ubuntu2204` to the `os_sku` property [GH-30719]
 * `azurerm_kubernetes_cluster` - add support for `AzureLinux3` and `Ubuntu2204` to the `default_node_pool.os_sku` property [GH-30719]
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` properties [GH-30204]
 * `azurerm_network_watcher_flow_log` - changing the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` properties [GH-30204]
 
 BUG FIXES:
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
