@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -20,12 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type WorkspaceTableCustomLogResource struct{}
-
 var (
 	_ sdk.ResourceWithUpdate        = WorkspaceTableCustomLogResource{}
 	_ sdk.ResourceWithCustomizeDiff = WorkspaceTableCustomLogResource{}
 )
+
+type WorkspaceTableCustomLogResource struct{}
 
 type WorkspaceTableCustomLogResourceModel struct {
 	Name                 string   `tfschema:"name"`
@@ -74,17 +73,17 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schema {
 	args := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
-		},
-
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
 		},
 
 		"display_name": {
@@ -215,18 +214,17 @@ func (r WorkspaceTableCustomLogResource) IDValidationFunc() pluginsdk.SchemaVali
 
 func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model WorkspaceTableCustomLogResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+			var config WorkspaceTableCustomLogResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 			client := metadata.Client.LogAnalytics.TablesClient
 
-			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s update.", tableName)
+			tableName := config.Name
 
-			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
+			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
 				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
 			}
@@ -234,21 +232,21 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("error checking for presence of existing table %s: %v", tableName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			payload := tables.Table{
+			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan: pointer.To(tables.TablePlanEnum(model.Plan)),
+					Plan: pointer.To(tables.TablePlanEnum(config.Plan)),
 					Schema: &tables.Schema{
-						Categories:   pointer.To(model.Categories),
-						Columns:      expandColumns(&model.Columns),
-						DisplayName:  pointer.To(model.DisplayName),
-						Description:  pointer.To(model.Description),
-						Labels:       pointer.To(model.Labels),
+						Categories:   pointer.To(config.Categories),
+						Columns:      expandColumns(&config.Columns),
+						DisplayName:  pointer.To(config.DisplayName),
+						Description:  pointer.To(config.Description),
+						Labels:       pointer.To(config.Labels),
 						Name:         pointer.To(tableName),
 						TableSubType: pointer.To(tables.TableSubTypeEnumDataCollectionRuleBased),
 						TableType:    pointer.To(tables.TableTypeEnumCustomLog),
@@ -256,25 +254,24 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.Plan == string(tables.TablePlanEnumAnalytics) {
-				if model.RetentionInDays == 0 {
-					payload.Properties.RetentionInDays = defaultRetentionInDays
+			if config.Plan == string(tables.TablePlanEnumAnalytics) {
+				if config.RetentionInDays == 0 {
+					param.Properties.RetentionInDays = defaultRetentionInDays
 				} else {
-					payload.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+					param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
 				}
-				if model.TotalRetentionInDays == 0 {
-					payload.Properties.TotalRetentionInDays = defaultRetentionInDays
+				if config.TotalRetentionInDays == 0 {
+					param.Properties.TotalRetentionInDays = defaultRetentionInDays
 				} else {
-					payload.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
+					param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-
 			return nil
 		},
 	}
@@ -284,22 +281,20 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.LogAnalytics.TablesClient
+
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
-
-			client := metadata.Client.LogAnalytics.TablesClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving Log Analytics Workspace Table %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-
-			var state WorkspaceTableCustomLogResourceModel
 
 			var workspaceId *workspaces.WorkspaceId
 			if workspaceStateId, ok := metadata.ResourceData.GetOk("workspace_id"); ok {
@@ -311,8 +306,10 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 				workspaceId = pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
 			}
 
-			state.WorkspaceId = workspaceId.ID()
-			state.Name = id.TableName
+			state := WorkspaceTableCustomLogResourceModel{
+				WorkspaceId: workspaceId.ID(),
+				Name:        id.TableName,
+			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
@@ -360,16 +357,16 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 
 func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.TablesClient
+
+			var config WorkspaceTableCustomLogResourceModel
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-
-			var state WorkspaceTableCustomLogResourceModel
-			if err := metadata.Decode(&state); err != nil {
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -388,55 +385,55 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("properties is nil: %+v", existing)
 			}
 
-			updateInput := existing.Model
+			param := existing.Model
 
-			// Create / Update requests MUST have a nil value for `StandardColumns`
-			updateInput.Properties.Schema.StandardColumns = nil
+			// Create / Update requests MUST have a nil value for `StandardColumns` or they will get a 400 response
+			param.Properties.Schema.StandardColumns = nil
 
 			if metadata.ResourceData.HasChange("plan") {
-				updateInput.Properties.Plan = pointer.To(tables.TablePlanEnum(state.Plan))
+				param.Properties.Plan = pointer.To(tables.TablePlanEnum(config.Plan))
 			}
 
-			if state.Plan == string(tables.TablePlanEnumAnalytics) {
+			if config.Plan == string(tables.TablePlanEnumAnalytics) {
 				if metadata.ResourceData.HasChange("retention_in_days") {
-					if state.RetentionInDays == 0 {
-						updateInput.Properties.RetentionInDays = defaultRetentionInDays
+					if config.RetentionInDays == 0 {
+						param.Properties.RetentionInDays = defaultRetentionInDays
 					} else {
-						updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
+						param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
 					}
 				}
 
 				if metadata.ResourceData.HasChange("total_retention_in_days") {
-					if state.TotalRetentionInDays == 0 {
-						updateInput.Properties.TotalRetentionInDays = defaultRetentionInDays
+					if config.TotalRetentionInDays == 0 {
+						param.Properties.TotalRetentionInDays = defaultRetentionInDays
 					} else {
-						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
+						param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 					}
 				}
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				updateInput.Properties.Schema.DisplayName = pointer.To(state.DisplayName)
+				param.Properties.Schema.DisplayName = pointer.To(config.DisplayName)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				updateInput.Properties.Schema.Description = pointer.To(state.Description)
+				param.Properties.Schema.Description = pointer.To(config.Description)
 			}
 
 			if metadata.ResourceData.HasChange("categories") {
-				updateInput.Properties.Schema.Categories = pointer.To(state.Categories)
+				param.Properties.Schema.Categories = pointer.To(config.Categories)
 			}
 
 			if metadata.ResourceData.HasChange("labels") {
-				updateInput.Properties.Schema.Labels = pointer.To(state.Labels)
+				param.Properties.Schema.Labels = pointer.To(config.Labels)
 			}
 
 			if metadata.ResourceData.HasChange("column") {
-				updateInput.Properties.Schema.Columns = expandColumns(&state.Columns)
+				param.Properties.Schema.Columns = expandColumns(&config.Columns)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(updateInput)); err != nil {
-				return fmt.Errorf("failed to update table: %s: %+v", id.TableName, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -455,11 +452,11 @@ func (r WorkspaceTableCustomLogResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", id.TableName, id.WorkspaceName, id.ResourceGroupName, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
