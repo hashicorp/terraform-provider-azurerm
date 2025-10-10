@@ -662,6 +662,7 @@ func expandHighAvailability(enabled bool) *redisenterprise.HighAvailability {
 	if enabled {
 		return pointer.To(redisenterprise.HighAvailabilityEnabled)
 	}
+
 	return pointer.To(redisenterprise.HighAvailabilityDisabled)
 }
 
@@ -669,6 +670,7 @@ func expandAccessKeysAuth(enabled bool) *databases.AccessKeysAuthentication {
 	if enabled {
 		return pointer.To(databases.AccessKeysAuthenticationEnabled)
 	}
+
 	return pointer.To(databases.AccessKeysAuthenticationDisabled)
 }
 
