@@ -90,7 +90,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				useMaxUnavailable := maxUnavailable != "" && maxUnavailable != "0"
 
 				if useMaxSurge && useMaxUnavailable {
-					return fmt.Errorf("The `upgrade_settings.0.max_surge` must be set to 0 for `upgrade_settings.0.max_unavailable` to be set. The two values can't both be active at the same time")
+					return fmt.Errorf("the `upgrade_settings.0.max_surge` must be set to 0 for `upgrade_settings.0.max_unavailable` to be set. The two values can't both be active at the same time")
 				}
 
 				return nil
