@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - add support for the `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` properties [GH-30204]
 * `azurerm_network_watcher_flow_log` - changing the `target_resource_id` property no longer forces the resource to be replaced [GH-30776]
 * `azurerm_windows_virtual_machine_scale_set` - add support for the `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` properties [GH-30204]
+* `azurerm_kubernetes_cluster` - add support for the `ai_toolchain_operator_enabled` property [GH-30713]
 
 BUG FIXES:
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
