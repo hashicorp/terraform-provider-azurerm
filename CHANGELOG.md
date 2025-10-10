@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource**: `azurerm_oracle_autonomous_database_clone_from_database` [GH-29633]
 
 ENHANCEMENTS:
+* dependencies: `containerapps` - update to API version `2025-07-01` [GH-30801]
 * `azurerm_notification_hub_namespace` - add support for `replication_region` and `zone_redundancy_enabled` [GH-30531]
 * dependencies: `containerservice` - update to API version `2025-07-01` [GH-30719]
 * dependencies: `go-azure-sdk` - update to `v0.20250925.1224537` [GH-30719]
