@@ -124,6 +124,8 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
+* `virtual_machine_profile` - (Optional) A `virtual_machine_profile` block as defined below.
+
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
@@ -301,6 +303,22 @@ A `sysctl_config` block supports the following:
 * `vm_swappiness` - (Optional) The sysctl setting vm.swappiness. Must be between `0` and `100`.
 
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`.
+
+---
+
+A `virtual_machine_profile` block supports the following:
+
+* `scale` - A `scale` block as defined below.
+
+A `scale` block supports the following:
+
+* `manual` - A list of `manual` blocks as defined below.
+
+A `manual` block supports the following:
+
+* `size` - (Required) The size of the virtual machine.
+
+* `count` - (Required) The count of virtual machines.
 
 ---
 
