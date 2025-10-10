@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-07-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -93,7 +93,7 @@ func (t NatGatewayPublicIpPrefixAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
+	resp, err := clients.Network.NatGatewaysClient.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-07-01/natgateways"
 	network_2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -20,6 +21,7 @@ type Client struct {
 	BastionHostsClient *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
 	NetworkInterfacesClient     *networkinterfaces.NetworkInterfacesClient
+	NatGatewaysClient			*natgateways.NatGatewaysClient
 	VMSSPublicIPAddressesClient *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 }
 
@@ -35,6 +37,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Network Interfaces Client: %+v", err)
 	}
 	o.Configure(NetworkInterfacesClient.Client, o.Authorizers.ResourceManager)
+
+	NatGatewaysClient, err := natgateways.NewNatGatewaysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Nat Gateway Client: %+v", err)
+	}
+	o.Configure(NatGatewaysClient.Client, o.Authorizers.ResourceManager)
 
 	VMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -52,6 +60,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		BastionHostsClient:          BastionHostsClient,
 		NetworkInterfacesClient:     NetworkInterfacesClient,
+		NatGatewaysClient:			 NatGatewaysClient,
 		VMSSPublicIPAddressesClient: VMSSPublicIPAddressesClient,
 		Client:                      client,
 	}, nil
