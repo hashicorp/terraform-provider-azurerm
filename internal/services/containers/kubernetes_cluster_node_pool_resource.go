@@ -81,6 +81,20 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
+
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				maxSurge := d.Get("upgrade_settings.0.max_surge").(string)
+				maxUnavailable := d.Get("upgrade_settings.0.max_unavailable").(string)
+
+				useMaxSurge := maxSurge != "" && maxSurge != "0"
+				useMaxUnavailable := maxUnavailable != "" && maxUnavailable != "0"
+
+				if useMaxSurge && useMaxUnavailable {
+					return fmt.Errorf("The `upgrade_settings.0.max_surge` must be set to 0 for `upgrade_settings.0.max_unavailable` to be set. The two values can't both be active at the same time")
+				}
+
+				return nil
+			},
 		),
 	}
 
@@ -1266,10 +1280,9 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 				"max_unavailable": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// NOTE: O+C The API returns `"0"` as a default value
-					Computed:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "0",
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"node_soak_duration_in_minutes": {
@@ -1396,20 +1409,11 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
-	useMaxSurge := false
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
-		// If max_surge is set, max_unavailable must be "0"
-		if maxSurgeRaw != "0" {
-			useMaxSurge = true
-			setting.MaxUnavailable = pointer.To("0")
-		}
 	}
-
-	if !useMaxSurge {
-		if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
-			setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
-		}
+	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
+		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
 	}
 
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
