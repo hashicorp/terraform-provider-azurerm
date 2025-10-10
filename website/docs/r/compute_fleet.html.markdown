@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `platform_fault_domain_count` - (Optional)  Specifies the number of fault domains that are used by the Compute Fleet. Defaults to `1`. Changing this forces a new resource to be created.
+* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used by the Compute Fleet. Defaults to `1`. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) Specifies a list of availability zones in which the Compute Fleet is available. Changing this forces a new resource to be created.
 
@@ -142,7 +142,7 @@ The following arguments are supported:
 * `spot_priority_profile` - (Optional) A `spot_priority_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Compute Fleet.
-* 
+
 ---
 
 A `virtual_machine_profile` block supports the following:
@@ -165,7 +165,7 @@ A `virtual_machine_profile` block supports the following:
 
 * `extension` - (Optional) One or more `extension` blocks as defined above. Changing this forces a new resource to be created.
 
-* `extension_operations_enabled` - (Optional) Whether to enable extension operations on the Compute Fleet.  Defaults to `true`. Changing this forces a new resource to be created.
+* `extension_operations_enabled` - (Optional) Whether to enable extension operations on the Compute Fleet. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `extensions_time_budget_duration` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Changing this forces a new resource to be created.
 
@@ -193,7 +193,7 @@ A `virtual_machine_profile` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `name` - (Required)  The name which should be used for the network interface. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for the network interface. Changing this forces a new resource to be created.
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above. Changing this forces a new resource to be created.
 
@@ -227,7 +227,7 @@ A `os_profile` block supports the following:
 
 A `additional_capabilities` block supports the following:
 
-* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet.  Defaults to `false`. Changing this forces a new resource to be created.
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `ultra_ssd_enabled` - (Optional) Whether to enable Data Disks of the `UltraSSD_LRS` storage account type on this Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -267,7 +267,7 @@ A `data_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the disk encryption set which should be used to encrypt the data disk. Changing this forces a new resource to be created.
 
-* `disk_size_in_gib` - (Optional) The size of the data disk which should be created.  Changing this forces a new resource to be created.
+* `disk_size_in_gib` - (Optional) The size of the data disk which should be created in GiB. Changing this forces a new resource to be created.
 
 -> **Note:** Required if `create_option` is specified as `Empty`.
 
@@ -275,7 +275,7 @@ A `data_disk` block supports the following:
 
 -> **Note:** Required if `create_option` is specified as `Empty`.
 
-* `storage_account_type` - (Optional)  The type of storage account which should back the data disk. Possible values include `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
+* `storage_account_type` - (Optional) The type of storage account which should back the data disk. Possible values include `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 
 * `write_accelerator_enabled` - (Optional) Whether to enable the write accelerator on the data disk. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -331,7 +331,7 @@ A `gallery_application` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required)  The type of managed identity that should be configured on the Compute Fleet. The only possible value is `UserAssigned`.
+* `type` - (Required) The type of managed identity that should be configured on the Compute Fleet. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity IDs to be assigned to the Compute Fleet.
 
@@ -373,11 +373,11 @@ A `linux_configuration` block supports the following:
 
 -> **Note:** When an `admin_password` is specified `password_authentication_enabled` must be set to `true`.
 
-* `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`. Changing this forces a new resource to be created.
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `reboot_setting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
+* `patch_rebooting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -519,11 +519,11 @@ A `windows_configuration` block supports the following:
 
 * `hot_patching_enabled` - (Optional) Whether to enable the customers to patch the virtual machines without requiring a reboot. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByOS`, `AutomaticByPlatform` and `Manual`. Changing this forces a new resource to be created.
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByOS`, `AutomaticByPlatform` and `Manual`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `reboot_setting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
+* `patch_rebooting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) One or more `secret` blocks as defined above. Changing this forces a new resource to be created.
 
@@ -531,7 +531,7 @@ A `windows_configuration` block supports the following:
 
 * `vm_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.  Changing this forces a new resource to be created.
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 

@@ -71,9 +71,9 @@ resource "azurerm_compute_fleet" "test" {
   platform_fault_domain_count = 2
 
   spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {
@@ -142,9 +142,9 @@ resource "azurerm_compute_fleet" "test" {
   platform_fault_domain_count = 1
 
   spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {
@@ -283,9 +283,9 @@ resource "azurerm_compute_fleet" "test" {
   platform_fault_domain_count = 2
 
   spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {

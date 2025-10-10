@@ -175,6 +175,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 func (r ComputeFleetTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 %[1]s
 
 resource "azurerm_compute_fleet" "test" {
@@ -183,9 +184,9 @@ resource "azurerm_compute_fleet" "test" {
   location            = "%[3]s"
 
   spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 1
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {
@@ -239,9 +240,9 @@ resource "azurerm_compute_fleet" "import" {
   location            = azurerm_compute_fleet.test.location
 
   spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 1
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {
@@ -327,12 +328,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_priority_profile {
-    allocation_strategy     = "PriceCapacityOptimized"
-    eviction_policy         = "Delete"
-    max_hourly_price_per_vm = -1
-    min_capacity            = 0
-    maintain_enabled        = false
-    capacity                = 1
+    allocation_strategy       = "PriceCapacityOptimized"
+    eviction_policy           = "Delete"
+    max_hourly_price_per_vm   = -1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   regular_priority_profile {
@@ -441,12 +442,12 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   spot_priority_profile {
-    allocation_strategy     = "PriceCapacityOptimized"
-    eviction_policy         = "Delete"
-    max_hourly_price_per_vm = -1
-    min_capacity            = 0
-    maintain_enabled        = false
-    capacity                = 1
+    allocation_strategy       = "PriceCapacityOptimized"
+    eviction_policy           = "Delete"
+    max_hourly_price_per_vm   = -1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   regular_priority_profile {

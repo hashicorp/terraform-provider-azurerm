@@ -14,14 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -29,140 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func virtualMachineProfileSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"network_api_version": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"network_interface": networkInterfaceSchema(),
-
-				"os_profile": osProfileSchema(),
-
-				"boot_diagnostic_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-
-				"boot_diagnostic_storage_account_endpoint": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&capacityreservationgroups.CapacityReservationGroupId{}),
-
-				"data_disk": storageProfileDataDiskSchema(),
-
-				"encryption_at_host_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-
-				"extension": extensionSchema(),
-
-				"extension_operations_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  true,
-				},
-
-				"extensions_time_budget_duration": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
-				},
-
-				"gallery_application": galleryApplicationSchema(),
-
-				"license_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"RHEL_BYOS",
-						"SLES_BYOS",
-						"Windows_Client",
-						"Windows_Server",
-					}, false),
-				},
-
-				"os_disk": storageProfileOsDiskSchema(),
-
-				"scheduled_event_os_image_timeout_duration": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"PT15M",
-					}, false),
-				},
-
-				"scheduled_event_termination_timeout_duration": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
-				},
-
-				"secure_boot_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-
-				"source_image_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.Any(
-						images.ValidateImageID,
-						computeValidate.SharedImageID,
-						computeValidate.SharedImageVersionID,
-						computeValidate.CommunityGalleryImageID,
-						computeValidate.CommunityGalleryImageVersionID,
-						computeValidate.SharedGalleryImageID,
-						computeValidate.SharedGalleryImageVersionID,
-					),
-				},
-
-				"source_image_reference": storageProfileSourceImageReferenceSchema(),
-
-				"user_data_base64": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsBase64,
-				},
-
-				"vtpm_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-			},
-		},
-	}
-}
 
 func galleryApplicationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{

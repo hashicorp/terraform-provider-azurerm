@@ -2,6 +2,7 @@ package computefleet
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -12,6 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -241,7 +245,7 @@ type SpotPriorityProfileModel struct {
 	AllocationStrategy      string  `tfschema:"allocation_strategy"`
 	Capacity                int64   `tfschema:"capacity"`
 	EvictionPolicy          string  `tfschema:"eviction_policy"`
-	MaintainCapacityEnabled bool    `tfschema:"maintain_enabled"`
+	MaintainCapacityEnabled bool    `tfschema:"maintain_capacity_enabled"`
 	MaxHourlyPricePerVM     float64 `tfschema:"max_hourly_price_per_vm"`
 	MinCapacity             int64   `tfschema:"min_capacity"`
 }
@@ -285,7 +289,137 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"virtual_machine_profile": virtualMachineProfileSchema(),
+		"virtual_machine_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"network_api_version": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"network_interface": networkInterfaceSchema(),
+
+					"os_profile": osProfileSchema(),
+
+					"boot_diagnostic_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+
+					"boot_diagnostic_storage_account_endpoint": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&capacityreservationgroups.CapacityReservationGroupId{}),
+
+					"data_disk": storageProfileDataDiskSchema(),
+
+					"encryption_at_host_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+
+					"extension": extensionSchema(),
+
+					"extension_operations_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  true,
+					},
+
+					"extensions_time_budget_duration": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+					},
+
+					"gallery_application": galleryApplicationSchema(),
+
+					"license_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"RHEL_BYOS",
+							"SLES_BYOS",
+							"Windows_Client",
+							"Windows_Server",
+						}, false),
+					},
+
+					"os_disk": storageProfileOsDiskSchema(),
+
+					"scheduled_event_os_image_timeout_duration": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"PT15M",
+						}, false),
+					},
+
+					"scheduled_event_termination_timeout_duration": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					},
+
+					"secure_boot_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+
+					"source_image_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.Any(
+							images.ValidateImageID,
+							computeValidate.SharedImageID,
+							computeValidate.SharedImageVersionID,
+							computeValidate.CommunityGalleryImageID,
+							computeValidate.CommunityGalleryImageVersionID,
+							computeValidate.SharedGalleryImageID,
+							computeValidate.SharedGalleryImageVersionID,
+						),
+					},
+
+					"source_image_reference": storageProfileSourceImageReferenceSchema(),
+
+					"user_data_base64": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsBase64,
+					},
+
+					"vtpm_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 
 		"vm_sizes_profile": {
 			Type:     pluginsdk.TypeList,
@@ -308,7 +442,28 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
+		"additional_capabilities": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"hibernation_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+					"ultra_ssd_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 
 		"plan": {
 			Type:     pluginsdk.TypeList,
@@ -424,7 +579,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForEvictionPolicy(), false),
 					},
 
-					"maintain_enabled": {
+					"maintain_capacity_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
@@ -451,31 +606,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
-	}
-}
-
-func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"hibernation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
-				},
-			},
-		},
 	}
 }
 
@@ -741,22 +871,22 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if len(state.SpotPriorityProfile) > 0 && len(state.RegularPriorityProfile) > 0 {
 				if state.SpotPriorityProfile[0].Capacity+state.RegularPriorityProfile[0].Capacity > 10000 {
-					return fmt.Errorf("the sum of `spot_priority_profile.0.capacity` and `regular_priority_profile.0.capacity` must be between `0` and `10000`, inclusive")
+					return errors.New("the sum of `spot_priority_profile.0.capacity` and `regular_priority_profile.0.capacity` must be between `0` and `10000`, inclusive")
 				}
 			}
 
 			if len(state.SpotPriorityProfile) > 0 {
 				if state.SpotPriorityProfile[0].MaintainCapacityEnabled {
 					if state.SpotPriorityProfile[0].MinCapacity > 0 {
-						return fmt.Errorf("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_enabled` is enabled")
+						return errors.New("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_enabled` is enabled")
 					}
 
 					if len(state.VMSizesProfile) < 3 {
-						return fmt.Errorf("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_priority_profile.0.maintain_enabled` is enabled")
+						return errors.New("`vm_sizes_profile` must be at least 3 Vm sizes if `spot_priority_profile.0.maintain_capacity_enabled` is enabled")
 					}
 
 					if len(state.Zones) == 0 {
-						return fmt.Errorf("enabling `spot_priority_profile.0.maintain_enabled` requires all qualified availability zones in the region to be supported")
+						return errors.New("enabling `spot_priority_profile.0.maintain_capacity_enabled` requires all qualified availability zones in the region to be supported")
 					}
 				} else if len(state.RegularPriorityProfile) == 0 {
 					// For Spot VMs, you may delete or replace existing VM sizes in your Compute Fleet configuration, if the capacity preference is set to Maintain capacity.
@@ -769,13 +899,13 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				if state.SpotPriorityProfile[0].MinCapacity > state.SpotPriorityProfile[0].Capacity {
-					return fmt.Errorf("`spot_priority_profile.0.min_capacity` must be between `0` and `spot_priority_profile.0.capacity`, inclusive")
+					return errors.New("`spot_priority_profile.0.min_capacity` must be between `0` and `spot_priority_profile.0.capacity`, inclusive")
 				}
 			}
 
 			if len(state.RegularPriorityProfile) > 0 {
 				if state.RegularPriorityProfile[0].MinCapacity > state.RegularPriorityProfile[0].Capacity {
-					return fmt.Errorf("`RegularPriorityProfile.0.min_capacity` must be between `0` and `RegularPriorityProfile.0.capacity`, inclusive")
+					return errors.New("`RegularPriorityProfile.0.min_capacity` must be between `0` and `RegularPriorityProfile.0.capacity`, inclusive")
 				}
 			}
 
@@ -787,24 +917,24 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				if !ultraSSDEnabled && storageAccountType == string(fleets.StorageAccountTypesUltraSSDLRS) {
-					return fmt.Errorf("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enalbed")
+					return errors.New("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enabled")
 				}
 
 				if v[0].CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
 					if v[0].DiskSizeInGiB == 0 {
-						return fmt.Errorf("`disk_size_in_gib` is required when`create_option` is `Empty`")
+						return errors.New("`disk_size_in_gib` is required when`create_option` is `Empty`")
 					}
 
 					lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[0].AsValueMap()["lun"]
 					if lunExist.IsNull() {
-						return fmt.Errorf("`lun` is required when`create_option` is `Empty`")
+						return errors.New("`lun` is required when`create_option` is `Empty`")
 					}
 				}
 			}
 
 			vmProfile := state.VirtualMachineProfile[0]
 			if vmProfile.SourceImageId != "" && len(vmProfile.SourceImageReference) > 0 {
-				return fmt.Errorf("only one of `source_image_id` and `source_image_reference` in `virtual_machine_profile` must be specified")
+				return errors.New("only one of `source_image_id` and `source_image_reference` in `virtual_machine_profile` must be specified")
 			}
 
 			err := validateSecuritySetting(state.VirtualMachineProfile)
@@ -824,12 +954,12 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, v := range state.VirtualMachineProfile[0].Extension {
 				if v.ProtectedSettingsJson != "" && len(v.ProtectedSettingsFromKeyVault) > 0 {
-					return fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings_json`")
+					return errors.New("`protected_settings_from_key_vault` cannot be used with `protected_settings_json`")
 				}
 			}
 
 			if len(state.Zones) > 0 && state.PlatformFaultDomainCount > 1 {
-				return fmt.Errorf("specifying `zones` is not allowed when `platform_fault_domain_count` higher than 1")
+				return errors.New("specifying `zones` is not allowed when `platform_fault_domain_count` higher than 1")
 			}
 
 			return nil
