@@ -228,6 +228,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"autoscale": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -245,8 +246,8 @@ func resourceFirewall() *pluginsdk.Resource {
 					CustomizeDiff: pluginsdk.CustomDiffWithAll(
 						// Verify autoscaleConfiguration server side validations, on client side
 						pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-							min = diff.Get("min_capacity").(int)
-							max = diff.Get("max_capacity").(int)
+							min := diff.Get("min_capacity").(int)
+							max := diff.Get("max_capacity").(int)
 
 							if min > 0 && max > 0 {
 								if min > max {
@@ -395,12 +396,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
-	configuration, err := expandAutoscaleConfiguration(d.Get("autoscale").([]any))
-		if err != nil {
-			return err
-		}
-		parameters.Properties.AutoscaleConfiguration = configuration
-	}
+	configuration := expandAutoscaleConfiguration(d.Get("autoscale").([]any))
+	parameters.Properties.AutoscaleConfiguration = configuration
 
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
 	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
@@ -628,32 +625,30 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return err
 }
 
-func expandAutoscaleConfiguration(config []interface{}) (*azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
+func expandAutoscaleConfiguration(config []interface{}) *azurefirewalls.AzureFirewallAutoscaleConfiguration {
 	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
 	emptyConfig := make(map[string]interface{})
-	if len(config) == 1 {
+	if len(config) == 1 && config[0] != nil {
 		emptyConfig = config[0].(map[string]interface{})
+	} else {
+		return &configuration
 	}
 
-	minPresent := false
-	maxPresent := false
 	min := 0
 	max := 0
 	if _, ok := emptyConfig["min_capacity"]; ok {
-		minPresent = true
 		min = emptyConfig["min_capacity"].(int)
 	}
 	if _, ok := emptyConfig["max_capacity"]; ok {
-		maxPresent = true
 		max = emptyConfig["max_capacity"].(int)
 	}
-	if minPresent && min > 0 {
+	if min > 0 {
 		configuration.MinCapacity = pointer.FromInt64(int64(min))
 	}
-	if maxPresent && max > 0 {
+	if max > 0 {
 		configuration.MaxCapacity = pointer.FromInt64(int64(max))
 	}
-	return &configuration, nil
+	return &configuration
 }
 
 func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
