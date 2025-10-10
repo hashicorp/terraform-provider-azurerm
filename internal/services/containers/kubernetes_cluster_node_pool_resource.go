@@ -430,6 +430,23 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"gateway_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"public_ip_prefix_size": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      31,
+						ValidateFunc: validation.IntBetween(28, 31),
+						Description:  "The Gateway agent pool associates one public IPPrefix for each static egress gateway to provide public egress. The size of Public IPPrefix should be selected by the user. Each node in the agent pool is assigned with one IP from the IPPrefix. The IPPrefix size thus serves as a cap on the size of the Gateway agent pool. Due to Azure public IPPrefix size limitation, the valid value range is [28, 31] (/31 = 2 nodes/IPs, /30 = 4 nodes/IPs, /29 = 8 nodes/IPs, /28 = 16 nodes/IPs). The default value is 31.",
+					},
+				},
+			},
+		},
 	}
 
 	return s
@@ -688,6 +705,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
+	}
+
+	if gatewayProfile := d.Get("gateway_profile").([]interface{}); len(gatewayProfile) > 0 {
+		profile.GatewayProfile = expandAgentPoolGatewayProfile(gatewayProfile)
 	}
 
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
@@ -1850,4 +1871,36 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func expandAgentPoolGatewayProfile(input []interface{}) *agentpools.AgentPoolGatewayProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.AgentPoolGatewayProfile{}
+
+	if publicIPPrefixSize := v["public_ip_prefix_size"].(int); publicIPPrefixSize > 0 {
+		result.PublicIPPrefixSize = pointer.To(int64(publicIPPrefixSize))
+	}
+
+	return result
+}
+
+func flattenAgentPoolGatewayProfile(input *agentpools.AgentPoolGatewayProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	publicIPPrefixSize := 31
+	if input.PublicIPPrefixSize != nil {
+		publicIPPrefixSize = int(*input.PublicIPPrefixSize)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"public_ip_prefix_size": publicIPPrefixSize,
+		},
+	}
 }
