@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - add support for the `ai_toolchain_operator_enabled` property [GH-30713]
 
 BUG FIXES:
+* `azurerm_pim_eligible_role_assignment` - improve filter used during List requests to prevent timeouts [GH-30705]
 * `azurerm_eventhub_namespace` - `maximum_throughput_units` can be set to `0` when `auto_inflate_enabled` is disabled [GH-30777]
 * `azurerm_mssql_database` - add validation to ensure that `min_capacity` and `auto_pause_delay_in_minutes` can only be set on serverless dbs [GH-30790]
 * `azurerm_network_watcher_flow_log` - the `target_resource_id` property is now included in the update request payload resolving an issue where changing it failed to recreate or update the resource [GH-30776]
