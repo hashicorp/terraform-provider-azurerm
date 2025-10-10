@@ -313,6 +313,8 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
 			}
 
+			metadata.SetID(clusterId)
+
 			// Create db
 
 			if len(model.DefaultDatabase) == 1 {
@@ -332,7 +334,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
 			}
 
-			metadata.SetID(clusterId)
 			return nil
 		},
 	}
