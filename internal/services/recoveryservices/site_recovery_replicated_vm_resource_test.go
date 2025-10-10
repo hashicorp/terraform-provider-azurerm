@@ -1611,7 +1611,7 @@ resource "azurerm_key_vault" "test1" {
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
-  soft_delete_retention_days   = 7
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
