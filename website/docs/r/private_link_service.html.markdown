@@ -100,9 +100,9 @@ The following arguments are supported:
 
 * `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
 
-* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
-
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
+
+* `proxy_protocol_enabled` - (Optional) Should the Private Link Service support the Proxy Protocol?
 
 * `load_balancer_frontend_ip_configuration_ids` - (Optional) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
 
