@@ -23,8 +23,6 @@ func TestAccMachineLearningRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
 	r := MachineLearningRegistry{}
 
-	t.Skip(r.basic(data))
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -69,12 +67,12 @@ resource "azurerm_machine_learning_registry" "test" {
   main_region {
     public_access_enabled = true
     storage_account_type  = "Standard_LRS"
-    acr_sku               = "Basic"
+    acr_sku               = "Premium"
   }
   replication_regions {
     location             = "%[3]s"
     storage_account_type = "Standard_LRS"
-    acr_sku               = "Basic"
+    acr_sku               = "Premium"
   }
   tags = {
     key = "example"
@@ -87,6 +85,10 @@ resource "azurerm_machine_learning_registry" "test" {
 
 func (r MachineLearningRegistry) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ml-%[1]d"
   location = "%[2]s"

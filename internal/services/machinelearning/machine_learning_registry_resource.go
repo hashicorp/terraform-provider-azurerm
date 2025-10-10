@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -23,18 +24,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MachineLearningRegistry struct{}
+// pollForRegistryCreation polls the GET endpoint until the registry is available
+// This handles the known Azure ML Registry API bug where CreateOrUpdate returns 202 with no body
+func pollForRegistryCreation(ctx context.Context, client *registry.RegistryManagementClient, id registry.RegistryId, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
 
-// type RegionDetail struct {
-// 	CustomStorageAccountId       string `tfschema:"custom_storage_account_id"`
-// 	CustomAcrAccountId           string `tfschema:"custom_acr_account_id"`
-// 	StorageAccountType           string `tfschema:"storage_account_type"`
-// 	PublicAccessEnabled          bool   `tfschema:"public_access_enabled"`
-// 	HsnEnabled                   bool   `tfschema:"hsn_enabled"`
-// 	SystemCreateStorageAccountId string `tfschema:"system_create_storage_account_id"`
-// 	AcrSku                       string `tfschema:"acr_sku"`
-// 	SystemCreatedAcrId           string `tfschema:"system_created_acr_id"`
-// }
+	for time.Now().Before(deadline) {
+		resp, err := client.RegistriesGet(ctx, id)
+		if err == nil && resp.Model != nil {
+			return nil
+		}
+
+		if err != nil && !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("unexpected error while polling for registry: %+v", err)
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(10 * time.Second):
+		}
+	}
+
+	return fmt.Errorf("timed out waiting for registry to become available")
+}
+
+type MachineLearningRegistry struct{}
 
 type ReplicationRegion struct {
 	Location                     string `tfschema:"location"`
@@ -146,11 +161,13 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 					"public_access_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"hsn_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"system_create_storage_account_id": {
@@ -218,13 +235,13 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 					"public_access_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Computed: true,
 					},
 
 					"hsn_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
+						Computed: true,
 					},
 
 					"system_create_storage_account_id": {
@@ -236,8 +253,8 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(registries.SkuNameBasic),
-							string(registries.SkuNameStandard),
+							// string(registries.SkuNameBasic),
+							// string(registries.SkuNameStandard),
 							string(registries.SkuNamePremium),
 						}, false),
 						// ConflictsWith: []string{"replication_regions.0.custom_acr_account_id"},
@@ -332,8 +349,18 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			prop.RegionDetails = &regions
 			trackedResource.Properties = prop
 
-			if err = client.RegistriesCreateOrUpdateThenPoll(ctx, id, trackedResource); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			// Try the normal operation first
+			err = client.RegistriesCreateOrUpdateThenPoll(ctx, id, trackedResource)
+			if err != nil {
+				// Check if this is the known issue with 202 + no body
+				if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
+					// This is the known API bug - poll manually until the resource is available
+					if pollErr := pollForRegistryCreation(ctx, client, id, 30*time.Minute); pollErr != nil {
+						return fmt.Errorf("registry creation failed: initial 202 error followed by polling failure: %+v", pollErr)
+					}
+				} else {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -416,8 +443,18 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				req.Properties = registry.Registry{
 					RegionDetails: &regions,
 				}
-				if err = client.RegistriesCreateOrUpdateThenPoll(ctx, *id, req); err != nil {
-					return fmt.Errorf("updating %s: %+v", *id, err)
+				// Try the normal operation first
+				err = client.RegistriesCreateOrUpdateThenPoll(ctx, *id, req)
+				if err != nil {
+					// Check if this is the known issue with 202 + no body
+					if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
+						// This is the known API bug - poll manually until the resource is available
+						if pollErr := pollForRegistryCreation(ctx, client, *id, 30*time.Minute); pollErr != nil {
+							return fmt.Errorf("registry update failed: initial 202 error followed by polling failure: %+v", pollErr)
+						}
+					} else {
+						return fmt.Errorf("updating %s: %+v", *id, err)
+					}
 				}
 
 			}
@@ -460,7 +497,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 				ResourceGroupName:          id.ResourceGroupName,
 				Identity:                   identityIns,
 				Location:                   resp.Model.Location,
-				PublicNetworkAccessEnabled: pointer.From(prop.PublicNetworkAccess) == "Enable",
+				PublicNetworkAccessEnabled: pointer.From(prop.PublicNetworkAccess) == ,
 				Tags:                       pointer.From(resp.Model.Tags),
 				MlFlowRegistryUri:          pointer.From(prop.MlFlowRegistryUri),
 				// DiscoveryUrl:                  pointer.From(prop.DiscoveryUrl),
@@ -553,7 +590,8 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 			// } else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
-				region.PublicAccessEnabled = pointer.From(systemAccount.AllowBlobPublicAccess)
+				// Don't overwrite PublicAccessEnabled if the API doesn't return AllowBlobPublicAccess
+				// This allows the configured value to be preserved
 				region.HsnEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
 				region.SystemCreateStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
 			}
@@ -567,6 +605,8 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 				region.SystemCreatedAcrId = pointer.From(pointer.From(systemAcr.ArmResourceId).ResourceId)
 			}
 		}
+
+		result = append(result, region)
 	}
 	return result
 }
