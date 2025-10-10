@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securityrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -466,12 +467,24 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("priority", int(props.Priority))
 			d.Set("direction", string(props.Direction))
 
-			if err := d.Set("source_application_security_group_ids", flattenApplicationSecurityGroupIds(props.SourceApplicationSecurityGroups)); err != nil {
+			sourceAppSecGroupProp := "source_application_security_group_ids"
+			flattenSourceSecurityGroupIds, err := flattenApplicationSecurityGroupIds(d, sourceAppSecGroupProp, props.SourceApplicationSecurityGroups)
+			if err != nil {
+				return fmt.Errorf("flatten application security group ids `%s`: %+v", sourceAppSecGroupProp, err)
+			}
+
+			if err := d.Set("source_application_security_group_ids", flattenSourceSecurityGroupIds); err != nil {
 				return fmt.Errorf("setting `source_application_security_group_ids`: %+v", err)
 			}
 
-			if err := d.Set("destination_application_security_group_ids", flattenApplicationSecurityGroupIds(props.DestinationApplicationSecurityGroups)); err != nil {
-				return fmt.Errorf("setting `source_application_security_group_ids`: %+v", err)
+			destinationAppSecGroupProp := "destination_application_security_group_ids"
+			flattenDestinationSecurityGroupIds, err := flattenApplicationSecurityGroupIds(d, destinationAppSecGroupProp, props.DestinationApplicationSecurityGroups)
+			if err != nil {
+				return fmt.Errorf("flatten application security group ids `%s`: %+v", destinationAppSecGroupProp, err)
+			}
+
+			if err := d.Set("destination_application_security_group_ids", flattenDestinationSecurityGroupIds); err != nil {
+				return fmt.Errorf("setting `destination_application_security_group_ids`: %+v", err)
 			}
 		}
 	}
@@ -496,14 +509,35 @@ func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenApplicationSecurityGroupIds(groups *[]securityrules.ApplicationSecurityGroup) []string {
+func flattenApplicationSecurityGroupIds(d *pluginsdk.ResourceData, stateProperty string, groups *[]securityrules.ApplicationSecurityGroup) ([]string, error) {
 	ids := make([]string, 0)
 
 	if groups != nil {
+		stateIds := map[string]string{}
+		if storedStateIds, ok := d.GetRawState().AsValueMap()[stateProperty]; ok && !storedStateIds.IsNull() {
+			for _, id := range storedStateIds.AsValueSlice() {
+				stateIds[strings.ToLower(id.AsString())] = id.AsString()
+			}
+		}
+
 		for _, v := range *groups {
-			ids = append(ids, *v.Id)
+			// fix issue with case sensitivity see bug: https://github.com/hashicorp/terraform-provider-azurerm/issues/29841
+			// wee need to compare the id from state with the parsed one, because the Insensitively function returns the ID with the casting you are getting from Azure side.
+			// The id should be always in the same case as the one in the state but sometime Azure returns it in a different case and there is no normalization function for that.
+			// The other problem is that the ID is a user supplied element so we cannot assume anything about its case.
+			appRuleId, err := applicationsecuritygroups.ParseApplicationSecurityGroupIDInsensitively(*v.Id)
+			if err != nil {
+				return ids, fmt.Errorf("parsing Application Security Group ID %q: %+v", v, err)
+			}
+
+			if stateId, ok := stateIds[strings.ToLower(appRuleId.ID())]; ok {
+				ids = append(ids, stateId)
+				continue
+			} else {
+				ids = append(ids, appRuleId.ID())
+			}
 		}
 	}
 
-	return ids
+	return ids, nil
 }
