@@ -103,7 +103,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 				case diagnosticsettingscategories.CategoryTypeMetrics:
 					metrics = append(metrics, *v.Name)
 				default:
-					return fmt.Errorf("Unsupported category type %q", string(*category.CategoryType))
+					return fmt.Errorf("unsupported category type %q", string(*category.CategoryType))
 				}
 			}
 		}

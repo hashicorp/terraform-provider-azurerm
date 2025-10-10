@@ -35,7 +35,7 @@ func newForceNewDiff(checkBase checkBase, forceNew ForceNewType) *forceNewDiff {
 }
 
 func (c forceNewDiff) String() string {
-	return fmt.Sprintf("%s %s ", c.checkBase.Str(), c.ForceNew)
+	return fmt.Sprintf("%s %s ", c.Str(), c.ForceNew)
 }
 
 func (c forceNewDiff) Fix(line string) (result string, err error) {

@@ -91,13 +91,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(old.(string) == string(apimanagementservice.VirtualNetworkTypeNone) &&
-					(new.(string) == string(apimanagementservice.VirtualNetworkTypeInternal) ||
-						new.(string) == string(apimanagementservice.VirtualNetworkTypeExternal)))
+				return old.(string) != string(apimanagementservice.VirtualNetworkTypeNone) ||
+					(new.(string) != string(apimanagementservice.VirtualNetworkTypeInternal) &&
+						new.(string) != string(apimanagementservice.VirtualNetworkTypeExternal))
 			}),
 
 			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+				return len(old.([]interface{})) != 0 || len(new.([]interface{})) == 0
 			}),
 
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1064,7 +1064,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		if publicIpAddressId != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
 				if d.Get("virtual_network_type").(string) == string(apimanagementservice.VirtualNetworkTypeNone) {
-					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			props.PublicIPAddressId = pointer.To(publicIpAddressId)
@@ -1079,7 +1079,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration == nil {
-				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
+				return fmt.Errorf("you must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
 			}
 			props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		}
@@ -1089,7 +1089,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration != nil {
-				return fmt.Errorf("You must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
+				return fmt.Errorf("you must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
 			}
 		}
 	}
@@ -1755,7 +1755,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		if publicIPAddressID != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium {
 				if len(childVnetConfig) == 0 {
-					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			additionalLocation.PublicIPAddressId = &publicIPAddressID

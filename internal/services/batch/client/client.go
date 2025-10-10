@@ -77,6 +77,6 @@ func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAcco
 
 	// Copy the client since we'll manipulate its BatchURL
 	c := batchDataplane.NewJobClient(endpoint)
-	c.BaseClient.Client.Authorizer = r.BatchManagementAuthorizer
+	c.Authorizer = r.BatchManagementAuthorizer
 	return &c, nil
 }

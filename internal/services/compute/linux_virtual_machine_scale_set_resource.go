@@ -112,7 +112,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
 	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(exists.HttpResponse) {
@@ -442,6 +441,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -709,6 +710,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -915,6 +922,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
@@ -1339,6 +1350,18 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"capacity_reservation_group_id",
 			},
+		},
+
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),

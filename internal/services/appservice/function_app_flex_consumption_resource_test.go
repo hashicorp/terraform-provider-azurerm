@@ -35,6 +35,22 @@ func TestAccFunctionAppFlexConsumption_basic(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_basicEnableAiDetector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEnableAiFailureDetector(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccFunctionAppFlexConsumption_connectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
@@ -186,6 +202,38 @@ func TestAccFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.runtimeNode(data, "20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_instanceMemoryUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.instanceMemoryUpdate(data, "20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -471,6 +519,50 @@ func TestAccFunctionAppFlexConsumption_httpsOnlyUpdate(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_httpConcurrencyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.httpConcurrency(data, 20),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("20"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.httpConcurrency(data, 60),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("60"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func (r FunctionAppFlexConsumptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseFunctionAppID(state.ID)
 	if err != nil {
@@ -529,6 +621,67 @@ resource "azurerm_function_app_flex_consumption" "test" {
   site_config {}
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) basicEnableAiFailureDetector(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.test.primary_access_key
+  runtime_name                = "node"
+  runtime_version             = "20"
+  maximum_instance_count      = 100
+  instance_memory_in_mb       = 2048
+
+  site_config {}
+}
+`, r.templateEnabledAiDetector(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) httpConcurrency(data acceptance.TestData, httpConcurrency int64) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.test.primary_access_key
+  runtime_name                = "node"
+  runtime_version             = "20"
+  maximum_instance_count      = 50
+  instance_memory_in_mb       = 2048
+  http_concurrency            = %d
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger, httpConcurrency)
 }
 
 func (r FunctionAppFlexConsumptionResource) connectionString(data acceptance.TestData) string {
@@ -1112,6 +1265,40 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger, nodeVersion)
 }
 
+func (r FunctionAppFlexConsumptionResource) instanceMemoryUpdate(data acceptance.TestData, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type            = "blobContainer"
+  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type       = "UserAssignedIdentity"
+  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  runtime_name                      = "node"
+  runtime_version                   = "%s"
+  maximum_instance_count            = 50
+  instance_memory_in_mb             = 4096
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger, nodeVersion)
+}
+
 func (r FunctionAppFlexConsumptionResource) alwaysReadyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1342,6 +1529,98 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-LFA-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_smart_detector_alert_rule" "test" {
+  name                = "acctestSDAR-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  severity            = "Sev3"
+  scope_resource_ids  = [azurerm_application_insights.test.id]
+  frequency           = "PT1M"
+  detector_type       = "FailureAnomaliesDetector"
+  enabled             = false
+
+  action_group {
+    ids = [azurerm_monitor_action_group.test.id]
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestblobforfc"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+}
+
+func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"

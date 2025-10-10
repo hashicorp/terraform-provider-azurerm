@@ -259,7 +259,7 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		if err != nil {
 			return err
 		}
-		props.TumblingWindowTriggerTypeProperties.EndTime = &date.Time{Time: t}
+		props.EndTime = &date.Time{Time: t}
 	}
 
 	if v, ok := d.GetOk("delay"); ok {

@@ -74,7 +74,7 @@ func init() {
 	EmptyTuple = Tuple([]Type{})
 	EmptyTupleVal = Value{
 		ty: EmptyTuple,
-		v:  []interface{}{},
+		v:  []any{},
 	}
 }
 

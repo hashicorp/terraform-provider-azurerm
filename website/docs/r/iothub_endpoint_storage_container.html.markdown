@@ -90,6 +90,10 @@ The following arguments are supported:
 
 * `file_name_format` - (Optional) File name format for the blob. All parameters are mandatory but can be reordered. Defaults to `{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}`.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -98,7 +102,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Storage Container Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Storage Container Endpoint.
