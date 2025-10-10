@@ -351,6 +351,7 @@ A `record_sets` block exports:
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
 * How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)
 * How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks)
+* How to connect a `Private Endpoint` to a [Managed Redis](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/managed-redis)
 
 ## Timeouts
 
