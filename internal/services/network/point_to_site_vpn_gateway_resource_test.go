@@ -117,6 +117,21 @@ func TestAccPointToSiteVPNGateway_enableInternetSecurity(t *testing.T) {
 	})
 }
 
+func TestAccPointToSiteVPNGateway_configurationPolicyGroupAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.configurationPolicyGroupAssociations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 	r := PointToSiteVPNGatewayResource{}
@@ -479,4 +494,88 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   }
 }
 `, r.template(data), nameSuffix, nameSuffix, data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) configurationPolicyGroupAssociations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                        = "acctestp2sVPNG-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_hub_id              = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/14"]
+    }
+
+    configuration_policy_group_associations = [
+      azurerm_vpn_server_configuration_policy_group.test.id
+    ]
+  }
+}
+`, r.templateForAadAuthenticatedVpn(data), data.RandomInteger)
+}
+
+func (PointToSiteVPNGatewayResource) templateForAadAuthenticatedVpn(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctestvwan-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestvhub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+}
+
+resource "azurerm_vpn_server_configuration" "test" {
+  name                     = "acctestvpnsc-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  vpn_authentication_types = ["AAD"]
+
+  vpn_protocols = [
+    "OpenVPN"
+  ]
+  azure_active_directory_authentication {
+    tenant   = "https://login.microsoftonline.com/${data.azurerm_client_config.test.tenant_id}"
+    issuer   = "https://sts.windows.net/${data.azurerm_client_config.test.tenant_id}/"
+    audience = "c632b3df-fb67-4d84-bdcf-b95ad541b5c8"  # constant GUID, see https://learn.microsoft.com/en-us/azure/vpn-gateway/point-to-site-entra-gateway.
+  }
+}
+
+resource "azurerm_vpn_server_configuration_policy_group" "test" {
+  name                        = "vpn"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+
+  is_default = true
+  priority   = 10
+  policy {
+    name  = "policy-1"
+    value = "12345678-1234-1234-1234-1234567890ab"
+    type  = "AADGroupId"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
