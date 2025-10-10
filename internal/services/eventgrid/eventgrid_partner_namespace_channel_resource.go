@@ -20,10 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.ResourceWithUpdate        = EventGridPartnerNamespaceChannelResource{}
-	_ sdk.ResourceWithCustomizeDiff = EventGridPartnerNamespaceChannelResource{}
-)
+var _ sdk.ResourceWithUpdate = EventGridPartnerNamespaceChannelResource{}
 
 type EventGridPartnerNamespaceChannelResource struct{}
 
@@ -72,29 +69,9 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			),
 		},
 		"partner_namespace_id": commonschema.ResourceIDReferenceRequiredForceNew(&partnernamespaces.PartnerNamespaceId{}),
-		"channel_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(channels.ChannelTypePartnerTopic),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(channels.ChannelTypePartnerTopic),
-			}, false),
-		},
-		"expiration_time_if_not_activated_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Note: O+C due to api making a number of changes
-			// - default is set to 7 days from creation
-			// - if activated, this field is removed from the response
-			Computed: true,
-			ValidateFunc: validation.All(validation.IsRFC3339Time,
-				validate.ExpirationTimeIfNotActivated(),
-			),
-		},
 		"partner_topic": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -176,6 +153,26 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 				},
 			},
 		},
+		"channel_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(channels.ChannelTypePartnerTopic),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(channels.ChannelTypePartnerTopic),
+			}, false),
+		},
+		"expiration_time_if_not_activated_in_utc": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C due to api making a number of changes
+			// - default is set to 7 days from creation
+			// - if activated, this field is removed from the response
+			Computed: true,
+			ValidateFunc: validation.All(validation.IsRFC3339Time,
+				validate.ExpirationTimeIfNotActivated(),
+			),
+		},
 	}
 }
 
@@ -184,24 +181,6 @@ func (EventGridPartnerNamespaceChannelResource) Attributes() map[string]*plugins
 		"readiness_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-	}
-}
-
-func (r EventGridPartnerNamespaceChannelResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var config EventGridPartnerNamespaceChannelResourceModel
-			if err := metadata.DecodeDiff(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if config.ChannelType == string(channels.ChannelTypePartnerTopic) && config.PartnerTopic == nil {
-				return fmt.Errorf("`partner_topic` is required when `channel_type` is `PartnerTopic`")
-			}
-
-			return nil
 		},
 	}
 }
