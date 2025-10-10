@@ -54,6 +54,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	group_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/group"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -87,6 +88,7 @@ type Client struct {
 	GatewayHostNameConfigurationClient *gatewayhostnameconfiguration.GatewayHostnameConfigurationClient
 	GlobalSchemaClient                 *schema.SchemaClient
 	GroupClient                        *group.GroupClient
+	GroupClient_v2024_05_01            *group_v2024_05_01.GroupClient
 	GroupUsersClient                   *groupuser.GroupUserClient
 	IdentityProviderClient             *identityprovider.IdentityProviderClient
 	LoggerClient                       *logger.LoggerClient
@@ -281,6 +283,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(groupUsersClient.Client, o.Authorizers.ResourceManager)
 
+	groupClient_v2024_05_01, err := group_v2024_05_01.NewGroupClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Group client: %+v", err)
+	}
+	o.Configure(groupClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	identityProviderClient, err := identityprovider.NewIdentityProviderClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Identity Provider client: %+v", err)
@@ -441,6 +449,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GatewayHostNameConfigurationClient: gatewayHostnameConfigurationClient,
 		GlobalSchemaClient:                 globalSchemaClient,
 		GroupClient:                        groupClient,
+		GroupClient_v2024_05_01:            groupClient_v2024_05_01,
 		GroupUsersClient:                   groupUsersClient,
 		IdentityProviderClient:             identityProviderClient,
 		LoggerClient:                       loggerClient,
