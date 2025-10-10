@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `customer_managed_key` block exports the following:
 
-* `encryption_key_url` - The URL of the Key Vault Key used for encryption.
+* `key_vault_key_id` - The ID of the key vault key used for encryption.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity that has access to the Key Vault Key.
 

@@ -71,7 +71,7 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"encryption_key_url": {
+					"key_vault_key_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},

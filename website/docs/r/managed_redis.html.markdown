@@ -106,7 +106,7 @@ resource "azurerm_managed_redis" "example" {
   }
 
   customer_managed_key {
-    encryption_key_url        = azurerm_key_vault_key.example.id
+    key_vault_key_id        = azurerm_key_vault_key.example.id
     user_assigned_identity_id = azurerm_user_assigned_identity.example.id
   }
 
@@ -158,7 +158,7 @@ A `default_database` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `encryption_key_url` - (Required) The URL of the Key Vault Key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`. The id of [`azurerm_key_vault_key` resource](key_vault_key.html) can be used.
+* `key_vault_key_id` - (Required) The ID of the key vault key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`.
 
 * `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity that has access to the Key Vault Key.
 

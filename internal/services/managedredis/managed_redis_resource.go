@@ -58,7 +58,7 @@ type ManagedRedisResourceModel struct {
 }
 
 type CustomerManagedKeyModel struct {
-	EncryptionKeyUrl       string `tfschema:"encryption_key_url"`
+	KeyVaultKeyId          string `tfschema:"key_vault_key_id"`
 	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 }
 
@@ -109,7 +109,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"encryption_key_url": {
+					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -665,7 +665,7 @@ func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel
 
 	return &redisenterprise.ClusterPropertiesEncryption{
 		CustomerManagedKeyEncryption: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryption{
-			KeyEncryptionKeyURL: pointer.To(cmk.EncryptionKeyUrl),
+			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
 			KeyEncryptionKeyIdentity: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
 				IdentityType:                   pointer.To(redisenterprise.CmkIdentityTypeUserAssignedIdentity),
 				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
@@ -750,7 +750,7 @@ func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.Cluster
 
 	return []CustomerManagedKeyModel{
 		{
-			EncryptionKeyUrl:       pointer.From(cmkEncryption.KeyEncryptionKeyURL),
+			KeyVaultKeyId:          pointer.From(cmkEncryption.KeyEncryptionKeyURL),
 			UserAssignedIdentityId: uaiResourceId,
 		},
 	}

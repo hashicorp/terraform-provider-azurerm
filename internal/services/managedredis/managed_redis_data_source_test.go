@@ -24,7 +24,7 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 			Config: r.dataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("customer_managed_key.#").HasValue("1"),
-				check.That(data.ResourceName).Key("customer_managed_key.0.encryption_key_url").IsNotEmpty(),
+				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("customer_managed_key.0.user_assigned_identity_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("default_database.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_database.0.access_keys_authentication_enabled").HasValue("true"),
@@ -133,7 +133,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B3"
 
   customer_managed_key {
-    encryption_key_url        = azurerm_key_vault_key.test.id
+    key_vault_key_id          = azurerm_key_vault_key.test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
