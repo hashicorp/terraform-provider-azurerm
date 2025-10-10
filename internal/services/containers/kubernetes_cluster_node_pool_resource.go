@@ -942,6 +942,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
 	}
 
+	if d.HasChange("gateway_profile") {
+		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_profile").([]interface{}))
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
@@ -1251,6 +1255,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("gateway_profile", flattenAgentPoolGatewayProfile(props.GatewayProfile)); err != nil {
+			return fmt.Errorf("setting `gateway_profile`: %+v", err)
 		}
 	}
 
