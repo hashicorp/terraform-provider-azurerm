@@ -433,6 +433,43 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"virtual_machine_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"scale": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"manual": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"size": {
+												Type:        pluginsdk.TypeString,
+												Required:    true,
+												Description: "The size of the virtual machine.",
+											},
+											"count": {
+												Type:        pluginsdk.TypeInt,
+												Required:    true,
+												Description: "The count of virtual machines.",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	return s
@@ -693,6 +730,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if virtualMachineProfile := d.Get("virtual_machine_profile").([]interface{}); len(virtualMachineProfile) > 0 {
+		profile.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(virtualMachineProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -922,6 +963,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+	}
+
+	if d.HasChange("virtual_machine_profile") {
+		props.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(d.Get("virtual_machine_profile").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -1233,6 +1278,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("virtual_machine_profile", flattenAgentPoolVirtualMachinesProfile(props.VirtualMachinesProfile)); err != nil {
+			return fmt.Errorf("setting `virtual_machine_profile`: %+v", err)
 		}
 	}
 
@@ -1891,4 +1940,91 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func expandAgentPoolVirtualMachinesProfile(input []interface{}) *agentpools.VirtualMachinesProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.VirtualMachinesProfile{}
+
+	if scale := v["scale"].([]interface{}); len(scale) > 0 {
+		result.Scale = expandAgentPoolScaleProfile(scale)
+	}
+
+	return result
+}
+
+func expandAgentPoolScaleProfile(input []interface{}) *agentpools.ScaleProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.ScaleProfile{}
+
+	if manual := v["manual"].([]interface{}); len(manual) > 0 {
+		manualProfiles := make([]agentpools.ManualScaleProfile, 0)
+		for _, item := range manual {
+			itemMap := item.(map[string]interface{})
+			manualProfiles = append(manualProfiles, agentpools.ManualScaleProfile{
+				Size:  pointer.To(itemMap["size"].(string)),
+				Count: pointer.To(int64(itemMap["count"].(int))),
+			})
+		}
+		result.Manual = &manualProfiles
+	}
+
+	return result
+}
+
+func flattenAgentPoolVirtualMachinesProfile(input *agentpools.VirtualMachinesProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	scale := []interface{}{}
+	if input.Scale != nil {
+		scale = flattenAgentPoolScaleProfile(input.Scale)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"scale": scale,
+		},
+	}
+}
+
+func flattenAgentPoolScaleProfile(input *agentpools.ScaleProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	manual := []interface{}{}
+	if input.Manual != nil {
+		for _, item := range *input.Manual {
+			size := ""
+			if item.Size != nil {
+				size = *item.Size
+			}
+
+			count := 0
+			if item.Count != nil {
+				count = int(*item.Count)
+			}
+
+			manual = append(manual, map[string]interface{}{
+				"size":  size,
+				"count": count,
+			})
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"manual": manual,
+		},
+	}
 }
