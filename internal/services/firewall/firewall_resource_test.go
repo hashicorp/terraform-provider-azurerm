@@ -1331,11 +1331,11 @@ resource "azurerm_firewall" "test" {
 func (FirewallResource) withAutoscaleConfiguration(data acceptance.TestData, min, max *int) string {
 	min_capacity, max_capacity, autoscaleConfiguration := "", "", ""
 	if min != nil {
-		min_capacity = fmt.Sprintf("min_capacity = %d", min)
+		min_capacity = fmt.Sprintf("min_capacity = %d", *min)
 	}
 
 	if max != nil {
-		max_capacity = fmt.Sprintf("max_capacity = %d", max)
+		max_capacity = fmt.Sprintf("max_capacity = %d", *max)
 	}
 
 	if min_capacity != "" || max_capacity != "" {
