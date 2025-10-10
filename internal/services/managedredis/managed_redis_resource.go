@@ -355,13 +355,6 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", clusterId, err)
 			}
 
-			dbResp, err := dbClient.Get(ctx, dbId)
-			if err != nil {
-				if !response.WasNotFound(dbResp.HttpResponse) {
-					return fmt.Errorf("retrieving %s: %+v", dbId, err)
-				}
-			}
-
 			state := ManagedRedisResourceModel{
 				Name:              clusterId.RedisEnterpriseName,
 				ResourceGroupName: clusterId.ResourceGroupName,
@@ -386,6 +379,13 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			dbResp, err := dbClient.Get(ctx, dbId)
+			if err != nil {
+				if !response.WasNotFound(dbResp.HttpResponse) {
+					return fmt.Errorf("retrieving %s: %+v", dbId, err)
+				}
+			}
+
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					defaultDb := DefaultDatabaseModel{
@@ -403,6 +403,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 						if err != nil {
 							return fmt.Errorf("listing keys for %s: %+v", dbId, err)
 						}
+
 						if keysModel := keysResp.Model; keysModel != nil {
 							defaultDb.PrimaryAccessKey = pointer.From(keysModel.PrimaryKey)
 							defaultDb.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
@@ -442,6 +443,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				if response.WasNotFound(existingCluster.HttpResponse) {
 					return metadata.MarkAsGone(clusterId)
 				}
+
 				return fmt.Errorf("retrieving existing %s: %+v", clusterId, err)
 			}
 
@@ -495,7 +497,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 					if err := createDb(ctx, dbClient, dbId, state.DefaultDatabase[0]); err != nil {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
-				case dbLen(old) == 1 && dbLen(new) == 1:
+				default:
 					existingDb, err := dbClient.Get(ctx, dbId)
 					if err != nil {
 						return fmt.Errorf("retrieving existing %s: %+v", dbId, err)
@@ -704,11 +706,11 @@ func expandModules(input []ModuleModel) *[]databases.Module {
 }
 
 func flattenModules(input *[]databases.Module) []ModuleModel {
+	results := make([]ModuleModel, 0)
 	if input == nil {
-		return nil
+		return results
 	}
 
-	results := make([]ModuleModel, 0, len(*input))
 	for _, module := range *input {
 		results = append(results, ModuleModel{
 			Name:    module.Name,
@@ -721,7 +723,7 @@ func flattenModules(input *[]databases.Module) []ModuleModel {
 
 func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKeyModel {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
-		return nil
+		return []CustomerManagedKeyModel{}
 	}
 
 	cmkEncryption := input.CustomerManagedKeyEncryption
