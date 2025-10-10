@@ -389,6 +389,8 @@ A `default_node_pool` block supports the following:
 
 * `node_public_ip_enabled` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
 
+* `security_profile` - (Optional) A `security_profile` block as defined below.
+
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
 * `host_group_id` - (Optional) Specifies the ID of the Host Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
@@ -979,6 +981,14 @@ A `http_proxy_config` block supports the following:
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
 * `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
+---
+
+A `security_profile` block supports the following:
+
+* `vtpm_enabled` - (Optional) vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
+
+* `secure_boot_enabled` - (Optional) Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
 
 ---
 

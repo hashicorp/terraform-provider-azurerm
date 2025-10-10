@@ -431,27 +431,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"security_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enable_vtpm": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
-					},
-					"enable_secure_boot": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
-					},
-				},
-			},
-		},
+		"virtual_machine_profile": schemaVirtualMachineProfile(),
 	}
 
 	return s
@@ -712,8 +692,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
-	if securityProfile := d.Get("security_profile").([]interface{}); len(securityProfile) > 0 {
-		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	if virtualMachineProfile := d.Get("virtual_machine_profile").([]interface{}); len(virtualMachineProfile) > 0 {
+		profile.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(virtualMachineProfile)
 	}
 
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
@@ -947,8 +927,8 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
 	}
 
-	if d.HasChange("security_profile") {
-		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security_profile").([]interface{}))
+	if d.HasChange("virtual_machine_profile") {
+		props.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(d.Get("virtual_machine_profile").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -1262,8 +1242,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
-			return fmt.Errorf("setting `security_profile`: %+v", err)
+		if err := d.Set("virtual_machine_profile", flattenAgentPoolVirtualMachinesProfile(props.VirtualMachinesProfile)); err != nil {
+			return fmt.Errorf("setting `virtual_machine_profile`: %+v", err)
 		}
 	}
 
@@ -1886,44 +1866,79 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	return out
 }
 
-func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSecurityProfile {
+func expandAgentPoolVirtualMachinesProfile(input []interface{}) *agentpools.VirtualMachinesProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	result := &agentpools.AgentPoolSecurityProfile{}
+	result := &agentpools.VirtualMachinesProfile{}
 
-	if enableVTPM := v["enable_vtpm"].(bool); enableVTPM {
-		result.EnableVTPM = pointer.To(enableVTPM)
-	}
-
-	if enableSecureBoot := v["enable_secure_boot"].(bool); enableSecureBoot {
-		result.EnableSecureBoot = pointer.To(enableSecureBoot)
+	if scale := v["scale"].([]interface{}); len(scale) > 0 {
+		result.Scale = expandAgentPoolScaleProfile(scale)
 	}
 
 	return result
 }
 
-func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []interface{} {
+func expandAgentPoolScaleProfile(input []interface{}) *agentpools.ScaleProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.ScaleProfile{}
+
+	if manual := v["manual"].([]interface{}); len(manual) > 0 {
+		manualProfiles := make([]agentpools.ManualScaleProfile, 0)
+		for _, item := range manual {
+			itemMap := item.(map[string]interface{})
+			manualProfiles = append(manualProfiles, agentpools.ManualScaleProfile{
+				Size:  pointer.To(itemMap["size"].(string)),
+				Count: pointer.To(int64(itemMap["count"].(int))),
+			})
+		}
+		result.Manual = &manualProfiles
+	}
+
+	return result
+}
+
+func flattenAgentPoolVirtualMachinesProfile(input *agentpools.VirtualMachinesProfile) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	enableVTPM := false
-	if input.EnableVTPM != nil {
-		enableVTPM = *input.EnableVTPM
-	}
-
-	enableSecureBoot := false
-	if input.EnableSecureBoot != nil {
-		enableSecureBoot = *input.EnableSecureBoot
+	scale := []interface{}{}
+	if input.Scale != nil {
+		scale = flattenAgentPoolScaleProfile(input.Scale)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"enable_vtpm":        enableVTPM,
-			"enable_secure_boot": enableSecureBoot,
+			"scale": scale,
+		},
+	}
+}
+
+func flattenAgentPoolScaleProfile(input *agentpools.ScaleProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	manual := []interface{}{}
+	if input.Manual != nil {
+		for _, item := range *input.Manual {
+			manual = append(manual, map[string]interface{}{
+				"size":  pointer.From(item.Size),
+				"count": pointer.From(item.Count),
+			})
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"manual": manual,
 		},
 	}
 }
