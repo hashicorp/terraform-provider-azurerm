@@ -260,8 +260,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check existing cluster / db
-
 			clusterId := redisenterprise.NewRedisEnterpriseID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existingCluster, err := clusterClient.Get(ctx, clusterId)
@@ -288,8 +286,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expected db %s to be not found: %+v", dbId, err)
 			}
 
-			// Create cluster
-
 			clusterParams := redisenterprise.Cluster{
 				Location: location.Normalize(model.Location),
 				Sku: redisenterprise.Sku{
@@ -315,7 +311,13 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(clusterId)
 
-			// Create db
+			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
+			// on subsequent operations
+			pollerType := custompollers.NewClusterStatePoller(clusterClient, clusterId)
+			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
+			}
 
 			if len(model.DefaultDatabase) == 1 {
 				dbModel := model.DefaultDatabase[0]
@@ -324,14 +326,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("creating %s: %+v", dbId, err)
 				}
-			}
-
-			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
-			// on subsequent operations
-			pollerType := custompollers.NewClusterStatePoller(clusterClient, clusterId)
-			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
 			}
 
 			return nil
@@ -368,8 +362,6 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			// Read cluster
-
 			state := ManagedRedisResourceModel{
 				Name:              clusterId.RedisEnterpriseName,
 				ResourceGroupName: clusterId.ResourceGroupName,
@@ -393,8 +385,6 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 					state.Hostname = pointer.From(props.HostName)
 				}
 			}
-
-			// Read db
 
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {
@@ -447,8 +437,6 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Cluster update
-
 			existingCluster, err := clusterClient.Get(ctx, *clusterId)
 			if err != nil {
 				if response.WasNotFound(existingCluster.HttpResponse) {
@@ -486,9 +474,15 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				if err := clusterClient.CreateThenPoll(ctx, *clusterId, *clusterParams); err != nil {
 					return fmt.Errorf("creating cluster %s: %+v", clusterId, err)
 				}
-			}
 
-			// DB delete / create / update
+				// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
+				// on subsequent operations
+				pollerType := custompollers.NewClusterStatePoller(clusterClient, *clusterId)
+				poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
+				}
+			}
 
 			if metadata.ResourceData.HasChange("default_database") {
 				old, new := metadata.ResourceData.GetChange("default_database")
@@ -525,14 +519,6 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("updating %s: %+v", dbId, err)
 					}
 				}
-			}
-
-			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
-			// on subsequent operations
-			pollerType := custompollers.NewClusterStatePoller(clusterClient, *clusterId)
-			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", clusterId, err)
 			}
 
 			return nil
@@ -584,12 +570,10 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				dbModel := model.DefaultDatabase[0]
 
 				if geoReplicationEnabled := dbModel.GeoReplicationGroupName != ""; geoReplicationEnabled {
-					// Certain SKU do not support geo-replication
 					if !slices.Contains(validate.SKUsSupportingGeoReplication(), model.SkuName) {
 						return fmt.Errorf("SKU %q does not support geo-replication, only following SKUs are supported: %s", model.SkuName, strings.Join(validate.SKUsSupportingGeoReplication(), ", "))
 					}
 
-					// Only certain modules are supported when geo-replication is enabled
 					for _, module := range dbModel.Module {
 						if module.Name != "" && !slices.Contains(validate.DatabaseModulesSupportingGeoReplication(), module.Name) {
 							return fmt.Errorf("invalid module %q, only following modules are supported when `geo_replication_group_name` is not empty: %s", module.Name, strings.Join(validate.DatabaseModulesSupportingGeoReplication(), ", "))
@@ -600,12 +584,10 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				if dbModel.EvictionPolicy != "" {
 					for _, module := range dbModel.Module {
 						if module.Name != "" && module.Name == "RediSearch" {
-							// Eviction policy must be NoEviction when using RediSearch module
 							if dbModel.EvictionPolicy != string(redisenterprise.EvictionPolicyNoEviction) {
 								return fmt.Errorf("invalid eviction_policy %q, when using RediSearch module, eviction_policy must be set to NoEviction", dbModel.EvictionPolicy)
 							}
 
-							// Clustering policy must be Enterprise when using RediSearch module
 							if dbModel.ClusteringPolicy != string(redisenterprise.ClusteringPolicyEnterpriseCluster) {
 								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
 							}
