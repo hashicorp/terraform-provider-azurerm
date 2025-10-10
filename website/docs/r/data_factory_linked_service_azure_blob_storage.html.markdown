@@ -74,7 +74,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_id = azurerm_data_factory.test.id
 
   sas_uri = "https://example.blob.core.windows.net"
-  key_vault_sas_token {
+  sas_token_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -122,11 +122,11 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 
 * `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string_insecure`, `connection_string` and `service_endpoint`.
 
-* `key_vault_sas_token` - (Optional) A `key_vault_sas_token` block as defined below. Use this argument to store SAS Token in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. A `sas_uri` is required.
+* `sas_token_linked_key_vault_key` - (Optional) A `sas_token_linked_key_vault_key` block as defined below. Use this argument to store SAS Token in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. A `sas_uri` is required.
 
 ---
 
-A `key_vault_sas_token` block supports the following:
+A `sas_token_linked_key_vault_key` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
