@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-07-01/natgateways"
 	network_2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-07-01/natgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -21,7 +21,7 @@ type Client struct {
 	BastionHostsClient *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
 	NetworkInterfacesClient     *networkinterfaces.NetworkInterfacesClient
-	NatGatewaysClient			*natgateways.NatGatewaysClient
+	NatGatewaysClient           *natgateways.NatGatewaysClient
 	VMSSPublicIPAddressesClient *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 }
 
@@ -60,7 +60,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		BastionHostsClient:          BastionHostsClient,
 		NetworkInterfacesClient:     NetworkInterfacesClient,
-		NatGatewaysClient:			 NatGatewaysClient,
+		NatGatewaysClient:           NatGatewaysClient,
 		VMSSPublicIPAddressesClient: VMSSPublicIPAddressesClient,
 		Client:                      client,
 	}, nil
