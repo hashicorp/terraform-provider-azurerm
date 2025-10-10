@@ -106,7 +106,7 @@ resource "azurerm_managed_redis" "example" {
   }
 
   customer_managed_key {
-    key_vault_key_id        = azurerm_key_vault_key.example.id
+    key_vault_key_id          = azurerm_key_vault_key.example.id
     user_assigned_identity_id = azurerm_user_assigned_identity.example.id
   }
 
@@ -152,7 +152,7 @@ A `default_database` block supports the following:
 
 * `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new Managed Redis instance to be created.
 
-* `module` - (Optional) A `module` block as defined below.
+* `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
 ---
 
