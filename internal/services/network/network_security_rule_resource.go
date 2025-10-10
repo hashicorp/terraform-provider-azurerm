@@ -527,7 +527,7 @@ func flattenApplicationSecurityGroupIds(d *pluginsdk.ResourceData, stateProperty
 			// The other problem is that the ID is a user supplied element so we cannot assume anything about its case.
 			appRuleId, err := applicationsecuritygroups.ParseApplicationSecurityGroupIDInsensitively(*v.Id)
 			if err != nil {
-				return ids, fmt.Errorf("parsing Application Security Group ID %q: %+v", v, err)
+				return ids, fmt.Errorf("parsing Application Security Group ID %q: %+v", *v.Id, err)
 			}
 
 			if stateId, ok := stateIds[strings.ToLower(appRuleId.ID())]; ok {
