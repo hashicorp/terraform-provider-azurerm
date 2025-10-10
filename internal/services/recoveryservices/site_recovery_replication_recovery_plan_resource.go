@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoveryReplicationRecoveryPlanModel struct {
@@ -28,7 +27,6 @@ type SiteRecoveryReplicationRecoveryPlanModel struct {
 	ShutdownRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"shutdown_recovery_group"`
 	FailoverRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"failover_recovery_group"`
 	BootRecoveryGroup      []BootRecoveryGroupModel                       `tfschema:"boot_recovery_group"`
-	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group,removedInNextMajorVersion"`
 	RecoveryVaultId        string                                         `tfschema:"recovery_vault_id"`
 	SourceRecoveryFabricId string                                         `tfschema:"source_recovery_fabric_id"`
 	TargetRecoveryFabricId string                                         `tfschema:"target_recovery_fabric_id"`
@@ -88,7 +86,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) IDValidationFunc() pluginsd
 }
 
 func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -196,8 +194,6 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 
 		"azure_to_azure_settings": replicationRecoveryPlanA2ASchema(),
 	}
-
-	return schema
 }
 
 // we do not split action into three different schema because all actions should keep the order from user.
@@ -359,17 +355,10 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 
 			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
 			deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
-			var groupValue []replicationrecoveryplans.RecoveryPlanGroup
-			if len(model.RecoveryGroup) > 0 {
-				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
-				if err != nil {
-					return fmt.Errorf("expanding recovery group: %+v", err)
-				}
-			} else {
-				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
-				if err != nil {
-					return fmt.Errorf("expanding recovery group: %+v", err)
-				}
+
+			groupValue, err := expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+			if err != nil {
+				return fmt.Errorf("expanding recovery group: %+v", err)
 			}
 
 			parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
@@ -436,11 +425,10 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 					state.TargetRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.RecoveryFabricId)
 				}
 				if group := prop.Groups; group != nil {
-					state.RecoveryGroup = flattenRecoveryGroups(*group)
-					state.ShutdownRecoveryGroup, state.FailoverRecoveryGroup, state.BootRecoveryGroup = flattenRecoveryGroupsNew(*group)
+					state.ShutdownRecoveryGroup, state.FailoverRecoveryGroup, state.BootRecoveryGroup = flattenRecoveryGroups(*group)
 				}
 				if details := prop.ProviderSpecificDetails; details != nil && len(*details) > 0 {
-					state.A2ASettings = flattenRecoveryPlanProviderSpecficInput(details)
+					state.A2ASettings = flattenRecoveryPlanProviderSpecificInput(details)
 				}
 			}
 
@@ -484,14 +472,10 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			groupValue = *resp.Model.Properties.Groups
 
-			if metadata.ResourceData.HasChange("recovery_group") {
-				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
-			}
-
 			if metadata.ResourceData.HasChange("boot_recovery_group") ||
 				metadata.ResourceData.HasChange("failover_recovery_group") ||
 				metadata.ResourceData.HasChange("shutdown_recovery_group") {
-				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+				groupValue, err = expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 
 			if err != nil {
@@ -535,41 +519,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-// TODO: deprecated, remove in v4.0
-func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
-	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
-	if pass, err := validateRecoveryGroup(input); !pass {
-		return output, err
-	}
-
-	for _, group := range input {
-		protectedItems := make([]replicationrecoveryplans.RecoveryPlanProtectedItem, 0)
-		for _, protectedItem := range group.ReplicatedProtectedItems {
-			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
-				Id: utils.String(protectedItem),
-			})
-		}
-
-		preActions, err := expandAction(group.PreAction)
-		if err != nil {
-			return output, err
-		}
-		postActions, err := expandAction(group.PostAction)
-		if err != nil {
-			return output, err
-		}
-
-		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
-			GroupType:                 replicationrecoveryplans.RecoveryPlanGroupType(group.GroupType),
-			ReplicationProtectedItems: &protectedItems,
-			StartGroupActions:         &preActions,
-			EndGroupActions:           &postActions,
-		})
-	}
-	return output, nil
-}
-
-func expandRecoveryGroupNew(shutdown []GenericRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []BootRecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
+func expandRecoveryGroup(shutdown []GenericRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []BootRecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
 
 	for _, group := range shutdown {
@@ -648,7 +598,7 @@ func expandAction(input []ActionModel) ([]replicationrecoveryplans.RecoveryPlanA
 		}
 
 		if action.ActionDetailType == "ManualActionDetails" && action.FabricLocation != "" {
-			return nil, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
+			return nil, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type")
 		}
 
 		output = append(output, replicationrecoveryplans.RecoveryPlanAction{
@@ -673,62 +623,7 @@ func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]re
 	}
 }
 
-func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
-	bootCount := 0
-	shutdownCount := 0
-	failoverCount := 0
-	for _, group := range input {
-		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeBoot) {
-			bootCount += 1
-		}
-
-		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeFailover) {
-			failoverCount += 1
-			if len(group.ReplicatedProtectedItems) > 0 {
-				return false, fmt.Errorf("`replicated_protected_items` must not be specified for `recovery_group` with `Failover` type.")
-			}
-		}
-
-		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeShutdown) {
-			shutdownCount += 1
-			if len(group.ReplicatedProtectedItems) > 0 {
-				return false, fmt.Errorf("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type.")
-			}
-		}
-
-		for _, act := range append(group.PreAction, group.PostAction...) {
-			if act.ActionDetailType == "ManualActionDetails" && act.FabricLocation != "" {
-				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
-			}
-		}
-	}
-
-	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {
-		return false, fmt.Errorf("every group type needs at least one recovery group")
-	}
-	return true, nil
-}
-
-func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) []RecoveryGroupModel {
-	output := make([]RecoveryGroupModel, 0)
-	for _, groupItem := range input {
-		recoveryGroupOutput := RecoveryGroupModel{}
-		recoveryGroupOutput.GroupType = string(groupItem.GroupType)
-		if groupItem.ReplicationProtectedItems != nil {
-			recoveryGroupOutput.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
-		}
-		if groupItem.StartGroupActions != nil {
-			recoveryGroupOutput.PreAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
-		}
-		if groupItem.EndGroupActions != nil {
-			recoveryGroupOutput.PostAction = flattenRecoveryPlanActions(groupItem.EndGroupActions)
-		}
-		output = append(output, recoveryGroupOutput)
-	}
-	return output
-}
-
-func flattenRecoveryGroupsNew(input []replicationrecoveryplans.RecoveryPlanGroup) (shutdown []GenericRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []BootRecoveryGroupModel) {
+func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) (shutdown []GenericRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []BootRecoveryGroupModel) {
 	shutdown = make([]GenericRecoveryGroupModel, 0)
 	failover = make([]GenericRecoveryGroupModel, 0)
 	boot = make([]BootRecoveryGroupModel, 0)
@@ -772,12 +667,12 @@ func expandActionDetail(input ActionModel) (output replicationrecoveryplans.Reco
 	switch input.ActionDetailType {
 	case "AutomationRunbookActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanAutomationRunbookActionDetails{
-			RunbookId:      utils.String(input.RunbookId),
+			RunbookId:      pointer.To(input.RunbookId),
 			FabricLocation: replicationrecoveryplans.RecoveryPlanActionLocation(input.FabricLocation),
 		}
 	case "ManualActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanManualActionDetails{
-			Description: utils.String(input.ManualActionInstruction),
+			Description: pointer.To(input.ManualActionInstruction),
 		}
 	case "ScriptActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanScriptActionDetails{
@@ -838,7 +733,7 @@ func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAc
 	return actionOutputs
 }
 
-func flattenRecoveryPlanProviderSpecficInput(input *[]replicationrecoveryplans.RecoveryPlanProviderSpecificDetails) []ReplicationRecoveryPlanA2ASpecificInputModel {
+func flattenRecoveryPlanProviderSpecificInput(input *[]replicationrecoveryplans.RecoveryPlanProviderSpecificDetails) []ReplicationRecoveryPlanA2ASpecificInputModel {
 	output := make([]ReplicationRecoveryPlanA2ASpecificInputModel, 0)
 	for _, providerSpecificInput := range *input {
 		if a2aInput, ok := providerSpecificInput.(replicationrecoveryplans.RecoveryPlanA2ADetails); ok {

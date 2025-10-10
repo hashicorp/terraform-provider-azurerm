@@ -5,6 +5,7 @@ package signalr
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -113,7 +114,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
 	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(&expandedFeatures) {
-		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
+		return errors.New("upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
 	publicNetworkAcc := "Enabled"
@@ -166,7 +167,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
-	return resourceArmSignalRServiceUpdate(d, meta)
+	return resourceArmSignalRServiceRead(d, meta)
 }
 
 func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -337,6 +338,10 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model != nil {
+		resourceType.Location = existing.Model.Location
 	}
 
 	currentSku := ""

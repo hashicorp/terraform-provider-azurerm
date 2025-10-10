@@ -33,6 +33,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		DeploymentDataSource{},
 		CertificateDataSource{},
 		ConfigurationDataSource{},
+		APIKeyDataSource{},
 	}
 }
 
@@ -42,5 +43,6 @@ func (r Registration) Resources() []sdk.Resource {
 		CertificateResource{},
 		DeploymentResource{},
 		ConfigurationResource{},
+		APIKeyResource{},
 	}
 }

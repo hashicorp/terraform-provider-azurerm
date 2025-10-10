@@ -24,7 +24,7 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 }
 resource "azurerm_storage_account" "test" {
-  name                     = "xiaxintestsaforsearchspl"
+  name                     = "example"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) Specify the ID of the Shared Private Link Enabled Remote Resource which this Azure Search Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
--> **NOTE:** The sub resource name should match with the type of the target resource id that's being specified.
+-> **Note:** The sub resource name should match with the type of the target resource id that's being specified.
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
@@ -65,12 +65,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Azure Search Shared Private Link Resource.
+* `create` - (Defaults to 1 hour) Used when creating the Azure Search Shared Private Link Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Search Shared Private Link Resource.
-* `update` - (Defaults to 60 minutes) Used when updating the Azure Search Shared Private Link Resource.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Azure Search Shared Private Link Resource.
+* `update` - (Defaults to 1 hour) Used when updating the Azure Search Shared Private Link Resource.
+* `delete` - (Defaults to 1 hour) Used when deleting the Azure Search Shared Private Link Resource.
 
 ## Import
 
@@ -79,3 +79,9 @@ Azure Search Shared Private Link Resource can be imported using the `resource id
 ```shell
 terraform import azurerm_search_shared_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Search/searchServices/service1/sharedPrivateLinkResources/resource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Search` - 2024-06-01-preview

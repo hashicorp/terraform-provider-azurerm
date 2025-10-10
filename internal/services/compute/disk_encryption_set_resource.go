@@ -289,7 +289,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
 			keyVaultURI := props.ActiveKey.KeyURL
 
-			isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+			isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return err
 			}
@@ -406,16 +406,6 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, id.SubscriptionId, *keyVaultKey)
-		if err != nil {
-			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
-		}
-
-		err = validateKeyVaultDetails(keyVaultDetails)
-		if err != nil {
-			return err
-		}
-
 		if update.Properties == nil {
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
 				ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{},
@@ -440,7 +430,17 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			update.Properties.ActiveKey.KeyURL = keyVaultKey.ID()
 		}
 
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, id.SubscriptionId, *keyVaultKey)
+		if err != nil {
+			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
+		}
+
 		if keyVaultDetails != nil {
+			err = validateKeyVaultDetails(keyVaultDetails)
+			if err != nil {
+				return err
+			}
+
 			update.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
 				Id: utils.String(keyVaultDetails.keyVaultId),
 			}

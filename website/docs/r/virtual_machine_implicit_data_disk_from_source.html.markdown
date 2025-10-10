@@ -126,7 +126,13 @@ The following arguments are supported:
 
 * `create_option` - (Required) Specifies the Create Option of the Data Disk. The only possible value is `Copy`. Changing this forces a new resource to be created.
 
-* `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes. Changing this forces a new resource to be created.
+* `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes.
+
+-> **Note:** Updating `disk_size_gb` to shrink the disk size is not supported on Azure and forces a new Data Disk to be created.
+
+-> **Note:** In certain conditions the Data Disk size can be updated without shutting down the Virtual Machine, however only a subset of Virtual Machine SKUs/Disk combinations support this. More information can be found [for Linux Virtual Machines](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) and [Windows Virtual Machines](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) respectively.
+
+-> **Note:** If the VM does not meet the requirements to expand the disk without downtime, changing this value is disruptive. The VM will be shut down and deallocated as required by Azure to action the change. Terraform will attempt to start the VM again after the update if it was in a `running` state prior to the change.
 
 * `source_resource_id` - (Required) The ID of the source resource which this Data Disk was created from. Changing this forces a new resource to be created.
 
@@ -142,11 +148,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the implicit Data Disk of the Virtual Machine.
-* `update` - (Defaults to 30 minutes) Used when updating the implicit Data Disk of the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the implicit Data Disk of the Virtual Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the implicit Data Disk of the Virtual Machine.
 * `delete` - (Defaults to 30 minutes) Used when deleting the implicit Data Disk of the Virtual Machine.
 
 ## Import
@@ -157,4 +163,10 @@ The implicit Data Disk of the Virtual Machine can be imported using the `resourc
 terraform import azurerm_virtual_machine_implicit_data_disk_from_source.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
--> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
+-> **Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02

@@ -10,6 +10,8 @@ description: |-
 
 Associates a [Spring Cloud Application](spring_cloud_app.html) with a [CosmosDB Account](cosmosdb_account.html).
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_cosmosdb_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -88,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application CosmosDB Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application CosmosDB Association.

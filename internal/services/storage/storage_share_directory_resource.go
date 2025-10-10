@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
@@ -38,7 +37,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 		},
 
 		"metadata": MetaDataSchema(),
@@ -51,7 +50,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
 			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
 		}
@@ -60,7 +59,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
 		}
 	}

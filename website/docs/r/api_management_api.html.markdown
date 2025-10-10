@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `protocols` - (Optional) A list of protocols the operations in this API can be invoked. Possible values are `http`, `https`, `ws`, and `wss`.
 
--> **NOTE:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
+-> **Note:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
 * `contact` - (Optional) A `contact` block as documented below.
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `import` - (Optional) A `import` block as documented below.
 
--> **NOTE:** The `display_name`, `description`, `contact`, and `license` fields can be imported by the `import` block, which might cause a drift if these fields are set along with the `import` block.
+-> **Note:** The `display_name`, `description`, `contact`, and `license` fields can be imported by the `import` block, which might cause a drift if these fields are set along with the `import` block.
 
 * `license` - (Optional) A `license` block as documented below.
 
@@ -82,6 +82,8 @@ The following arguments are supported:
 * `openid_authentication` - (Optional) An `openid_authentication` block as documented below.
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
+
+-> **Note:** The `service_url` is required when `api_type` is specified as `websocket`.
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
@@ -93,7 +95,7 @@ The following arguments are supported:
 
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
 
--> **NOTE:** When `version` is set, `version_set_id` must also be specified
+-> **Note:** When `version` is set, `version_set_id` must also be specified
 
 * `revision_description` - (Optional) The description of the API Revision of the API Management API.
 
@@ -177,11 +179,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API.
 
 ## Import
@@ -191,3 +193,9 @@ API Management API's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1;rev=1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

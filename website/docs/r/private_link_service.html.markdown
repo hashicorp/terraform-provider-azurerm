@@ -10,7 +10,7 @@ description: |-
 
 Manages a Private Link Service.
 
--> **NOTE** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
+-> **Note:** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
 
 ## Example Usage
 
@@ -94,21 +94,23 @@ The following arguments are supported:
 
 * `nat_ip_configuration` - (Required) One or more (up to 8) `nat_ip_configuration` block as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
-
 ---
 
 * `auto_approval_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
+
+* `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
 
 * `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
 
+* `load_balancer_frontend_ip_configuration_ids` - (Optional) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 * `visibility_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
 
--> **NOTE:** If no Subscription IDs are specified then Azure allows every Subscription to see this Private Link Service.
+-> **Note:** If no Subscription IDs are specified then Azure allows every Subscription to see this Private Link Service.
 
 ---
 
@@ -118,7 +120,7 @@ The `nat_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) Specifies the ID of the Subnet which should be used for the Private Link Service.
 
--> **NOTE:** Verify that the Subnet's `enforce_private_link_service_network_policies` attribute is set to `true`.
+-> **Note:** Verify that the Subnet's `enforce_private_link_service_network_policies` attribute is set to `true`.
 
 * `primary` - (Required) Is this is the Primary IP Configuration? Changing this forces a new resource to be created.
 
@@ -134,12 +136,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Private Link Service.
-* `update` - (Defaults to 60 minutes) Used when updating the Private Link Service.
+* `create` - (Defaults to 1 hour) Used when creating the Private Link Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Private Link Service.
+* `update` - (Defaults to 1 hour) Used when updating the Private Link Service.
+* `delete` - (Defaults to 1 hour) Used when deleting the Private Link Service.
 
 ## Import
 
@@ -148,3 +150,9 @@ Private Link Services can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateLinkServices/service1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

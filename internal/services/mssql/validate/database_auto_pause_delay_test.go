@@ -12,9 +12,10 @@ func TestDatabaseAutoPauseDelay(t *testing.T) {
 	}{
 		{"-1", false},
 		{"-2", true},
-		{"30", true},
+		{"10", true},
+		{"42", false},
 		{"60", false},
-		{"65", true},
+		{"65", false},
 		{"360", false},
 		{"19900", true},
 	}

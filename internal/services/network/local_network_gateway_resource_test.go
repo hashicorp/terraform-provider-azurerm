@@ -251,7 +251,7 @@ func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	if err := client.Network.Client.LocalNetworkGateways.DeleteThenPoll(ctx2, *id); err != nil {
+	if err := client.Network.LocalNetworkGateways.DeleteThenPoll(ctx2, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

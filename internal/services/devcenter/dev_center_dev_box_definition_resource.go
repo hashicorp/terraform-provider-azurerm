@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devboxdefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/images"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devboxdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,6 +35,7 @@ type DevCenterDevBoxDefinitionResourceModel struct {
 	Name             string            `tfschema:"name"`
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
+	HibernateSupport bool              `tfschema:"hibernate_support_enabled"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
 	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
@@ -61,7 +62,13 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
 
-		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.ImageId{}),
+		"hibernate_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
@@ -81,7 +88,7 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterDevBoxDefinitionResourceModel
@@ -107,13 +114,19 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			hs := devboxdefinitions.HibernateSupportDisabled
+			if model.HibernateSupport {
+				hs = devboxdefinitions.HibernateSupportEnabled
+			}
+
 			parameters := devboxdefinitions.DevBoxDefinition{
 				Location: location.Normalize(model.Location),
 				Properties: &devboxdefinitions.DevBoxDefinitionProperties{
 					ImageReference: &devboxdefinitions.ImageReference{
 						Id: pointer.To(model.ImageReferenceId),
 					},
-					Sku: expandDevCenterDevBoxDefinitionSku(model.SkuName),
+					HibernateSupport: pointer.To(hs),
+					Sku:              expandDevCenterDevBoxDefinitionSku(model.SkuName),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -132,7 +145,7 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -161,6 +174,8 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 						state.ImageReferenceId = pointer.From(v.Id)
 					}
 
+					state.HibernateSupport = pointer.From(props.HibernateSupport) == devboxdefinitions.HibernateSupportEnabled
+
 					if v := props.Sku; v != nil {
 						state.SkuName = flattenDevCenterDevBoxDefinition(props.Sku)
 					}
@@ -176,7 +191,7 @@ func (r DevCenterDevBoxDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -196,7 +211,7 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -216,6 +231,14 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 				parameters.Properties.ImageReference = &devboxdefinitions.ImageReference{
 					Id: pointer.To(model.ImageReferenceId),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("hibernate_support_enabled") {
+				hs := devboxdefinitions.HibernateSupportDisabled
+				if model.HibernateSupport {
+					hs = devboxdefinitions.HibernateSupportEnabled
+				}
+				parameters.Properties.HibernateSupport = pointer.To(hs)
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {

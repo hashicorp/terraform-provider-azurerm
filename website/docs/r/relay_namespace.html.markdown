@@ -66,12 +66,12 @@ The following attributes are exported only if there is an authorization rule nam
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Relay Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Relay Namespace.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Relay Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
+* `delete` - (Defaults to 1 hour) Used when deleting the Relay Namespace.
 
 ## Import
 
@@ -80,3 +80,9 @@ Azure Relay Namespace's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_relay_namespace.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay` - 2021-11-01

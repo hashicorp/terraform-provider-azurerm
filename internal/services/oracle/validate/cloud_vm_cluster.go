@@ -9,7 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
 )
 
 func CloudVMClusterName(i interface{}, k string) (warnings []string, errors []error) {
@@ -95,6 +95,22 @@ func DataStoragePercentage(i interface{}, k string) (warnings []string, errors [
 	if v != 35 && v != 40 && v != 60 && v != 80 {
 		errors = append(errors, fmt.Errorf("%v must 35, 40, 60 or 80", k))
 		return
+	}
+
+	return
+}
+
+func SystemVersion(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	pattern := "(?:19|22|23|24|25)\\.[0-9]+(\\.[0-9]+)*|[0-9]+(\\.[0-9]+)*"
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(v) {
+		errors = append(errors, fmt.Errorf("%s must match one of the following patterns: %v", k, pattern))
 	}
 
 	return

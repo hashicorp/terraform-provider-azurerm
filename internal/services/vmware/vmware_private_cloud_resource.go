@@ -64,6 +64,8 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 					"av36t",
 					"av36p",
 					"av36pt",
+					"av48",
+					"av48t",
 					"av52",
 					"av52t",
 					"av64",

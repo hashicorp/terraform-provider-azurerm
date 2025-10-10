@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `distinguished_name` - (Optional) The Distinguished Name for the App Service Certificate Order.
 
--> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
+-> **Note:** Either `csr` or `distinguished_name` must be set - but not both.
 
 * `key_size` - (Optional) Certificate key size. Defaults to `2048`.
 
@@ -92,11 +92,11 @@ The `certificates` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Order.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Order.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Order.
 
 ## Import

@@ -114,11 +114,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Schedule.
-* `update` - (Defaults to 30 minutes) Used when updating the DevTest Schedule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Schedule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Schedule.
 
 ## Import
@@ -128,3 +128,9 @@ DevTest Schedule's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dev_test_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab` - 2018-09-15

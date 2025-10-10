@@ -58,7 +58,7 @@ A `sharing` block supports the following:
 
 * `community_gallery` - (Optional) A `community_gallery` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** `community_gallery` must be set when `permission` is set to `Community`.
+~> **Note:** `community_gallery` must be set when `permission` is set to `Community`.
 
 ---
 
@@ -88,11 +88,11 @@ A `community_gallery` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Shared Image Gallery.
-* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Gallery.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Gallery.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Gallery.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Gallery.
 
 ## Import
@@ -102,3 +102,9 @@ Shared Image Galleries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_shared_image_gallery.gallery1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2022-03-03
