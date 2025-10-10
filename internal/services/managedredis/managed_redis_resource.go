@@ -81,7 +81,7 @@ type ModuleModel struct {
 	Version string `tfschema:"version"`
 }
 
-const DefaultDatabaseName = "default"
+const defaultDatabaseName = "default"
 
 func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -275,7 +275,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), clusterId)
 			}
 
-			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			existingDb, err := dbClient.Get(ctx, dbId)
 			if err != nil {
@@ -350,7 +350,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			clusterResp, err := clusterClient.Get(ctx, *clusterId)
 			if err != nil {
@@ -439,7 +439,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			var state ManagedRedisResourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -551,7 +551,7 @@ func (r ManagedRedisResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", dbId, err)

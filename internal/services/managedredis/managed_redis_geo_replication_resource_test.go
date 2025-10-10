@@ -15,9 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+const defaultDatabaseName = "default"
 
 type ManagedRedisGeoReplicationResource struct{}
 
@@ -64,7 +65,7 @@ func (r ManagedRedisGeoReplicationResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, managedredis.DefaultDatabaseName)
+	dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 	resp, err := client.ManagedRedis.DatabaseClient.Get(ctx, dbId)
 	if err != nil {

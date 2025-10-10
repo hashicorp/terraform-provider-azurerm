@@ -210,7 +210,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 			}
 
 			clusterId := redisenterprise.NewRedisEnterpriseID(subscriptionId, state.ResourceGroupName, state.Name)
-			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			clusterResp, err := clusterClient.Get(ctx, clusterId)
 			if err != nil {

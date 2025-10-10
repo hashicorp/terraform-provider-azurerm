@@ -112,7 +112,7 @@ func (r ManagedRedisGeoReplicationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			resp, err := client.Get(ctx, dbId)
 			if err != nil {
@@ -184,7 +184,7 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 			existing, err := client.Get(ctx, dbId)
 			if err != nil {
@@ -231,7 +231,7 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesClient, model ManagedRedisGeoReplicationResourceModel, clusterId *redisenterprise.RedisEnterpriseId) error {
-	id := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, DefaultDatabaseName)
+	id := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -287,7 +287,7 @@ func toDbIds(otherClusterIds []string, selfDbId databases.DatabaseId) ([]string,
 		if err != nil {
 			return nil, err
 		}
-		otherDbId := databases.NewDatabaseID(cId.SubscriptionId, cId.ResourceGroupName, cId.RedisEnterpriseName, DefaultDatabaseName)
+		otherDbId := databases.NewDatabaseID(cId.SubscriptionId, cId.ResourceGroupName, cId.RedisEnterpriseName, defaultDatabaseName)
 
 		if resourceids.Match(&otherDbId, &selfDbId) {
 			containsSelf = true
