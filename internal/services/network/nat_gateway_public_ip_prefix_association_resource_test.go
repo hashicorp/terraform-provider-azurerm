@@ -127,7 +127,7 @@ func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, 
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	resp, err := client.Network.NatGateways.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
+	resp, err := client.Network.NatGatewaysClient.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -149,7 +149,7 @@ func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, 
 	}
 	resp.Model.Properties.PublicIPPrefixes = &updatedPrefixes
 
-	if err := client.Network.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
+	if err := client.Network.NatGatewaysClient.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
