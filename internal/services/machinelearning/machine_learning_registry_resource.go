@@ -6,6 +6,7 @@ package machinelearning
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -18,36 +19,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	registry "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-// pollForRegistryCreation polls the GET endpoint until the registry is available
-// This handles the known Azure ML Registry API bug where CreateOrUpdate returns 202 with no body
-func pollForRegistryCreation(ctx context.Context, client *registry.RegistryManagementClient, id registry.RegistryId, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-
-	for time.Now().Before(deadline) {
-		resp, err := client.RegistriesGet(ctx, id)
-		if err == nil && resp.Model != nil {
-			return nil
-		}
-
-		if err != nil && !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("unexpected error while polling for registry: %+v", err)
-		}
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(10 * time.Second):
-		}
-	}
-
-	return fmt.Errorf("timed out waiting for registry to become available")
-}
 
 type MachineLearningRegistry struct{}
 
@@ -64,18 +42,18 @@ type ReplicationRegion struct {
 }
 
 type MachineLearningRegistryModel struct {
-	Name                       string                                     `tfschema:"name"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	PublicNetworkAccessEnabled bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                 []ReplicationRegion                        `tfschema:"main_region"`
-	ReplicationRegions         []ReplicationRegion                        `tfschema:"replication_regions"`
-	Location                   string                                     `tfschema:"location"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	// DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
-	IntellectualPropertyPublisher string            `tfschema:"intellectual_property_publisher"`
-	MlFlowRegistryUri             string            `tfschema:"ml_flow_registry_uri"`
-	ManagedResourceGroup          string            `tfschema:"managed_resource_group"`
-	Tags                          map[string]string `tfschema:"tags"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
+	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
+	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
+	ReplicationRegions            []ReplicationRegion                        `tfschema:"replication_regions"`
+	Location                      string                                     `tfschema:"location"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
+	IntellectualPropertyPublisher string                                     `tfschema:"intellectual_property_publisher"`
+	MlFlowRegistryUri             string                                     `tfschema:"ml_flow_registry_uri"`
+	ManagedResourceGroup          string                                     `tfschema:"managed_resource_group"`
+	Tags                          map[string]string                          `tfschema:"tags"`
 }
 
 func (r MachineLearningRegistry) ModelObject() interface{} {
@@ -134,6 +112,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:  commonids.ValidateStorageAccountID,
 					},
 
+					// TODO Replace all "acr" with "container_registry"
 					"custom_acr_account_id": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
@@ -162,6 +141,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
+						// Azure API doesn't return blob public access settings, so suppress diff to prevent false drift
+						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+							return true // Always suppress since Azure doesn't return this field
+						},
 					},
 
 					"hsn_enabled": {
@@ -175,6 +158,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
+					// TODO "Premium" is the only option, remove this field
 					"acr_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -236,6 +220,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
+						// Azure API doesn't return blob public access settings, so suppress diff to prevent false drift
+						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+							return true // Always suppress since Azure doesn't return this field
+						},
 					},
 
 					"hsn_enabled": {
@@ -274,10 +262,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// "discovery_url": {
-		// 	Type:     pluginsdk.TypeString,
-		// 	Computed: true,
-		// },
+		"discovery_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"intellectual_property_publisher": {
 			Type:     pluginsdk.TypeString,
@@ -349,17 +337,27 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			prop.RegionDetails = &regions
 			trackedResource.Properties = prop
 
-			// Try the normal operation first
-			err = client.RegistriesCreateOrUpdateThenPoll(ctx, id, trackedResource)
+			result, err := client.RegistriesCreateOrUpdate(ctx, id, trackedResource)
 			if err != nil {
 				// Check if this is the known issue with 202 + no body
 				if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
-					// This is the known API bug - poll manually until the resource is available
-					if pollErr := pollForRegistryCreation(ctx, client, id, 30*time.Minute); pollErr != nil {
-						return fmt.Errorf("registry creation failed: initial 202 error followed by polling failure: %+v", pollErr)
+					// Create a mock response for the custom poller with 202 status
+					mockResponse := &http.Response{StatusCode: http.StatusAccepted}
+					if pollerType := custompollers.NewMachineLearningRegistryPoller(client, id, mockResponse); pollerType != nil {
+						poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+						if pollErr := poller.PollUntilDone(ctx); pollErr != nil {
+							return fmt.Errorf("polling creation of %s: %+v", id, pollErr)
+						}
 					}
 				} else {
 					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if pollerType := custompollers.NewMachineLearningRegistryPoller(client, id, result.HttpResponse); pollerType != nil {
+					poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+					if err := poller.PollUntilDone(ctx); err != nil {
+						return fmt.Errorf("polling creation of %s: %+v", id, err)
+					}
 				}
 			}
 
@@ -443,17 +441,27 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				req.Properties = registry.Registry{
 					RegionDetails: &regions,
 				}
-				// Try the normal operation first
-				err = client.RegistriesCreateOrUpdateThenPoll(ctx, *id, req)
+				result, err := client.RegistriesCreateOrUpdate(ctx, *id, req)
 				if err != nil {
 					// Check if this is the known issue with 202 + no body
 					if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
-						// This is the known API bug - poll manually until the resource is available
-						if pollErr := pollForRegistryCreation(ctx, client, *id, 30*time.Minute); pollErr != nil {
-							return fmt.Errorf("registry update failed: initial 202 error followed by polling failure: %+v", pollErr)
+						// Create a mock response for the custom poller with 202 status
+						mockResponse := &http.Response{StatusCode: http.StatusAccepted}
+						if pollerType := custompollers.NewMachineLearningRegistryPoller(client, *id, mockResponse); pollerType != nil {
+							poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+							if pollErr := poller.PollUntilDone(ctx); pollErr != nil {
+								return fmt.Errorf("polling update of %s: %+v", *id, pollErr)
+							}
 						}
 					} else {
 						return fmt.Errorf("updating %s: %+v", *id, err)
+					}
+				} else {
+					if pollerType := custompollers.NewMachineLearningRegistryPoller(client, *id, result.HttpResponse); pollerType != nil {
+						poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+						if err := poller.PollUntilDone(ctx); err != nil {
+							return fmt.Errorf("polling update of %s: %+v", *id, err)
+						}
 					}
 				}
 
@@ -493,14 +501,14 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 			}
 			prop := resp.Model.Properties
 			model := MachineLearningRegistryModel{
-				Name:                       id.RegistryName,
-				ResourceGroupName:          id.ResourceGroupName,
-				Identity:                   identityIns,
-				Location:                   resp.Model.Location,
-				PublicNetworkAccessEnabled: pointer.From(prop.PublicNetworkAccess) == ,
-				Tags:                       pointer.From(resp.Model.Tags),
-				MlFlowRegistryUri:          pointer.From(prop.MlFlowRegistryUri),
-				// DiscoveryUrl:                  pointer.From(prop.DiscoveryUrl),
+				Name:                          id.RegistryName,
+				ResourceGroupName:             id.ResourceGroupName,
+				Identity:                      identityIns,
+				Location:                      resp.Model.Location,
+				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enabled",
+				Tags:                          pointer.From(resp.Model.Tags),
+				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
+				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
 				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
 				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
 			}
@@ -590,8 +598,8 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 			// } else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
-				// Don't overwrite PublicAccessEnabled if the API doesn't return AllowBlobPublicAccess
-				// This allows the configured value to be preserved
+				// Azure API doesn't return AllowBlobPublicAccess field, so don't set PublicAccessEnabled
+				// This allows Terraform to preserve the configured value for this Optional+Computed field
 				region.HsnEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
 				region.SystemCreateStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
 			}
