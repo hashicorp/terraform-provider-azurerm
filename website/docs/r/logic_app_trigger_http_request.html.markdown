@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **Note:** When `relative_path` is set a `method` must also be set.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

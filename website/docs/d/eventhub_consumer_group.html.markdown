@@ -31,7 +31,7 @@ data "azurerm_eventhub_consumer_group" "test" {
 
 * `resource_group_name` - The name of the resource group in which the EventHub Consumer Group's grandparent Namespace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

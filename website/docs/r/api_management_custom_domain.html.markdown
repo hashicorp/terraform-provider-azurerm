@@ -108,7 +108,7 @@ resource "azurerm_api_management_custom_domain" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -166,7 +166,7 @@ A `gateway` block supports the following:
 
 ~> **Note:** If a User Assigned Managed identity is specified for `ssl_keyvault_identity_client_id` then this identity must be associated to the `azurerm_api_management` within an `identity` block.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

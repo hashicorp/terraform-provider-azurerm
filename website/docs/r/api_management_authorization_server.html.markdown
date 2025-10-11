@@ -98,7 +98,7 @@ A `token_body_parameter` block supports the following:
 
 * `value` - (Required) The Value of the Parameter.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -85,7 +85,7 @@ resource "azurerm_security_center_assessment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -107,7 +107,7 @@ A `status` block supports the following:
 
 * `description` - (Optional) Specifies the human readable description of the assessment status.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

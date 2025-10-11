@@ -61,7 +61,7 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `server_version_is_32_or_higher` - (Optional) Whether API server version is 3.2 or higher. Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

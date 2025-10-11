@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `signing_secret` - (Optional) The Signing Secret that will be used to sign the requests.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -235,7 +235,7 @@ A `ingress_profile` block supports the following:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

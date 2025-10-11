@@ -54,7 +54,7 @@ The following arguments are supported:
 
 -> **Note:** The `retention_in_days` cannot be specified when `plan` is `Basic` because the retention is fixed at eight days.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

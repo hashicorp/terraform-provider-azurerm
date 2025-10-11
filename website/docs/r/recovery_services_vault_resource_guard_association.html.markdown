@@ -39,7 +39,7 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `resource_guard_id` - (Required) ID of the Resource Guard which should be associated with. Changing this forces a new resource to be created. 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -29,7 +29,7 @@ output "location" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `location` - The location of the Resource Group in which the ServiceBus Namespace exists.
 

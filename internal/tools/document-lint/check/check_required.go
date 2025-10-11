@@ -34,7 +34,7 @@ func newRequireDiff(checkBase checkBase, requiredMiss RequiredMiss) *requireDiff
 
 func (c requireDiff) String() string {
 	if c.RequiredMiss == ShouldBeComputed {
-		return fmt.Sprintf("%s Fields listed under Attributes Reference should not be marked Required/Optional", c.Str())
+		return fmt.Sprintf("%s Fields listed under Attribute Reference should not be marked Required/Optional", c.Str())
 	}
 	str := fmt.Sprintf("%s should be %s", c.Str(), util.Blue(c.RequiredMiss))
 	return str

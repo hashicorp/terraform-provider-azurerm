@@ -83,7 +83,7 @@ The `sku` block supports the following:
 
 ~> **Note:** You can migrate from `MeteredData` to `UnlimitedData`, but not the other way around.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

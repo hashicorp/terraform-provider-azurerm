@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `iothub_dps_name` - Specifies the name of the IoT Hub Device Provisioning service to which the Shared Access Policy belongs.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

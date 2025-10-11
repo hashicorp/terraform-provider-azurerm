@@ -27,7 +27,7 @@ output "location_code" {
 
 * `name` - Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of this Location, also known as the `Code` of this Location.
 

@@ -28,7 +28,7 @@ output "virtual_network_id" {
 * `name` - Specifies the name of the Virtual Network.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the virtual network.
 * `location` - Location of the virtual network.

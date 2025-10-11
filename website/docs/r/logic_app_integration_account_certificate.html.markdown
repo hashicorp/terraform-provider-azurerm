@@ -33,7 +33,7 @@ resource "azurerm_logic_app_integration_account_certificate" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ A `key_vault_key` block exports the following:
 
 * `key_version` - (Optional) The version of Key Vault Key.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

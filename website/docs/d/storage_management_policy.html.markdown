@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `storage_account_id` - Specifies the id of the storage account to retrieve the management policy for.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Management Policy.
 * `rule` - A `rule` block as documented below.

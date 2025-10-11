@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `enabled` - (Required) Should Advanced Threat Protection be enabled on this resource?
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

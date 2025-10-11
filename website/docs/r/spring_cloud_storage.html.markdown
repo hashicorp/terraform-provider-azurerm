@@ -42,7 +42,7 @@ resource "azurerm_spring_cloud_storage" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The account name of the Azure Storage Account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

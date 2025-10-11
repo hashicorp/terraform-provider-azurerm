@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `content_embedded` - (Required) The PowerShell DSC Node Configuration (mof content).
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

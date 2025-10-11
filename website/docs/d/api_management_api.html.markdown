@@ -35,7 +35,7 @@ output "api_management_api_id" {
 
 * `revision` - The Revision of the API Management API.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the API Management API.
 

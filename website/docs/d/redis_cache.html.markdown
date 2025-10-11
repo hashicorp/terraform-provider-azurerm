@@ -34,7 +34,7 @@ output "hostname" {
 
 * `resource_group_name` - The name of the resource group the Redis cache instance is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The Cache ID.
 

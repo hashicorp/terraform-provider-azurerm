@@ -19,7 +19,7 @@ data "azurerm_storage_table" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The name of the Storage Account where the Table exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `acl` - A mapping of ACLs for this Table.
 

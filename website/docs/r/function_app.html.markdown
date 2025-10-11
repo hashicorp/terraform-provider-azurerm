@@ -481,7 +481,7 @@ A `source_control` block supports the following:
 
 * `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -312,7 +312,7 @@ The following table shows examples of `scrubbing_rule`'s that can be used to pro
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

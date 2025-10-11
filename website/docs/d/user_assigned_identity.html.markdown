@@ -37,7 +37,7 @@ output "uai_tenant_id" {
 * `name` -  The name of the User Assigned Identity.
 * `resource_group_name` - The name of the Resource Group in which the User Assigned Identity exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

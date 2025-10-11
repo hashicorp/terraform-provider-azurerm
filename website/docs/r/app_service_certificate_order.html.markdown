@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`). Defaults to `1`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

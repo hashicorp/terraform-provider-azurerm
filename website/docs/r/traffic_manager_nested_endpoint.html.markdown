@@ -130,7 +130,7 @@ A `subnet` block supports the following:
 
 * `scope` - (Optional) The block size (number of leading bits in the subnet mask).
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

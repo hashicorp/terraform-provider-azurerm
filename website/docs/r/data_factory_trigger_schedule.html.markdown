@@ -101,7 +101,7 @@ A `pipeline` block supports the following:
 
 * `parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

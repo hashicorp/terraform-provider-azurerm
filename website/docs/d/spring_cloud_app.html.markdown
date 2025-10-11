@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) The name of the Spring Cloud Service.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

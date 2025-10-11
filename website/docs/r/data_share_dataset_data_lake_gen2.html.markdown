@@ -73,7 +73,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `folder_path` - (Optional) The folder path in the data lake file system to be shared with the receiver. Conflicts with `file_path` Changing this forces a new Data Share Data Lake Gen2 Dataset to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

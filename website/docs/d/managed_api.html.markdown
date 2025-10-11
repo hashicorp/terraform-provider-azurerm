@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location for this Managed API.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

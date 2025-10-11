@@ -342,7 +342,7 @@ The `subject_alternative_names` block supports the following:
 * `emails` - (Optional) A list of email addresses identified by this Certificate.
 * `upns` - (Optional) A list of User Principal Names identified by the Certificate.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

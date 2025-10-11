@@ -29,7 +29,7 @@ output "login_server" {
 * `name` - The name of the Container Registry.
 * `resource_group_name` - The Name of the Resource Group where this Container Registry exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

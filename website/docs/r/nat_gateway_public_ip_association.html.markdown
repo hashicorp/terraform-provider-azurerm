@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

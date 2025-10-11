@@ -62,7 +62,7 @@ resource "azurerm_monitor_alert_processing_rule_action_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -252,7 +252,7 @@ A `weekly` block supports the following:
 
 * `end_time` - (Optional) Specifies the recurrence end time (H:M:S).
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

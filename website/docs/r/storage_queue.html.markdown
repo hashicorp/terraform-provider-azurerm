@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

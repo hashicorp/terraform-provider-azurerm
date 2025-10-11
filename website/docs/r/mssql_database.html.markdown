@@ -302,7 +302,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Database.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

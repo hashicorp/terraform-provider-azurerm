@@ -35,7 +35,7 @@ resource "azurerm_sentinel_data_connector_iot" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) The ID of the subscription that this Iot Data Connector connects to. Changing this forces a new Iot Data Connector to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

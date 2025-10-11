@@ -28,7 +28,7 @@ output "eventhub_namespace_id" {
 * `name` - The name of the EventHub Namespace.
 * `resource_group_name` - The Name of the Resource Group where the EventHub Namespace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the EventHub Namespace.
 

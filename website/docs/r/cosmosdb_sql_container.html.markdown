@@ -157,7 +157,7 @@ A `conflict_resolution_policy` block supports the following:
 
 * `conflict_resolution_procedure` - (Optional) The procedure to resolve conflicts in the case of `Custom` mode.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

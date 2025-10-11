@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the resource group the Web Pubsub service is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

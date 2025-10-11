@@ -43,7 +43,7 @@ resource "azurerm_subscription_policy_assignment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -134,7 +134,7 @@ A `resource_selector` block supports the following:
 * `not_in` - (Optional) The list of not-allowed values for the specified kind. Cannot be used with `in`. Can contain up to 50 values.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

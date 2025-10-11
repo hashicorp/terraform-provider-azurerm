@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `cosmosdb_sql_database_name` - (Optional) Specifies the name of the SQL Database which the Spring Cloud App should be associated with. Should only be set when `api_type` is `sql`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `value` - (Required) Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

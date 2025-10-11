@@ -324,7 +324,7 @@ resource "azurerm_netapp_volume_group_oracle" "example_secondary" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -429,7 +429,7 @@ A `export_policy_rule` block supports the following:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -78,7 +78,7 @@ A `schema_column` block supports the following:
 
 * `scale` - (Optional) The number of digits allowed to the right of the decimal point.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

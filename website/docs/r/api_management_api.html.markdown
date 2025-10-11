@@ -163,7 +163,7 @@ A `wsdl_selector` block supports the following:
 
 * `endpoint_name` - (Required) The name of endpoint (port) to import from WSDL.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

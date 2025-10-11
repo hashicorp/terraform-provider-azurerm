@@ -36,7 +36,7 @@ resource "azurerm_api_management_gateway_api" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `api_id` - (Required) The Identifier of the API Management API within the API Management Service. Changing this forces a new API Management Gateway API to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

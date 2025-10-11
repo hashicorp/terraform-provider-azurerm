@@ -21,7 +21,7 @@ data "azurerm_batch_pool" "example" {
 }
 ```
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

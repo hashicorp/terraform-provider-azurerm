@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `row_key` - The key for the row where the entity will be retrieved.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the storage table entity.
 

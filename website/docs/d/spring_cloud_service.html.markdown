@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Spring Cloud Service exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

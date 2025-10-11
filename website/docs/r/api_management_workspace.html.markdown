@@ -37,7 +37,7 @@ resource "azurerm_api_management_workspace" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the API Management Workspace.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -55,7 +55,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ A `resource` block supports the following:
 
 * `db_name` - (Optional) The name of the Mongo DB that the Role Definition is applied.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

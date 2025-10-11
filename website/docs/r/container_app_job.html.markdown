@@ -408,7 +408,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs to assign to the Container App Job.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

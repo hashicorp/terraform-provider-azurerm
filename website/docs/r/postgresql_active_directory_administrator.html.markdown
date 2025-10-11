@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Tenant ID
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

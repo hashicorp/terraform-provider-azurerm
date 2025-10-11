@@ -91,7 +91,7 @@ A `client_scoped_subscription` block supports the following:
 
 * `is_client_scoped_subscription_durable` - (Optional) Whether the client scoped subscription is durable. This property can only be controlled from the application side.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

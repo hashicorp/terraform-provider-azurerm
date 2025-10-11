@@ -18,7 +18,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the Resource Group where the NAT Gateway exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

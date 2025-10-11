@@ -82,7 +82,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -166,7 +166,7 @@ A `file_system_configuration` block supports the following:
 
 * `size_in_gb` - (Optional) The size of the virtual machine's file system.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

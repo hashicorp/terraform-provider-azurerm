@@ -74,7 +74,7 @@ A `content_filter` block supports the following:
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

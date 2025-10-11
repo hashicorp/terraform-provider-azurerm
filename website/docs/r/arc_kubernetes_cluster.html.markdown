@@ -38,7 +38,7 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
 
 -> **Note:** An extensive example on connecting the `azurerm_arc_kubernetes_cluster` to an external kubernetes cluster can be found in [the `./examples/arckubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/arckubernetes).
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Kubernetes Cluster. At this time the only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

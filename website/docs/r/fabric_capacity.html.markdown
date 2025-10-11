@@ -38,7 +38,7 @@ resource "azurerm_fabric_capacity" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The tier of the SKU to use for the Fabric Capacity. The only possible value is `Fabric`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

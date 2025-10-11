@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `account_name` - The name of the Cosmos DB SQL Database to create the table within.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -80,7 +80,7 @@ resource "azurerm_synapse_sql_pool_workload_classifier" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `start_time` - (Optional) The workload classifier start time for classification. It's of the `HH:MM` format in UTC time zone.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

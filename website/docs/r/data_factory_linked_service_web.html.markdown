@@ -62,7 +62,7 @@ The following supported arguments are specific to Web Linked Service:
 
 * `username` - (Optional) The username for Basic authentication. Required if `authentication_type` sets to `Basic`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

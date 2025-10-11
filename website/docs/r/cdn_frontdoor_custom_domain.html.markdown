@@ -77,7 +77,7 @@ resource "azurerm_dns_cname_record" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -111,7 +111,7 @@ A `tls` block supports the following:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

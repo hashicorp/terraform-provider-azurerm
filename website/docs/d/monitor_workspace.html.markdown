@@ -29,7 +29,7 @@ output "query_endpoint" {
 
 - `resource_group_name` - Specifies the name of the resource group the Workspace is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 - `id` - The ID of the Resource.
 

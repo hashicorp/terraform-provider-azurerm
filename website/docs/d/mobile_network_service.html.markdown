@@ -24,7 +24,7 @@ resource "azurerm_mobile_network_service" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `mobile_network_id` - (Required) Specifies the ID of the Mobile Network Service. 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

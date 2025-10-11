@@ -109,7 +109,7 @@ An `sharing` block exports the following:
 
 * `tables_to_include` - (Optional) List of tables to include in the follower database.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

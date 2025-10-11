@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `instance_count` - (Required) The instance count for the CosmosDB SQL Dedicated Gateway. Possible value is between `1` and `5`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

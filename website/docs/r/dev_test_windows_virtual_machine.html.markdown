@@ -123,7 +123,7 @@ A `inbound_nat_rule` block supports the following:
 
 * `backend_port` - (Required) The Backend Port associated with this NAT Rule. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

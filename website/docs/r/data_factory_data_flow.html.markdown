@@ -307,7 +307,7 @@ A `transformation` block supports the following:
 
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -55,7 +55,7 @@ resource "azurerm_lb_backend_address_pool_address" "example-2" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 -> **Note:** Backend Addresses can only be added to a `Standard` SKU Load Balancer. Cross region load balancer is for Load Balancer with `Global` SKU.
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 -> **Note:** For cross-region load balancer, please append the name of the load balancers, virtual machines, and other resources in each region with a -R1 and -R2.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

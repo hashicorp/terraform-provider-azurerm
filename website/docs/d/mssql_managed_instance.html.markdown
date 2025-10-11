@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the SQL Managed Instance exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

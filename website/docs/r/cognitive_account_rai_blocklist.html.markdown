@@ -33,7 +33,7 @@ resource "azurerm_cognitive_account_rai_blocklist" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A short description for the Cognitive Account Rai Blocklist.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which to create the certificate.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

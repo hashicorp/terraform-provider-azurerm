@@ -147,7 +147,7 @@ resource "azurerm_network_manager_deployment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -161,7 +161,7 @@ The following arguments are supported:
 
 * `triggers` - (Optional) A mapping of key values pairs that can be used to keep the deployment up with the Network Manager configurations and rules.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

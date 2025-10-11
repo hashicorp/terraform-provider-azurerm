@@ -35,13 +35,13 @@ resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_associati
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
 * `certificate_id` - (Required) The ID of the Certificate to use as the Outbound Trust Certificate. Changing this forces a new Palo Alto Networks Rulestack Outbound Trust Certificate Association to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of metadata to assign to this file.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

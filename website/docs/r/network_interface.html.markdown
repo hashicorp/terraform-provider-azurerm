@@ -114,7 +114,7 @@ When `private_ip_address_allocation` is set to `Static` the following fields can
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

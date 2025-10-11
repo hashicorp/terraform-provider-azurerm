@@ -112,7 +112,7 @@ resource "azurerm_digital_twins_time_series_database_connection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -138,7 +138,7 @@ The following arguments are supported:
 
 * `kusto_table_name` - (Optional) Name of the Kusto Table. Defaults to `AdtPropertyEvents`. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

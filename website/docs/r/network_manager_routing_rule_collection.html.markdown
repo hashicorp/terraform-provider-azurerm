@@ -51,7 +51,7 @@ resource "azurerm_network_manager_routing_rule_collection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Network Manager Routing Rule Collection.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

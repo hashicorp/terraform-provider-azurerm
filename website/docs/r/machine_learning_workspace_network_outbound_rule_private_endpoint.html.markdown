@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `spark_enabled` - (Optional) Whether to enable an additional private endpoint to be used by jobs running on Spark. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

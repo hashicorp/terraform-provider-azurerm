@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `exportable` - (Optional) The is exportable flag of the certificate.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

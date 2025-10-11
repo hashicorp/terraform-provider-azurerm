@@ -32,7 +32,7 @@ output "compliance_status" {
 
 * `virtual_machine_name` - (Required) Only retrieve Policy Set Definitions from this Management Group.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Guest Configuration Assignment.
 

@@ -34,7 +34,7 @@ output "latest_version" {
 
 * `include_preview` - (Optional) Should Preview versions of Kubernetes in AKS be included? Defaults to `true`
 
-## Attributes Reference
+## Attribute Reference
 
 * `versions` - The list of all supported versions.
 

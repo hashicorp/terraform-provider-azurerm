@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `publisher` - The Publisher of the Marketplace Image.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

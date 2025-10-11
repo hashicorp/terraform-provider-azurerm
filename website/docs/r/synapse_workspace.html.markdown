@@ -159,7 +159,7 @@ resource "azurerm_synapse_workspace_aad_admin" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -261,7 +261,7 @@ A `github_repo` block supports the following:
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

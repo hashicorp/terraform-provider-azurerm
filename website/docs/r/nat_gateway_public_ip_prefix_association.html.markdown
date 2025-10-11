@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `public_ip_prefix_id` - (Required) The ID of the Public IP Prefix which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

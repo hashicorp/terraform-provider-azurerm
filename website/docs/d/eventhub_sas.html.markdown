@@ -63,7 +63,7 @@ data "azurerm_eventhub_sas" "example" {
 
 * `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
-## Attributes Reference
+## Attribute Reference
 
 * `sas` - The computed Event Hub Shared Access Signature (SAS).
 

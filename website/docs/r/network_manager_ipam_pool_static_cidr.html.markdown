@@ -44,7 +44,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

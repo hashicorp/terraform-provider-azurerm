@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `allow_tracing` - (Optional) Determines whether tracing can be enabled. Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

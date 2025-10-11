@@ -56,7 +56,7 @@ QUERY
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `table` - (Optional) The name of the table in the Azure SQL database.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

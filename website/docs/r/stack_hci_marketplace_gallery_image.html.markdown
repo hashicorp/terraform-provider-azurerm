@@ -51,7 +51,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -87,7 +87,7 @@ An `identifier` block supports the following:
 
 * `sku` - (Required) The sku of the Azure Stack HCI Marketplace Gallery Image. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

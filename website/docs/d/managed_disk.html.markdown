@@ -29,7 +29,7 @@ output "id" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where this Managed Disk exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `disk_encryption_set_id` - The ID of the Disk Encryption Set used to encrypt this Managed Disk.
 

@@ -79,7 +79,7 @@ More details on ACLs can be found here: <https://docs.microsoft.com/azure/storag
 
 ~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

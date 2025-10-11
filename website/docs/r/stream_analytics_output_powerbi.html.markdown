@@ -32,7 +32,7 @@ resource "azurerm_stream_analytics_output_powerbi" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

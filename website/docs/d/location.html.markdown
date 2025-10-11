@@ -22,7 +22,7 @@ data "azurerm_location" "example" {
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of Location within this Subscription.
 

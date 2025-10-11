@@ -28,7 +28,7 @@ output "location" {
 * `name` - Specifies the Name of the Network Security Group.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Network Security Group exists
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Network Security Group.
 

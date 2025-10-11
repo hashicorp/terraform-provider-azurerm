@@ -22,7 +22,7 @@ data "azurerm_extended_locations" "example" {
 
 * `location` - The Azure location to retrieve the Extended Locations for.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of Location within this Subscription.
 

@@ -67,7 +67,7 @@ A `value_from_key_vault` block supports the following:
 
 * `identity_client_id` - (Optional) The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

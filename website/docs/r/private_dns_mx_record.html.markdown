@@ -69,7 +69,7 @@ A `record` block supports the following:
 
 * `exchange` - (Required) The FQDN of the exchange to MX record points to.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

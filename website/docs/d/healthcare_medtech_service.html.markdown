@@ -29,7 +29,7 @@ output "azurerm_healthcare_medtech_service_id" {
 
 * `workspace_id` - The id of the Healthcare Workspace in which the Healthcare Med Tech Service exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

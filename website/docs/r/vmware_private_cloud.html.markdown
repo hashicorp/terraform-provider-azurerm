@@ -42,7 +42,7 @@ resource "azurerm_vmware_private_cloud" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ A `management_cluster` block supports the following:
 
 * `size` - (Required) The size of the management cluster. This field can not updated with `internet_connection_enabled` together.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -87,7 +87,7 @@ The `record` block supports:
 
 * `value` - (Required) A property value such as a registrar domain.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -43,7 +43,7 @@ output "database_id" {
 
 * `server_id` - The id of the MS SQL Server on which to read the database.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the database.
 

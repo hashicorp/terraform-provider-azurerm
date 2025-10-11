@@ -205,7 +205,7 @@ A `vnet_integration` block supports the following:
 
 * `public_ips` - (Optional) Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

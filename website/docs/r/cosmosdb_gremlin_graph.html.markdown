@@ -144,7 +144,7 @@ An `index` block supports the following:
 
 * `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `pool_name` - The name of the NetApp pool where the NetApp volume exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

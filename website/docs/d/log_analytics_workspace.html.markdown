@@ -30,7 +30,7 @@ The following arguments are supported:
 * `name` - Specifies the name of the Log Analytics Workspace.
 * `resource_group_name` - The name of the resource group in which the Log Analytics workspace is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

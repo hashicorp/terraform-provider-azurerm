@@ -141,7 +141,7 @@ The following arguments are supported:
 
 * `backend_address_pool_id` - (Required) The ID of the Application Gateway's Backend Address Pool which this Network Interface which should be connected to. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

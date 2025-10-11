@@ -62,7 +62,7 @@ The `line_channel` block supports the following:
 
 * `secret` - (Required) The secret which is used to access the Line Channel.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

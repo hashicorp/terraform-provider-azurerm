@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `recovery_fabric_name` - (Required) Name of fabric that should contain this protection container. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

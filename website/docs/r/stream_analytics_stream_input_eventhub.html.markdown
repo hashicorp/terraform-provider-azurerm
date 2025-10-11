@@ -105,7 +105,7 @@ A `serialization` block supports the following:
 
 -> **Note:** This is required when `type` is set to `Csv`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -38,7 +38,7 @@ resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "exam
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel Machine Learning Behavior Analytics Alert Rule be enabled? Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

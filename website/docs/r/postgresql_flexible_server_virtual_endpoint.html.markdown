@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

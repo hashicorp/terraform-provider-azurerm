@@ -180,7 +180,7 @@ A `microsoft_peering` block contains:
 
 * `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

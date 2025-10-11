@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `user_metadata` - (Optional) Specifies the user metadata.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

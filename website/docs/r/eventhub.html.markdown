@@ -102,7 +102,7 @@ A `destination` block supports the following:
 
 * `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

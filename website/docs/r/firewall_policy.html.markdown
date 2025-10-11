@@ -25,7 +25,7 @@ resource "azurerm_firewall_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -173,7 +173,7 @@ A `explicit_proxy` block supports the following:
 
 * `pac_file` - (Optional) Specifies a SAS URL for PAC file.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

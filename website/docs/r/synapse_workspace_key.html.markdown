@@ -112,7 +112,7 @@ resource "azurerm_synapse_workspace_key" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

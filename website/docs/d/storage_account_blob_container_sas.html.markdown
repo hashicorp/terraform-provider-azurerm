@@ -113,7 +113,7 @@ A `permissions` block contains:
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas)
 for additional details on the fields above.
 
-## Attributes Reference
+## Attribute Reference
 
 * `sas` - The computed Blob Container Shared Access Signature (SAS). The delimiter character ('?') for the query string is the prefix of `sas`.
 

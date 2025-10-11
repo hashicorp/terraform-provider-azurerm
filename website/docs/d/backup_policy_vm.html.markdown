@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which the VM Backup Policy resides.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

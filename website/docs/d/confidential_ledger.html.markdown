@@ -29,7 +29,7 @@ output "ledger_endpoint" {
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where this Confidential Ledger exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `azuread_service_principal` - A list of `azuread_service_principal` blocks as defined below.
 

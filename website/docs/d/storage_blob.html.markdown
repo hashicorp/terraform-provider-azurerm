@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `storage_container_name` - The name of the Storage Container where the Blob exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the storage blob.
 

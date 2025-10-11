@@ -29,7 +29,7 @@ output "api_management_id" {
 
 * `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the API Management Service.
 

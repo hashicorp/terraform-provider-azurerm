@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `password` - (Required) Specifies the password which should be used when connecting to the MySQL Database from the Spring Cloud App.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

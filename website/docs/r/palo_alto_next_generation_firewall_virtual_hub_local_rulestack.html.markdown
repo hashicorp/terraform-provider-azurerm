@@ -64,7 +64,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -140,7 +140,7 @@ A `network_profile` block supports the following:
 
 * `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

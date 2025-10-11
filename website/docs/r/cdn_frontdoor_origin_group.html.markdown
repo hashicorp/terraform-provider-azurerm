@@ -46,7 +46,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -90,7 +90,7 @@ A `load_balancing` block supports the following:
 
 * `successful_samples_required` - (Optional) Specifies the number of samples within the sample period that must succeed. Possible values are between `0` and `255` (inclusive). Defaults to `3`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

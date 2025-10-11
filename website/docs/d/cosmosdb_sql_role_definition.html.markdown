@@ -20,7 +20,7 @@ data "azurerm_cosmosdb_sql_role_definition" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `role_definition_id` - (Required) The GUID as the name of the Cosmos DB SQL Role Definition.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

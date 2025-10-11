@@ -44,7 +44,7 @@ output "decrypted_text" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 -> **Note:** One of either `encrypted_data` or `plain_text_value` must be specified and is used to populate the encrypted/decrypted value for the other field.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 
