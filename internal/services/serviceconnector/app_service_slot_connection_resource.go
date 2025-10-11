@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.Resource = AppServiceSlotConnectorResource{}
@@ -237,8 +237,8 @@ func (r AppServiceSlotConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			props := servicelinker.LinkerResource{
-				Id:         utils.String(id.ID()),
-				Name:       utils.String(model.Name),
+				Id:         pointer.To(id.ID()),
+				Name:       pointer.To(model.Name),
 				Properties: serviceConnectorProperties,
 			}
 
