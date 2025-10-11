@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-10-01/registrymanagement` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement` Documentation
 
-The `registrymanagement` SDK allows for interaction with Azure Resource Manager `machinelearningservices` (API Version `2024-10-01`).
+The `registrymanagement` SDK allows for interaction with Azure Resource Manager `machinelearningservices` (API Version `2025-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-10-01/registrymanagement"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
 ```
 
 
