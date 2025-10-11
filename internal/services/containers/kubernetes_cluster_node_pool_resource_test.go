@@ -150,6 +150,32 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 	})
 }
 
+func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.enable_vtpm").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.enable_secure_boot").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityProfileConfigUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.enable_vtpm").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.enable_secure_boot").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_other(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3502,6 +3528,138 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 `, data.RandomInteger, // resource_group name
 		data.Locations.Primary, // resource_group location
 		data.RandomInteger,     // virtual_network name
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
+}
+
+func (KubernetesClusterNodePoolResource) securityProfileConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  security_profile {
+    enable_vtpm        = true
+    enable_secure_boot = true
+  }
+}
+`, data.RandomInteger, // resource_group name
+		data.Locations.Primary, // resource_group location
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
+}
+
+func (KubernetesClusterNodePoolResource) securityProfileConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  security_profile {
+    enable_vtpm        = true
+    enable_secure_boot = true
+  }
+}
+`, data.RandomInteger, // resource_group name
+		data.Locations.Primary, // resource_group location
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
+}
+
+func (KubernetesClusterNodePoolResource) securityProfileConfigUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  security_profile {
+    enable_vtpm        = false
+    enable_secure_boot  = false
+  }
+}
+`, data.RandomInteger, // resource_group name
+		data.Locations.Primary, // resource_group location
 		data.RandomInteger,     // kubernetes_cluster name
 		data.RandomInteger,     // kubernetes_cluster dns_prefix
 	)
