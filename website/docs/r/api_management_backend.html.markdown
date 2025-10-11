@@ -10,7 +10,7 @@ description: |-
 
 Manages a backend within an API Management Service.
 
-## Example Usage
+## Example basic usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -37,6 +37,131 @@ resource "azurerm_api_management_backend" "example" {
 }
 ```
 
+## Example Circuit Breaker usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
+
+  sku_name = "Developer_1"
+}
+
+resource "azurerm_api_management_backend" "example" {
+  name                = "example-backend"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://backend.com/api"
+  circuit_breaker_rule {
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
+    failure_condition {
+      percentage = 50
+      interval   = "PT5M"
+      error_reasons = [
+        "BackendConnectionFailure"
+      ]
+      status_code_range {
+        min = 400
+        max = 499
+      }
+    }
+  }
+}
+```
+
+## Example Pool (Load Balancer) usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
+
+  sku_name = "Developer_1"
+}
+
+resource "azurerm_api_management_backend" "example_cb" {
+  name                = "example-backend-1"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://primary.backend.com/api"
+  circuit_breaker_rule {
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
+    failure_condition {
+      percentage = 50
+      interval   = "PT5M"
+      error_reasons = [
+        "BackendConnectionFailure"
+      ]
+      status_code_range {
+        min = 400
+        max = 499
+      }
+    }
+  }
+}
+
+resource "azurerm_api_management_backend" "example_secondary_1" {
+  name                = "example-backend-2"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://secondary.backend.com/api"
+}
+
+resource "azurerm_api_management_backend" "example_secondary_2" {
+  name                = "example-backend-3"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://othersecondary.backend.com/api"
+}
+
+resource "azurerm_api_management_backend" "example_pool" {
+  name                = "example-backend-pool"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      # If this backend trips its Circuit Breaker rule,
+      # then the other two will share load equally until this backend "un"-trips
+      id     = azurerm_api_management_backend.example_cb.id
+      weight = 100
+    }
+    service {
+      id       = azurerm_api_management_backend.example_secondary_1.id
+      priority = 1
+      weight   = 10
+    }
+    service {
+      id       = azurerm_api_management_backend.example_secondary_2.id
+      priority = 1
+      weight   = 10
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -47,25 +172,31 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The protocol used by the backend host. Possible values are `http` or `soap`.
-
-* `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
-
 ---
 
-* `credentials` - (Optional) A `credentials` block as documented below.
+* `protocol` - (Optional) The protocol used by the backend host. Possible values are `http` or `soap`. Cannot be used with `pool`.
+
+* `url` - (Optional) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend. Cannot be used with `pool`.
+
+* `credentials` - (Optional) A `credentials` block as documented below. Cannot be used with `pool`.
 
 * `description` - (Optional) The description of the backend.
 
-* `proxy` - (Optional) A `proxy` block as documented below.
+* `proxy` - (Optional) A `proxy` block as documented below. Cannot be used with `pool`.
 
-* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster.
+* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster. Cannot be used with `pool`.
 
-* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below.
+* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below. Cannot be used with `pool`.
 
 * `title` - (Optional) The title of the backend.
 
-* `tls` - (Optional) A `tls` block as documented below.
+* `tls` - (Optional) A `tls` block as documented below. Cannot be used with `pool`.
+
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below. Cannot be used with `pool`.
+
+* `pool` - (Optional) A `pool` block as documented below.
+
+~> **Note:** The `pool` configuration represents a different type of backend and cannot be used with the following fields: `credentials`, `protocol`, `proxy`, `resource_id`, `service_fabric_cluster`, `tls`, `url`, and `circuit_breaker_rule`. These fields are only applicable to single backend configurations.
 
 ---
 
@@ -133,11 +264,65 @@ A `tls` block supports the following:
 
 ---
 
+A `circuit_breaker_rule` block supports the following.
+
+* `name` - (Required) The name of the circuit breaker rule.
+
+* `accept_retry_after` - (Optional) Should the 'Retry-After' header in the HTTP response be checked. `true` to Accept. `false` to Ignore. Default value is `false`.
+
+* `trip_duration` - (Required) How long the Circuit Breaker should be tripped for.
+
+* `failure_condition` - (Required) A `failure_condition` block as documented below.
+
+---
+
+A `failure_condition` block supports the following.
+
+* `count` - (Optional) How many failed requests should trip the Circuit Breaker.
+
+* `percentage` - (Optional) What percentage of requests must fail to trip the Circuit Breaker.
+
+~> **Note:** Either `count` or `percentage` must be set.
+
+* `interval` - (Required) The failure interval time period over which failures will be counted or assessed.
+
+* `error_reasons` - (Optional) List of [API policy built-in errors](https://learn.microsoft.com/en-us/azure/api-management/api-management-error-handling-policies#predefined-errors-for-built-in-steps) that should trip the Circuit Breaker.
+
+* `status_code_range` - (Required) One or more `status_code_range` blocks as documented below.
+
+---
+
+A `status_code_range` block supports the following.
+
+* `min` - (Required) The minimum HTTP status code for this block.
+
+* `max` - (Required) The maximum HTTP status code for this block.
+
+~> **Note:** Both `min` and `max` must be between the values of 200 and 599.
+
+---
+
+A `pool` block supports the following:
+
+* `service` - (Required) One or more `service` blocks as defined below. Minimum of 1, maximum of 30 services allowed.
+
+---
+
+A `service` block supports the following:
+
+* `id` - (Required) The ID of the backend service to include in the pool.
+
+* `priority` - (Optional) The priority assigned to this backend service. Default is 0.
+
+* `weight` - (Optional) The weight assigned to this backend service. Default is 0.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the API Management API.
+* `id` - The ID of the API Management Backend.
 
 ## Timeouts
 
