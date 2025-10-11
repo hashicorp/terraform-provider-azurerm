@@ -160,6 +160,8 @@ The following arguments are supported:
 
 * `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 
+* `ignore_pod_disruption_budget` - (Optional) Whether to ignore Pod Disruption Budgets when deleting the Node Pool. Defaults to `false`.
+
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster Node Pool should be located. Changing this property requires specifying `temporary_name_for_rotation`.
