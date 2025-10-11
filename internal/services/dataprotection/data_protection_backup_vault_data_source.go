@@ -53,7 +53,7 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": commonschema.TagsDataSource(),
 		},
@@ -106,9 +106,9 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 }
 
 func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
-	var config *identity.SystemOrUserAssignedMap
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		config = &identity.SystemOrUserAssignedMap{
+		config = &identity.SystemAndUserAssignedMap{
 			Type: identity.Type(*input.Type),
 		}
 
@@ -125,5 +125,5 @@ func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdent
 			}
 		}
 	}
-	return identity.FlattenSystemOrUserAssignedMap(config)
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

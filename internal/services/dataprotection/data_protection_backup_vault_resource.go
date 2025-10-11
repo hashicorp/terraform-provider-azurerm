@@ -106,7 +106,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -303,7 +303,7 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaults.DppIdentityDetails, error) {
-	config, err := identity.ExpandSystemOrUserAssignedMap(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -324,9 +324,9 @@ func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaults.Dpp
 }
 
 func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
-	var config *identity.SystemOrUserAssignedMap
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		config = &identity.SystemOrUserAssignedMap{
+		config = &identity.SystemAndUserAssignedMap{
 			Type: identity.Type(*input.Type),
 		}
 
@@ -343,5 +343,5 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails
 			}
 		}
 	}
-	return identity.FlattenSystemOrUserAssignedMap(config)
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }
