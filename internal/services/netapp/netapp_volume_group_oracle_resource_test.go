@@ -128,6 +128,41 @@ func TestAccNetAppVolumeGroupOracle_volumeUpdates(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolumeGroupOracle_protocolConversion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test")
+	r := NetAppVolumeGroupOracleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume.0.protocols.0").HasValue("NFSv3"),
+				check.That(data.ResourceName).Key("volume.1.protocols.0").HasValue("NFSv3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv41(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume.0.protocols.0").HasValue("NFSv4.1"),
+				check.That(data.ResourceName).Key("volume.1.protocols.0").HasValue("NFSv4.1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume.0.protocols.0").HasValue("NFSv3"),
+				check.That(data.ResourceName).Key("volume.1.protocols.0").HasValue("NFSv3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetAppVolumeGroupOracle_volCustomerManagedKeyEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test")
 	r := NetAppVolumeGroupOracleResource{}
@@ -1919,6 +1954,162 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
   depends_on = [
     azurerm_netapp_volume_group_oracle.test_primary
   ]
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeGroupOracleResource) protocolConversionNFSv3(data acceptance.TestData) string {
+	template := NetAppVolumeGroupOracleResource{}.templateAvailabilityZoneOracle(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume_group_oracle" "test" {
+  name                   = "acctest-AVG-ORA-ProtocolConversion-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test volume group for Oracle Protocol Conversion"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "acctest-NetAppVolume-Ora1-Conv-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-conv-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv3"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = true
+      nfsv41_enabled      = false
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                       = "acctest-NetAppVolume-OraLog-Conv-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-conv-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv3"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = true
+      nfsv41_enabled      = false
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeGroupOracleResource) protocolConversionNFSv41(data acceptance.TestData) string {
+	template := NetAppVolumeGroupOracleResource{}.templateAvailabilityZoneOracle(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume_group_oracle" "test" {
+  name                   = "acctest-AVG-ORA-ProtocolConversion-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test volume group for Oracle Protocol Conversion"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "acctest-NetAppVolume-Ora1-Conv-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-conv-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                       = "acctest-NetAppVolume-OraLog-Conv-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-conv-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
 }
 `, template, data.RandomInteger)
 }

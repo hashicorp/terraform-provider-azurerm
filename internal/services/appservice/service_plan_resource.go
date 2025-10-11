@@ -5,6 +5,7 @@ package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -191,7 +192,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.AppServiceEnvironmentId != "" {
 				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
+					return errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
 					Id: pointer.To(servicePlan.AppServiceEnvironmentId),

@@ -427,7 +427,7 @@ A `sas_policy` block supports the following:
 
 * `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
 
-* `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
+* `expiration_action` - (Optional) The SAS expiration action. Possible values are `Log` and `Block`. Defaults to `Log`.
 
 ---
 
@@ -635,7 +635,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.

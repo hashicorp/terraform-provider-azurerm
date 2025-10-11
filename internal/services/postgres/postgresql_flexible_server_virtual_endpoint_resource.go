@@ -175,7 +175,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 			virtualEndpointId := *id.First
 			resp, err := client.Get(ctx, virtualEndpointId)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 					virtualEndpointId = *id.Second
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
@@ -185,6 +185,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 							log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
 							return metadata.MarkAsGone(id)
 						}
+
 						return fmt.Errorf("retrieving %s: %+v", id, err)
 					}
 					failOverHasOccurred = true

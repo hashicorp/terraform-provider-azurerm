@@ -6,7 +6,7 @@ description: |-
   Manages a Static Web App Function App Registration.
 ---
 
-# azurerm_static_web_app
+# azurerm_static_web_app_function_app_registration
 
 Manages an App Service Static Web App Function App Registration.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App Function App Registration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App Function App Registration.

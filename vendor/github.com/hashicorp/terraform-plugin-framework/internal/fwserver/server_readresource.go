@@ -188,7 +188,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		if !req.ResourceBehavior.MutableIdentity && !readFollowingImport && !req.CurrentIdentity.Raw.IsNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
-				"During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+				"During the read operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 					fmt.Sprintf("Current Identity: %s\n\n", req.CurrentIdentity.Raw.String())+
 					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),

@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &CloudVMClusterId{}
 
-// CloudVMClusterId is a struct representing the Resource ID for a Cloud V M Cluster
+// CloudVMClusterId is a struct representing the Resource ID for a Cloud VM Cluster
 type CloudVMClusterId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
@@ -84,7 +84,7 @@ func (id *CloudVMClusterId) FromParseResult(input resourceids.ParseResult) error
 	return nil
 }
 
-// ValidateCloudVMClusterID checks that 'input' can be parsed as a Cloud V M Cluster ID
+// ValidateCloudVMClusterID checks that 'input' can be parsed as a Cloud VM Cluster ID
 func ValidateCloudVMClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateCloudVMClusterID(input interface{}, key string) (warnings []string,
 	return
 }
 
-// ID returns the formatted Cloud V M Cluster ID
+// ID returns the formatted Cloud VM Cluster ID
 func (id CloudVMClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Oracle.Database/cloudVmClusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.CloudVmClusterName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Cloud V M Cluster ID
+// Segments returns a slice of Resource ID Segments which comprise this Cloud VM Cluster ID
 func (id CloudVMClusterId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id CloudVMClusterId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Cloud V M Cluster ID
+// String returns a human-readable description of this Cloud VM Cluster ID
 func (id CloudVMClusterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Cloud Vm Cluster Name: %q", id.CloudVmClusterName),
 	}
-	return fmt.Sprintf("Cloud V M Cluster (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Cloud VM Cluster (%s)", strings.Join(components, "\n"))
 }
