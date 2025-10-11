@@ -218,7 +218,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

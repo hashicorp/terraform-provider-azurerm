@@ -29,7 +29,7 @@ resource "azurerm_nat_gateway" "example" {
 
 For more complete examples, please see the [azurerm_nat_gateway_public_ip_association](nat_gateway_public_ip_association.html) and [azurerm_nat_gateway_public_ip_prefix_association](nat_gateway_public_ip_prefix_association.html) resources.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

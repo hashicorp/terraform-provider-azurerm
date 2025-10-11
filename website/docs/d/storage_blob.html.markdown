@@ -20,7 +20,7 @@ data "azurerm_storage_blob" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

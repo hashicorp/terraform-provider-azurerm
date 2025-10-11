@@ -112,7 +112,7 @@ resource "azurerm_application_gateway" "network" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

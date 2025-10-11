@@ -45,7 +45,7 @@ resource "azurerm_container_registry_scope_map" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

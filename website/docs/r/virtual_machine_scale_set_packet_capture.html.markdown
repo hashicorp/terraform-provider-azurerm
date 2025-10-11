@@ -106,7 +106,7 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "example" {
 
 ~> **Note:** This Resource requires that [the Network Watcher Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine Scale Set before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_scale_set_extension` resource](virtual_machine_scale_set_extension.html).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

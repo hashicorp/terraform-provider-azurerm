@@ -52,7 +52,7 @@ resource "azurerm_healthcare_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

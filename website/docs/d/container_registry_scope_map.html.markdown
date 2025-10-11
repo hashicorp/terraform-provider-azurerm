@@ -25,7 +25,7 @@ output "actions" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Container Registry token.
 * `container_registry_name` - The Name of the Container Registry where the token exists.

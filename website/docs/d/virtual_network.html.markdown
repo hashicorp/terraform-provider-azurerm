@@ -23,7 +23,7 @@ output "virtual_network_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.

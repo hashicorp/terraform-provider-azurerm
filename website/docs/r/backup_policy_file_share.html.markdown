@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_file_share" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

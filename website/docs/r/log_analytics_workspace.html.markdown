@@ -27,7 +27,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

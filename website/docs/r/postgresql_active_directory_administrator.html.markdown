@@ -42,7 +42,7 @@ resource "azurerm_postgresql_active_directory_administrator" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

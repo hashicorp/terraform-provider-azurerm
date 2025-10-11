@@ -47,7 +47,7 @@ resource "azurerm_automation_connection_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

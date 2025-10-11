@@ -52,7 +52,7 @@ resource "azurerm_subnet_route_table_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

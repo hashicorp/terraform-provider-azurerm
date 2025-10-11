@@ -36,7 +36,7 @@ resource "azurerm_log_analytics_saved_search" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

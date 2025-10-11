@@ -52,6 +52,13 @@ The following arguments are supported:
 * `certificate_password` - (Required) The password for the Certificate bundle.
 
 * `dns_suffix` - (Required) Custom DNS Suffix for the Container App Environment.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Container App Environment Custom Domain Suffix.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
@@ -63,7 +70,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-A Container App Environment Custom Domain Suffix can be imported using the `resource id` of its parent container ontainer App Environment , e.g.
+A Container App Environment Custom Domain Suffix can be imported using the `resource id` of its parent container App Environment, e.g.
 
 ```shell
 terraform import azurerm_container_app_environment_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment"

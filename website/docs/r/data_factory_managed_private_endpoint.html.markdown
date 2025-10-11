@@ -42,7 +42,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -112,7 +112,7 @@ resource "azurerm_private_endpoint_application_security_group_association" "exam
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

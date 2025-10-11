@@ -41,7 +41,7 @@ resource "azurerm_spring_cloud_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

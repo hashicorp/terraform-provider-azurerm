@@ -23,7 +23,7 @@ output "azurerm_vpn_server_configuration" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -42,7 +42,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

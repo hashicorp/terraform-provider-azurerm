@@ -23,7 +23,7 @@ output "azurerm_vpn_gateway_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The Name of the VPN Gateway.
 

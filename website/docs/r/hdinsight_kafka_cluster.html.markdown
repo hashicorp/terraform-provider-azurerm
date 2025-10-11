@@ -78,7 +78,7 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

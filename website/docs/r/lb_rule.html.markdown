@@ -48,7 +48,7 @@ resource "azurerm_lb_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -54,7 +54,7 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

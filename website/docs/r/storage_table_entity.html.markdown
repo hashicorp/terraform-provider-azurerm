@@ -43,7 +43,7 @@ resource "azurerm_storage_table_entity" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

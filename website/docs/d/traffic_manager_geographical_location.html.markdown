@@ -23,7 +23,7 @@ output "location_code" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
 

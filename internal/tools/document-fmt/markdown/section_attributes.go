@@ -3,7 +3,10 @@
 
 package markdown
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type AttributesSection struct {
 	heading Heading
@@ -13,7 +16,7 @@ type AttributesSection struct {
 var _ SectionWithTemplate = &AttributesSection{}
 
 func (s *AttributesSection) Match(line string) bool {
-	return strings.Contains(strings.ToLower(line), "attributes")
+	return regexp.MustCompile(`#+(\s)*attribute.*`).MatchString(strings.ToLower(line))
 }
 
 func (s *AttributesSection) SetHeading(line string) {

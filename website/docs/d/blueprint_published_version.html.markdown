@@ -24,7 +24,7 @@ data "azurerm_blueprint_published_version" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `blueprint_name` - (Required) The name of the Blueprint Definition
 

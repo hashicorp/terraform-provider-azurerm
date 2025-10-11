@@ -24,7 +24,7 @@ output "firewall_private_ip" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Azure Firewall.
 

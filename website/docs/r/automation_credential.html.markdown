@@ -35,7 +35,7 @@ resource "azurerm_automation_credential" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

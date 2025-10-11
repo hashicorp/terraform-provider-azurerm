@@ -46,7 +46,7 @@ resource "azurerm_servicebus_queue_authorization_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -190,7 +190,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

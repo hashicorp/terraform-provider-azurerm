@@ -34,7 +34,7 @@ resource "azurerm_dedicated_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

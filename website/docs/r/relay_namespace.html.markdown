@@ -32,7 +32,7 @@ resource "azurerm_relay_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

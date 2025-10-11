@@ -24,7 +24,7 @@ output "login_server" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Container Registry.
 * `resource_group_name` - The Name of the Resource Group where this Container Registry exists.

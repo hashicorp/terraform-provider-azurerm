@@ -91,7 +91,7 @@ resource "azurerm_key_vault_key" "generated" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

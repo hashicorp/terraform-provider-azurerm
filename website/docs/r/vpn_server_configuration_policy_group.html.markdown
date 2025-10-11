@@ -45,7 +45,7 @@ resource "azurerm_vpn_server_configuration_policy_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

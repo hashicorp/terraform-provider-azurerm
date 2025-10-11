@@ -115,7 +115,7 @@ resource "azurerm_app_configuration_key" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -54,7 +54,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

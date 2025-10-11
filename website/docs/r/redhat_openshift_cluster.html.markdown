@@ -127,7 +127,7 @@ output "console_url" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -65,7 +65,7 @@ resource "azurerm_management_lock" "public-ip" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

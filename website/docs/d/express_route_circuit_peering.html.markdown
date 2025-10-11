@@ -20,7 +20,7 @@ data "azurerm_express_route_circuit_peering" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

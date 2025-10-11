@@ -52,7 +52,7 @@ resource "azurerm_container_registry_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

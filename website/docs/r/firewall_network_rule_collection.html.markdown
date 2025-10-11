@@ -86,7 +86,7 @@ resource "azurerm_firewall_network_rule_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -129,6 +129,12 @@ A `rule` block supports the following:
 * `destination_ports` - (Required) A list of destination ports.
 
 * `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Firewall Network Rule Collection.
 
 ## Timeouts
 

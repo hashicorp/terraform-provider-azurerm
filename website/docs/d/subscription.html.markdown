@@ -21,7 +21,7 @@ output "current_subscription_display_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `subscription_id` - (Optional) Specifies the ID of the subscription. If this argument is omitted, the subscription ID of the current Azure Resource Manager provider is used.
 

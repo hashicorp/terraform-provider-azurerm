@@ -114,7 +114,7 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -61,7 +61,7 @@ resource "azurerm_dev_test_linux_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

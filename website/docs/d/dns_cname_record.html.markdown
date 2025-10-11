@@ -26,7 +26,7 @@ output "dns_cname_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the DNS CNAME Record.
 

@@ -23,7 +23,7 @@ output "cdn_profile_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the CDN Profile.
 

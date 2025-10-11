@@ -28,7 +28,7 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

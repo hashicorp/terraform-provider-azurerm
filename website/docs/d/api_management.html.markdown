@@ -23,7 +23,7 @@ output "api_management_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the API Management service.
 

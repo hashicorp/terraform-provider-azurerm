@@ -18,7 +18,7 @@ data "azurerm_location" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
 

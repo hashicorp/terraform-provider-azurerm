@@ -21,7 +21,7 @@ data "azurerm_eventhub_authorization_rule" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the EventHub Authorization Rule resource. be created.
 

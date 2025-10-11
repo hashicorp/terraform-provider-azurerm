@@ -39,7 +39,7 @@ resource "azurerm_virtual_network_dns_servers" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -79,7 +79,7 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

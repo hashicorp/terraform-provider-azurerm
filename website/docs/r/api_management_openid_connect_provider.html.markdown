@@ -39,7 +39,7 @@ resource "azurerm_api_management_openid_connect_provider" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

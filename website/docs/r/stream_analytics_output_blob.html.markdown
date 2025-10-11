@@ -56,7 +56,7 @@ resource "azurerm_stream_analytics_output_blob" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

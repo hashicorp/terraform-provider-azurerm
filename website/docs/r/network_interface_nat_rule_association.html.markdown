@@ -80,7 +80,7 @@ resource "azurerm_network_interface_nat_rule_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

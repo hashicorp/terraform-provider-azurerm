@@ -23,7 +23,7 @@ output "cidrs" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the IP Group.
 

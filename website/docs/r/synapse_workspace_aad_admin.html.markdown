@@ -105,6 +105,12 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Synapse Workspace Azure AD Administrator.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

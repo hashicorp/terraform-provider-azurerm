@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

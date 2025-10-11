@@ -83,7 +83,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Windows Virtual Machine Scale Set. Changing this forces a new resource to be created.
 

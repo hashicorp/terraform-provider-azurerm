@@ -26,7 +26,7 @@ resource "azurerm_virtual_wan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

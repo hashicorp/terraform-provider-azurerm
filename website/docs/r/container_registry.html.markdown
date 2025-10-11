@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

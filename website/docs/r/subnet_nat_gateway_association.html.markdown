@@ -44,7 +44,7 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

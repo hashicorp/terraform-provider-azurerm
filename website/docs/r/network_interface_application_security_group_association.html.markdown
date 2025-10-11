@@ -57,7 +57,7 @@ resource "azurerm_network_interface_application_security_group_association" "exa
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

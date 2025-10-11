@@ -95,7 +95,7 @@ resource "azurerm_web_pubsub_custom_domain" "test" {
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
 }
 ```
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

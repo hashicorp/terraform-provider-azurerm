@@ -77,7 +77,7 @@ resource "azurerm_hdinsight_hbase_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -42,7 +42,7 @@ resource "azurerm_cosmosdb_sql_dedicated_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -52,6 +52,12 @@ The following arguments are supported:
 
 * `token_user_display_name` - (Optional) The user display name of the user that was used to obtain the refresh token.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Stream Analytics Output to Power BI resource.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

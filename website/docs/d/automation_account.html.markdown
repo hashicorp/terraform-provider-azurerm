@@ -23,7 +23,7 @@ output "automation_account_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Automation Account.
 

@@ -31,7 +31,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,11 @@ The following arguments are supported:
 
 * `virtual_network_enabled` - (Optional) Is Integration Runtime compute provisioned within Managed Virtual Network? Changing this forces a new resource to be created.
 
----
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Data Factory Integration Runtime.
 
 ## Timeouts
 

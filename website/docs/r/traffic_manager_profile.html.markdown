@@ -52,7 +52,7 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

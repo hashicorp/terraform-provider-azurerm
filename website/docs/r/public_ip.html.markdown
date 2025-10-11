@@ -32,7 +32,7 @@ resource "azurerm_public_ip" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

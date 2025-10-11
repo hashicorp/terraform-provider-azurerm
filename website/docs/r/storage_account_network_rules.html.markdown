@@ -61,7 +61,7 @@ resource "azurerm_storage_account_network_rules" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

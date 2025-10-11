@@ -76,7 +76,7 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -24,7 +24,7 @@ output "virtual_hub_connection_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

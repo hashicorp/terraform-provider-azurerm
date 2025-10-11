@@ -112,7 +112,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

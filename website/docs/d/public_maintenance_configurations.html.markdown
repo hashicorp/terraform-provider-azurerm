@@ -24,7 +24,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 

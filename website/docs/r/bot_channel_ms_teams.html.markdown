@@ -37,7 +37,7 @@ resource "azurerm_bot_channel_ms_teams" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

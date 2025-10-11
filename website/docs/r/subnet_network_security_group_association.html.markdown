@@ -57,7 +57,7 @@ resource "azurerm_subnet_network_security_group_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

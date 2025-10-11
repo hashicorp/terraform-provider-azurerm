@@ -23,7 +23,7 @@ output "primary_access_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

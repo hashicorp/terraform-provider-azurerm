@@ -48,7 +48,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 ~> **Note:** At least one of `name`, `resource_group_name` or `type` must be specified.
 

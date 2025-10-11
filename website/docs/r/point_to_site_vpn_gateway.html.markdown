@@ -85,7 +85,7 @@ resource "azurerm_point_to_site_vpn_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

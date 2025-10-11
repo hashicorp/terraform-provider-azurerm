@@ -25,7 +25,7 @@ output "thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Batch certificate.
 

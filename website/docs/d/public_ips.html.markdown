@@ -19,7 +19,7 @@ data "azurerm_public_ips" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `resource_group_name` - Specifies the name of the resource group.
 * `attachment_status` - (Optional) Filter to include IP Addresses which are attached to a device, such as a VM/LB (`Attached`) or unattached (`Unattached`).

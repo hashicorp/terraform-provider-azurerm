@@ -34,7 +34,7 @@ resource "azurerm_express_route_port_authorization" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

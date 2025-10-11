@@ -37,7 +37,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

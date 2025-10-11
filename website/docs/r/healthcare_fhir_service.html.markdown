@@ -61,7 +61,7 @@ resource "azurerm_healthcare_fhir_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

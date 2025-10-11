@@ -30,7 +30,7 @@ resource "azurerm_automation_job_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

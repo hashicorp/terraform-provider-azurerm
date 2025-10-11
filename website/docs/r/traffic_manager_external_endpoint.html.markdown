@@ -51,7 +51,7 @@ resource "azurerm_traffic_manager_external_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
