@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -136,7 +136,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, item, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -163,7 +163,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 			},
 		}
 
-		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
@@ -285,7 +285,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	}
 	model.Properties = properties
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -332,7 +332,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 						},
 					}
 
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, *id, err)
 					}
 
@@ -391,7 +391,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("recovering soft-deleted %s: %+v", id, err)
 	}
 
@@ -465,34 +465,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Note: O+C because `protection_state` is set by Azure and may not be a persistent value.
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				// While not a persistent state, `Protected` is an option to allow a path from `BackupsSuspended`/`ProtectionStopped` to a protected state.
-				string(protecteditems.ProtectionStateProtected),
-				string(protecteditems.ProtectionStateBackupsSuspended),
-				string(protecteditems.ProtectionStateProtectionStopped),
-			}, false),
-			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-				// We suppress the diff if the only change is from "IRPending" or "ProtectionPaused" to "Protected".
-				// These states are not persistent and are set by Azure based on the current protection state.
-				// While `Invalid` and `ProtectionError` are also not configurable, we're opting to output this in the diff
-				// as these states should indicate to the user that there is an error with the backup protected VM resource requiring attention.
-				suppressStates := []string{
-					string(protecteditems.ProtectedItemStateIRPending),
-					string(protecteditems.ProtectedItemStateProtectionPaused),
-				}
-
-				if new == string(protecteditems.ProtectionStateProtected) && slices.Contains(suppressStates, old) {
-					return true
-				}
-
-				return false
-			},
-		},
+		"protection_state": helpers.BackupProtectedVMProtectionStateSchema(),
 	}
 }
 

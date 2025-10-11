@@ -72,7 +72,8 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: true,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: true,
+					RecoverSoftDeletedBackupProtectedVM:                       true,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: true,
 				},
 				Storage: features.StorageFeatures{
 					DataPlaneAvailable: true,
@@ -87,9 +88,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:           false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    false,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:                              false,
 				},
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: false,
@@ -163,7 +165,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
-							"recover_soft_deleted_backup_protected_vm": true,
+							"recover_soft_deleted_backup_protected_vm":                           true,
+							"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": true,
 						},
 					},
 					"storage": []interface{}{
@@ -203,9 +206,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
-							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":             true,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":                           true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy":                        true,
+							"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":                                    true,
 						},
 					},
 					"netapp": []interface{}{
@@ -259,7 +263,8 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: true,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: true,
+					RecoverSoftDeletedBackupProtectedVM:                       true,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: true,
 				},
 				Storage: features.StorageFeatures{
 					DataPlaneAvailable: true,
@@ -288,9 +293,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: true,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:           true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    true,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:                              true,
 				},
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: true,
@@ -364,7 +370,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
-							"recover_soft_deleted_backup_protected_vm": false,
+							"recover_soft_deleted_backup_protected_vm":                           false,
+							"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": false,
 						},
 					},
 					"storage": []interface{}{
@@ -404,9 +411,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
-							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":             false,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":                           false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy":                        false,
+							"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":                                    false,
 						},
 					},
 					"netapp": []interface{}{
@@ -460,7 +468,8 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: false,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: false,
+					RecoverSoftDeletedBackupProtectedVM:                       false,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: false,
 				},
 				Storage: features.StorageFeatures{
 					DataPlaneAvailable: false,
@@ -489,9 +498,10 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:           false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    false,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:                              false,
 				},
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: false,
@@ -1368,7 +1378,8 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: true,
+					RecoverSoftDeletedBackupProtectedVM:                       true,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: true,
 				},
 			},
 		},
@@ -1378,14 +1389,16 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 				map[string]interface{}{
 					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
-							"recover_soft_deleted_backup_protected_vm": true,
+							"recover_soft_deleted_backup_protected_vm":                           true,
+							"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: true,
+					RecoverSoftDeletedBackupProtectedVM:                       true,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: true,
 				},
 			},
 		},
@@ -1395,14 +1408,16 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 				map[string]interface{}{
 					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
-							"recover_soft_deleted_backup_protected_vm": false,
+							"recover_soft_deleted_backup_protected_vm":                           false,
+							"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtectedVM: false,
+					RecoverSoftDeletedBackupProtectedVM:                       false,
+					RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: false,
 				},
 			},
 		},
@@ -1724,9 +1739,10 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:           false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    false,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:                              false,
 				},
 			},
 		},
@@ -1736,18 +1752,20 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 				map[string]interface{}{
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
-							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":             true,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":                           true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy":                        true,
+							"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":                                    true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:           true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    true,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:                              true,
 				},
 			},
 		},
@@ -1757,18 +1775,20 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 				map[string]interface{}{
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
-							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":             false,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":                           false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy":                        false,
+							"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":                                    false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:           false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:                       false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy:                    false,
+					VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:                              false,
 				},
 			},
 		},

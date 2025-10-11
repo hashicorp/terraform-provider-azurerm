@@ -45,7 +45,8 @@ func Default() UserFeatures {
 			PreventDeletionIfContainsResources: true,
 		},
 		RecoveryServicesVault: RecoveryServicesVault{
-			RecoverSoftDeletedBackupProtectedVM: true,
+			RecoverSoftDeletedBackupProtectedVM:                       true,
+			RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
@@ -75,9 +76,10 @@ func Default() UserFeatures {
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
 		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:           false,
+			VMBackupStopProtectionAndRetainDataOnDestroy:                       false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy:                    false,
+			VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:                              false,
 		},
 		NetApp: NetAppFeatures{
 			DeleteBackupsOnBackupVaultDestroy: false,
