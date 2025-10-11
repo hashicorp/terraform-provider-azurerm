@@ -73,6 +73,10 @@ A `filter` block supports the following:
 
 ~> **Note:** The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
+* `creation_time` - (Optional) A `creation_time` block as defined below.
+
+~> **Note:** The `rules.*.schema_fields` for this rule has to include `Creation-Time` so that you can specify the `creation_time` filter.
+
 * `include_blob_versions` - (Optional) Includes blob versions in blob inventory or not? Defaults to `false`.
 
 ~> **Note:** The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
@@ -88,6 +92,12 @@ A `filter` block supports the following:
 * `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
 
 * `exclude_prefixes` - (Optional) A set of strings for blob prefixes to be excluded. Maximum of 10 blob prefixes.
+
+---
+
+A `creation_time` block supports the following:
+
+* `last_n_days` - (Required) The number of days in the past to filter blob creation time. Possible value is integer between `1` and `36500`.
 
 ---
 
