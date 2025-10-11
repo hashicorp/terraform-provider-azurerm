@@ -150,6 +150,32 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 	})
 }
 
+func TestAccKubernetesClusterNodePool_virtualMachineProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.virtualMachineProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.size").HasValue("Standard_DS2_v2"),
+				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.count").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.virtualMachineProfileConfigUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.size").HasValue("Standard_DS3_v2"),
+				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.count").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_other(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3502,6 +3528,102 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 `, data.RandomInteger, // resource_group name
 		data.Locations.Primary, // resource_group location
 		data.RandomInteger,     // virtual_network name
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
+}
+
+func (KubernetesClusterNodePoolResource) virtualMachineProfileConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  virtual_machine_profile {
+    scale {
+      manual {
+        size  = "Standard_DS2_v2"
+        count = 2
+      }
+    }
+  }
+}
+`, data.RandomInteger, // resource_group name
+		data.Locations.Primary, // resource_group location
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
+}
+
+func (KubernetesClusterNodePoolResource) virtualMachineProfileConfigUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  virtual_machine_profile {
+    scale {
+      manual {
+        size  = "Standard_B4s"
+        count = 3
+      }
+    }
+  }
+}
+`, data.RandomInteger, // resource_group name
+		data.Locations.Primary, // resource_group location
 		data.RandomInteger,     // kubernetes_cluster name
 		data.RandomInteger,     // kubernetes_cluster dns_prefix
 	)
