@@ -30,8 +30,8 @@ resource "azurerm_storage_account" "example" {
   }
 }
 
-resource "azurerm_storage_account_static_website" "test" {
-  storage_account_id = azurerm_storage_account.test.id
+resource "azurerm_storage_account_static_website" "example" {
+  storage_account_id = azurerm_storage_account.example.id
   error_404_document = "custom_not_found.html"
   index_document     = "custom_index.html"
 }
@@ -50,11 +50,11 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Static Website.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Static Website.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Static Website.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Static Website.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Static Website.
 
 ## Import

@@ -21,7 +21,7 @@ func TestAccServicePlanDataSource_complete(t *testing.T) {
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("location").HasValue("eastasia"),
 				// TODO - rest of the sane properties
 			),
 		},

@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -491,9 +491,10 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
-			IPRules: expandSearchServiceIPRules(ipRulesRaw),
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
 		}
+		model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
 	}
 
 	if d.HasChange("network_rule_bypass_option") {

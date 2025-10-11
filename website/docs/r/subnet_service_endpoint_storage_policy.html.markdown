@@ -81,7 +81,7 @@ A `definition` block supports the following:
 
 * `service_resources` - (Required) Specifies a list of resources or aliases that this Subnet Service Endpoint Storage Policy Definition applies to.
 
-~> **NOTE** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
+~> **Note:** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
 
 * `description` - (Optional) The description of this Subnet Service Endpoint Storage Policy Definition.
 
@@ -95,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subnet Service Endpoint Storage Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subnet Service Endpoint Storage Policy.
@@ -109,3 +109,9 @@ Subnet Service Endpoint Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_subnet_service_endpoint_storage_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/serviceEndpointPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -159,6 +159,16 @@ type Ingress struct {
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
+	Cors                   []Cors                  `tfschema:"cors"`
+}
+
+type Cors struct {
+	AllowCredentialsEnabled bool     `tfschema:"allow_credentials_enabled"`
+	AllowedHeaders          []string `tfschema:"allowed_headers"`
+	AllowedMethods          []string `tfschema:"allowed_methods"`
+	AllowedOrigins          []string `tfschema:"allowed_origins"`
+	ExposedHeaders          []string `tfschema:"exposed_headers"`
+	MaxAgeInSeconds         int64    `tfschema:"max_age_in_seconds"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -183,6 +193,55 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+				"cors": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"exposed_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntAtLeast(0),
+							},
+						},
+					},
+				},
 
 				"fqdn": {
 					Type:        pluginsdk.TypeString,
@@ -245,6 +304,52 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
 
+				"cors": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"exposed_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+						},
+					},
+				},
+
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -304,6 +409,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
+		CorsPolicy:             expandCorsPolicy(ingress.Cors),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -313,6 +419,49 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 
 	return result
+}
+
+func expandCorsPolicy(inputList []Cors) *containerapps.CorsPolicy {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := &inputList[0]
+	result := containerapps.CorsPolicy{
+		AllowCredentials: pointer.To(input.AllowCredentialsEnabled),
+		AllowedOrigins:   input.AllowedOrigins,
+		MaxAge:           pointer.To(input.MaxAgeInSeconds),
+	}
+
+	if len(input.AllowedHeaders) > 0 {
+		result.AllowedHeaders = pointer.To(input.AllowedHeaders)
+	}
+	if len(input.AllowedMethods) > 0 {
+		result.AllowedMethods = pointer.To(input.AllowedMethods)
+	}
+	if len(input.ExposedHeaders) > 0 {
+		result.ExposeHeaders = pointer.To(input.ExposedHeaders)
+	}
+
+	return &result
+}
+
+func flattenCorsPolicy(input *containerapps.CorsPolicy) []Cors {
+	outputList := make([]Cors, 0)
+	if input == nil {
+		return outputList
+	}
+
+	output := Cors{
+		AllowCredentialsEnabled: pointer.From(input.AllowCredentials),
+		AllowedHeaders:          pointer.From(input.AllowedHeaders),
+		AllowedMethods:          pointer.From(input.AllowedMethods),
+		AllowedOrigins:          input.AllowedOrigins,
+		ExposedHeaders:          pointer.From(input.ExposeHeaders),
+		MaxAgeInSeconds:         pointer.From(input.MaxAge),
+	}
+
+	return append(outputList, output)
 }
 
 func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []Ingress {
@@ -338,6 +487,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.ClientCertificateMode != nil {
 		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
+	}
+
+	if ingress.CorsPolicy != nil {
+		result.Cors = flattenCorsPolicy(ingress.CorsPolicy)
 	}
 
 	return []Ingress{result}
@@ -1028,14 +1181,14 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1097,13 +1250,13 @@ func ContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1181,14 +1334,14 @@ func InitContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1244,13 +1397,13 @@ func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -2858,7 +3011,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 		}
 	}
 
-	return !(hasLiveness || hasReadiness || hasStartup)
+	return !hasLiveness && !hasReadiness && !hasStartup
 }
 
 type AzureQueueScaleRule struct {

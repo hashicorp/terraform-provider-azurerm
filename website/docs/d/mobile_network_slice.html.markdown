@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Slice.
 ---
 
-# azurerm_mobile_network_slice
+# Data Source: azurerm_mobile_network_slice
 
 Get information about a Mobile Network Slice.
 
@@ -57,7 +57,12 @@ A `single_network_slice_selection_assistance_information` block supports the fol
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Slice.
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

@@ -490,7 +490,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -518,7 +518,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -551,7 +551,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -644,7 +644,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {

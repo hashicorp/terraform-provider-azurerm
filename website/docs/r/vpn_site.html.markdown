@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `address_cidrs` - (Optional) Specifies a list of IP address CIDRs that are located on your on-premises site. Traffic destined for these address spaces is routed to your local site.
 
--> **NOTE:** The `address_cidrs` has to be set when the `link.bgp` isn't specified.
+-> **Note:** The `address_cidrs` has to be set when the `link.bgp` isn't specified.
 
 * `device_model` - (Optional) The model of the VPN device.
 
@@ -86,13 +86,13 @@ A `link` block supports the following:
 
 * `bgp` - (Optional) A `bgp` block as defined above.
 
--> **NOTE:** The `link.bgp` has to be set when the `address_cidrs` isn't specified.
+-> **Note:** The `link.bgp` has to be set when the `address_cidrs` isn't specified.
 
 * `fqdn` - (Optional) The FQDN of this VPN Site Link.
 
 * `ip_address` - (Optional) The IP address of this VPN Site Link.
 
--> **NOTE:** Either `fqdn` or `ip_address` should be specified.
+-> **Note:** Either `fqdn` or `ip_address` should be specified.
 
 * `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 
@@ -130,7 +130,7 @@ A `link` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VPN Site.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Site.
@@ -144,3 +144,9 @@ VPN Sites can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vpn_site.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/vpnSites/site1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

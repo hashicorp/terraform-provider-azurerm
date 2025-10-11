@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure Container Registry scope map.  For more information on scope maps see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
 
+## Example Usage
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
@@ -67,11 +69,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry scope map.
-* `update` - (Defaults to 30 minutes) Used when updating the Container Registry scope map.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry scope map.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry scope map.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry scope map.
 
 ## Import
@@ -81,3 +83,9 @@ Container Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_scope_map.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/scopeMaps/scopemap1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

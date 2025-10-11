@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &IPAllocationId{}
 
-// IPAllocationId is a struct representing the Resource ID for a I P Allocation
+// IPAllocationId is a struct representing the Resource ID for a IP Allocation
 type IPAllocationId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -84,7 +84,7 @@ func (id *IPAllocationId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateIPAllocationID checks that 'input' can be parsed as a I P Allocation ID
+// ValidateIPAllocationID checks that 'input' can be parsed as a IP Allocation ID
 func ValidateIPAllocationID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateIPAllocationID(input interface{}, key string) (warnings []string, e
 	return
 }
 
-// ID returns the formatted I P Allocation ID
+// ID returns the formatted IP Allocation ID
 func (id IPAllocationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/ipAllocations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.IpAllocationName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this I P Allocation ID
+// Segments returns a slice of Resource ID Segments which comprise this IP Allocation ID
 func (id IPAllocationId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id IPAllocationId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this I P Allocation ID
+// String returns a human-readable description of this IP Allocation ID
 func (id IPAllocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Ip Allocation Name: %q", id.IpAllocationName),
 	}
-	return fmt.Sprintf("I P Allocation (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("IP Allocation (%s)", strings.Join(components, "\n"))
 }

@@ -127,7 +127,7 @@ func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if timeout, ok := d.GetOk("query_execution_timeout_in_seconds"); ok {
-		parameters.WorkloadGroupProperties.QueryExecutionTimeout = utils.Int32(int32(timeout.(int)))
+		parameters.QueryExecutionTimeout = utils.Int32(int32(timeout.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, parameters)

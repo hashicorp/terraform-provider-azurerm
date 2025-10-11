@@ -34,6 +34,11 @@ type ValidateAttributeRequest struct {
 
 	// Config contains the entire configuration of the data source, provider, or resource.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities validator.ValidateSchemaClientCapabilities
 }
 
 // ValidateAttributeResponse represents a response to a
@@ -65,6 +70,24 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		return
 	}
 
+	if a.IsWriteOnly() && a.IsRequired() && a.IsOptional() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"WriteOnly Attributes must be set with only one of Required or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+		)
+		return
+	}
+
+	if a.IsWriteOnly() && a.IsComputed() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+		)
+		return
+	}
+
 	configData := &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         req.Config.Schema,
@@ -78,12 +101,30 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		return
 	}
 
+	configHasNullValue := attributeConfig.IsNull()
+	configHasUnknownValue := attributeConfig.IsUnknown()
+	// If the value is dynamic, we still need to check if the underlying value is null or unknown
+	if dynamicValuable, isDynamic := attributeConfig.(basetypes.DynamicValuable); !configHasNullValue && !configHasUnknownValue && isDynamic {
+		dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
+		resp.Diagnostics.Append(diags...)
+		if diags.HasError() {
+			return
+		}
+		if dynamicConfigVal.IsUnderlyingValueNull() {
+			configHasNullValue = true
+		}
+
+		if dynamicConfigVal.IsUnderlyingValueUnknown() {
+			configHasUnknownValue = true
+		}
+	}
+
 	// Terraform CLI does not automatically perform certain configuration
 	// checks yet. If it eventually does, this logic should remain at least
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.IsComputed() && !a.IsOptional() && !attributeConfig.IsNull() {
+	if a.IsComputed() && !a.IsOptional() && !configHasNullValue {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Configuration for Read-Only Attribute",
@@ -97,7 +138,7 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.IsRequired() && attributeConfig.IsNull() {
+	if a.IsRequired() && configHasNullValue {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Missing Configuration for Required Attribute",
@@ -106,6 +147,18 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		)
 	}
 
+	// If the client doesn't support write-only attributes (first supported in Terraform v1.11.0), then we raise an early validation error
+	// to avoid a confusing data consistency error when the provider attempts to return "null" for a write-only attribute in the planned/final state.
+	//
+	// Write-only attributes can only be successfully used with a supporting client, so the only option for a practitoner to utilize a write-only attribute
+	// is to upgrade their Terraform CLI version to v1.11.0 or later.
+	if !req.ClientCapabilities.WriteOnlyAttributesAllowed && a.IsWriteOnly() && !configHasNullValue {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"WriteOnly Attribute Not Allowed",
+			fmt.Sprintf("The resource contains a non-null value for WriteOnly attribute %s. Write-only attributes are only supported in Terraform 1.11 and later.", req.AttributePath.String()),
+		)
+	}
 	req.AttributeConfig = attributeConfig
 
 	switch attributeWithValidators := a.(type) {
@@ -138,33 +191,13 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	AttributeValidateNestedAttributes(ctx, a, req, resp)
 
 	// Show deprecation warnings only for known values.
-	if a.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
-		// Dynamic values need to perform more logic to check the config value for null/unknown-ness
-		dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
-		if !ok {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Attribute Deprecated",
-				a.GetDeprecationMessage(),
-			)
-			return
-		}
-
-		dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
-		resp.Diagnostics.Append(diags...)
-		if diags.HasError() {
-			return
-		}
-
-		// For dynamic values, it's possible to be known when only the type is known.
-		// The underlying value can still be null or unknown, so check for that here
-		if !dynamicConfigVal.IsUnderlyingValueNull() && !dynamicConfigVal.IsUnderlyingValueUnknown() {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Attribute Deprecated",
-				a.GetDeprecationMessage(),
-			)
-		}
+	if a.GetDeprecationMessage() != "" && !configHasNullValue && !configHasUnknownValue {
+		resp.Diagnostics.AddAttributeWarning(
+			req.AttributePath,
+			"Attribute Deprecated",
+			a.GetDeprecationMessage(),
+		)
+		return
 	}
 }
 
@@ -200,10 +233,11 @@ func AttributeValidateBool(ctx context.Context, attribute fwxschema.AttributeWit
 	}
 
 	validateReq := validator.BoolRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.BoolValidators() {
@@ -265,10 +299,11 @@ func AttributeValidateFloat32(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.Float32Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Float32Validators() {
@@ -330,10 +365,11 @@ func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.Float64Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Float64Validators() {
@@ -395,10 +431,11 @@ func AttributeValidateInt32(ctx context.Context, attribute fwxschema.AttributeWi
 	}
 
 	validateReq := validator.Int32Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Int32Validators() {
@@ -460,10 +497,11 @@ func AttributeValidateInt64(ctx context.Context, attribute fwxschema.AttributeWi
 	}
 
 	validateReq := validator.Int64Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Int64Validators() {
@@ -525,10 +563,11 @@ func AttributeValidateList(ctx context.Context, attribute fwxschema.AttributeWit
 	}
 
 	validateReq := validator.ListRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.ListValidators() {
@@ -590,10 +629,11 @@ func AttributeValidateMap(ctx context.Context, attribute fwxschema.AttributeWith
 	}
 
 	validateReq := validator.MapRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.MapValidators() {
@@ -655,10 +695,11 @@ func AttributeValidateNumber(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.NumberRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.NumberValidators() {
@@ -720,10 +761,11 @@ func AttributeValidateObject(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.ObjectRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.ObjectValidators() {
@@ -785,10 +827,11 @@ func AttributeValidateSet(ctx context.Context, attribute fwxschema.AttributeWith
 	}
 
 	validateReq := validator.SetRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.SetValidators() {
@@ -850,10 +893,11 @@ func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.StringRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.StringValidators() {
@@ -915,10 +959,11 @@ func AttributeValidateDynamic(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.DynamicRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.DynamicValidators() {
@@ -992,6 +1037,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1026,6 +1072,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1060,6 +1107,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtMapKey(key),
 				AttributePathExpression: req.AttributePathExpression.AtMapKey(key),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1097,6 +1145,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1144,10 +1193,11 @@ func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttribu
 		}
 
 		validateReq := validator.ObjectRequest{
-			Config:         req.Config,
-			ConfigValue:    object,
-			Path:           req.AttributePath,
-			PathExpression: req.AttributePathExpression,
+			ClientCapabilities: req.ClientCapabilities,
+			Config:             req.Config,
+			ConfigValue:        object,
+			Path:               req.AttributePath,
+			PathExpression:     req.AttributePathExpression,
 		}
 
 		for _, objectValidator := range objectWithValidators.ObjectValidators() {
@@ -1182,6 +1232,7 @@ func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttribu
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		nestedAttrResp := &ValidateAttributeResponse{}
 

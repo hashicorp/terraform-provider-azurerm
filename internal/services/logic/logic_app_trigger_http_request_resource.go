@@ -42,7 +42,7 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 			if relativePath != "" {
 				method := diff.Get("method").(string)
 				if method == "" {
-					return fmt.Errorf("`method` must be specified when `relative_path` is set.")
+					return fmt.Errorf("`method` must be specified when `relative_path` is set")
 				}
 			}
 

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Email integration for a Bot Channel
 
-~> **Note** A bot can only have a single Email Channel associated with it.
+~> **Note:** A bot can only have a single Email Channel associated with it.
 
 ## Example Usage
 
@@ -63,11 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Email Integration for a Bot Channel.
-* `update` - (Defaults to 30 minutes) Used when updating the Email Integration for a Bot Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Email Integration for a Bot Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Email Integration for a Bot Channel.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Email Integration for a Bot Channel.
 
 ## Import
@@ -77,3 +77,9 @@ The Email Integration for a Bot Channel can be imported using the `resource id`,
 ```shell
 terraform import azurerm_bot_channel_email.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.BotService/botServices/example/channels/EmailChannel
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.BotService` - 2022-09-15
