@@ -3719,9 +3719,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   sku_tier            = "Standard"
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
   network_profile {
@@ -3733,12 +3733,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "pool1"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test.id
-  pod_subnet_id         = azurerm_subnet.test.id
+  name                   = "pool1"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_DS2_v2"
+  node_count             = 1
+  vnet_subnet_id         = azurerm_subnet.test.id
+  pod_subnet_id          = azurerm_subnet.test.id
   pod_ip_allocation_mode = "StaticBlock"
 }
 `, data.RandomInteger, // resource_group name
@@ -3782,9 +3782,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   sku_tier            = "Standard"
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
   network_profile {
@@ -3796,12 +3796,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "pool1"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test.id
-  pod_subnet_id         = azurerm_subnet.test.id
+  name                   = "pool1"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_DS2_v2"
+  node_count             = 1
+  vnet_subnet_id         = azurerm_subnet.test.id
+  pod_subnet_id          = azurerm_subnet.test.id
   pod_ip_allocation_mode = "DynamicIndividual"
 }
 `, data.RandomInteger, // resource_group name
