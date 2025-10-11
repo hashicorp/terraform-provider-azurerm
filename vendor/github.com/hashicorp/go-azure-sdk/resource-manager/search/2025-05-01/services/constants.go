@@ -53,8 +53,8 @@ func parseAadAuthFailureMode(input string) (*AadAuthFailureMode, error) {
 type ComputeType string
 
 const (
-	ComputeTypeConfidential ComputeType = "confidential"
-	ComputeTypeDefault      ComputeType = "default"
+	ComputeTypeConfidential ComputeType = "Confidential"
+	ComputeTypeDefault      ComputeType = "Default"
 )
 
 func PossibleValuesForComputeType() []string {
@@ -94,8 +94,8 @@ func parseComputeType(input string) (*ComputeType, error) {
 type HostingMode string
 
 const (
-	HostingModeDefault     HostingMode = "default"
-	HostingModeHighDensity HostingMode = "highDensity"
+	HostingModeDefault     HostingMode = "Default"
+	HostingModeHighDensity HostingMode = "HighDensity"
 )
 
 func PossibleValuesForHostingMode() []string {
@@ -279,8 +279,8 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 type PublicNetworkAccess string
 
 const (
-	PublicNetworkAccessDisabled PublicNetworkAccess = "disabled"
-	PublicNetworkAccessEnabled  PublicNetworkAccess = "enabled"
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled  PublicNetworkAccess = "Enabled"
 )
 
 func PossibleValuesForPublicNetworkAccess() []string {
