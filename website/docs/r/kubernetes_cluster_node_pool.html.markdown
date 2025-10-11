@@ -304,6 +304,14 @@ A `sysctl_config` block supports the following:
 
 ---
 
+A `virtual_machine_nodes_status` block supports the following:
+
+* `size` - The size of the virtual machine nodes.
+
+* `count` - The count of virtual machine nodes.
+
+---
+
 A `upgrade_settings` block supports the following:
 
 * `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
@@ -325,6 +333,8 @@ A `windows_profile` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
+
+* `virtual_machine_nodes_status` - A `virtual_machine_nodes_status` block as defined below.
 
 ## Timeouts
 
