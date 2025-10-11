@@ -484,6 +484,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
   enabled_for_disk_encryption = true
 }
 

@@ -1179,12 +1179,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
@@ -1321,6 +1322,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                                 = data.azurerm_client_config.current.tenant_id
   admin_object_ids                          = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled                  = true
+  soft_delete_retention_days                = 7
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
   security_domain_quorum                    = 3
 }
@@ -1473,12 +1475,13 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                     = "acctestkv2%s"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv2%s"
+  location                   = azurerm_resource_group.test2.location
+  resource_group_name        = azurerm_resource_group.test2.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {

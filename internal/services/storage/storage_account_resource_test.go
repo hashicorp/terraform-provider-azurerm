@@ -4384,12 +4384,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4484,12 +4485,13 @@ func (r StorageAccountResource) customerManagedKeyUpdate(data acceptance.TestDat
 %s
 
 resource "azurerm_key_vault" "update" {
-  name                     = "acctestkvu%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkvu%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storageupdate" {
@@ -4679,13 +4681,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "remotetest" {
-  provider                 = azurerm-alt
-  name                     = "acctestkvr%s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = "%s"
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  provider                   = azurerm-alt
+  name                       = "acctestkvr%s"
+  location                   = azurerm_resource_group.remotetest.location
+  resource_group_name        = azurerm_resource_group.remotetest.name
+  tenant_id                  = "%s"
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {

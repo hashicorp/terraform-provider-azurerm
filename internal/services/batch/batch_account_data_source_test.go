@@ -284,13 +284,14 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "batchkv%[3]s"
+  name                            = "acctest%[3]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[4]s"
 
   sku_name = "standard"
@@ -397,13 +398,14 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "batchkv%[3]s"
+  name                            = "acctest%[3]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[4]s"
 
   sku_name = "standard"
