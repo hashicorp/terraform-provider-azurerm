@@ -23,6 +23,7 @@ func TestAccCdnFrontDoorEndpointDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("host_name").Exists(),
+				check.That(data.ResourceName).Key("domain_name_label_reuse_scope").Exists(),
 			),
 		},
 	})
