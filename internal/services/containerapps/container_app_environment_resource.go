@@ -46,6 +46,7 @@ type ContainerAppEnvironmentModel struct {
 	InfrastructureSubnetId                  string                                     `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled             bool                                       `tfschema:"internal_load_balancer_enabled"`
 	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccess                     string                                     `tfschema:"public_network_access"`
 	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{}                     `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
@@ -153,6 +154,14 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
 			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+		},
+
+		"public_network_access": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedenvironments.PublicNetworkAccessEnabled,
+			Description:  "The public network access setting for the Container App Environment.",
+			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"workload_profile": helpers.WorkloadProfileSchema(),
@@ -266,8 +275,9 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
 						Destination: pointer.To(containerAppEnvironment.LogsDestination),
 					},
-					VnetConfiguration: &managedenvironments.VnetConfiguration{},
-					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
+					PublicNetworkAccess: pointer.ToEnum[managedenvironments.PublicNetworkAccess](containerAppEnvironment.PublicNetworkAccess),
+					VnetConfiguration:   &managedenvironments.VnetConfiguration{},
+					ZoneRedundant:       pointer.To(containerAppEnvironment.ZoneRedundant),
 					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
 						Mtls: &managedenvironments.Mtls{
 							Enabled: pointer.To(containerAppEnvironment.Mtls),
@@ -395,6 +405,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					}
 
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
@@ -534,6 +545,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 						LogAnalyticsConfiguration: nil,
 					}
 				}
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access") {
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[managedenvironments.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if err := workaroundClient.UpdateThenPoll(ctx, *id, payload); err != nil {

@@ -39,6 +39,7 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
+	PublicNetworkAccess   string `tfschema:"public_network_access"`
 	StaticIP              string `tfschema:"static_ip_address"`
 }
 
@@ -119,6 +120,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
+		"public_network_access": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The public network access setting for this Container App Environment.",
+		},
+
 		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -176,6 +183,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
 					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					environment.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 
