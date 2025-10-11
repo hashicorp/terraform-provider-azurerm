@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -458,6 +459,29 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+			if k != "auth_settings.#" {
+				return false
+			}
+
+			oldVal, _ := d.GetChange("auth_settings")
+			if oldVal == nil {
+				return false
+			}
+
+			oldAuth := oldVal.([]any)
+			if len(oldAuth) > 0 {
+				if oldAuthMap, ok := oldAuth[0].(map[string]any); ok {
+					// Suppress removal of `auth_settings` block if `auth_settings` was disabled (either explicitly or by omitting `auth_settings` block)
+					if !oldAuthMap["enabled"].(bool) && o == "1" && n == "0" {
+						return true
+					}
+				}
+			}
+
+			return false
+		},
+		DiffSuppressOnRefresh: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
@@ -520,6 +544,18 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Optional:    true,
 					Default:     72,
 					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+					DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+						// If `auth_settings` is not defined in config, the Create request doesn't send an `auth_settings` request.
+						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
+						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
+						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings"))
+						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
+							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
+						}
+
+						return false
+					},
+					DiffSuppressOnRefresh: true,
 				},
 
 				"token_store_enabled": {
@@ -1263,8 +1299,8 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 		for k, s := range v.AdditionalLoginParameters {
 			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, s))
 		}
-		props.AdditionalLoginParams = &additionalLoginParams
 	}
+	props.AdditionalLoginParams = &additionalLoginParams
 
 	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
@@ -1347,7 +1383,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
-	if auth == nil || auth.Properties == nil || !pointer.From(auth.Properties.Enabled) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
+	if auth == nil || auth.Properties == nil || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
 	}
 
@@ -1718,4 +1754,39 @@ func FlattenStickySettings(input *webapps.SlotConfigNames) []StickySettings {
 	}
 
 	return []StickySettings{result}
+}
+
+// DefaultAuthSettingsProperties returns a `SiteAuthSettingsProperties` struct populated with "empty" and default values to clear previous configuration.
+func DefaultAuthSettingsProperties() *webapps.SiteAuthSettingsProperties {
+	return &webapps.SiteAuthSettingsProperties{
+		Enabled:                                 pointer.To(false),
+		AdditionalLoginParams:                   pointer.To(make([]string, 0)),
+		AllowedAudiences:                        pointer.To(make([]string, 0)),
+		ClientId:                                pointer.To(""),
+		ClientSecret:                            pointer.To(""),
+		ClientSecretSettingName:                 pointer.To(""),
+		ClientSecretCertificateThumbprint:       pointer.To(""),
+		FacebookAppId:                           pointer.To(""),
+		FacebookAppSecret:                       pointer.To(""),
+		FacebookAppSecretSettingName:            pointer.To(""),
+		FacebookOAuthScopes:                     pointer.To(make([]string, 0)),
+		GitHubClientId:                          pointer.To(""),
+		GitHubOAuthScopes:                       pointer.To(make([]string, 0)),
+		GitHubClientSecret:                      pointer.To(""),
+		GitHubClientSecretSettingName:           pointer.To(""),
+		GoogleClientId:                          pointer.To(""),
+		GoogleOAuthScopes:                       pointer.To(make([]string, 0)),
+		GoogleClientSecret:                      pointer.To(""),
+		GoogleClientSecretSettingName:           pointer.To(""),
+		Issuer:                                  pointer.To(""),
+		MicrosoftAccountClientId:                pointer.To(""),
+		MicrosoftAccountOAuthScopes:             pointer.To(make([]string, 0)),
+		MicrosoftAccountClientSecret:            pointer.To(""),
+		MicrosoftAccountClientSecretSettingName: pointer.To(""),
+		TokenRefreshExtensionHours:              pointer.To(72.0),
+		TokenStoreEnabled:                       pointer.To(false),
+		TwitterConsumerKey:                      pointer.To(""),
+		TwitterConsumerSecret:                   pointer.To(""),
+		TwitterConsumerSecretSettingName:        pointer.To(""),
+	}
 }
