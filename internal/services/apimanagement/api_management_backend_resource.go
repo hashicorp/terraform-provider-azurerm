@@ -78,6 +78,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 						"accept_retry_after_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"failure_condition": {
 							Type:     pluginsdk.TypeList,

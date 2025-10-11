@@ -34,19 +34,6 @@ resource "azurerm_api_management_backend" "example" {
   api_management_name = azurerm_api_management.example.name
   protocol            = "http"
   url                 = "https://backend.com/api"
-
-  circuit_breaker_rule {
-    name                       = "example-circuit-breaker"
-    trip_duration              = "PT30S"
-    accept_retry_after_enabled = true
-    count                      = 5
-    interval_duration          = "PT1M"
-    status_code_range {
-      min = 200
-      max = 299
-    }
-    error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
-  }
 }
 ```
 
@@ -154,7 +141,7 @@ A `circuit_breaker_rule` block supports the following:
 
 * `failure_condition` (Required) A `failure_condition` block as defined below.
 
-* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests.
+* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests. Defaults to `false`.
 
 ---
 
@@ -168,7 +155,7 @@ A `failure_condition` block supports the following:
 
 ~> **Note:** Exactly one of `percentage` or `count` must be specified.
 
-* `error_reasons` - (Optional) Specifies a list of error reasons to consider as failures. Possible values are between `1` and `200` characters per item.
+* `error_reasons` - (Optional) Specifies a list of error reasons to consider as failures.
 
 * `status_code_range` - (Optional) One or more `status_code_range` blocks as defined below.
 
