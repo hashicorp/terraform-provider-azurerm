@@ -127,3 +127,9 @@ App Service Slot Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_app_service_slot_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/sites/site1/slots/slot1/providers/Microsoft.ServiceLinker/linkers/linker1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceLinker` - 2024-04-01, 2022-05-01

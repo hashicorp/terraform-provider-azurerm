@@ -222,36 +222,6 @@ resource "azurerm_app_service_slot_connection" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r AppServiceSlotConnectorResource) storageBlobUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  app_service_name    = azurerm_app_service.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-  lifecycle {
-    ignore_changes = [
-      identity,
-    ]
-  }
-}
-
-resource "azurerm_app_service_slot_connection" "test" {
-  name                = "acctestserviceconnector%d"
-  app_service_slot_id = azurerm_app_service_slot.test.id
-  target_resource_id  = azurerm_storage_account.test.id
-  client_type         = "python"
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
 func (r AppServiceSlotConnectorResource) cosmosdbBasic(data acceptance.TestData) string {
 	template := r.templateWithCosmosDB(data)
 	return fmt.Sprintf(`
@@ -511,52 +481,6 @@ resource "azurerm_app_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func (r AppServiceSlotConnectorResource) templateLinux(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-sc-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  os_type             = "Linux"
-  sku_name            = "S1"
-}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  site_config {}
-
-  lifecycle {
-    ignore_changes = [
-      app_settings,
-      identity,
-      sticky_settings,
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
