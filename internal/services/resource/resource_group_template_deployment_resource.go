@@ -154,6 +154,8 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
 	}
 
+	d.SetId(id.ID())
+
 	deployment := resources.Deployment{
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
@@ -201,7 +203,6 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 
