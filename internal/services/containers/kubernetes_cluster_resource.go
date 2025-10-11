@@ -3515,17 +3515,9 @@ func flattenKubernetesClusterNodeProvisioningProfile(profile *managedclusters.Ma
 	if profile == nil {
 		return []interface{}{}
 	}
-	mode := ""
-	if profile.Mode != nil {
-		mode = string(*profile.Mode)
-	}
-	defaultNodePools := ""
-	if profile.DefaultNodePools != nil {
-		defaultNodePools = string(*profile.DefaultNodePools)
-	}
 	return []interface{}{map[string]interface{}{
-		"mode":               mode,
-		"default_node_pools": defaultNodePools,
+		"mode":               pointer.From(profile.Mode),
+		"default_node_pools": pointer.From(profile.DefaultNodePools),
 	}}
 }
 

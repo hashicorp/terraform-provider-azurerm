@@ -962,9 +962,9 @@ A `gmsa` block supports the following:
 
 A `node_provisioning_profile` block supports the following:
 
-* `mode` - (Optional) Specifies the provisioning mode for node pools created in this cluster. Possible values are `Auto` and `Manual`. Defaults to `Manual`.
+* `mode` - (Optional) Specifies the provisioning mode for node pools created in this cluster. Possible values are `Auto` and `Manual`. Defaults to `Manual`. At least one of `mode` or `default_node_pools` must be specified.
 
-* `default_node_pools` - (Optional) Specifies whether default node pools should be provisioned automatically. Possible values are `Auto` and `None`. Defaults to `Auto`.
+* `default_node_pools` - (Optional) Specifies whether default node pools should be provisioned automatically. Possible values are `Auto` and `None`. Defaults to `Auto`. At least one of `mode` or `default_node_pools` must be specified.
 
 ---
 
