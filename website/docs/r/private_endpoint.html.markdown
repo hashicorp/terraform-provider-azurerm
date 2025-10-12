@@ -314,11 +314,11 @@ A `private_service_connection` block exports:
 
 * `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
-* `connection_status` - The status of the connection between service consumer and provider. Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `connection_actions_required` - Indicates if changes on the service provider require any updates on the consumer.
 
 * `connection_state_description` - The reason for approval/rejection of the connection.
 
-* `connection_actions_required` - Indicates if changes on the service provider require any updates on the consumer.
+* `connection_status` - The status of the connection between service consumer and provider. Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
 
 ---
 
