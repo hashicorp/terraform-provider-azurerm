@@ -206,7 +206,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   }
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "root"
   }
 
