@@ -166,7 +166,7 @@ resource "azurerm_billing_account_cost_management_export" "test" {
   partition_data = true
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "root"
   }
 
@@ -224,7 +224,7 @@ resource "azurerm_billing_account_cost_management_export" "test" {
   }
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "root"
   }
 
@@ -277,7 +277,7 @@ resource "azurerm_billing_account_cost_management_export" "test" {
   partition_data = true
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "root/updated"
   }
 
@@ -304,7 +304,7 @@ resource "azurerm_billing_account_cost_management_export" "import" {
   partition_data = true
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "root"
   }
 
