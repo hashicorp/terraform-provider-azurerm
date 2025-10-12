@@ -197,7 +197,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			},
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"tags": commonschema.Tags(),
 	}

@@ -6,9 +6,7 @@ package machinelearning
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -30,15 +28,15 @@ import (
 type MachineLearningRegistry struct{}
 
 type ReplicationRegion struct {
-	Location                     string `tfschema:"location"`
-	CustomStorageAccountId       string `tfschema:"custom_storage_account_id"`
-	CustomAcrAccountId           string `tfschema:"custom_acr_account_id"`
-	StorageAccountType           string `tfschema:"storage_account_type"`
-	PublicAccessEnabled          bool   `tfschema:"public_access_enabled"`
-	HsnEnabled                   bool   `tfschema:"hsn_enabled"`
-	SystemCreateStorageAccountId string `tfschema:"system_create_storage_account_id"`
-	AcrSku                       string `tfschema:"acr_sku"`
-	SystemCreatedAcrId           string `tfschema:"system_created_acr_id"`
+	Location                      string `tfschema:"location"`
+	CustomStorageAccountId        string `tfschema:"custom_storage_account_id"`
+	CustomAcrAccountId            string `tfschema:"custom_container_registry_account_id"`
+	StorageAccountType            string `tfschema:"storage_account_type"`
+	HsnEnabled                    bool   `tfschema:"hsn_enabled"`
+	SystemCreatedStorageAccountId string `tfschema:"system_created_storage_account_id"`
+	SystemCreatedAcrId            string `tfschema:"system_created_container_registry_id"`
+	// AcrSku                       string `tfschema:"container_registry_sku"` // Only allowed value is "Premium"
+	// PublicAccessEnabled          bool   `tfschema:"public_access_enabled"` Not returned by API
 }
 
 type MachineLearningRegistryModel struct {
@@ -46,7 +44,7 @@ type MachineLearningRegistryModel struct {
 	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
 	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
 	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
-	ReplicationRegions            []ReplicationRegion                        `tfschema:"replication_regions"`
+	ReplicationRegion             []ReplicationRegion                        `tfschema:"replication_region"`
 	Location                      string                                     `tfschema:"location"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
@@ -86,24 +84,24 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
-			Default:  false,
+			Default:  true,
 		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"main_region": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
+			Optional: true,
 			MaxItems: 1,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.LocationComputed(),
+					// Azure requires main region location to be the same as resource location, no need to specify main region location
+					"location": commonschema.LocationOptional(),
 
 					"custom_storage_account_id": {
 						Type:          pluginsdk.TypeString,
@@ -112,17 +110,16 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:  commonids.ValidateStorageAccountID,
 					},
 
-					// TODO Replace all "acr" with "container_registry"
-					"custom_acr_account_id": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ValidateFunc:  registries.ValidateRegistryID,
-						ConflictsWith: []string{"main_region.0.acr_sku"},
+					"custom_container_registry_account_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: registries.ValidateRegistryID,
 					},
 
 					"storage_account_type": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
+						Default:       "Standard_LRS",
 						ConflictsWith: []string{"main_region.0.custom_storage_account_id"},
 						AtLeastOneOf:  []string{"main_region.0.custom_storage_account_id", "main_region.0.storage_account_type"},
 						ValidateFunc: validation.StringInSlice([]string{
@@ -137,40 +134,18 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					"public_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-						// Azure API doesn't return blob public access settings, so suppress diff to prevent false drift
-						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-							return true // Always suppress since Azure doesn't return this field
-						},
-					},
-
 					"hsn_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Default:  false,
 					},
 
-					"system_create_storage_account_id": {
+					"system_created_storage_account_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					// TODO "Premium" is the only option, remove this field
-					"acr_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// string(registries.SkuNameBasic),
-							// string(registries.SkuNameStandard),
-							string(registries.SkuNamePremium),
-						}, false),
-						ConflictsWith: []string{"main_region.0.custom_acr_account_id"},
-					},
-
-					"system_created_acr_id": {
+					"system_created_container_registry_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -178,7 +153,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"replication_regions": {
+		"replication_region": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -186,24 +161,20 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 					"location": commonschema.Location(),
 
 					"custom_storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// ConflictsWith: []string{"replication_regions.0.storage_account_type"},
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: commonids.ValidateStorageAccountID,
 					},
 
-					"custom_acr_account_id": {
+					"custom_container_registry_account_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: registries.ValidateRegistryID,
-						// ConflictsWith: []string{"replication_regions.0.acr_sku"},
 					},
 
 					"storage_account_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						// ConflictsWith: []string{"replication_regions.0.custom_storage_account_id"},
-						// AtLeastOneOf:  []string{"replication_regions.0.custom_storage_account_id", "replication_regions.0.storage_account_type"},
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard_LRS",
 							"Standard_GRS",
@@ -216,39 +187,18 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					"public_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-						// Azure API doesn't return blob public access settings, so suppress diff to prevent false drift
-						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-							return true // Always suppress since Azure doesn't return this field
-						},
-					},
-
 					"hsn_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Default:  false,
 					},
 
-					"system_create_storage_account_id": {
+					"system_created_storage_account_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					"acr_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// string(registries.SkuNameBasic),
-							// string(registries.SkuNameStandard),
-							string(registries.SkuNamePremium),
-						}, false),
-						// ConflictsWith: []string{"replication_regions.0.custom_acr_account_id"},
-					},
-
-					"system_created_acr_id": {
+					"system_created_container_registry_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -308,17 +258,17 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_machine_learning_registry", id.ID())
 			}
 
-			identityIns, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding identity: %v", err)
-			}
-
-			trackedResource := registry.RegistryTrackedResource{
+			param := registry.RegistryTrackedResource{
 				Name:     pointer.To(model.Name),
-				Identity: identityIns,
 				Location: model.Location,
 				Tags:     pointer.To(model.Tags),
 			}
+
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
+			param.Identity = expandedIdentity
 
 			var prop = registry.Registry{
 				PublicNetworkAccess: pointer.To("Disabled"),
@@ -326,38 +276,46 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			if model.PublicNetworkAccessEnabled {
 				prop.PublicNetworkAccess = pointer.To("Enabled")
 			}
-
 			var regions []registry.RegistryRegionArmDetails
-			mainCopy := model.MainRegion[0]
-			mainCopy.Location = model.Location
-			regions = append(regions, expandRegistryRegionDetail(mainCopy))
-			for _, region := range model.ReplicationRegions {
+
+			regions = []registry.RegistryRegionArmDetails{
+				{
+					Location: pointer.To(model.Location),
+					AcrDetails: &[]registry.AcrDetails{
+						{
+							SystemCreatedAcrAccount: &registry.SystemCreatedAcrAccount{},
+						},
+					},
+					StorageAccountDetails: &[]registry.StorageAccountDetails{
+						{
+							SystemCreatedStorageAccount: &registry.SystemCreatedStorageAccount{},
+						},
+					},
+				},
+			}
+			if len(model.MainRegion) > 0 {
+				regions[0] = expandRegistryRegionDetail(model.MainRegion[0])
+			}
+
+			for _, region := range model.ReplicationRegion {
 				regions = append(regions, expandRegistryRegionDetail(region))
 			}
 			prop.RegionDetails = &regions
-			trackedResource.Properties = prop
+			param.Properties = prop
 
-			result, err := client.RegistriesCreateOrUpdate(ctx, id, trackedResource)
+			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
+
 			if err != nil {
-				// Check if this is the known issue with 202 + no body
-				if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
-					// Create a mock response for the custom poller with 202 status
-					mockResponse := &http.Response{StatusCode: http.StatusAccepted}
-					if pollerType := custompollers.NewMachineLearningRegistryPoller(client, id, mockResponse); pollerType != nil {
-						poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-						if pollErr := poller.PollUntilDone(ctx); pollErr != nil {
-							return fmt.Errorf("polling creation of %s: %+v", id, pollErr)
-						}
-					}
-				} else {
-					return fmt.Errorf("creating %s: %+v", id, err)
+				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
+				if err != nil {
+					return fmt.Errorf("creating poller: %+v", err)
 				}
-			} else {
-				if pollerType := custompollers.NewMachineLearningRegistryPoller(client, id, result.HttpResponse); pollerType != nil {
-					poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-					if err := poller.PollUntilDone(ctx); err != nil {
-						return fmt.Errorf("polling creation of %s: %+v", id, err)
-					}
+				if pollerType == nil {
+					return fmt.Errorf("no poller created for creating %s", id)
+				}
+				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("polling creation of %s: %+v", id, err)
 				}
 			}
 
@@ -367,7 +325,61 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 	}
 }
 
-// only update tags and remove regions
+func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MachineLearning.RegistryManagement
+
+			id, err := registry.ParseRegistryID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.RegistriesGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("reading nil model %s", *id)
+			}
+
+			identityIds, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(resp.Model.Identity)
+			if err != nil {
+				return fmt.Errorf("flatten identity %s: %+v", *id, err)
+			}
+			prop := resp.Model.Properties
+			model := MachineLearningRegistryModel{
+				Name:                          id.RegistryName,
+				ResourceGroupName:             id.ResourceGroupName,
+				Identity:                      identityIds,
+				Location:                      resp.Model.Location,
+				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enabled",
+				Tags:                          pointer.From(resp.Model.Tags),
+				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
+				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
+				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
+				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
+			}
+
+			regions := flattenRegistryRegionDetails(prop.RegionDetails, resp.Model.Location)
+			for i, region := range regions {
+				if i == 0 {
+					model.MainRegion = []ReplicationRegion{region}
+				} else {
+					model.ReplicationRegion = append(model.ReplicationRegion, region)
+				}
+			}
+
+			return metadata.Encode(&model)
+		},
+	}
+}
+
 func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -397,7 +409,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if o, n := metadata.ResourceData.GetChange("replication_regions"); !cmp.Equal(o, n) {
+			if o, n := metadata.ResourceData.GetChange("replication_region"); !cmp.Equal(o, n) {
 				// remove first: if exists in o but not in n
 				var toRemove []string
 				oldLocations := map[string]bool{}
@@ -435,94 +447,30 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				mainCopy := state.MainRegion[0]
 				mainCopy.Location = state.Location
 				regions = append(regions, expandRegistryRegionDetail(mainCopy))
-				for _, region := range state.ReplicationRegions {
+				for _, region := range state.ReplicationRegion {
 					regions = append(regions, expandRegistryRegionDetail(region))
 				}
 				req.Properties = registry.Registry{
 					RegionDetails: &regions,
 				}
-				result, err := client.RegistriesCreateOrUpdate(ctx, *id, req)
+				response, err := client.RegistriesCreateOrUpdate(ctx, *id, req)
+
 				if err != nil {
-					// Check if this is the known issue with 202 + no body
-					if strings.Contains(err.Error(), "unexpected status 202") && strings.Contains(err.Error(), "received with no body") {
-						// Create a mock response for the custom poller with 202 status
-						mockResponse := &http.Response{StatusCode: http.StatusAccepted}
-						if pollerType := custompollers.NewMachineLearningRegistryPoller(client, *id, mockResponse); pollerType != nil {
-							poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-							if pollErr := poller.PollUntilDone(ctx); pollErr != nil {
-								return fmt.Errorf("polling update of %s: %+v", *id, pollErr)
-							}
-						}
-					} else {
-						return fmt.Errorf("updating %s: %+v", *id, err)
+					pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, *id, response.HttpResponse)
+					if err != nil {
+						return fmt.Errorf("creating poller: %+v", err)
 					}
-				} else {
-					if pollerType := custompollers.NewMachineLearningRegistryPoller(client, *id, result.HttpResponse); pollerType != nil {
-						poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-						if err := poller.PollUntilDone(ctx); err != nil {
-							return fmt.Errorf("polling update of %s: %+v", *id, err)
-						}
+					if pollerType == nil {
+						return fmt.Errorf("no poller created for updating %s", *id)
+					}
+					poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+					if err := poller.PollUntilDone(ctx); err != nil {
+						return fmt.Errorf("polling update of %s: %+v", *id, err)
 					}
 				}
-
 			}
 
 			return nil
-		},
-	}
-}
-
-func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.RegistryManagement
-
-			id, err := registry.ParseRegistryID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			resp, err := client.RegistriesGet(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-
-			if resp.Model == nil {
-				return fmt.Errorf("reading nil model %s", *id)
-			}
-
-			identityIns, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(resp.Model.Identity)
-			if err != nil {
-				return fmt.Errorf("flatten identity %s: %+v", *id, err)
-			}
-			prop := resp.Model.Properties
-			model := MachineLearningRegistryModel{
-				Name:                          id.RegistryName,
-				ResourceGroupName:             id.ResourceGroupName,
-				Identity:                      identityIns,
-				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enabled",
-				Tags:                          pointer.From(resp.Model.Tags),
-				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
-				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
-				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
-				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
-			}
-
-			regions := flattenRegistryRegionDetails(prop.RegionDetails)
-			for _, region := range regions {
-				if region.Location == resp.Model.Location {
-					model.MainRegion = []ReplicationRegion{region}
-				} else {
-					model.ReplicationRegions = append(model.ReplicationRegions, region)
-				}
-			}
-
-			return metadata.Encode(&model)
 		},
 	}
 }
@@ -549,7 +497,9 @@ func (r MachineLearningRegistry) Delete() sdk.ResourceFunc {
 
 func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegionArmDetails {
 	var result registry.RegistryRegionArmDetails
-	result.Location = pointer.To(input.Location)
+	if result.Location == nil {
+		result.Location = pointer.To(input.Location)
+	}
 	var sa registry.StorageAccountDetails
 	if input.CustomStorageAccountId != "" {
 		// sa.UserCreatedStorageAccount = &registry.UserCreatedStorageAccount{
@@ -559,7 +509,6 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 		// }
 	} else {
 		sa.SystemCreatedStorageAccount = &registry.SystemCreatedStorageAccount{
-			AllowBlobPublicAccess:    pointer.To(input.PublicAccessEnabled),
 			StorageAccountHnsEnabled: pointer.To(input.HsnEnabled),
 			StorageAccountType:       pointer.To(input.StorageAccountType),
 		}
@@ -575,7 +524,7 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 		// }
 	} else {
 		acr.SystemCreatedAcrAccount = &registry.SystemCreatedAcrAccount{
-			AcrAccountSku: pointer.To(input.AcrSku),
+			AcrAccountSku: pointer.To(string(registry.SkuTierPremium)),
 		}
 	}
 
@@ -583,25 +532,26 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 	return result
 }
 
-func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []ReplicationRegion {
+func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails, location string) []ReplicationRegion {
 	var result []ReplicationRegion
 	if input == nil || len(*input) == 0 {
 		return result
 	}
 
-	for _, item := range *input {
+	for i, item := range *input {
 		var region ReplicationRegion
 		region.Location = pointer.From(item.Location)
+		if i == 0 {
+			region.Location = location
+		}
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
 			// if customAccount := sa[0].UserCreatedStorageAccount; customAccount != nil {
 			// 	region.CustomStorageAccountId = pointer.From(pointer.From(customAccount.ArmResourceId).ResourceId)
 			// } else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
-				// Azure API doesn't return AllowBlobPublicAccess field, so don't set PublicAccessEnabled
-				// This allows Terraform to preserve the configured value for this Optional+Computed field
 				region.HsnEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
-				region.SystemCreateStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
+				region.SystemCreatedStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
 			}
 		}
 
@@ -609,7 +559,6 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 			// if customAcr := acr[0].UserCreatedAcrAccount; customAcr != nil {
 			// 	region.CustomAcrAccountId = pointer.From(pointer.From(customAcr.ArmResourceId).ResourceId)
 			if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
-				region.AcrSku = pointer.From(systemAcr.AcrAccountSku)
 				region.SystemCreatedAcrId = pointer.From(pointer.From(systemAcr.ArmResourceId).ResourceId)
 			}
 		}
