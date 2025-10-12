@@ -64,22 +64,20 @@ resource "azurerm_machine_learning_registry" "test" {
   identity {
     type = "SystemAssigned"
   }
-  main_region {
-    public_access_enabled = true
-    storage_account_type  = "Standard_LRS"
-    acr_sku               = "Premium"
-  }
-  replication_regions {
-    location             = "%[3]s"
-    storage_account_type = "Standard_LRS"
-    acr_sku               = "Premium"
-  }
-  tags = {
-    key = "example"
-  }
+}
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
+func (r MachineLearningRegistry) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
 
+resource "azurerm_machine_learning_registry" "test" {
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  name                = "accmlreg-%[2]d"
+}
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
@@ -95,16 +93,4 @@ resource "azurerm_resource_group" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MachineLearningRegistry) storageAccount(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-`, data.RandomIntOfLength(15))
 }
