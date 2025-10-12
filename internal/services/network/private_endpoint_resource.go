@@ -181,26 +181,18 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"private_connection_state": {
-							Type:     pluginsdk.TypeList,
+						"connection_actions_required": {
+							Type:     pluginsdk.TypeString,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"actions_required": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
+						"connection_state_description": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"connection_status": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						}
 					},
 				},
 			},
@@ -910,7 +902,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			privateConnectionId := ""
 			subResourceNames := make([]interface{}, 0)
-			privateConnectionState := make([]interface{}, 0)
+			connectionStatus := ""
+            connectionDescription := ""
+            connectionActionsRequired := ""
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -920,13 +914,15 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 					privateConnectionId = *props.PrivateLinkServiceId
 				}
 				if state := props.PrivateLinkServiceConnectionState; state != nil {
-					privateConnectionState = []interface{}{
-						map[string]interface{}{
-							"status":           state.Status,
-							"description":      state.Description,
-							"actions_required": state.ActionsRequired,
-						},
-					}
+					if state.Status != nil {
+                        connectionStatus = *state.Status
+                    }
+                    if state.Description != nil {
+                        connectionDescription = *state.Description
+                    }
+                    if state.ActionsRequired != nil {
+                        connectionActionsRequired = *state.ActionsRequired
+                    }
 				}
 			}
 			attrs := map[string]interface{}{
@@ -934,7 +930,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				"is_manual_connection":     false,
 				"private_ip_address":       privateIPAddress,
 				"subresource_names":        subResourceNames,
-				"private_connection_state": privateConnectionState,
+				"connection_status":            connectionStatus,
+                "connection_state_description":       connectionDescription,
+                "connection_actions_required":  connectionActionsRequired,
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
@@ -957,7 +955,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 			privateConnectionId := ""
 			requestMessage := ""
 			subResourceNames := make([]interface{}, 0)
-			privateConnectionState := make([]interface{}, 0)
+			connectionStatus := ""
+            connectionDescription := ""
+            connectionActionsRequired := ""
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -970,13 +970,15 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 					requestMessage = *props.RequestMessage
 				}
 				if state := props.PrivateLinkServiceConnectionState; state != nil {
-					privateConnectionState = []interface{}{
-						map[string]interface{}{
-							"status":           state.Status,
-							"description":      state.Description,
-							"actions_required": state.ActionsRequired,
-						},
-					}
+					if state.Status != nil {
+                        connectionStatus = *state.Status
+                    }
+                    if state.Description != nil {
+                        connectionDescription = *state.Description
+                    }
+                    if state.ActionsRequired != nil {
+                        connectionActionsRequired = *state.ActionsRequired
+                    }
 				}
 			}
 
@@ -986,7 +988,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				"private_ip_address":       privateIPAddress,
 				"request_message":          requestMessage,
 				"subresource_names":        subResourceNames,
-				"private_connection_state": privateConnectionState,
+				"connection_status":            connectionStatus,
+                "connection_state_description":       connectionDescription,
+                "connection_actions_required":  connectionActionsRequired,
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId

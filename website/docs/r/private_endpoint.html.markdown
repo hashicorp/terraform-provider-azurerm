@@ -314,7 +314,11 @@ A `private_service_connection` block exports:
 
 * `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
-* `private_connection_state` - The state of the connection between service consumer and provider.
+* `connection_status` - The status of the connection between service consumer and provider. Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+
+* `connection_state_description` - The reason for approval/rejection of the connection.
+
+* `connection_actions_required` - Indicates if changes on the service provider require any updates on the consumer.
 
 ---
 
@@ -343,14 +347,6 @@ A `record_sets` block exports:
 -> **Note:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
 
 ---
-
-A `private_connection_state` block exports:
-
-* `actions_required` - A message indicating if changes on the service provider require any updates on the consumer.
-
-* `description` - The reason for approval/rejection of the connection.
-
-* `status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
 
 ## Example HCL Configurations
 
