@@ -12,11 +12,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	registry "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,14 +27,10 @@ type MachineLearningRegistry struct{}
 
 type ReplicationRegion struct {
 	Location                      string `tfschema:"location"`
-	CustomStorageAccountId        string `tfschema:"custom_storage_account_id"`
-	CustomAcrAccountId            string `tfschema:"custom_container_registry_account_id"`
 	StorageAccountType            string `tfschema:"storage_account_type"`
-	HsnEnabled                    bool   `tfschema:"hsn_enabled"`
+	HnsEnabled                    bool   `tfschema:"hns_enabled"`
 	SystemCreatedStorageAccountId string `tfschema:"system_created_storage_account_id"`
 	SystemCreatedAcrId            string `tfschema:"system_created_container_registry_id"`
-	// AcrSku                       string `tfschema:"container_registry_sku"` // Only allowed value is "Premium"
-	// PublicAccessEnabled          bool   `tfschema:"public_access_enabled"` Not returned by API
 }
 
 type MachineLearningRegistryModel struct {
@@ -63,7 +57,7 @@ func (r MachineLearningRegistry) ResourceType() string {
 }
 
 func (r MachineLearningRegistry) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return registry.ValidateRegistryID
+	return registrymanagement.ValidateRegistryID
 }
 
 var _ sdk.ResourceWithUpdate = MachineLearningRegistry{}
@@ -89,39 +83,25 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 			Default:  true,
 		},
 
 		"main_region": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// Azure requires main region location to be the same as resource location, no need to specify main region location
-					"location": commonschema.LocationOptional(),
+					// NB: Azure requires the main region's location to be the same as resource location
+					// TODO find out if this needs to be ForceNew
+					"location": commonschema.LocationWithoutForceNew(),
 
-					"custom_storage_account_id": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ConflictsWith: []string{"main_region.0.storage_account_type"},
-						ValidateFunc:  commonids.ValidateStorageAccountID,
-					},
-
-					"custom_container_registry_account_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: registries.ValidateRegistryID,
-					},
-
+					// TODO find out if this needs to be ForceNew
 					"storage_account_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Default:       "Standard_LRS",
-						ConflictsWith: []string{"main_region.0.custom_storage_account_id"},
-						AtLeastOneOf:  []string{"main_region.0.custom_storage_account_id", "main_region.0.storage_account_type"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "Standard_LRS",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard_LRS",
 							"Standard_GRS",
@@ -134,7 +114,8 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					"hsn_enabled": {
+					// TODO find out if this needs to be ForceNew
+					"hns_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -158,20 +139,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.Location(),
+					// TODO find out if this needs to be ForceNew
+					"location": commonschema.LocationWithoutForceNew(),
 
-					"custom_storage_account_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: commonids.ValidateStorageAccountID,
-					},
-
-					"custom_container_registry_account_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: registries.ValidateRegistryID,
-					},
-
+					// TODO find out if this needs to be ForceNew
 					"storage_account_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -187,7 +158,8 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					"hsn_enabled": {
+					// TODO find out if this needs to be ForceNew
+					"hns_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -227,7 +199,6 @@ func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		// API will return a generated mrg even provided in request
 		"managed_resource_group": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -247,7 +218,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding Machine Learning Registry model %+v", err)
 			}
 
-			id := registry.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := registrymanagement.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.RegistriesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -258,7 +229,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_machine_learning_registry", id.ID())
 			}
 
-			param := registry.RegistryTrackedResource{
+			param := registrymanagement.RegistryTrackedResource{
 				Name:     pointer.To(model.Name),
 				Location: model.Location,
 				Tags:     pointer.To(model.Tags),
@@ -270,25 +241,25 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 			param.Identity = expandedIdentity
 
-			var prop = registry.Registry{
+			var prop = registrymanagement.Registry{
 				PublicNetworkAccess: pointer.To("Disabled"),
 			}
 			if model.PublicNetworkAccessEnabled {
 				prop.PublicNetworkAccess = pointer.To("Enabled")
 			}
-			var regions []registry.RegistryRegionArmDetails
+			var regions []registrymanagement.RegistryRegionArmDetails
 
-			regions = []registry.RegistryRegionArmDetails{
+			regions = []registrymanagement.RegistryRegionArmDetails{
 				{
 					Location: pointer.To(model.Location),
-					AcrDetails: &[]registry.AcrDetails{
+					AcrDetails: &[]registrymanagement.AcrDetails{
 						{
-							SystemCreatedAcrAccount: &registry.SystemCreatedAcrAccount{},
+							SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{},
 						},
 					},
-					StorageAccountDetails: &[]registry.StorageAccountDetails{
+					StorageAccountDetails: &[]registrymanagement.StorageAccountDetails{
 						{
-							SystemCreatedStorageAccount: &registry.SystemCreatedStorageAccount{},
+							SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{},
 						},
 					},
 				},
@@ -331,7 +302,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
 
-			id, err := registry.ParseRegistryID(metadata.ResourceData.Id())
+			id, err := registrymanagement.ParseRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -386,7 +357,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
 
-			id, err := registry.ParseRegistryID(metadata.ResourceData.Id())
+			id, err := registrymanagement.ParseRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -396,19 +367,19 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decode state: %+v", err)
 			}
 
+			var update registrymanagement.PartialRegistryPartialTrackedResource
+
 			if metadata.ResourceData.HasChange("tags") {
-				var update registry.PartialRegistryPartialTrackedResource
+				update.Tags = pointer.To(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				var update registrymanagement.PartialRegistryPartialTrackedResource
 				update.Identity, err = identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding identity: %+v", err)
 				}
-
-				_, err = client.RegistriesUpdate(ctx, *id, update)
-				if err != nil {
-					return fmt.Errorf("updating %s: %+v", id, err)
-				}
 			}
-
 			if o, n := metadata.ResourceData.GetChange("replication_region"); !cmp.Equal(o, n) {
 				// remove first: if exists in o but not in n
 				var toRemove []string
@@ -424,14 +395,14 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 					}
 				}
 				if len(toRemove) > 0 {
-					var regions []registry.RegistryRegionArmDetails
+					var regions []registrymanagement.RegistryRegionArmDetails
 					for _, item := range toRemove {
-						regions = append(regions, registry.RegistryRegionArmDetails{
+						regions = append(regions, registrymanagement.RegistryRegionArmDetails{
 							Location: pointer.To(item),
 						})
 					}
-					var req = registry.RegistryTrackedResource{
-						Properties: registry.Registry{
+					var req = registrymanagement.RegistryTrackedResource{
+						Properties: registrymanagement.Registry{
 							RegionDetails: &regions,
 						},
 					}
@@ -440,17 +411,17 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 					}
 				}
 				// add regions and remove regions separately
-				req := registry.RegistryTrackedResource{
+				req := registrymanagement.RegistryTrackedResource{
 					Location: state.Location,
 				}
-				var regions []registry.RegistryRegionArmDetails
+				var regions []registrymanagement.RegistryRegionArmDetails
 				mainCopy := state.MainRegion[0]
 				mainCopy.Location = state.Location
 				regions = append(regions, expandRegistryRegionDetail(mainCopy))
 				for _, region := range state.ReplicationRegion {
 					regions = append(regions, expandRegistryRegionDetail(region))
 				}
-				req.Properties = registry.Registry{
+				req.Properties = registrymanagement.Registry{
 					RegionDetails: &regions,
 				}
 				response, err := client.RegistriesCreateOrUpdate(ctx, *id, req)
@@ -481,7 +452,7 @@ func (r MachineLearningRegistry) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
 
-			id, err := registry.ParseRegistryID(metadata.ResourceData.Id())
+			id, err := registrymanagement.ParseRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -495,44 +466,28 @@ func (r MachineLearningRegistry) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegionArmDetails {
-	var result registry.RegistryRegionArmDetails
-	if result.Location == nil {
-		result.Location = pointer.To(input.Location)
+func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.RegistryRegionArmDetails {
+	return registrymanagement.RegistryRegionArmDetails{
+		Location: pointer.To(input.Location),
+		AcrDetails: &[]registrymanagement.AcrDetails{
+			{
+				SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{
+					AcrAccountSku: pointer.To(string(registrymanagement.SkuTierPremium)),
+				},
+			},
+		},
+		StorageAccountDetails: &[]registrymanagement.StorageAccountDetails{
+			{
+				SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{
+					StorageAccountHnsEnabled: pointer.To(input.HnsEnabled),
+					StorageAccountType:       pointer.To(input.StorageAccountType),
+				},
+			},
+		},
 	}
-	var sa registry.StorageAccountDetails
-	if input.CustomStorageAccountId != "" {
-		// sa.UserCreatedStorageAccount = &registry.UserCreatedStorageAccount{
-		// 	ArmResourceId: &registry.ArmResourceId{
-		// 		ResourceId: pointer.To(input.CustomAcrAccountId),
-		// 	},
-		// }
-	} else {
-		sa.SystemCreatedStorageAccount = &registry.SystemCreatedStorageAccount{
-			StorageAccountHnsEnabled: pointer.To(input.HsnEnabled),
-			StorageAccountType:       pointer.To(input.StorageAccountType),
-		}
-	}
-	result.StorageAccountDetails = &[]registry.StorageAccountDetails{sa}
-
-	var acr registry.AcrDetails
-	if input.CustomAcrAccountId != "" {
-		// acr.UserCreatedAcrAccount = &registry.UserCreatedAcrAccount{
-		// 	ArmResourceId: &registry.ArmResourceId{
-		// 		ResourceId: pointer.To(input.CustomAcrAccountId),
-		// 	},
-		// }
-	} else {
-		acr.SystemCreatedAcrAccount = &registry.SystemCreatedAcrAccount{
-			AcrAccountSku: pointer.To(string(registry.SkuTierPremium)),
-		}
-	}
-
-	result.AcrDetails = &[]registry.AcrDetails{acr}
-	return result
 }
 
-func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails, location string) []ReplicationRegion {
+func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails, location string) []ReplicationRegion {
 	var result []ReplicationRegion
 	if input == nil || len(*input) == 0 {
 		return result
@@ -545,19 +500,14 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails, lo
 			region.Location = location
 		}
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
-			// if customAccount := sa[0].UserCreatedStorageAccount; customAccount != nil {
-			// 	region.CustomStorageAccountId = pointer.From(pointer.From(customAccount.ArmResourceId).ResourceId)
-			// } else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
-				region.HsnEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
+				region.HnsEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
 				region.SystemCreatedStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
 			}
 		}
 
 		if acr := pointer.From(item.AcrDetails); len(acr) > 0 {
-			// if customAcr := acr[0].UserCreatedAcrAccount; customAcr != nil {
-			// 	region.CustomAcrAccountId = pointer.From(pointer.From(customAcr.ArmResourceId).ResourceId)
 			if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
 				region.SystemCreatedAcrId = pointer.From(pointer.From(systemAcr.ArmResourceId).ResourceId)
 			}

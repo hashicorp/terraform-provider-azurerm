@@ -1,0 +1,45 @@
+{
+    "name": "mlregistry",
+    "id": "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestwyattmlregprivendpoint/providers/Microsoft.Network/privateEndpoints/mlregistry",
+    "etag": "W/\"61e32f71-4872-454d-99b2-67ddabba0400\"",
+    "type": "Microsoft.Network/privateEndpoints",
+    "location": "francecentral",
+    "tags": {},
+    "properties": {
+        "provisioningState": "Succeeded",
+        "resourceGuid": "02f2840d-c7c5-46f5-ab38-9c49cc2ffcba",
+        "privateLinkServiceConnections": [
+            {
+                "name": "mlregistry",
+                "id": "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestwyattmlregprivendpoint/providers/Microsoft.Network/privateEndpoints/mlregistry/privateLinkServiceConnections/mlregistry",
+                "etag": "W/\"61e32f71-4872-454d-99b2-67ddabba0400\"",
+                "properties": {
+                    "provisioningState": "Succeeded",
+                    "privateLinkServiceId": "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestwyattmlregprivendpoint/providers/Microsoft.MachineLearningServices/registries/privateendpointtest",
+                    "groupIds": [
+                        "amlregistry"
+                    ],
+                    "privateLinkServiceConnectionState": {
+                        "status": "Approved",
+                        "description": "Auto-Approved",
+                        "actionsRequired": "None"
+                    }
+                },
+                "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+            }
+        ],
+        "manualPrivateLinkServiceConnections": [],
+        "customNetworkInterfaceName": "mlregistry-nic",
+        "subnet": {
+            "id": "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestRG-appservice-250605063009023141/providers/Microsoft.Network/virtualNetworks/acctest-VNET-250605063009023141/subnets/mlregistry"
+        },
+        "ipConfigurations": [],
+        "networkInterfaces": [
+            {
+                "id": "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestwyattmlregprivendpoint/providers/Microsoft.Network/networkInterfaces/mlregistry-nic"
+            }
+        ],
+        "customDnsConfigs": []
+    },
+    "apiVersion": "2021-05-01"
+}
