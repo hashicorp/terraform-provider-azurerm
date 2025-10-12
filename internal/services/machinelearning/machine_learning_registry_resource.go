@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -247,26 +246,24 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			if model.PublicNetworkAccessEnabled {
 				prop.PublicNetworkAccess = pointer.To("Enabled")
 			}
-			var regions []registrymanagement.RegistryRegionArmDetails
+			// regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
-			regions = []registrymanagement.RegistryRegionArmDetails{
-				{
-					Location: pointer.To(model.Location),
-					AcrDetails: &[]registrymanagement.AcrDetails{
-						{
-							SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{},
-						},
-					},
-					StorageAccountDetails: &[]registrymanagement.StorageAccountDetails{
-						{
-							SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{},
-						},
-					},
-				},
-			}
-			if len(model.MainRegion) > 0 {
-				regions[0] = expandRegistryRegionDetail(model.MainRegion[0])
-			}
+			// regions = []registrymanagement.RegistryRegionArmDetails{
+			// 	{
+			// 		Location: pointer.To(model.Location),
+			// 		AcrDetails: &[]registrymanagement.AcrDetails{
+			// 			{
+			// 				SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{},
+			// 			},
+			// 		},
+			// 		StorageAccountDetails: &[]registrymanagement.StorageAccountDetails{
+			// 			{
+			// 				SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{},
+			// 			},
+			// 		},
+			// 	},
+			// }
+			var regions = []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
 
 			for _, region := range model.ReplicationRegion {
 				regions = append(regions, expandRegistryRegionDetail(region))
@@ -356,91 +353,91 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id, err := registrymanagement.ParseRegistryID(metadata.ResourceData.Id())
+			var model MachineLearningRegistryModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding Machine Learning Registry model %+v", err)
+			}
+
+			id := registrymanagement.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.RegistriesGet(ctx, id)
 			if err != nil {
-				return err
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
 
-			var state MachineLearningRegistryModel
-			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decode state: %+v", err)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving existing model for %s", id)
 			}
 
-			var update registrymanagement.PartialRegistryPartialTrackedResource
+			param := existing.Model
 
 			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(state.Tags)
+				param.Tags = pointer.To(model.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				var update registrymanagement.PartialRegistryPartialTrackedResource
-				update.Identity, err = identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding identity: %+v", err)
 				}
+				param.Identity = expandedIdentity
 			}
-			if o, n := metadata.ResourceData.GetChange("replication_region"); !cmp.Equal(o, n) {
-				// remove first: if exists in o but not in n
-				var toRemove []string
-				oldLocations := map[string]bool{}
-				for _, item := range o.([]interface{}) {
-					loc := item.(map[string]interface{})["location"].(string)
-					oldLocations[loc] = true
-				}
-				for _, item := range n.([]interface{}) {
-					loc := item.(map[string]interface{})["location"].(string)
-					if _, ok := oldLocations[loc]; !ok {
-						toRemove = append(toRemove, loc)
-					}
-				}
-				if len(toRemove) > 0 {
-					var regions []registrymanagement.RegistryRegionArmDetails
-					for _, item := range toRemove {
-						regions = append(regions, registrymanagement.RegistryRegionArmDetails{
-							Location: pointer.To(item),
-						})
-					}
-					var req = registrymanagement.RegistryTrackedResource{
-						Properties: registrymanagement.Registry{
-							RegionDetails: &regions,
-						},
-					}
-					if err = client.RegistriesRemoveRegionsThenPoll(ctx, *id, req); err != nil {
-						return fmt.Errorf("remove regions %s: %+v", *id, err)
-					}
-				}
-				// add regions and remove regions separately
-				req := registrymanagement.RegistryTrackedResource{
-					Location: state.Location,
-				}
-				var regions []registrymanagement.RegistryRegionArmDetails
-				mainCopy := state.MainRegion[0]
-				mainCopy.Location = state.Location
-				regions = append(regions, expandRegistryRegionDetail(mainCopy))
-				for _, region := range state.ReplicationRegion {
-					regions = append(regions, expandRegistryRegionDetail(region))
-				}
-				req.Properties = registrymanagement.Registry{
-					RegionDetails: &regions,
-				}
-				response, err := client.RegistriesCreateOrUpdate(ctx, *id, req)
 
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if v, ok := metadata.ResourceData.GetOk("public_network_access_enabled"); ok {
+					param.Properties.PublicNetworkAccess = pointer.To("Disabled")
+					if v.(bool) {
+						param.Properties.PublicNetworkAccess = pointer.To("Enabled")
+					}
+				}
+			}
+
+			if param.Properties.RegionDetails == nil {
+				param.Properties.RegionDetails = &[]registrymanagement.RegistryRegionArmDetails{}
+			}
+			if metadata.ResourceData.HasChange("main_region") {
+				if len(*param.Properties.RegionDetails) > 0 {
+					(*param.Properties.RegionDetails)[0] = expandRegistryRegionDetail(model.MainRegion[0])
+				}
+			}
+
+			if metadata.ResourceData.HasChange("replication_region") {
+
+			}
+
+			var regions []registrymanagement.RegistryRegionArmDetails
+
+			regions = *param.Properties.RegionDetails
+			if len(model.MainRegion) > 0 {
+				regions[0] = expandRegistryRegionDetail(model.MainRegion[0])
+			}
+
+			for _, region := range model.ReplicationRegion {
+				regions = append(regions, expandRegistryRegionDetail(region))
+			}
+			prop.RegionDetails = &regions
+			param.Properties = prop
+
+			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
+
+			if err != nil {
+				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
 				if err != nil {
-					pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, *id, response.HttpResponse)
-					if err != nil {
-						return fmt.Errorf("creating poller: %+v", err)
-					}
-					if pollerType == nil {
-						return fmt.Errorf("no poller created for updating %s", *id)
-					}
-					poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-					if err := poller.PollUntilDone(ctx); err != nil {
-						return fmt.Errorf("polling update of %s: %+v", *id, err)
-					}
+					return fmt.Errorf("creating poller: %+v", err)
+				}
+				if pollerType == nil {
+					return fmt.Errorf("no poller created for creating %s", id)
+				}
+				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("polling creation of %s: %+v", id, err)
 				}
 			}
 
+			metadata.SetID(id)
 			return nil
 		},
 	}
