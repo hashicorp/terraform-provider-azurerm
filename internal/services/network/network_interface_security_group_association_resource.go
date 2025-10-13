@@ -162,7 +162,7 @@ func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.Resourc
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
-			return fmt.Errorf(" %s was not found!", id.First)
+			return fmt.Errorf("%s was not found", id.First)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)

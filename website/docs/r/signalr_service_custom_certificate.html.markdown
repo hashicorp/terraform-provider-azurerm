@@ -119,7 +119,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Custom Certificate of the SignalR service
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom Certificate of the SignalR service
@@ -132,3 +132,9 @@ Custom Certificate for a SignalR service can be imported using the `resource id`
 ```shell
 terraform import azurerm_signalr_service_custom_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customCertificates/cert1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

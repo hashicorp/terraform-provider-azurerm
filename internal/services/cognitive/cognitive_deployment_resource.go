@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,12 +88,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"format": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"OpenAI",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"name": {
@@ -123,6 +121,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
+							"DataZoneBatch",
 							"DataZoneProvisionedManaged",
 							"DataZoneStandard",
 							"GlobalBatch",

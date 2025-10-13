@@ -107,12 +107,12 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			db.SQLDatabaseCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
+			db.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		db.SQLDatabaseCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
+		db.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
 	}
 
 	future, err := client.CreateUpdateSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)

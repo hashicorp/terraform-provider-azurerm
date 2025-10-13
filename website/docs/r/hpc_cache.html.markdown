@@ -10,7 +10,9 @@ description: |-
 
 Manages a HPC Cache.
 
-~> **Note:** By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
+!> **Note:** The `azurerm_hpc_cache` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.
+
+~> **Note:** By request of the service team the provider no longer automatically registers the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
 
 ## Example Usage
 
@@ -56,13 +58,13 @@ The following arguments are supported:
 
 * `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `21623`, `24576`, `43246`, `49152` and `86491`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `21623`, `43246` and `86491` sizes are restricted to read only resources.
+-> **Note:** The `21623`, `43246` and `86491` sizes are restricted to read only resources.
 
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are (ReadWrite) - `Standard_2G`, `Standard_4G` `Standard_8G` or (ReadOnly) - `Standard_L4_5G`, `Standard_L9G`, and `Standard_L16G`. Changing this forces a new resource to be created.
 
--> **NOTE:** The read-only SKUs have restricted cache sizes. `Standard_L4_5G` must be set to `21623`. `Standard_L9G` to `43246` and `Standard_L16G` to `86491`.
+-> **Note:** The read-only SKUs have restricted cache sizes. `Standard_L4_5G` must be set to `21623`. `Standard_L9G` to `43246` and `Standard_L16G` to `86491`.
 
 ---
 
@@ -184,7 +186,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this HPC Cache. Changing this forces a new resource to be created.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -206,12 +208,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the HPC Cache.
+* `create` - (Defaults to 1 hour) Used when creating the HPC Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.
-* `delete` - (Defaults to 60 minutes) Used when deleting the HPC Cache.
-* `update` - (Defaults to 60 minutes) Used when updating the Hpc Cache.
+* `update` - (Defaults to 1 hour) Used when updating the Hpc Cache.
+* `delete` - (Defaults to 1 hour) Used when deleting the HPC Cache.
 
 ## Import
 
@@ -220,3 +222,9 @@ HPC Caches can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_hpc_cache.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.StorageCache/caches/cacheName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache` - 2023-05-01

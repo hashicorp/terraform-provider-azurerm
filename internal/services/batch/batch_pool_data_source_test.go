@@ -21,7 +21,7 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("microsoft-azure-batch"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20-04-lts"),
@@ -124,7 +124,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
   max_tasks_per_node  = 2
 

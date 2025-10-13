@@ -60,10 +60,8 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(rules.MatchProcessingBehaviorContinue),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(rules.MatchProcessingBehaviorContinue),
-					string(rules.MatchProcessingBehaviorStop),
-				}, false),
+				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForMatchProcessingBehavior(),
+					false),
 			},
 
 			"order": {
@@ -89,23 +87,16 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"redirect_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.RedirectTypeMoved),
-											string(rules.RedirectTypeFound),
-											string(rules.RedirectTypeTemporaryRedirect),
-											string(rules.RedirectTypePermanentRedirect),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRedirectType(),
+											false),
 									},
 
 									"redirect_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Default:  string(rules.DestinationProtocolMatchRequest),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.DestinationProtocolMatchRequest),
-											string(rules.DestinationProtocolHTTP),
-											string(rules.DestinationProtocolHTTPS),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForDestinationProtocol(),
+											false),
 									},
 
 									// NOTE: it is valid for the destination path to be an empty string,
@@ -184,11 +175,8 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"header_action": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.HeaderActionAppend),
-											string(rules.HeaderActionOverwrite),
-											string(rules.HeaderActionDelete),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHeaderAction(),
+											false),
 									},
 
 									"header_name": {
@@ -215,11 +203,8 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"header_action": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.HeaderActionAppend),
-											string(rules.HeaderActionOverwrite),
-											string(rules.HeaderActionDelete),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHeaderAction(),
+											false),
 									},
 
 									"header_name": {
@@ -254,23 +239,16 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.ForwardingProtocolHTTPOnly),
-											string(rules.ForwardingProtocolHTTPSOnly),
-											string(rules.ForwardingProtocolMatchRequest),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForForwardingProtocol(),
+											false),
 									},
 
 									// Removed Default value for issue #19008
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.RuleQueryStringCachingBehaviorIgnoreQueryString),
-											string(rules.RuleQueryStringCachingBehaviorUseQueryString),
-											string(rules.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-											string(rules.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-										}, false),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRuleQueryStringCachingBehavior(),
+											false),
 									},
 
 									// NOTE: CSV implemented as a list, code already written for the expanded and flatten to CSV
@@ -450,7 +428,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
+									"operator":         schemaCdnFrontDoorUrlPathOperator(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorUrlPathConditionMatchValues(),
 									"transforms":       schemaCdnFrontDoorRuleTransforms(),

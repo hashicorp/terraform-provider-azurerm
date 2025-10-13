@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicy"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -73,8 +73,8 @@ func TestAccNetAppBackupPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
+				check.That(data.ResourceName).Key("weekly_backups_to_keep").HasValue("2"),
+				check.That(data.ResourceName).Key("monthly_backups_to_keep").HasValue("1"),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
 		},
@@ -85,8 +85,8 @@ func TestAccNetAppBackupPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("10"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("10"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("10"),
+				check.That(data.ResourceName).Key("weekly_backups_to_keep").HasValue("1"),
+				check.That(data.ResourceName).Key("monthly_backups_to_keep").HasValue("0"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
@@ -112,14 +112,13 @@ func (r NetAppBackupPolicyResource) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_netapp_backup_policy" "test" {
-  name                    = "acctest-NetAppBackupPolicy-%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  account_name            = azurerm_netapp_account.test.name
-  daily_backups_to_keep   = 2
-  weekly_backups_to_keep  = 2
-  monthly_backups_to_keep = 2
-  enabled                 = true
+  name                   = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  account_name           = azurerm_netapp_account.test.name
+  daily_backups_to_keep  = 2
+  weekly_backups_to_keep = 2
+  enabled                = true
 
   tags = {
     "testTag" = "testTagValue"
@@ -138,8 +137,7 @@ resource "azurerm_netapp_backup_policy" "test" {
   location                = azurerm_resource_group.test.location
   account_name            = azurerm_netapp_account.test.name
   daily_backups_to_keep   = 10
-  weekly_backups_to_keep  = 10
-  monthly_backups_to_keep = 10
+  monthly_backups_to_keep = 0
   enabled                 = false
 
   tags = {

@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `daily_backups_to_keep` - (Optional) Provides the number of daily backups to keep, defaults to `2` which is the minimum, maximum is 1019.
 
-* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
-* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
 ~> **Note:** Currently, the combined (daily + weekly + monthy) retention counts cannot exceed 1019.
 
@@ -59,12 +59,12 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the NetApp Backup Policy.
-* `update` - (Defaults to 120 minutes) Used when updating the NetApp Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Backup Policy.
-* `delete` - (Defaults to 120 minutes) Used when deleting the NetApp Backup Policy.
+* `update` - (Defaults to 2 hours) Used when updating the NetApp Backup Policy.
+* `delete` - (Defaults to 2 hours) Used when deleting the NetApp Backup Policy.
 
 ## Import
 
@@ -73,3 +73,9 @@ NetApp Backup Policy can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_backup_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/backupPolicies/backuppolicy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp` - 2025-06-01

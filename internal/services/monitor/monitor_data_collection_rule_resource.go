@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -1154,7 +1154,7 @@ func (r DataCollectionRuleResource) Delete() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("deleting %s..", *id)
-			resp, err := client.Delete(ctx, *id)
+			resp, err := client.Delete(ctx, *id, datacollectionrules.DefaultDeleteOperationOptions())
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

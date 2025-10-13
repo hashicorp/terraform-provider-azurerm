@@ -54,7 +54,7 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()
 		if !ok {
-			return rawState, fmt.Errorf("App Configuration is not supported in this Environment")
+			return rawState, fmt.Errorf("app configuration is not supported in this Environment")
 		}
 
 		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, *domainSuffix)

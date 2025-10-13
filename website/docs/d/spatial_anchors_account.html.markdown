@@ -6,7 +6,7 @@ description: |-
   Get information about an Azure Spatial Anchors Account.
 ---
 
-# azurerm_spatial_anchors_account
+# Data Source: azurerm_spatial_anchors_account
 
 Get information about an Azure Spatial Anchors Account.
 
@@ -47,6 +47,12 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spatial Anchors Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MixedReality` - 2021-01-01

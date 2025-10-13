@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var natGatewayResourceName = "azurerm_nat_gateway"
 
 func resourceNatGateway() *pluginsdk.Resource {
@@ -41,10 +43,11 @@ func resourceNatGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := natgateways.ParseNatGatewayID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&natgateways.NatGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
+		},
 
 		Schema: resourceNatGatewaySchema(),
 	}
@@ -91,7 +94,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +140,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -201,7 +204,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -235,13 +238,16 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 			d.Set("resource_guid", props.ResourceGuid)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

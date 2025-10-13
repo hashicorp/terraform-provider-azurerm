@@ -28,7 +28,7 @@ output "id" {
 
 * `display_name` - Specifies the display name of the Policy Set Definition. Conflicts with `name`.
 
-**NOTE** As `display_name` is not unique errors may occur when there are multiple policy set definitions with same display name.
+-> **Note:** As `display_name` is not unique errors may occur when there are multiple policy set definitions with same display name.
 
 * `management_group_name` - (Optional) Only retrieve Policy Set Definitions from this Management Group.
 
@@ -58,7 +58,7 @@ An `policy_definition_reference` block exports the following:
 
 * `parameters` - The mapping of the parameter values for the referenced policy rule. The keys are the parameter names.
 
--> **NOTE:** Since Terraform's concept of a map requires all of the elements to be of the same type, the value in parameters will all be converted to string type.
+-> **Note:** Since Terraform's concept of a map requires all of the elements to be of the same type, the value in parameters will all be converted to string type.
 
 ~> **Note:** This field only supports String fields and is deprecated in favour of the `parameters_values` field
 
@@ -84,6 +84,6 @@ An `policy_definition_group` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Set Definition.

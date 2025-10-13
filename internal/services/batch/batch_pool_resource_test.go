@@ -29,7 +29,7 @@ func TestAccBatchPool_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -84,7 +84,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -107,7 +107,7 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -131,7 +131,7 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -158,7 +158,7 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
@@ -187,7 +187,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -212,7 +212,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -231,7 +231,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -256,7 +256,7 @@ func TestAccBatchPool_startTask_basic(t *testing.T) {
 			Config: r.startTask_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -333,7 +333,7 @@ func TestAccBatchPool_certificates(t *testing.T) {
 			Config: r.certificates(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("2"),
 				check.That(data.ResourceName).Key("certificate.0.id").HasValue(certificate0ID),
@@ -467,7 +467,7 @@ func TestAccBatchPool_customImage(t *testing.T) {
 			Config: r.customImageConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("max_tasks_per_node").HasValue("2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
@@ -491,7 +491,7 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 			Config: r.networkConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
@@ -671,13 +671,20 @@ func TestAccBatchPool_diskSettings(t *testing.T) {
 			Config: r.diskSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
+				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
 				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
 				check.That(data.ResourceName).Key("data_disks.0.lun").HasValue("20"),
 				check.That(data.ResourceName).Key("data_disks.0.caching").HasValue("None"),
 				check.That(data.ResourceName).Key("data_disks.0.disk_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("data_disks.0.storage_account_type").HasValue("Standard_LRS"),
 				check.That(data.ResourceName).Key("os_disk_placement").HasValue("CacheDisk"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.updateDiskSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -860,7 +867,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
 
@@ -922,7 +929,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
 
@@ -981,7 +988,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   account_name                  = azurerm_batch_account.test.name
   display_name                  = "Test Acc Pool"
-  vm_size                       = "Standard_A1"
+  vm_size                       = "STANDARD_A1_V2"
   node_agent_sku_id             = "batch.node.ubuntu 22.04"
   stop_pending_resize_operation = true
 
@@ -1030,7 +1037,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1116,7 +1123,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -1183,7 +1190,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1237,7 +1244,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1318,7 +1325,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1376,7 +1383,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1438,7 +1445,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1500,7 +1507,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1562,7 +1569,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1630,7 +1637,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1708,7 +1715,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1765,7 +1772,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -1833,7 +1840,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -2018,7 +2025,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
 
@@ -2078,7 +2085,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -2141,7 +2148,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   mount {
     azure_blob_file_system {
       account_name        = azurerm_storage_account.test.name
@@ -2205,7 +2212,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool Auto"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   fixed_scale {
@@ -2257,7 +2264,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   mount {
     azure_file_share {
       account_name        = azurerm_storage_account.test.name
@@ -2293,7 +2300,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   mount {
     cifs_mount {
       user_name           = "myUserName"
@@ -2330,7 +2337,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   mount {
     nfs_mount {
       source              = "https://testaccount.file.core.windows.net/"
@@ -2373,7 +2380,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   target_node_communication_mode = "%s"
 
@@ -2414,7 +2421,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   extensions {
     name                       = "OmsAgentForLinux"
     publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
@@ -2461,7 +2468,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   extensions {
     name                       = "OmsAgentForLinux"
     publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
@@ -2499,7 +2506,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   data_disks {
     lun                  = 20
     caching              = "None"
@@ -2518,6 +2525,46 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) updateDiskSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "STANDARD_A1_V2"
+
+  data_disks {
+    lun                  = 20
+    caching              = "ReadWrite"
+    disk_size_gb         = 2
+    storage_account_type = "Standard_LRS"
+  }
+
+  os_disk_placement = "CacheDisk"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) interNodeCommunicationWithTaskSchedulingPolicy(data acceptance.TestData) string {
@@ -2540,7 +2587,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_name             = azurerm_batch_account.test.name
   node_agent_sku_id        = "batch.node.ubuntu 22.04"
-  vm_size                  = "Standard_A1"
+  vm_size                  = "STANDARD_A1_V2"
   inter_node_communication = "Disabled"
   task_scheduling_policy {
     node_fill_type = "Pack"
@@ -2572,7 +2619,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   fixed_scale {
     target_dedicated_nodes = 1
   }
@@ -2610,7 +2657,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.windows amd64"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   fixed_scale {
     target_dedicated_nodes = 1
   }
@@ -2690,7 +2737,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   fixed_scale {
     target_dedicated_nodes = 1
   }

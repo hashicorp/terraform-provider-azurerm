@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -136,6 +137,28 @@ func TestAccWindowsWebApp_backup(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withBackupVnetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBackupVnetIntegration(data, "true"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withBackupVnetIntegration(data, "false"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -234,6 +257,21 @@ func TestAccWindowsWebApp_withLogging(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebApp_alwaysOnFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alwaysOnFalse(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1182,6 +1220,29 @@ func TestAccWindowsWebApp_withNode20(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withNode22(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "~22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~22"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebApp_withMultiStack(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1563,6 +1624,28 @@ func TestAccWindowsWebApp_zipDeploy(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_zipDeployAppRecycle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file", "site_credential.0.password"),
+	})
+}
+
 // ASE based tests - Deliberately have longer prefix to make it possible to exclude from testing unrelated changes in the app resource
 // as they take a significant amount of time to execute (anything up to 6h)
 
@@ -1795,6 +1878,37 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) withBackupVnetIntegration(data acceptance.TestData, enabled string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  virtual_network_subnet_id              = azurerm_subnet.test.id
+  virtual_network_backup_restore_enabled = %s
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 1
+      frequency_unit     = "Day"
+    }
+  }
+
+  site_config {}
+}
+`, r.templateStorageWithVnetIntegration(data), data.RandomInteger, enabled)
 }
 
 func (r WindowsWebAppResource) withConnectionStrings(data acceptance.TestData) string {
@@ -3813,6 +3927,7 @@ resource "azurerm_service_plan" "test" {
 func (r WindowsWebAppResource) templateWithStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -3831,14 +3946,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -3875,6 +3990,95 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (r WindowsWebAppResource) templateStorageWithVnetIntegration(data acceptance.TestData) string {
+	timeFormat := "2006-01-02"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+
+  service_endpoints = [
+    "Microsoft.Storage"
+  ]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_action             = "Deny"
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "%[4]s"
+  expiry = "%[5]s"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomString, time.Now().Format(timeFormat), time.Now().AddDate(0, 0, 1).Format(timeFormat))
 }
 
 func (r WindowsWebAppResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
@@ -4030,4 +4234,34 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) alwaysOnFalse(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    always_on           = false
+    minimum_tls_version = "1.2"
+    ftps_state          = "FtpsOnly"
+    http2_enabled       = true
+    use_32_bit_worker   = false
+
+    application_stack {
+      current_stack  = "dotnet"
+      dotnet_version = "v6.0"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }

@@ -4,6 +4,7 @@
 package streamanalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -155,6 +156,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"job_storage_account": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
@@ -163,6 +165,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
+								string(streamingjobs.AuthenticationModeMsi),
 							}, false),
 						},
 
@@ -174,7 +177,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 						"account_key": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -206,6 +209,13 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.Get("job_storage_account.0.authentication_mode") == string(streamingjobs.AuthenticationModeMsi) && d.Get("job_storage_account.0.account_key") != "" {
+				return fmt.Errorf("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
+			}
+			return nil
 		},
 	}
 }
@@ -296,12 +306,8 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 		props.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string)))
 	}
 
-	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
-		if v, ok := d.GetOk("job_storage_account"); ok {
-			props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
-		} else {
-			return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
-		}
+	if v, ok := d.GetOk("job_storage_account"); ok {
+		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
 	}
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
@@ -481,12 +487,12 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("content_storage_policy") {
-		payload.Properties.ContentStoragePolicy = pointer.To(streamingjobs.ContentStoragePolicy(d.Get("contentStoragePolicy").(string)))
+		payload.Properties.ContentStoragePolicy = pointer.To(streamingjobs.ContentStoragePolicy(d.Get("content_storage_policy").(string)))
 	}
 
 	if d.HasChange("job_storage_account") {
 		storageAccount := d.Get("job_storage_account").([]interface{})
-		if d.Get("contentStoragePolicy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
+		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
 				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 			}
@@ -564,20 +570,22 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
-	if input == nil {
+	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	authenticationMode := v["authentication_mode"].(string)
-	accountName := v["account_name"].(string)
-	accountKey := v["account_key"].(string)
 
-	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(authenticationMode)),
-		AccountName:        pointer.To(accountName),
-		AccountKey:         pointer.To(accountKey),
+	jobStorageAccount := streamingjobs.JobStorageAccount{
+		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(v["authentication_mode"].(string))),
+		AccountName:        pointer.To(v["account_name"].(string)),
 	}
+
+	if accountKey := v["account_key"].(string); accountKey != "" {
+		jobStorageAccount.AccountKey = pointer.To(accountKey)
+	}
+
+	return &jobStorageAccount
 }
 
 func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {

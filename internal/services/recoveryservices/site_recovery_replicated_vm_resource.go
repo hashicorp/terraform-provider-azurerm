@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
@@ -224,15 +223,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 
 						"target_disk_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(disks.DiskStorageAccountTypesStandardLRS),
-								string(disks.DiskStorageAccountTypesPremiumLRS),
-								string(disks.DiskStorageAccountTypesStandardSSDLRS),
-								string(disks.DiskStorageAccountTypesUltraSSDLRS),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_replica_disk_type": {
@@ -240,10 +234,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(disks.DiskStorageAccountTypesStandardLRS),
-								string(disks.DiskStorageAccountTypesPremiumLRS),
-								string(disks.DiskStorageAccountTypesStandardSSDLRS),
-								string(disks.DiskStorageAccountTypesUltraSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardLRS),
+								string(replicationprotecteditems.DiskAccountTypePremiumLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeUltraSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardSSDZRS),
+								string(replicationprotecteditems.DiskAccountTypePremiumZRS),
 							}, false),
 						},
 
@@ -1035,15 +1031,15 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		}
 
 		if resp.Model == nil {
-			return nil, "", fmt.Errorf("Missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("Missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties.ProviderSpecificDetails == nil {
-			return nil, "", fmt.Errorf("Missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
 
 		// Find first disk that is not fully replicated yet
