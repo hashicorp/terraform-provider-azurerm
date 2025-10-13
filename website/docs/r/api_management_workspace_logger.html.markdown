@@ -64,13 +64,13 @@ The following arguments are supported:
 
 * `application_insights` - (Optional) Specifies the application insights of the API Management Workspace Logger. Changing this forces a new resource to be created.
 
-* `eventhub` - (Optional) Specifies the eventhub of the API Management Workspace Logger. Changing this forces a new resource to be created.
-
--> **Note:** Exactly one of `application_insights` or `eventhub` must be specified.
-
 * `buffering_enabled` - (Optional) Specifies whether records should be buffered in the API Management Workspace Logger prior to publishing. Defaults to `true`.
 
 * `description` - (Optional) Specifies a description of the API Management Workspace Logger.
+
+* `eventhub` - (Optional) Specifies the eventhub of the API Management Workspace Logger. Changing this forces a new resource to be created.
+
+-> **Note:** Exactly one of `application_insights` or `eventhub` must be specified.
 
 * `resource_id` - (Optional) Specifies the target resource ID of the API Management Workspace Logger, which can be either an Azure Event Hub or an application insights resource.
 
