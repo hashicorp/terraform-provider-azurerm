@@ -205,7 +205,7 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
 			}
 
-			regions := flattenRegistryRegionDetails(prop.RegionDetails, resp.Model.Location)
+			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
 					model.MainRegion = []ReplicationRegion{region}

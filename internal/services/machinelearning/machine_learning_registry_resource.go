@@ -196,6 +196,12 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Location: model.Location,
 				Tags:     pointer.To(model.Tags),
+				Properties: registrymanagement.Registry{
+					PublicNetworkAccess: pointer.To("Disabled"),
+				},
+			}
+			if model.PublicNetworkAccessEnabled {
+				param.Properties.PublicNetworkAccess = pointer.To("Enabled")
 			}
 
 			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
@@ -204,20 +210,11 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 			param.Identity = expandedIdentity
 
-			prop := registrymanagement.Registry{
-				PublicNetworkAccess: pointer.To("Disabled"),
-			}
-			if model.PublicNetworkAccessEnabled {
-				prop.PublicNetworkAccess = pointer.To("Enabled")
-			}
-
 			regions := []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
-
 			for _, region := range model.ReplicationRegion {
 				regions = append(regions, expandRegistryRegionDetail(region))
 			}
-			prop.RegionDetails = &regions
-			param.Properties = prop
+			param.Properties.RegionDetails = &regions
 
 			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
 			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
@@ -284,7 +281,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
 			}
 
-			regions := flattenRegistryRegionDetails(prop.RegionDetails, resp.Model.Location)
+			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
 					model.MainRegion = []ReplicationRegion{region}
@@ -344,7 +341,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("main_region", "replication_region") {
-				var regions []registrymanagement.RegistryRegionArmDetails
+				regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
 				if len(model.MainRegion) > 0 {
 					regions = append(regions, expandRegistryRegionDetail(model.MainRegion[0]))
@@ -422,18 +419,16 @@ func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.Regi
 	}
 }
 
-func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails, location string) []ReplicationRegion {
+func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails) []ReplicationRegion {
 	result := make([]ReplicationRegion, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
 
-	for i, item := range *input {
+	for _, item := range *input {
 		var region ReplicationRegion
 		region.Location = pointer.From(item.Location)
-		if i == 0 {
-			region.Location = location
-		}
+
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)

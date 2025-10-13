@@ -195,8 +195,6 @@ resource "azurerm_machine_learning_registry" "test" {
 }
 
 func (r MachineLearningRegistry) update(data acceptance.TestData) string {
-	// Registry is attempting to overwrite all StorageAccount resources
-	// for the primary region westeurope. Please at least keep one resource the same
 	return fmt.Sprintf(`
 %[1]s
 
