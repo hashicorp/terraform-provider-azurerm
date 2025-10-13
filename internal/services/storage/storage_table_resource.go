@@ -46,7 +46,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 				return err
 			}
 
-			_, err := tables.ParseTableID(id, storageDomainSuffix)
+			_, err := tableservice.ParseTableID(id)
 			return err
 		}),
 
