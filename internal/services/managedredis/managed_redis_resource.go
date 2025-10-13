@@ -275,17 +275,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-			existingDb, err := dbClient.Get(ctx, dbId)
-			if err != nil {
-				if !response.WasNotFound(existingDb.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", dbId, err)
-				}
-			}
-
-			if !response.WasNotFound(existingDb.HttpResponse) {
-				return fmt.Errorf("expected db %s to be not found: %+v", dbId, err)
-			}
-
 			clusterParams := redisenterprise.Cluster{
 				Location: location.Normalize(model.Location),
 				Sku: redisenterprise.Sku{
