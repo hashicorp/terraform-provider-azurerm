@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningRegistry struct{}
@@ -118,12 +118,12 @@ func (r MachineLearningRegistry) Exists(ctx context.Context, client *clients.Cli
 	resp, err := registryClient.RegistriesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Data Store %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MachineLearningRegistry) basic(data acceptance.TestData) string {
@@ -168,24 +168,24 @@ func (r MachineLearningRegistry) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_machine_learning_registry" "test" {
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  name                = "accmlreg-%[2]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  name                          = "accmlreg-%[2]d"
   public_network_access_enabled = false
   main_region {
-    location = azurerm_resource_group.test.location
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = azurerm_resource_group.test.location
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   replication_region {
-	location = "%[3]s"
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = "%[3]s"
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   replication_region {
-	location = "%[4]s"
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = "%[4]s"
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   identity {
     type = "SystemAssigned"
@@ -201,24 +201,24 @@ func (r MachineLearningRegistry) update(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_machine_learning_registry" "test" {
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  name                = "accmlreg-%[2]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  name                          = "accmlreg-%[2]d"
   public_network_access_enabled = true
   main_region {
-    location = azurerm_resource_group.test.location
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = azurerm_resource_group.test.location
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   replication_region {
-	location = "%[3]s"
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = "%[3]s"
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   replication_region {
-	location = "%[4]s"
-	storage_account_type = "Standard_ZRS"
-	hns_enabled = true
+    location             = "%[4]s"
+    storage_account_type = "Standard_ZRS"
+    hns_enabled          = true
   }
   identity {
     type = "SystemAssigned"
@@ -281,11 +281,11 @@ resource "azurerm_machine_learning_registry" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   name                          = "accmlreg-%[2]d"
   public_network_access_enabled = false
-  
+
   identity {
     type = "SystemAssigned"
   }
-  
+
   main_region {
     location = azurerm_resource_group.test.location
   }
