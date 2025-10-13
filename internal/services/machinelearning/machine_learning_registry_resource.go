@@ -220,6 +220,9 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			param.Properties = prop
 
 			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
+			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			if response.HttpResponse != nil {
 				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
 				if err != nil {
@@ -355,6 +358,9 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 			}
 
 			response, err := client.RegistriesCreateOrUpdate(ctx, id, *param)
+			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			if response.HttpResponse != nil {
 				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
 				if err != nil {
@@ -417,7 +423,7 @@ func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.Regi
 }
 
 func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmDetails, location string) []ReplicationRegion {
-	var result []ReplicationRegion
+	result := make([]ReplicationRegion, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}

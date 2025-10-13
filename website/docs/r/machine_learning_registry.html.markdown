@@ -14,9 +14,9 @@ Manages a Machine Learning Registry.
 
 ```hcl
 resource "azurerm_machine_learning_registry" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example"
-  location = "West Europe"
+  location            = "West Europe"
   identity {
     type = "SystemAssigned"
   }
