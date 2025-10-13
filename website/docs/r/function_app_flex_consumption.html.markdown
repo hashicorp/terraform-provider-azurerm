@@ -187,6 +187,10 @@ The following arguments are supported:
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
+* `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
+
+~> **Note:** A value will be assigned by the system if `http_concurrency` is not specified.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -779,7 +783,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function Flex Consumption App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function Flex Consumption App.

@@ -71,6 +71,8 @@ The following attributes are exported:
 
 * `large_volume_enabled` - Indicates if the volume is a large volume.
 
+* `accept_grow_capacity_pool_for_short_term_clone_split` - The accept grow capacity pool for short term clone split property.
+
 ---
 
 A `data_protection_replication` block exports the following:
@@ -97,7 +99,7 @@ A `data_protection_backup_policy` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
 

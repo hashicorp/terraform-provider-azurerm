@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -188,7 +188,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
 							string(agentpools.OSSKUAzureLinux),
+							string(agentpools.OSSKUAzureLinuxThree),
 							string(agentpools.OSSKUUbuntu),
+							string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 						}, false),
@@ -250,7 +252,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: computeValidate.HostGroupID,
 					},
 
-					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
+					"upgrade_settings": upgradeSettingsSchema(),
 
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
@@ -791,9 +793,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		}
 		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil {
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
-		}
-		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
-			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
 		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
@@ -1412,7 +1411,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
+	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
+	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
 		return []interface{}{}
 	}
 
@@ -1428,10 +1428,6 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
-	}
-
-	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
-		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
@@ -1811,9 +1807,6 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
-	}
-	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		setting.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
 
 	return setting

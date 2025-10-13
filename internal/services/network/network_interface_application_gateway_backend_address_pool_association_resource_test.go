@@ -102,7 +102,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	resp, err := clients.Network.Client.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -151,7 +151,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	resp, err := client.Network.Client.NetworkInterfaces.Get(ctx2, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := client.Network.NetworkInterfaces.Get(ctx2, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -171,7 +171,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 	}
 	config.Properties.ApplicationGatewayBackendAddressPools = &updatedPools
 
-	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, networkInterfaceId, *resp.Model); err != nil {
+	if err := client.Network.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, networkInterfaceId, *resp.Model); err != nil {
 		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", networkInterfaceId, err)
 	}
 

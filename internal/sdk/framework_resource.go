@@ -10,9 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -156,6 +158,7 @@ func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.Delete
 
 // SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
 func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
@@ -179,6 +182,45 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *ephemeral.CloseResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
+	case *action.InvokeResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewErrorDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
+	}
+}
+
+// SetResponseWarningDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
+// type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
+func SetResponseWarningDiagnostic(resp any, summary string, detail any) {
+	var errorMsg string
+	switch e := detail.(type) {
+	case error:
+		errorMsg = e.Error()
+	case string:
+		errorMsg = e
+	}
+	switch v := resp.(type) {
+	case *resource.CreateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.UpdateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.DeleteResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.ReadResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.OpenResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.RenewResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.CloseResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewWarningDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
 	}
 }
 
@@ -254,4 +296,12 @@ type FrameworkWrappedResourceWithPlanModifier interface {
 	FrameworkWrappedResource
 
 	ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse, metadata ResourceMetadata)
+}
+
+type FrameworkWrappedResourceWithList interface {
+	FrameworkWrappedResource
+
+	List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata ResourceMetadata)
+
+	ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse, metadata ResourceMetadata)
 }

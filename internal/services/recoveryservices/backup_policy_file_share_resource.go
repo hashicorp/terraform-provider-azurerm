@@ -5,6 +5,7 @@ package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -57,25 +58,25 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 			switch strings.ToLower(frequencyI.(string)) {
 			case "daily":
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
 			case "weekly":
 				if hasDaily {
-					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
+					return errors.New("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
-					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+					return errors.New("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
 			case "hourly":
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is hourly")
 				}
 			default:
-				return fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return errors.New("unrecognized value for backup.0.frequency")
 			}
 			return nil
 		},

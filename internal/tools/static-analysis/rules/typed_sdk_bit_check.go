@@ -22,7 +22,7 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 			case modelType != nil && modelType.Kind() == reflect.Ptr:
 				model := modelType.Elem()
 				if model.Kind() != reflect.Struct {
-					errors = append(errors, fmt.Errorf("%s is not a pointer to a struct\n", modelType.Name()))
+					errors = append(errors, fmt.Errorf("%s is not a pointer to a struct", modelType.Name()))
 					continue
 				}
 
@@ -32,7 +32,7 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 				continue
 
 			default:
-				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer\n", resource.ResourceType()))
+				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer", resource.ResourceType()))
 			}
 		}
 		for _, datasource := range s.DataSources() {
@@ -68,19 +68,19 @@ func checkForBits(model reflect.Type) (errors []error) {
 	for i := 0; i < model.NumField(); i++ {
 		switch t := model.Field(i).Type; t.Kind() {
 		case reflect.Int, reflect.Int16, reflect.Int32:
-			errors = append(errors, fmt.Errorf("property %s in model %s should be type int64, got `%s`\n", model.Field(i).Name, model.Name(), t.String()))
+			errors = append(errors, fmt.Errorf("property %s in model %s should be type int64, got `%s`", model.Field(i).Name, model.Name(), t.String()))
 		case reflect.Float32:
-			errors = append(errors, fmt.Errorf("property %s in model %s should be type float64, got `%s`\n", model.Field(i).Name, model.Name(), t.String()))
+			errors = append(errors, fmt.Errorf("property %s in model %s should be type float64, got `%s`", model.Field(i).Name, model.Name(), t.String()))
 		case reflect.Slice, reflect.Array:
 			switch t.Elem().Kind() {
 			case reflect.Struct:
 				errors = append(errors, checkForBits(t.Elem())...)
 
 			case reflect.Int, reflect.Int16, reflect.Int32:
-				errors = append(errors, fmt.Errorf("property %s in model %s should be type []int64, got `%s`\n", model.Field(i).Name, model.Name(), t.String()))
+				errors = append(errors, fmt.Errorf("property %s in model %s should be type []int64, got `%s`", model.Field(i).Name, model.Name(), t.String()))
 
 			case reflect.Float32:
-				errors = append(errors, fmt.Errorf("property %s in model %s should be type []float64, got `%s`\n", model.Field(i).Name, model.Name(), t.String()))
+				errors = append(errors, fmt.Errorf("property %s in model %s should be type []float64, got `%s`", model.Field(i).Name, model.Name(), t.String()))
 			default:
 			}
 
