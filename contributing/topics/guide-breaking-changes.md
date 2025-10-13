@@ -200,14 +200,18 @@ The following example follows a fictional resource that will have the following 
 
 2. Update the Create/Read/Update methods.
 
-For Create function, `GetOk()` cannot determine if the value is specified or just the zero value.
+For Create function, you can do: 
 ```go
+
+payload := example.Payload{
+  // ...
+  EnableScaling: pointer.To(model.ScalingEnabled),
+  // ...
+}
+
 if !features.FivePointOh() {
-  if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
-    payload.EnableScaling = pointer.To(false);
-  }
-  if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "scaleing_enabled") {
-    payload.EnableScaling = pointer.To(model.ScalingEnabled)
+  if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
+    payload.EnableScaling = pointer.To(model.EnableScaling);
   }
 }
 ```
