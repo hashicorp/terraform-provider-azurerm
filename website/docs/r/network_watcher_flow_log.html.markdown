@@ -85,13 +85,17 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for.
+
+~> **Note:** As of July 30, 2025, it is no longer possible to create new flow logs for Network Security Groups.
 
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
 
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
+
+---
 
 * `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
@@ -106,6 +110,7 @@ The following arguments are supported:
 The `retention_policy` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable retention.
+
 * `days` - (Required) The number of days to retain flow log records.
  
 ---
@@ -113,9 +118,13 @@ The `retention_policy` block supports the following:
 The `traffic_analytics` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable traffic analytics.
+
 * `workspace_id` - (Required) The resource GUID of the attached workspace.
+
 * `workspace_region` - (Required) The location of the attached workspace.
+
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
+
 * `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes. Defaults to `60`.
 
 ## Attributes Reference
@@ -126,7 +135,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher Flow Log.

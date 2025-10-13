@@ -1,0 +1,44 @@
+package {{ToLower .ServicePackageName }}
+
+import (
+	"context"
+	"math"
+
+	"github.com/hashicorp/go-azure-helpers/framework/identity"
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	// "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	// "github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	// "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	// "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+// {{ToCamel .Name }}ResourceModel is a boilerplate struct for the top-level resource model // TODO - populate this to match the schema
+type {{ToCamel .Name }}ResourceModel struct {
+	ID       types.String   `tfsdk:"id"`
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
+
+	// TODO - It is assumed that the `name` property is present in the schema, if not remove the following struct entry
+	Name                        types.String                                                                 `tfsdk:"name"`
+	// TODO - It is assumed that the `resource_group_name` property is present in the schema, if not remove the following struct entry
+	ResourceGroupName           types.String                                                                 `tfsdk:"resource_group_name"`
+
+	// TODO - If the resource supports the `location` property, uncomment the following line, otherwise delete it.
+	// Location                    types.String `tfsdk:"location"`
+	// TODO - If the resource supports Azure Identity (SystemAssigned, or UserAssigned or combination) uncomment the following line, otherwise delete it.
+	// Identity                    typehelpers.ListNestedObjectValueOf[identity.IdentityModel]                  `tfsdk:"identity"`
+
+	// TODO - It is assumed that the `tags` property is present in the schema, if not remove the following struct entry
+	Tags                        typehelpers.MapValueOf[types.String]                                         `tfsdk:"tags"`
+}
+
+// {{ToCamel .Name }}ResourceIdentityModel is the Framework struct representation for the Resource's Resource Identity. // TODO ensure this matches the generated Resource Identity accurately.
+type {{ToCamel .Name }}ResourceIdentityModel struct {
+	{{ range $s := .ResourceIdentitySegments -}}
+	{{$s}} string `tfsdk:"{{ToSnake $s}}"`
+	{{ end -}}
+}

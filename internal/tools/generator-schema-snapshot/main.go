@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	. "github.com/dave/jennifer/jen"
+	"github.com/dave/jennifer/jen"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("unknown resource type %q", rt)
 	}
 
-	f := NewFile("main")
+	f := jen.NewFile("main")
 	f.ImportName("github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk", "")
 
 	f.Var().Id("_").Op("=").Add(SchemaMap(res.Schema))
@@ -35,70 +35,70 @@ func main() {
 	fmt.Printf("%#v", f)
 }
 
-func ResourceValue(res *pluginsdk.Resource) Dict {
-	return Dict{
-		Id("Schema"): SchemaMap(res.Schema),
+func ResourceValue(res *pluginsdk.Resource) jen.Dict {
+	return jen.Dict{
+		jen.Id("Schema"): SchemaMap(res.Schema),
 	}
 }
 
-func SchemaMap(m map[string]*pluginsdk.Schema) *Statement {
-	dict := Dict{}
+func SchemaMap(m map[string]*pluginsdk.Schema) *jen.Statement {
+	dict := jen.Dict{}
 	for k, v := range m {
-		dict[Lit(k)] = Values(SchemaValue(v))
+		dict[jen.Lit(k)] = jen.Values(SchemaValue(v))
 	}
-	return Map(String()).Op("*").Qual(SchemaPath, "Schema").Values(dict)
+	return jen.Map(jen.String()).Op("*").Qual(SchemaPath, "Schema").Values(dict)
 }
 
-func SchemaValue(sch *pluginsdk.Schema) Dict {
-	out := Dict{}
+func SchemaValue(sch *pluginsdk.Schema) jen.Dict {
+	out := jen.Dict{}
 
-	var t Code
+	var t jen.Code
 	switch sch.Type {
 	case pluginsdk.TypeBool:
-		t = Qual(SchemaPath, "TypeBool")
+		t = jen.Qual(SchemaPath, "TypeBool")
 	case pluginsdk.TypeInt:
-		t = Qual(SchemaPath, "TypeInt")
+		t = jen.Qual(SchemaPath, "TypeInt")
 	case pluginsdk.TypeFloat:
-		t = Qual(SchemaPath, "TypeFloat")
+		t = jen.Qual(SchemaPath, "TypeFloat")
 	case pluginsdk.TypeString:
-		t = Qual(SchemaPath, "TypeString")
+		t = jen.Qual(SchemaPath, "TypeString")
 	case pluginsdk.TypeList:
-		t = Qual(SchemaPath, "TypeList")
+		t = jen.Qual(SchemaPath, "TypeList")
 	case pluginsdk.TypeMap:
-		t = Qual(SchemaPath, "TypeMap")
+		t = jen.Qual(SchemaPath, "TypeMap")
 	case pluginsdk.TypeSet:
-		t = Qual(SchemaPath, "TypeSet")
+		t = jen.Qual(SchemaPath, "TypeSet")
 	}
-	out[Id("Type")] = t
+	out[jen.Id("Type")] = t
 
 	if sch.Required {
-		out[Id("Required")] = True()
+		out[jen.Id("Required")] = jen.True()
 	}
 
 	if sch.Optional {
-		out[Id("Optional")] = True()
+		out[jen.Id("Optional")] = jen.True()
 	}
 
 	if sch.Computed {
-		out[Id("Computed")] = True()
+		out[jen.Id("Computed")] = jen.True()
 	}
 
 	switch sch.ConfigMode {
 	case pluginsdk.SchemaConfigModeAttr:
-		out[Id("ConfigMode")] = Qual(SchemaPath, "SchemaConfigModeAttr")
+		out[jen.Id("ConfigMode")] = jen.Qual(SchemaPath, "SchemaConfigModeAttr")
 	case pluginsdk.SchemaConfigModeBlock:
-		out[Id("ConfigMode")] = Qual(SchemaPath, "SchemaConfigModeBlock")
+		out[jen.Id("ConfigMode")] = jen.Qual(SchemaPath, "SchemaConfigModeBlock")
 	}
 
 	switch sch := sch.Elem.(type) {
 	case *pluginsdk.Schema:
-		out[Id("Elem")] = Op("&").Qual(SchemaPath, "Schema").Values(SchemaValue(sch))
+		out[jen.Id("Elem")] = jen.Op("&").Qual(SchemaPath, "Schema").Values(SchemaValue(sch))
 	case *pluginsdk.Resource:
-		out[Id("Elem")] = Op("&").Qual(SchemaPath, "Resource").Values(ResourceValue(sch))
+		out[jen.Id("Elem")] = jen.Op("&").Qual(SchemaPath, "Resource").Values(ResourceValue(sch))
 	}
 
 	if sch.Set != nil {
-		out[Id("Set")] = Id("TODO")
+		out[jen.Id("Set")] = jen.Id("TODO")
 	}
 
 	return out

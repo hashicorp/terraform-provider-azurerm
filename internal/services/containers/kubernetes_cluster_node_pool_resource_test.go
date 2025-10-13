@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -781,6 +781,13 @@ func TestAccKubernetesClusterNodePool_osSkuUbuntu(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.osSku(data, "Ubuntu2204"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -791,6 +798,13 @@ func TestAccKubernetesClusterNodePool_osSkuAzureLinux(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.osSku(data, "AzureLinux"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "AzureLinux3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1311,6 +1325,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -1330,6 +1347,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   auto_scaling_enabled  = true
   min_count             = %d
   max_count             = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), min, max)
 }
@@ -1370,6 +1390,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   kubelet_config {
     cpu_manager_policy        = "static"
@@ -1462,6 +1485,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   kubelet_config {
     cpu_manager_policy    = "static"
@@ -1595,6 +1621,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
   zones                 = ["1"]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1669,6 +1698,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                       = "Standard_D2s_v3"
   node_count                    = 1
   capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -1687,6 +1719,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
 
+  upgrade_settings {
+    max_surge = "10%%"
+  }
   tags = {
     environment = "Staging"
   }
@@ -1712,6 +1747,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     ignore_changes = [
       node_count,
     ]
+  }
+  upgrade_settings {
+    max_surge = "10%%"
   }
 }
 `, r.templateConfig(data))
@@ -1740,6 +1778,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       node_count,
     ]
   }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -1757,6 +1798,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "first" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "second" {
@@ -1764,6 +1808,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_F2s_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -1781,6 +1828,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "first" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "second" {
@@ -1788,6 +1838,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_F2s_v2"
   node_count            = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), numberOfAgents, numberOfAgents)
 }
@@ -1805,6 +1858,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), numberOfAgents)
 }
@@ -1823,6 +1879,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                     = "%s"
   node_count                  = 1
   temporary_name_for_rotation = "temporal"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), sku)
 }
@@ -1841,6 +1900,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   mode                  = "System"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -1859,6 +1921,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   mode                  = "User"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -1878,6 +1943,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "autoscale" {
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "manual" {
@@ -1885,6 +1953,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "manual" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_F2s_v2"
   node_count            = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), numberOfAgents)
 }
@@ -1909,6 +1980,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   node_labels = {
 %s
+  }
+  upgrade_settings {
+    max_surge = "10%%"
   }
 }
 `, r.templateConfig(data), labelsStr)
@@ -1935,6 +2009,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
 %s
   ]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), taintsStr)
 }
@@ -1961,6 +2038,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count               = 1
   node_public_ip_enabled   = true
   node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), data.RandomInteger)
 }
@@ -2031,6 +2111,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -2062,6 +2145,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_disk_size_gb       = 100
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2106,6 +2192,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                      = "Standard_DS2_v2"
   node_count                   = 1
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -2123,6 +2212,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_disk_size_gb       = 100
   os_disk_type          = "Ephemeral"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2193,6 +2285,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 1
   max_count             = 3
   vnet_subnet_id        = azurerm_subnet.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateVirtualNetworkConfig(data))
 }
@@ -2211,6 +2306,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateVirtualNetworkConfig(data))
 }
@@ -2236,6 +2334,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test2.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateVirtualNetworkConfig(data), data.RandomInteger)
 }
@@ -2256,6 +2357,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   os_type               = "Windows"
   tags = {
     Os = "Windows"
+  }
+  upgrade_settings {
+    max_surge = "10%%"
   }
 }
 `, r.templateWindowsConfig(data))
@@ -2279,6 +2383,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   tags = {
     Os = "Windows"
   }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateWindowsConfig(data))
 }
@@ -2301,6 +2408,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   tags = {
     Os = "Windows"
   }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateWindowsConfig(data))
 }
@@ -2318,6 +2428,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "linux" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "windows" {
@@ -2326,6 +2439,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateWindowsConfig(data))
 }
@@ -2460,6 +2576,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 0
   max_count             = 3
   node_count            = 0
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2478,6 +2597,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                 = "Standard_DS2_v2"
   host_encryption_enabled = true
   node_count              = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2496,8 +2618,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   auto_scaling_enabled  = true
   min_count             = 1
-  max_count             = 399
+  max_count             = 250
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2518,6 +2643,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 1
   max_count             = 1
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2537,6 +2665,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 3
   fips_enabled          = true
   kubelet_disk_type     = "OS"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
@@ -2574,6 +2705,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   temporary_name_for_rotation = "temporal"
   ultra_ssd_enabled           = %t
   zones                       = ["1", "2", "3"]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
 }
@@ -2609,6 +2743,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_sku                = "%s"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
 }
@@ -2679,6 +2816,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_D2s_v3"
   node_count            = 1
   host_group_id         = azurerm_dedicated_host_group.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -2703,6 +2843,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   auto_scaling_enabled  = %t
   min_count             = %d
   max_count             = %d
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), enableAutoScaling, minCount, maxCount)
 }
@@ -2738,6 +2881,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   scale_down_mode       = "%s"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, scaleDownMode)
 }
@@ -2773,6 +2919,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   workload_runtime      = "%s"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
 }
@@ -2818,6 +2967,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   os_sku                = "Windows2019"
   windows_profile {
     outbound_nat_enabled = true
+  }
+  upgrade_settings {
+    max_surge = "10%%"
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -2867,6 +3019,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     node_public_ip_tags = {
       RoutingPreference = "Internet"
     }
+  }
+  upgrade_settings {
+    max_surge = "10%%"
   }
 }
  `, data.Locations.Primary, data.RandomInteger)
@@ -2923,6 +3078,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       RoutingPreference = "Internet"
     }
   }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -2960,6 +3118,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -2997,6 +3158,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 data "azurerm_kubernetes_node_pool_snapshot" "test" {
@@ -3010,6 +3174,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   snapshot_id           = data.azurerm_kubernetes_node_pool_snapshot.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
   depends_on = [
     azurerm_kubernetes_cluster_node_pool.source
   ]
@@ -3051,6 +3218,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_NC24ads_A100_v4"
   gpu_instance          = "MIG1g"
+  gpu_driver            = "Install"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -3089,6 +3260,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_NC24ads_A100_v4"
   gpu_driver            = "Install"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -3166,6 +3340,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test1" {
   vnet_subnet_id        = azurerm_subnet.test[0].id
   pod_subnet_id         = azurerm_subnet.test[1].id
   zones                 = ["1"]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test2" {
@@ -3176,6 +3353,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test2" {
   vnet_subnet_id        = azurerm_subnet.test[2].id
   pod_subnet_id         = azurerm_subnet.test[3].id
   zones                 = ["1"]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test3" {
@@ -3186,6 +3366,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test3" {
   vnet_subnet_id        = azurerm_subnet.test[4].id
   pod_subnet_id         = azurerm_subnet.test[5].id
   zones                 = ["1"]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -3236,6 +3419,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -3312,6 +3498,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
@@ -3321,9 +3510,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
-`,
-		data.RandomInteger,     // resource_group name
+`, data.RandomInteger, // resource_group name
 		data.Locations.Primary, // resource_group location
 		data.RandomInteger,     // virtual_network name
 		data.RandomInteger,     // kubernetes_cluster name

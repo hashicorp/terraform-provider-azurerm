@@ -24,6 +24,25 @@ func DownstreamRequest(ctx context.Context) context.Context {
 	return ctx
 }
 
+// DownstreamServerEvent generates the following logging:
+//
+//   - TRACE "Received downstream server event" log with time elapsed since
+//     request start and diagnostic severity counts
+//   - Per-diagnostic logs
+func DownstreamServerEvent(ctx context.Context, diagnostics diag.Diagnostics) {
+	eventFields := map[string]interface{}{
+		logging.KeyDiagnosticErrorCount:   diagnostics.ErrorCount(),
+		logging.KeyDiagnosticWarningCount: diagnostics.WarningCount(),
+	}
+
+	if requestStart, ok := ctx.Value(ContextKeyDownstreamRequestStartTime{}).(time.Time); ok {
+		eventFields[logging.KeyRequestDurationMs] = time.Since(requestStart).Milliseconds()
+	}
+
+	logging.ProtocolTrace(ctx, "Received downstream server event", eventFields)
+	diagnostics.Log(ctx)
+}
+
 // DownstreamResponse generates the following logging:
 //
 //   - TRACE "Received downstream response" log with request duration and

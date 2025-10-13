@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -745,10 +745,18 @@ func TestAccKubernetesCluster_osSkuUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.osSku(data, "Ubuntu"),
+			Config: r.osSku(data, "Ubuntu2204"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu2204"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "AzureLinux3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux3"),
 			),
 		},
 		data.ImportStep(),
@@ -1174,6 +1182,35 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_aiToolchainOperatorProfileToggle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aiToolchainOperatorProfile(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aiToolchainOperatorProfile(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aiToolchainOperatorProfile(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1362,7 +1399,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size              = "Standard_DS2_v2"
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 399
+    max_count            = 100
     node_count           = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -2281,6 +2318,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "acctest" {
@@ -3597,6 +3635,42 @@ resource "azurerm_kubernetes_cluster" "test" {
   custom_ca_trust_certificates_base64 = [%[3]s]
 }
 `, data.Locations.Primary, data.RandomInteger, certsString)
+}
+
+func (KubernetesClusterResource) aiToolchainOperatorProfile(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = "1.32.4"
+
+  ai_toolchain_operator_enabled = %[3]t
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, enabled)
 }
 
 func (KubernetesClusterResource) defaultNodePoolMessageOfTheDay(data acceptance.TestData, message string) string {

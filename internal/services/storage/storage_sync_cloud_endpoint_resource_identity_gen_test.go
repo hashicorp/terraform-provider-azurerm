@@ -30,7 +30,7 @@ func TestAccStorageSyncCloudEndpoint_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("cloud_endpoint_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("storage_sync_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("storage_sync_service_name"), tfjsonpath.New("storage_sync_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_sync_group_id")),
