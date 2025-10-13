@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
 
+~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
+
 * `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created.
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
