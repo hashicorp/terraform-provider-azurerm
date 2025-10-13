@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -125,7 +126,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -134,7 +134,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
@@ -143,6 +142,30 @@ func resourceStorageTable() *pluginsdk.Resource {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The Resource Manager ID of this Storage Table.",
+		}
+
+		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate
+			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
+				return diff.ForceNew("storage_account_id")
+			}
+
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
+			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
+				// converting from storage_account_id to the deprecated storage_account_name is not supported
+				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldName, newName := diff.GetChange("storage_account_name")
+
+				if oldAccountId.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+			}
+
+			return nil
 		}
 	}
 
@@ -257,60 +280,74 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
-		storageClient := meta.(*clients.Client).Storage
+	if !features.FivePointOh() {
+		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
+			if said := d.Get("storage_account_id").(string); said == "" {
+				storageClient := meta.(*clients.Client).Storage
 
-		id, err := tables.ParseTableID(d.Id(), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
+				id, err := tables.ParseTableID(d.Id(), storageClient.StorageDomainSuffix)
+				if err != nil {
+					return err
+				}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
-		}
-		if account == nil {
-			log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
-			d.SetId("")
-			return nil
-		}
+				account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+				}
+				if account == nil {
+					log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
+					d.SetId("")
+					return nil
+				}
 
-		client, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Tables Client: %v", err)
-		}
+				client, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Tables Client: %v", err)
+				}
 
-		exists, err := client.Exists(ctx, id.TableName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %v", id, err)
-		}
-		if exists == nil || !*exists {
-			log.Printf("[DEBUG] %s not found, removing from state", id)
-			d.SetId("")
-			return nil
-		}
+				exists, err := client.Exists(ctx, id.TableName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", id, err)
+				}
+				if exists == nil || !*exists {
+					log.Printf("[DEBUG] %s not found, removing from state", id)
+					d.SetId("")
+					return nil
+				}
 
-		// Retrieving ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-		aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
-		if err != nil {
-			return fmt.Errorf("building Tables Client: %v", err)
+				// Retrieving ACLs only supports shared key authentication (@manicminer, 2024-02-29)
+				aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+				if err != nil {
+					return fmt.Errorf("building Tables Client: %v", err)
+				}
+
+				acls, err := aclClient.GetACLs(ctx, id.TableName)
+				if err != nil {
+					return fmt.Errorf("retrieving ACLs for %s: %v", id, err)
+				}
+
+				d.Set("name", id.TableName)
+				d.Set("storage_account_name", id.AccountId.AccountName)
+				d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
+				d.Set("url", id.ID())
+
+				if err = d.Set("acl", flattenStorageTableACLsDeprecated(acls)); err != nil {
+					return fmt.Errorf("setting `acl`: %v", err)
+				}
+
+				return nil
+			} else {
+				// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
+				accountId, err := commonids.ParseStorageAccountID(said)
+				if err != nil {
+					return err
+				}
+
+				id := tableservice.NewTableID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+				d.SetId(id.ID())
+				// Continue the code flow outside this block
+			}
 		}
-
-		acls, err := aclClient.GetACLs(ctx, id.TableName)
-		if err != nil {
-			return fmt.Errorf("retrieving ACLs for %s: %v", id, err)
-		}
-
-		d.Set("name", id.TableName)
-		d.Set("storage_account_name", id.AccountId.AccountName)
-		d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
-		d.Set("url", id.ID())
-
-		if err = d.Set("acl", flattenStorageTableACLsDeprecated(acls)); err != nil {
-			return fmt.Errorf("setting `acl`: %v", err)
-		}
-
-		return nil
 	}
 
 	id, err := tableservice.ParseTableID(d.Id())
@@ -333,6 +370,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.String())
+		d.Set("storage_account_name", "")
 	}
 
 	if model := existing.Model; model != nil {
