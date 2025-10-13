@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"net/http"
+	"os"
 )
 
 var _ client.BaseClient = &Client{}
@@ -31,6 +33,31 @@ func NewClient(api environments.Api, serviceName, apiVersion string) (*Client, e
 
 	baseClient := client.NewClient(*endpoint, serviceName, apiVersion)
 	baseClient.AuthorizeRequest = AuthorizeResourceManagerRequest
+	// START - PROXY MIDDLEWARE
+	baseClient.AppendRequestMiddleware(func(req *http.Request) (*http.Request, error) {
+		testProxyURL := os.Getenv("TEST_PROXY_URL")
+		recordingID := os.Getenv("TEST_PROXY_RECORDING_ID")
+		recordingMode := os.Getenv("TEST_PROXY_RECORDING_MODE")
+		if testProxyURL != "" {
+			if recordingID != "" {
+				req.Header.Set("x-recording-id", recordingID)
+			}
+			if recordingMode != "" {
+				req.Header.Set("x-recording-mode", recordingMode)
+			}
+			req.Header.Set("x-recording-upstream-base-uri", req.URL.Scheme+"://"+req.URL.Host)
+			proxyURL, err := url.Parse(testProxyURL)
+			if err != nil {
+				return req, err
+			}
+			req.URL.Scheme = proxyURL.Scheme
+			req.URL.Host = proxyURL.Host
+			req.Host = proxyURL.Host
+		}
+		return req, nil
+	})
+	// END - PROXY MIDDLEWARE
+
 
 	return &Client{
 		Client:     baseClient,

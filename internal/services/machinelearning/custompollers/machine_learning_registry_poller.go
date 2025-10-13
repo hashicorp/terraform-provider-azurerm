@@ -26,11 +26,10 @@ var _ pollers.PollerType = &machineLearningRegistryPoller{}
 
 type machineLearningRegistryPoller struct {
 	client     *registrymanagement.RegistryManagementClient
-	id         registrymanagement.RegistryId
 	pollingUrl *url.URL
 }
 
-func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagementClient, id registrymanagement.RegistryId, response *http.Response) (*machineLearningRegistryPoller, error) {
+func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagementClient, response *http.Response) (*machineLearningRegistryPoller, error) {
 	// The Azure API Spec says the machine learning registry create/update endpoint should return 200,
 	// but a known bug causes it to respond with 202 and an error that there's no response body. This
 	// custom poller is a workaround until the Azure API is fixed.

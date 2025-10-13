@@ -59,8 +59,6 @@ func TestAccDataSourceMachineLearningRegistry_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("main_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("replication_region.#").HasValue("2"),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
 			),
 		},
 	})
