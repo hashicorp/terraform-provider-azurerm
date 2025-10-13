@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `ingress` - (Optional) An `ingress` block as detailed below.
 
+* `kind` - (Optional) The kind of container app. Possible values include `functionapp` and `workflowapp`.
+
 * `registry` - (Optional) A `registry` block as detailed below.
 
 * `secret` - (Optional) One or more `secret` block as detailed below.
