@@ -29,7 +29,7 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -74,21 +74,21 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -103,7 +103,7 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_planBasic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -193,16 +193,6 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
     name               = "TimeGenerated"
     type               = "dateTime"
   }
-  column {
-    display_by_default = false
-    name               = "Application"
-    type               = "string"
-  }
-  column {
-    display_by_default = false
-    name               = "RawData"
-    type               = "string"
-  }
 }
 `, t.template(data), data.RandomInteger)
 }
@@ -249,8 +239,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
   total_retention_in_days = 60
   retention_in_days       = 20
 
-  categories = ["LogManagement", "AnotherCategory"]
-  labels     = ["test", "custom"]
+  labels = ["test", "custom"]
 
   column {
     display_by_default = true

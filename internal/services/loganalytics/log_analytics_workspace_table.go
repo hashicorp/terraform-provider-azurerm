@@ -30,6 +30,12 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
+		},
+
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -40,12 +46,6 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 		},
 
 		"type_hint": {
@@ -68,9 +68,9 @@ func columnSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func expandColumns(columns *[]Column) *[]tables.Column {
-	result := make([]tables.Column, 0, len(*columns))
-	for _, column := range *columns {
+func expandColumns(columns []Column) *[]tables.Column {
+	result := make([]tables.Column, 0, len(columns))
+	for _, column := range columns {
 		expandedColumn := tables.Column{
 			Name:             pointer.To(column.Name),
 			IsHidden:         pointer.To(column.IsHidden),
@@ -94,6 +94,9 @@ func expandColumns(columns *[]Column) *[]tables.Column {
 }
 
 func flattenColumns(columns *[]tables.Column) []Column {
+	if columns == nil {
+		return []Column{}
+	}
 	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {
 		result = append(result, Column{

@@ -59,9 +59,7 @@ The following arguments are supported:
 
 ---
 
-* `categories` - (Optional) Specifies a list of categories for organizing the table.
-
-* `column` - (Optional) One or more `column` blocks as defined below.
+* `column` - (Required) One or more `column` blocks as defined below.
 
 * `description` - (Optional) The description of the table.
 

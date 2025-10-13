@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -32,7 +33,6 @@ type WorkspaceTableCustomLogResourceModel struct {
 	DisplayName          string   `tfschema:"display_name"`
 	Description          string   `tfschema:"description"`
 	Plan                 string   `tfschema:"plan"`
-	Categories           []string `tfschema:"categories"`
 	Columns              []Column `tfschema:"column"`
 	Labels               []string `tfschema:"labels"`
 	Solutions            []string `tfschema:"solutions"`
@@ -74,9 +74,10 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schema {
 	args := map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`_CL$`), "This must end with '_CL'."),
 		},
 
 		"workspace_id": {
@@ -105,17 +106,10 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
 		},
 
-		"categories": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
 		"column": {
-			Type:     pluginsdk.TypeList, // Order matters for display in Log Analytics
-			Optional: true,
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: columnSchema(),
 			},
@@ -130,14 +124,18 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"retention_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C If not specified, defaults to the workspace's retention period
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C If not specified, defaults to the workspace's retention period
+			Computed:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
@@ -242,8 +240,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 				Properties: &tables.TableProperties{
 					Plan: pointer.To(tables.TablePlanEnum(config.Plan)),
 					Schema: &tables.Schema{
-						Categories:   pointer.To(config.Categories),
-						Columns:      expandColumns(&config.Columns),
+						Columns:      expandColumns(config.Columns),
 						DisplayName:  pointer.To(config.DisplayName),
 						Description:  pointer.To(config.Description),
 						Labels:       pointer.To(config.Labels),
@@ -313,7 +310,8 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
+					planAllowsCustomRetention := props.Plan != nil && *props.Plan == tables.TablePlanEnumAnalytics
+					if planAllowsCustomRetention {
 						if !pointer.From(props.RetentionInDaysAsDefault) {
 							state.RetentionInDays = pointer.From(props.RetentionInDays)
 						}
@@ -326,21 +324,8 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 					if props.Schema != nil {
 						state.DisplayName = pointer.From(props.Schema.DisplayName)
 						state.Description = pointer.From(props.Schema.Description)
-						if props.Schema.Categories != nil {
-							state.Categories = pointer.From(props.Schema.Categories)
-						}
 						state.Labels = pointer.From(props.Schema.Labels)
 						state.Solutions = pointer.From(props.Schema.Solutions)
-
-						// The `Categories` property is not retrievable, we attempt to obtain from config. Imports will need `ignore_changes`.
-						if props.Schema.Categories != nil {
-						} else if v, ok := metadata.ResourceData.GetOk("categories"); ok {
-							categories := []string{}
-							for _, category := range v.(*pluginsdk.Set).List() {
-								categories = append(categories, category.(string))
-							}
-							state.Categories = categories
-						}
 
 						state.Columns = flattenColumns(props.Schema.Columns)
 						if props.Schema.StandardColumns != nil {
@@ -420,16 +405,12 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 				param.Properties.Schema.Description = pointer.To(config.Description)
 			}
 
-			if metadata.ResourceData.HasChange("categories") {
-				param.Properties.Schema.Categories = pointer.To(config.Categories)
-			}
-
 			if metadata.ResourceData.HasChange("labels") {
 				param.Properties.Schema.Labels = pointer.To(config.Labels)
 			}
 
 			if metadata.ResourceData.HasChange("column") {
-				param.Properties.Schema.Columns = expandColumns(&config.Columns)
+				param.Properties.Schema.Columns = expandColumns(config.Columns)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
