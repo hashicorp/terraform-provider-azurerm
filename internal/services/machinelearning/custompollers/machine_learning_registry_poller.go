@@ -6,11 +6,13 @@ package custompollers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -28,23 +30,13 @@ type machineLearningRegistryPoller struct {
 	pollingUrl *url.URL
 }
 
-var (
-	pollingSuccess = pollers.PollResult{
-		Status:       pollers.PollingStatusSucceeded,
-		PollInterval: 10 * time.Second,
-	}
-	pollingInProgress = pollers.PollResult{
-		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 10 * time.Second,
-	}
-)
-
-// NewMachineLearningRegistryPoller creates a new poller for Machine Learning Registry operations
-// This handles the known Azure ML Registry API bug where CreateOrUpdate returns 202 with no body instead of the 201 in the spec.
 func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagementClient, id registrymanagement.RegistryId, response *http.Response) (*machineLearningRegistryPoller, error) {
-	// Only create the poller if we receive a 202 status, indicating async operation
+	// The Azure API Spec says the machine learning registry create/update endpoint should return 200,
+	// but a known bug causes it to respond with 202 and an error that there's no response body. This
+	// custom poller is a workaround until the Azure API is fixed.
+	// See https://github.com/Azure/azure-rest-api-specs/issues/25119
 	if response == nil {
-		return nil, fmt.Errorf("no response provided")
+		return nil, errors.New("no response provided")
 	}
 	defer response.Body.Close()
 	bodyString := "[not able to read response body]"
@@ -55,7 +47,7 @@ func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagem
 	if response.StatusCode == http.StatusBadRequest {
 		return nil, fmt.Errorf("invalid response status: %d, body: %s", response.StatusCode, bodyString)
 	}
-	if response.StatusCode != http.StatusAccepted {
+	if !slices.Contains([]int{http.StatusAccepted, http.StatusOK}, response.StatusCode) {
 		return nil, fmt.Errorf("invalid response status: %d, body: %s", response.StatusCode, bodyString)
 	}
 
@@ -65,7 +57,7 @@ func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagem
 	}
 
 	if pollingUrl == "" {
-		return nil, fmt.Errorf("no polling URL found in response (neither Azure-AsyncOperation nor Location headers were present)")
+		return nil, errors.New("no polling URL found in response (neither Azure-AsyncOperation nor Location headers were present)")
 	}
 
 	url, err := url.Parse(pollingUrl)
@@ -82,23 +74,6 @@ func NewMachineLearningRegistryPoller(client *registrymanagement.RegistryManagem
 		pollingUrl: url,
 	}, nil
 }
-
-type operationResult struct {
-	Status status `json:"status"`
-}
-
-type status string
-
-var (
-	pollingDeleteSuccess = pollers.PollResult{
-		Status:       pollers.PollingStatusSucceeded,
-		PollInterval: 20 * time.Second,
-	}
-	pollingDeleteInProgress = pollers.PollResult{
-		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 20 * time.Second,
-	}
-)
 
 type myOptions struct {
 	azureAsyncOperation string
@@ -131,7 +106,7 @@ func (p myOptions) ToQuery() *client.QueryParams {
 
 func (p machineLearningRegistryPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	if p.pollingUrl == nil {
-		return nil, fmt.Errorf("internal error: cannot poll without a pollingUrl")
+		return nil, errors.New("internal error: cannot poll without a pollingUrl")
 	}
 
 	reqOpts := client.RequestOptions{
@@ -158,11 +133,22 @@ func (p machineLearningRegistryPoller) Poll(ctx context.Context) (*pollers.PollR
 	var respBody struct {
 		Status          string  `json:"status"` // "InProgress",  "Succeeded"
 		PercentComplete float32 `json:"percentComplete"`
+		Error           struct {
+			Code    string `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+		// The status URL can also respond with the full registry object
 		registrymanagement.RegistryTrackedResource
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&respBody); err != nil {
 		return nil, fmt.Errorf("decoding response body: %+v", err)
+	}
+	if respBody.Status == "Failed" {
+		return nil, pollers.PollingFailedError{
+			Message:      respBody.Error.Message,
+			HttpResponse: resp,
+		}
 	}
 	if respBody.Status == "InProgress" {
 		return &pollers.PollResult{

@@ -42,7 +42,7 @@ The following arguments are supported:
 
 ---
 
-* `public_network_access_enabled` - (Optional) Whether to enable the TODO. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Machine Learning Registry. Defaults to `true`.
 
 * `replication_region` - (Optional) One or more `replication_region` blocks as defined below.
 
@@ -52,37 +52,29 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) TODO.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Machine Learning Registry. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of TODO.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Registry.
 
 ---
 
 A `main_region` block supports the following:
 
-* `custom_container_registry_account_id` - (Optional) The ID of the TODO.
+* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. It must be the same location as the Registry.
 
-* `custom_storage_account_id` - (Optional) The ID of the user supplied storage account.Conflicts with `main_region.0.storage_account_type`.
+* `storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
 
 * `hns_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the blob storage container. Defaults to `false`.
-
-* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created. It must be the same location as the Registry.
-
-* `storage_account_type` - (Optional) The type of blob storage to use. Defaults to `Standard_LRS`.
 
 ---
 
 A `replication_region` block supports the following:
 
-* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created.
+* `location` - (Required) The Azure Region where the Machine Learning Registry should exist.
 
-* `custom_container_registry_account_id` - (Optional) The ID of the TODO.
-
-* `custom_storage_account_id` - (Optional) The ID of the TODO.
+* `storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
 
 * `hns_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the blob storage container. Defaults to `false`.
-
-* `storage_account_type` - (Optional) TODO.
 
 ## Attributes Reference
 
@@ -90,13 +82,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Machine Learning Registry.
 
-* `discovery_url` - TODO.
+* `discovery_url` - The discovery URL for the Machine Learning Registry.
 
-* `intellectual_property_publisher` - TODO.
+* `intellectual_property_publisher` - The intellectual property publisher for the Machine Learning Registry.
 
-* `managed_resource_group` - TODO.
+* `managed_resource_group` - The ID of the managed resource group created for the Machine Learning Registry.
 
-* `ml_flow_registry_uri` - TODO.
+* `ml_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
+
+---
+
+In addition to the above, each `main_region` and `replication_region` block exports the following:
+
+* `system_created_storage_account_id` - The ID of the system-created storage account for this region.
+
+* `system_created_container_registry_id` - The ID of the system-created container registry for this region.
 
 ## Timeouts
 
