@@ -158,13 +158,23 @@ func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Sche
 						Computed: true,
 					},
 
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"display_by_default": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+
 					"display_name": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					"description": {
-						Type:     pluginsdk.TypeString,
+					"hidden": {
+						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
@@ -175,16 +185,6 @@ func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Sche
 
 					"type_hint": {
 						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"hidden": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"display_by_default": {
-						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 				},
