@@ -37,6 +37,40 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	})
 }
 
+func ExpandDynatraceEnvironmentProperties(input []EnvironmentProperties) *monitors.DynatraceEnvironmentProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	var environmentInfo monitors.EnvironmentInfo
+	if len(v.EnvironmentInfo) > 0 {
+		environmentInfo = monitors.EnvironmentInfo{
+			EnvironmentId: pointer.To(v.EnvironmentInfo[0].EnvironmentId),
+		}
+	}
+
+	return pointer.To(monitors.DynatraceEnvironmentProperties{
+		EnvironmentInfo: &environmentInfo,
+	})
+}
+
+func FlattenDynatraceEnvironmentProperties(input *monitors.DynatraceEnvironmentProperties) []EnvironmentProperties {
+	if input == nil {
+		return []EnvironmentProperties{}
+	}
+	var properties EnvironmentProperties
+	if input.EnvironmentInfo.EnvironmentId != nil {
+		environmentId := pointer.From(input.EnvironmentInfo.EnvironmentId)
+		properties.EnvironmentInfo = []EnvironmentInfo{
+			{
+				EnvironmentId: environmentId,
+			},
+		}
+	}
+	return []EnvironmentProperties{properties}
+}
+
 func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	if input == nil {
 		return []PlanData{}
@@ -73,19 +107,18 @@ func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	}
 }
 
-func FlattenDynatraceUserInfo(input []interface{}) []UserInfo {
-	if len(input) == 0 {
+func FlattenDynatraceUserInfo(input *monitors.UserInfo) []UserInfo {
+	if input == nil {
 		return []UserInfo{}
 	}
 
-	v := input[0].(map[string]interface{})
 	return []UserInfo{
 		{
-			Country:      v["country"].(string),
-			EmailAddress: v["email"].(string),
-			FirstName:    v["first_name"].(string),
-			LastName:     v["last_name"].(string),
-			PhoneNumber:  v["phone_number"].(string),
+			Country:      pointer.From(input.Country),
+			EmailAddress: pointer.From(input.EmailAddress),
+			FirstName:    pointer.From(input.FirstName),
+			LastName:     pointer.From(input.LastName),
+			PhoneNumber:  pointer.From(input.PhoneNumber),
 		},
 	}
 }
@@ -156,17 +189,22 @@ func FlattenMetricRules(input *tagrules.MetricRules) []MetricRule {
 		return []MetricRule{}
 	}
 
-	filteringTags := make([]FilteringTag, 0)
+	var metricRule MetricRule
 
 	if input.FilteringTags != nil {
-		filteringTags = FlattenFilteringTags(input.FilteringTags)
+		filteringTags := FlattenFilteringTags(input.FilteringTags)
+		metricRule.FilteringTags = filteringTags
 	}
 
-	return []MetricRule{
-		{
-			FilteringTags: filteringTags,
-		},
+	if input.SendingMetrics != nil {
+		if pointer.From(input.SendingMetrics) == tagrules.SendingMetricsStatusEnabled {
+			metricRule.SendingMetrics = true
+		} else {
+			metricRule.SendingMetrics = false
+		}
 	}
+
+	return []MetricRule{metricRule}
 }
 
 func ExpandMetricRules(input []MetricRule) *tagrules.MetricRules {
@@ -174,9 +212,17 @@ func ExpandMetricRules(input []MetricRule) *tagrules.MetricRules {
 		return nil
 	}
 	v := input[0]
+	var sendingMetrics tagrules.SendingMetricsStatus
+
+	if v.SendingMetrics {
+		sendingMetrics = tagrules.SendingMetricsStatusEnabled
+	} else {
+		sendingMetrics = tagrules.SendingMetricsStatusDisabled
+	}
 
 	return &tagrules.MetricRules{
-		FilteringTags: ExpandFilteringTag(v.FilteringTags),
+		FilteringTags:  ExpandFilteringTag(v.FilteringTags),
+		SendingMetrics: pointer.To(sendingMetrics),
 	}
 }
 

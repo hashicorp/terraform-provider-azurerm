@@ -20,15 +20,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -45,6 +47,8 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -79,10 +83,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			3: migration.AccountV3ToV4{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -115,6 +120,23 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForSkuTier(), false),
+			},
+
+			"provisioned_billing_model_version": {
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Optional: true,
+				// There are two billing model in Azure Storage (at least for File): Provisioned (V1 or V2) and PAYG.
+				// (https://learn.microsoft.com/en-us/azure/storage/files/understanding-billing)
+				// The version only applies to Provisioned model. When reflecting to the API payload, Provisioned V1 and PAYG
+				// look the same, i.e. the `sku.name` will be no suffix for it's first part (e.g. "Standard" in "Standard_LRS").
+				// Only for Provisioned V2, there will be a "V2" suffix added, e.g. "StandardV2" in "StandardV2_LRS".
+				// Due to this, we don't differentiate the empty string and "V1" here, as they ends up to be an empty suffix.
+				//
+				// Aside, at least for File, the diff between Provisioned and PYAG is determined by the "account_kind":
+				// - account_kind = Storage/StorageV2: PAYG
+				// - account_kind = FileStorage: Provisioned
+				ValidateFunc: validation.StringInSlice([]string{"V2"}, false),
 			},
 
 			"account_replication_type": {
@@ -674,12 +696,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"expiration_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(storageaccounts.ExpirationActionLog),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storageaccounts.ExpirationActionLog),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(storageaccounts.ExpirationActionLog),
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForExpirationAction(), false),
 						},
 						"expiration_period": {
 							Type:         pluginsdk.TypeString,
@@ -1119,12 +1139,47 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
-					if _, ok := d.GetOk("queue_properties"); ok {
+				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
+					rawQueueProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("queue_properties"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawQueueProperties.IsNull() && rawQueueProperties.IsKnown() && rawQueueProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
-					if _, ok := d.GetOk("static_website"); ok {
+
+					rawStaticWebsiteProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("static_website"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawStaticWebsiteProperties.IsNull() && rawStaticWebsiteProperties.IsKnown() && rawStaticWebsiteProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
+					}
+				}
+
+				if d.HasChange("immutability_policy.0.state") {
+					old, new := d.GetChange("immutability_policy.0.state")
+
+					// The initial value can be either "Disabled" or "Unlocked".
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if old == "" && (new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateDisabled) && new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked)) {
+						return fmt.Errorf("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=%s", new)
+					}
+
+					// Only "Unlocked" state can be updated to "Locked"
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if new.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) && old.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked) {
+						return fmt.Errorf("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=%s", old)
+					}
+
+					// Once "Locked", can't be changed.
+					// API error: InvalidStorageAccountImmutabilityPolicy: The immutability policy state cannot be changed once Locked.
+					if old.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) {
+						d.ForceNew("immutability_policy.0.state")
 					}
 				}
 
@@ -1148,7 +1203,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// lintignore:XS003
 		resource.Schema["static_website"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
@@ -1275,7 +1330,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1314,6 +1369,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
+	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
 
 	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
@@ -1356,7 +1412,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 		Sku: storageaccounts.Sku{
-			Name: storageaccounts.SkuName(fmt.Sprintf("%s_%s", string(accountTier), replicationType)),
+			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
 			Tier: pointer.To(accountTier),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -1417,11 +1473,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccountTier must be Premium for FileStorage
-	if accountKind == storageaccounts.KindFileStorage && accountTier != storageaccounts.SkuTierPremium {
-		return fmt.Errorf("`account_tier` must be `Premium` for File Storage accounts")
-	}
-
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
 		// @tombuildsstuff: we can't set this to `false` because the API returns:
@@ -1462,7 +1513,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if infrastructureEncryption {
 		validPremiumConfiguration := accountTier == storageaccounts.SkuTierPremium && (accountKind == storageaccounts.KindBlockBlobStorage) || accountKind == storageaccounts.KindFileStorage
 		validV2Configuration := accountKind == storageaccounts.KindStorageVTwo
-		if !(validPremiumConfiguration || validV2Configuration) {
+		if !validPremiumConfiguration && !validV2Configuration {
 			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
@@ -1490,9 +1541,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 	// Start of Data Plane access - this entire block can be removed for 5.0, as the data_plane_available flag becomes redundant at that time.
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
-		dataPlaneAccount, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+		dataPlaneAccount, err := storageUtils.GetAccount(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -1648,8 +1699,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
+	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
-	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	storageType := fmt.Sprintf("%s%s_%s", accountTier, provisionedBillingModelVersion, replicationType)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
 	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
@@ -1808,6 +1860,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
+	if d.HasChange("immutability_policy") {
+		props.ImmutableStorageWithVersioning = expandAccountImmutabilityPolicy(d.Get("immutability_policy").([]interface{}))
+	}
 
 	payload := storageaccounts.StorageAccountCreateParameters{
 		ExtendedLocation: existing.Model.ExtendedLocation,
@@ -1824,7 +1879,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Kind = accountKind
 	}
 	if d.HasChange("account_replication_type") {
-		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
+		// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
 		payload.Sku = storageaccounts.Sku{
 			Name: storageaccounts.SkuName(storageType),
 		}
@@ -1918,14 +1973,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		if d.HasChange("queue_properties") {
 			if !supportLevel.supportQueue {
 				return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -1953,7 +2008,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -2001,18 +2056,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageUtils := meta.(*clients.Client).Storage
 	storageClient := meta.(*clients.Client).Storage.ResourceManager
 	client := storageClient.StorageAccounts
-	dataPlaneAvailable := meta.(*clients.Client).Features.Storage.DataPlaneAvailable
-	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
-	}
 
 	id, err := commonids.ParseStorageAccountID(d.Id())
 	if err != nil {
@@ -2029,28 +2076,39 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// we then need to find the storage account
-	account, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
 	}
+
+	return nil
+}
+
+func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	storageUtils := meta.(*clients.Client).Storage
+	client := storageClient.StorageAccounts
+	dataPlaneAvailable := meta.(*clients.Client).Features.Storage.DataPlaneAvailable
+	env := meta.(*clients.Client).Account.Environment
+	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
+
+	// we then need to find the storage account
+	details, err := storageUtils.GetAccount(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
 	if account == nil {
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
-	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
-	keys, err := client.ListKeys(ctx, *id, listKeysOpts)
-	if err != nil {
-		hasWriteLock := response.WasConflict(keys.HttpResponse)
-		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %+v", id, err)
-		}
-	}
-
 	d.Set("name", id.StorageAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
+	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
 
 	supportLevel := storageAccountServiceSupportLevel{
 		supportBlob:          false,
@@ -2058,31 +2116,37 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		supportShare:         false,
 		supportStaticWebsite: false,
 	}
+
 	var accountKind storageaccounts.Kind
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
-	if model := resp.Model; model != nil {
-		if model.Kind != nil {
-			accountKind = *model.Kind
+	if account != nil {
+		if account.Kind != nil {
+			accountKind = *account.Kind
 		}
 		d.Set("account_kind", string(accountKind))
 
 		var accountTier storageaccounts.SkuTier
 		accountReplicationType := ""
-		if sku := model.Sku; sku != nil {
-			accountReplicationType = strings.Split(string(sku.Name), "_")[1]
+		provisionBillingModelVer := ""
+		if sku := account.Sku; sku != nil {
+			skuNameSegs := strings.Split(string(sku.Name), "_")
+			accountTierAndProvisionBillingModelVer := skuNameSegs[0]
+			accountReplicationType = skuNameSegs[1]
 			if sku.Tier != nil {
 				accountTier = *sku.Tier
+				provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
 			}
 		}
 		d.Set("account_tier", string(accountTier))
 		d.Set("account_replication_type", accountReplicationType)
+		d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
+		d.Set("location", location.Normalize(account.Location))
 
-		if props := model.Properties; props != nil {
+		if props := account.Properties; props != nil {
 			primaryEndpoints = props.PrimaryEndpoints
 			routingPreference = props.RoutingPreference
 			secondaryEndpoints = props.SecondaryEndpoints
@@ -2195,7 +2259,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 		}
 
-		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(account.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -2203,13 +2267,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, account.Tags); err != nil {
 			return err
 		}
 	}
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
+
+	if err = pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
+		return fmt.Errorf("setting resource identity data: %+v", err)
+	}
+
+	keys, err := client.ListKeys(ctx, id, listKeysOpts)
+	if err != nil {
+		hasWriteLock := response.WasConflict(keys.HttpResponse)
+		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("listing Keys for %s: %+v", id, err)
+		}
+	}
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
@@ -2220,35 +2297,35 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	blobProperties := make([]interface{}, 0)
 	if supportLevel.supportBlob {
-		blobProps, err := storageClient.BlobService.GetServiceProperties(ctx, *id)
+		blobProps, err := storageClient.BlobService.GetServiceProperties(ctx, id)
 		if err != nil {
-			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
+			return fmt.Errorf("reading blob properties for %s: %+v", id, err)
 		}
 
 		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
 	}
 	if err := d.Set("blob_properties", blobProperties); err != nil {
-		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
+		return fmt.Errorf("setting `blob_properties` for %s: %+v", id, err)
 	}
 
 	shareProperties := make([]interface{}, 0)
 	if supportLevel.supportShare {
-		shareProps, err := storageClient.FileService.GetServiceProperties(ctx, *id)
+		shareProps, err := storageClient.FileService.GetServiceProperties(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
+			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
 		}
 
 		shareProperties = flattenAccountShareProperties(shareProps.Model)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
-		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
+		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
 	}
 
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		queueProperties := make([]interface{}, 0)
 		if supportLevel.supportQueue {
-			queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *account, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+			queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)
 			}
@@ -2258,7 +2335,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				// Queue properties is a data plane only service, so we tolerate connection errors here in case of
 				// firewalls and other connectivity issues that are not guaranteed.
 				if !connectionError(err) {
-					return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+					return fmt.Errorf("retrieving queue properties for %s: %+v", id, err)
 				}
 			}
 
@@ -2270,7 +2347,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProperties := make([]interface{}, 0)
 		if supportLevel.supportStaticWebsite {
-			accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *account, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+			accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 			}
@@ -2278,7 +2355,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 			if err != nil {
 				if !connectionError(err) {
-					return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+					return fmt.Errorf("retrieving static website properties for %s: %+v", id, err)
 				}
 			}
 

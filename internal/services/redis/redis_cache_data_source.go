@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redispatchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -249,14 +249,14 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 }
 
 func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedules
+	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := redis.NewRediID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
+	id := redisresources.NewRediID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.RedisGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -264,8 +264,8 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	patchScheduleRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	schedule, err := patchSchedulesClient.Get(ctx, patchScheduleRedisId)
+	patchScheduleRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+	schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchScheduleRedisId)
 	if err != nil {
 		if !response.WasNotFound(schedule.HttpResponse) {
 			return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
@@ -276,7 +276,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
 	}
 
-	keys, err := client.ListKeys(ctx, id)
+	keys, err := client.RedisListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
@@ -295,7 +295,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
-		minimumTlsVersion := string(redis.TlsVersionOnePointTwo)
+		minimumTlsVersion := string(redisresources.TlsVersionOnePointTwo)
 		if props.MinimumTlsVersion != nil {
 			minimumTlsVersion = string(*props.MinimumTlsVersion)
 		}
@@ -350,7 +350,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenDataSourceRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
+func flattenDataSourceRedisConfiguration(input *redisresources.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
 
 	if input.AadEnabled != nil {

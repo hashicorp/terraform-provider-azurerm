@@ -43,7 +43,7 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 
 ## What makes a good PR?
 
-* Don't send the PR from your `main` branch.
+* Don't change your forked repo's `main` branch, instead, make a feature branch.
 * The PR Title is obvious/clear about what it's changing (see `Title` below).
 * The PR Body contains a summary of what/why is included (see `Body` below).
 * any linked Issues (see `Body` below)
@@ -56,7 +56,7 @@ Examples of good PR titles:
 
 - `azurerm_storage_management_policy - Mark rule.filters.blob_type as required`
 - `azurerm_container_registry - support updating replications on demand`
-- `azurerm_automation_account - support for the encrytion, local_authentication_enabled, and tags properties`
+- `azurerm_automation_account - support for the encryption, local_authentication_enabled, and tags properties`
 - `Data Source: azurerm_automation_account - prevent panic (#15474) by adding a nil check`
 - `Upgrade bot API version from 2021-03-01 to 2021-05-01-preview`
 - `New Resource: azurerm_managed_disk_sas_token`

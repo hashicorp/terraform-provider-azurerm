@@ -203,7 +203,7 @@ A `nat_rule` (NAT rule) block supports the following:
 
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
-~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
+~> **Note:** Exactly one of `translated_address` and `translated_fqdn` should be set.
 
 * `translated_port` - (Required) Specifies the translated port.
 
@@ -231,7 +231,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Policy Rule Collection Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Policy Rule Collection Group.
@@ -245,3 +245,9 @@ Firewall Policy Rule Collection Groups can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_firewall_policy_rule_collection_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/gruop1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +20,7 @@ import (
 type NetworkPacketCaptureResource struct{}
 
 func testAccNetworkPacketCapture_localDisk(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
@@ -38,7 +38,7 @@ func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 }
 
 func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
@@ -59,7 +59,7 @@ func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
 }
 
 func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
@@ -77,7 +77,7 @@ func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 }
 
 func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
@@ -95,7 +95,7 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 }
 
 func testAccNetworkPacketCapture_withFilters(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")

@@ -232,7 +232,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
@@ -312,7 +312,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   protocol                = "Tcp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -323,7 +323,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 
 resource "azurerm_lb_outbound_rule" "test2" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   protocol                = "Udp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -385,7 +385,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   protocol                = "All"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -396,7 +396,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 
 resource "azurerm_lb_outbound_rule" "test2" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   protocol                = "All"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -444,7 +444,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
@@ -493,7 +493,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
@@ -542,7 +542,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "OutboundRule-%d"
+  name                    = "acctest-outbound-rule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 

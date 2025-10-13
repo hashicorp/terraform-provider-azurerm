@@ -4,6 +4,9 @@
 package network
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -14,6 +17,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 // Name is the name of this Service
@@ -37,6 +41,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
+		ManagerIpamPoolDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -47,15 +52,21 @@ func (r Registration) Resources() []sdk.Resource {
 		CustomIpPrefixResource{},
 		ManagerAdminRuleResource{},
 		ManagerAdminRuleCollectionResource{},
-		ManagerDeploymentResource{},
 		ManagerConnectivityConfigurationResource{},
+		ManagerDeploymentResource{},
+		ManagerIpamPoolResource{},
+		ManagerIpamPoolStaticCidrResource{},
 		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
 		ManagerResource{},
+		ManagerRoutingConfigurationResource{},
+		ManagerRoutingRuleCollectionResource{},
 		ManagerScopeConnectionResource{},
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
+		ManagerVerifierWorkspaceResource{},
+		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
@@ -175,9 +186,31 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resources["azurerm_network_packet_capture"] = resourceNetworkPacketCapture()
 	}
 
 	return resources
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) ListResources() []func() list.ListResource {
+	return []func() list.ListResource{
+		NewVirtualNetworkListResource,
+	}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
 }

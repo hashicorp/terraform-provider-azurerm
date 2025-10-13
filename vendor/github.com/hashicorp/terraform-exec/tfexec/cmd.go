@@ -14,9 +14,11 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/internal/version"
+	tfjson "github.com/hashicorp/terraform-json"
 )
 
 const (
@@ -187,6 +189,14 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 
 	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
+	if runtime.GOOS != "windows" {
+		// Windows does not support SIGINT so we cannot do graceful cancellation
+		// see https://pkg.go.dev/os#Signal (os.Interrupt)
+		cmd.Cancel = func() error {
+			return cmd.Process.Signal(os.Interrupt)
+		}
+		cmd.WaitDelay = tf.waitDelay
+	}
 
 	tf.logger.Printf("[INFO] running Terraform command: %s", cmd.String())
 
@@ -205,6 +215,55 @@ func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v i
 	dec := json.NewDecoder(&outbuf)
 	dec.UseNumber()
 	return dec.Decode(v)
+}
+
+func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) *LogMsgEmitter {
+	pr, pw := io.Pipe()
+	tf.SetStdout(pw)
+
+	go func() {
+		_ = tf.runTerraformCmd(ctx, cmd)
+		// TODO: handle error
+		_ = pr.Close()
+		// TODO: handle error
+		_ = pw.Close()
+		// TODO: handle error
+	}()
+
+	return newLogMsgEmitter(pr)
+}
+
+func newLogMsgEmitter(stdout io.ReadCloser) *LogMsgEmitter {
+	return &LogMsgEmitter{
+		scanner:            bufio.NewScanner(stdout),
+		stdoutReaderCloser: stdout,
+	}
+}
+
+type LogMsgEmitter struct {
+	scanner            *bufio.Scanner
+	stdoutReaderCloser io.Closer
+}
+
+// NextMessage returns next decoded message along with true until the last one.
+// Stdout reader is closed when the last message is received.
+//
+// Error returned can be related to decoding of the message (nil, true, error)
+// or closing of stdout reader (nil, false, error).
+//
+// Any error coming from Terraform (such as wrong configuration syntax) is
+// represented as LogMsg of Level [tfjson.Error].
+func (e *LogMsgEmitter) NextMessage() (tfjson.LogMsg, bool, error) {
+	ok := e.scanner.Scan()
+	if !ok {
+		return nil, ok, nil
+	}
+	msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
+	return msg, true, err
+}
+
+func (e *LogMsgEmitter) Err() error {
+	return e.scanner.Err()
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't
@@ -243,20 +302,30 @@ func mergeWriters(writers ...io.Writer) io.Writer {
 	return io.MultiWriter(compact...)
 }
 
-func writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
-	// ReadBytes will block until bytes are read, which can cause a delay in
-	// returning even if the command's context has been canceled. Use a separate
-	// goroutine to prompt ReadBytes to return on cancel
-	closeCtx, closeCancel := context.WithCancel(ctx)
-	defer closeCancel()
-	go func() {
-		select {
-		case <-ctx.Done():
-			r.Close()
-		case <-closeCtx.Done():
-			return
-		}
-	}()
+func (tf *Terraform) writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
+	// ReadBytes will block until all bytes are read, which can cause a delay in
+	// returning even if the command's context has been canceled. When the
+	// context is canceled, Terraform receives an interrupt signal and will exit
+	// after a short while. Once the process has exited, the stdio pipes will
+	// close, allowing this function to return.
+
+	if tf.enableLegacyPipeClosing {
+		// Rather than wait for the stdio pipes to close naturally, we can close
+		// them ourselves when the command's context is canceled, causing the
+		// process to exit immediately. This works around a bug in Terraform
+		// < v1.1 that would otherwise leave the process (and this function)
+		// hanging after the context is canceled.
+		closeCtx, closeCancel := context.WithCancel(ctx)
+		defer closeCancel()
+		go func() {
+			select {
+			case <-ctx.Done():
+				r.Close()
+			case <-closeCtx.Done():
+				return
+			}
+		}()
+	}
 
 	buf := bufio.NewReader(r)
 	for {

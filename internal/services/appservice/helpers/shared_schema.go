@@ -5,11 +5,13 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -89,7 +91,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 					Description:  "The priority value of this `ip_restriction`.",
 				},
 
@@ -284,6 +286,36 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+			stateCors, planCors := d.GetChange("site_config.0.cors")
+			if stateCors == nil || planCors == nil {
+				return false
+			}
+			stateAttrs := stateCors.([]interface{})
+			planAttrs := planCors.([]interface{})
+
+			// Fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22879
+			// If the plan wants to set default values and the state is empty; suppress diff
+			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
+				planAttr := planAttrs[0].(map[string]interface{})
+
+				newAllowedOrigins, ok := planAttr["allowed_origins"].(*schema.Set)
+				if !ok {
+					return false
+				}
+
+				newSupportCreds, ok := planAttr["support_credentials"].(bool)
+				if !ok {
+					return false
+				}
+
+				if newAllowedOrigins.Len() == 0 && !newSupportCreds {
+					return true
+				}
+			}
+
+			return false
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
@@ -370,6 +402,11 @@ type SourceControl struct {
 
 type SiteCredential struct {
 	Username string `tfschema:"name"`
+	Password string `tfschema:"password"`
+}
+
+type SiteCredentialLogicApp struct {
+	Username string `tfschema:"username"`
 	Password string `tfschema:"password"`
 }
 
@@ -1563,6 +1600,21 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 
 	userProps := *input.Properties
 	result = append(result, SiteCredential{
+		Username: userProps.PublishingUserName,
+		Password: pointer.From(userProps.PublishingPassword),
+	})
+
+	return result
+}
+
+func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
+	var result []SiteCredentialLogicApp
+	if input == nil || input.Properties == nil {
+		return result
+	}
+
+	userProps := *input.Properties
+	result = append(result, SiteCredentialLogicApp{
 		Username: userProps.PublishingUserName,
 		Password: pointer.From(userProps.PublishingPassword),
 	})

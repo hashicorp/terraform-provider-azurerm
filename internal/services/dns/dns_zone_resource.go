@@ -6,6 +6,7 @@ package dns
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -113,7 +114,7 @@ func (DnsZoneResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3600,
-						ValidateFunc: validation.IntBetween(0, 2147483647),
+						ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 					},
 
 					"tags": commonschema.Tags(),

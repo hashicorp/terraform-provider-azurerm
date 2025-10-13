@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -73,6 +73,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionAllow),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionBlock),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 							}, false),
 						},
 						"enabled": {
@@ -395,7 +396,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							*/
 							Optional: true,
 							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOhBeta(),
+							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {
@@ -1027,7 +1028,12 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
-	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
+
+	jsChallengeCookieExpirationInMins := 30 // default value is not returned, https://github.com/Azure/azure-rest-api-specs/issues/36330
+	if v := pointer.From(input.JsChallengeCookieExpirationInMins); v != 0 {
+		jsChallengeCookieExpirationInMins = int(v)
+	}
+	result["js_challenge_cookie_expiration_in_minutes"] = jsChallengeCookieExpirationInMins
 
 	return []interface{}{result}
 }

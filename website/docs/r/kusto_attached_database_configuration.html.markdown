@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_resource_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
+* `cluster_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
@@ -119,12 +119,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto Database.
-* `update` - (Defaults to 60 minutes) Used when updating the Kusto Database.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Database.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto Database.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto Database.
 
 ## Import
 
@@ -133,3 +133,9 @@ Kusto Attached Database Configurations can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_kusto_attached_database_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/attachedDatabaseConfigurations/configuration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

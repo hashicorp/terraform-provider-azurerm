@@ -43,9 +43,9 @@ output "servicebus_subscription" {
 
 * `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `enable_batched_operations` - Are batched operations enabled on this ServiceBus Subscription?
+* `batched_operations_enabled` - Whether batched operations are enabled.
 
-* `requires_session` - Whether or not this ServiceBus Subscription supports session.
+* `requires_session` - Whether this ServiceBus Subscription supports session.
 
 * `forward_to` - The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.
 
@@ -65,6 +65,12 @@ output "servicebus_subscription" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

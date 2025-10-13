@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -14,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -25,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_interface -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
@@ -34,10 +38,11 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 		Update: resourceNetworkInterfaceUpdate,
 		Delete: resourceNetworkInterfaceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseNetworkInterfaceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.NetworkInterfaceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.NetworkInterfaceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -331,7 +336,14 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	payload := existing.Model
 
+	// For NIC attached to private endpoint, tags cannot be updated using PUT.
+	// It has to use the specific update tag PATCH API.
+	// An issue has been raised to improve the API design: https://github.com/Azure/azure-rest-api-specs/issues/34437
+	propsOtherThanTagsUpdated := false
+	attachedToPrivateEndpoint := payload.Properties.PrivateEndpoint != nil && pointer.From(payload.Properties.PrivateEndpoint.Id) != ""
+
 	if d.HasChange("auxiliary_mode") {
+		propsOtherThanTagsUpdated = true
 		if auxiliaryMode := d.Get("auxiliary_mode").(string); auxiliaryMode != "" {
 			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
 		} else {
@@ -340,6 +352,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("auxiliary_sku") {
+		propsOtherThanTagsUpdated = true
 		if auxiliarySku := d.Get("auxiliary_sku").(string); auxiliarySku != "" {
 			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku))
 		} else {
@@ -348,6 +361,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("dns_servers") {
+		propsOtherThanTagsUpdated = true
 		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
@@ -355,18 +369,22 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("accelerated_networking_enabled") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.EnableAcceleratedNetworking = pointer.To(d.Get("accelerated_networking_enabled").(bool))
 	}
 
 	if d.HasChange("ip_forwarding_enabled") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.EnableIPForwarding = pointer.To(d.Get("ip_forwarding_enabled").(bool))
 	}
 
 	if d.HasChange("internal_dns_name_label") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.DnsSettings.InternalDnsNameLabel = pointer.To(d.Get("internal_dns_name_label").(string))
 	}
 
 	if d.HasChange("ip_configuration") {
+		propsOtherThanTagsUpdated = true
 		ipConfigsRaw := d.Get("ip_configuration").([]interface{})
 		ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 		if err != nil {
@@ -386,17 +404,30 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Properties.IPConfigurations = ipConfigs
 	}
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags") && !attachedToPrivateEndpoint {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		payload.Tags = tags.Expand(tagsRaw)
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+	if propsOtherThanTagsUpdated || !attachedToPrivateEndpoint {
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
 
-	return nil
+	if d.HasChange("tags") && attachedToPrivateEndpoint {
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		tags := networkinterfaces.TagsObject{
+			Tags: tags.Expand(tagsRaw),
+		}
+		_, err = client.UpdateTags(ctx, *id, tags)
+		if err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", *id, err)
+		}
+	}
+
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
 func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -505,10 +536,12 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -578,7 +611,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if privateIpAddressVersion == networkinterfaces.IPVersionIPvFour && subnetId == "" {
-			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
+			return nil, errors.New("a Subnet ID must be specified for an IPv4 Network Interface")
 		}
 
 		if subnetId != "" {
@@ -623,7 +656,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if !hasPrimary {
-			return nil, fmt.Errorf("If multiple `ip_configurations` are specified - one must be designated as `primary`.")
+			return nil, errors.New("if multiple `ip_configurations` are specified - one must be designated as `primary`")
 		}
 	}
 

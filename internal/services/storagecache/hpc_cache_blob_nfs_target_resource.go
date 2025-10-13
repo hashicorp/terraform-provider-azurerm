@@ -24,6 +24,8 @@ import (
 
 func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache_blob_nfs_target` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheBlobNFSTargetCreateUpdate,
 		Read:   resourceHPCCacheBlobNFSTargetRead,
 		Update: resourceHPCCacheBlobNFSTargetCreateUpdate,
@@ -112,7 +114,7 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +178,7 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,7 +205,7 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 	if m := resp.Model; m != nil {
 		if props := m.Properties; props != nil {
 			if props.TargetType != storagetargets.StorageTargetTypeBlobNfs {
-				return fmt.Errorf("The type of this HPC Cache Target %s is not a Blob NFS Target", id)
+				return fmt.Errorf("the type of this HPC Cache Target %s is not a Blob NFS Target", id)
 			}
 
 			storageContainerId := ""
@@ -233,7 +235,7 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

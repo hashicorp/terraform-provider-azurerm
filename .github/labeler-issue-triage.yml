@@ -27,7 +27,7 @@ service/app-configuration:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_app_configuration((.|\n)*)###'
 
 service/app-service:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_environment_v3\W+|app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_flex_consumption\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
 
 service/application-insights:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_application_insights((.|\n)*)###'
@@ -72,7 +72,7 @@ service/cognitive-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|managed_disks|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
 
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
@@ -147,7 +147,7 @@ service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
 
 service/extended-location:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_extended_custom_location((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_custom_location\W+|extended_location_custom_location\W+)((.|\n)*)###'
 
 service/fabric:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_fabric_capacity((.|\n)*)###'
@@ -174,7 +174,7 @@ service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
 
 service/hybrid-compute:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
 
 service/iot-central:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_((.|\n)*)###'
@@ -204,7 +204,7 @@ service/logic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logic_app_((.|\n)*)###'
 
 service/machine-learning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_foundry|machine_learning_)((.|\n)*)###'
 
 service/maintenance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(maintenance_|public_maintenance_configurations)((.|\n)*)###'
@@ -234,7 +234,7 @@ service/monitor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_monitor_((.|\n)*)###'
 
 service/mssql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_job_schedule\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_machine_availability_group_listener\W+|mssql_virtual_machine_group\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_job_schedule\W+|mssql_job_step\W+|mssql_job_target_group\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_machine_availability_group_listener\W+|mssql_virtual_machine_group\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
 
 service/mssqlmanagedinstance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mssql_managed_((.|\n)*)###'
@@ -280,6 +280,9 @@ service/private-dns-resolver:
 
 service/purview:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_purview_account((.|\n)*)###'
+
+service/qumulo:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_qumulo_file_system((.|\n)*)###'
 
 service/recovery-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(backup_|recovery_services_vault|site_recovery_)((.|\n)*)###'
@@ -357,4 +360,4 @@ service/vmware:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(vmware_cluster\W+|vmware_express_route_authorization\W+|vmware_netapp_volume_attachment\W+|vmware_private_cloud\W+|voice_services_communications_gateway\W+|voice_services_communications_gateway_test_line\W+)((.|\n)*)###'
 
 service/workloads:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(chaos_studio_|container_connected_registry\W+|container_registry_cache_rule\W+|container_registry_cache_rule\W+|container_registry_credential_set\W+|container_registry_task\W+|container_registry_task_schedule_run_now\W+|container_registry_token_password\W+|kubernetes_cluster_extension\W+|kubernetes_cluster_trusted_access_role_binding\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_member\W+|kubernetes_fleet_update_run\W+|kubernetes_fleet_update_strategy\W+|kubernetes_flux_configuration\W+|kubernetes_node_pool_snapshot\W+|workloads_sap_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(chaos_studio_|container_connected_registry\W+|container_registry_cache_rule\W+|container_registry_credential_set\W+|container_registry_task\W+|container_registry_task_schedule_run_now\W+|container_registry_token_password\W+|kubernetes_cluster_extension\W+|kubernetes_cluster_trusted_access_role_binding\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_member\W+|kubernetes_fleet_update_run\W+|kubernetes_fleet_update_strategy\W+|kubernetes_flux_configuration\W+|kubernetes_node_pool_snapshot\W+|workloads_sap_)((.|\n)*)###'

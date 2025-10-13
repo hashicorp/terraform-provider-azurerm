@@ -25,6 +25,7 @@ func TestAccMonitorDataCollectionEndpointDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("configuration_access_endpoint").Exists(),
 				check.That(data.ResourceName).Key("logs_ingestion_endpoint").Exists(),
+				check.That(data.ResourceName).Key("metrics_ingestion_endpoint").Exists(),
 				check.That(data.ResourceName).Key("immutable_id").Exists(),
 			),
 		},

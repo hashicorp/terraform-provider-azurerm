@@ -56,11 +56,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Smart Detection Rule
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Smart Detection Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Smart Detection Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Smart Detection Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Smart Detection Rule.
 
 ## Import
@@ -70,3 +70,9 @@ Application Insights Smart Detection Rules can be imported using the `resource i
 ```shell
 terraform import azurerm_application_insights_smart_detection_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/mycomponent1/proactiveDetectionConfigs/myrule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2015-05-01

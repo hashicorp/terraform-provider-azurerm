@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
+* `location` - (Required) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created.
+
 * `sku_name` - (Required) The SKU of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`. Changing this forces a new resource to be created.
 
 ~> **Note:** Gen1 SKUs (`S0` and `S1`) are deprecated and can no longer be used for new deployments, which should instead use a Gen2 SKU (`G2`) - more information can be found [in the Azure documentation](https://learn.microsoft.com/azure/azure-maps/how-to-manage-pricing-tier).
@@ -49,8 +51,6 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
-
-* `location` - (Optional) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created. Defaults to `global`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 
@@ -76,7 +76,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Azure Maps Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -102,11 +102,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maps Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Maps Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maps Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Maps Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Maps Account.
 
 ## Import
@@ -116,3 +116,9 @@ A Maps Account can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_maps_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maps/accounts/my-maps-account
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Maps` - 2023-06-01

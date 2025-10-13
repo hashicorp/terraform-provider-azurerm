@@ -26,6 +26,8 @@ func TestAccCommunicationServiceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("immutable_resource_id").Exists(),
 			),
 		},
 	})

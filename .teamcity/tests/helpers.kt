@@ -8,5 +8,5 @@ package tests
 import ClientConfiguration
 
 fun TestConfiguration() : ClientConfiguration {
-    return ClientConfiguration("clientId", "clientSecret", "subscriptionId", "tenantId", "clientIdAlt", "clientSecretAlt", "subscriptionIdAlt", "subscriptionIdDevTest", "tenantIdAlt", "subscriptionIdAltTenant", "principalIdAltTenant", "vcsRootId", true)
+    return ClientConfiguration("clientId", "clientSecret", "subscriptionId", "tenantId", "clientIdAlt", "clientSecretAlt", "subscriptionIdAlt", "subscriptionIdDevTest", "tenantIdAlt", "subscriptionIdAltTenant", "principalIdAltTenant", "vcsRootId", true, "terraformazuretestacc@example.com")
 }

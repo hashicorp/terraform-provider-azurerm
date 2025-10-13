@@ -50,7 +50,7 @@ func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorCustomDomain_update(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("There is no available `tls_version` to test update, to test CMK, it requires an official certificate from approved provider list instead of testing cert.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")

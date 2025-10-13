@@ -6,11 +6,12 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,7 +23,7 @@ import (
 type StorageShareResource struct{}
 
 func TestAccStorageShare_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
@@ -71,7 +72,7 @@ func TestAccStorageShare_complete(t *testing.T) {
 }
 
 func TestAccStorageShare_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -105,7 +106,7 @@ func TestAccStorageShare_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageShare_disappearsDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
@@ -120,7 +121,7 @@ func TestAccStorageShare_disappearsDeprecated(t *testing.T) {
 }
 
 func TestAccStorageShare_deleteAndRecreateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -149,7 +150,7 @@ func TestAccStorageShare_deleteAndRecreateDeprecated(t *testing.T) {
 }
 
 func TestAccStorageShare_metaDataDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -197,7 +198,7 @@ func TestAccStorageShare_metaData(t *testing.T) {
 }
 
 func TestAccStorageShare_aclDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -259,7 +260,7 @@ func TestAccStorageShare_acl(t *testing.T) {
 }
 
 func TestAccStorageShare_aclGhostedRecallDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -293,7 +294,7 @@ func TestAccStorageShare_aclGhostedRecall(t *testing.T) {
 }
 
 func TestAccStorageShare_updateQuotaDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -339,7 +340,7 @@ func TestAccStorageShare_updateQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_largeQuotaDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -387,7 +388,7 @@ func TestAccStorageShare_largeQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_accessTierStandardDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -435,7 +436,7 @@ func TestAccStorageShare_accessTierStandard(t *testing.T) {
 }
 
 func TestAccStorageShare_accessTierPremiumDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -469,7 +470,7 @@ func TestAccStorageShare_accessTierPremium(t *testing.T) {
 }
 
 func TestAccStorageShare_nfsProtocolDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -504,7 +505,7 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 
 // TestAccStorageShare_protocolUpdate is to ensure destroy-then-create of the storage share can tolerant the "ShareBeingDeleted" issue.
 func TestAccStorageShare_protocolUpdateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -551,8 +552,63 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 	})
 }
 
+func TestAccStorageShare_migrateToStorageID(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccountName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.withAccountName(data),
+			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+		},
+	})
+}
+
 func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOhBeta() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
@@ -618,7 +674,6 @@ func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Clien
 }
 
 func (r StorageShareResource) basicDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -627,11 +682,10 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -640,11 +694,10 @@ resource "azurerm_storage_share" "test" {
   storage_account_id = azurerm_storage_account.test.id
   quota              = 5
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -670,11 +723,10 @@ resource "azurerm_storage_share" "test" {
     foo   = "bar"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) metaDataDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -687,11 +739,10 @@ resource "azurerm_storage_share" "test" {
     hello = "world"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) metaData(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -704,11 +755,10 @@ resource "azurerm_storage_share" "test" {
     hello = "world"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) metaDataUpdatedDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -722,11 +772,10 @@ resource "azurerm_storage_share" "test" {
     happy = "birthday"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -740,11 +789,10 @@ resource "azurerm_storage_share" "test" {
     happy = "birthday"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) aclDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -763,11 +811,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) acl(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -786,11 +833,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) aclGhostedRecallDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -806,11 +852,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -826,11 +871,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) aclUpdatedDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -858,11 +902,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -890,11 +933,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) requiresImportDeprecated(data acceptance.TestData) string {
-	template := r.basicDeprecated(data)
 	return fmt.Sprintf(`
 %s
 
@@ -903,7 +945,7 @@ resource "azurerm_storage_share" "import" {
   storage_account_name = azurerm_storage_share.test.storage_account_name
   quota                = azurerm_storage_share.test.quota
 }
-`, template)
+`, r.basicDeprecated(data))
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
@@ -919,7 +961,6 @@ resource "azurerm_storage_share" "import" {
 }
 
 func (r StorageShareResource) updateQuotaDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -928,11 +969,10 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) updateQuota(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -941,7 +981,7 @@ resource "azurerm_storage_share" "test" {
   storage_account_id = azurerm_storage_account.test.id
   quota              = 5
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) largeQuotaDeprecated(data acceptance.TestData) string {
@@ -1250,6 +1290,18 @@ resource "azurerm_storage_share" "test" {
   quota              = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
+}
+
+func (r StorageShareResource) withAccountName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 5
+}
+`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {

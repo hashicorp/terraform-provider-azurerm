@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1361,8 +1361,9 @@ resource "azurerm_container_app" "test" {
       }
 
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
@@ -1372,15 +1373,17 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1396,9 +1399,19 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "http"
+    client_certificate_mode    = "accept"
     traffic_weight {
       latest_revision = true
       percentage      = 100
+    }
+
+    cors {
+      allow_credentials_enabled = true
+      allowed_headers           = ["HEADER1", "HEADER2"]
+      allowed_methods           = ["GET", "POST"]
+      allowed_origins           = ["https://a.test.com", "https://b.test.com"]
+      exposed_headers           = ["HEADER3", "HEADER3"]
+      max_age_in_seconds        = 100
     }
   }
 
@@ -1712,9 +1725,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1806,9 +1820,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1932,9 +1947,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -2057,9 +2073,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -2165,9 +2182,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     max_replicas = 4
@@ -2180,6 +2198,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "auto"
+    client_certificate_mode    = "ignore"
 
     traffic_weight {
       latest_revision = true
@@ -2189,6 +2208,15 @@ resource "azurerm_container_app" "test" {
     traffic_weight {
       revision_suffix = "rev1"
       percentage      = 80
+    }
+
+    cors {
+      allow_credentials_enabled = false
+      allowed_headers           = ["HEADER3", "HEADER4"]
+      allowed_methods           = ["PUT", "PATCH"]
+      allowed_origins           = ["https://c.test.com", "https://d.test.com"]
+      exposed_headers           = ["HEADER1", "HEADER2"]
+      max_age_in_seconds        = 100
     }
   }
 
@@ -2285,9 +2313,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 1
@@ -2902,7 +2931,7 @@ func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
   latest_revision = false
-  percentage = 100
+  percentage      = 100
 }
 `
 }

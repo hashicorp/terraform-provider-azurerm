@@ -17,11 +17,11 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
-	redis_2024_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01"
-	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
+	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
+	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
-	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
+	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -119,6 +119,7 @@ import (
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
+	qumulo "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -255,9 +256,10 @@ type Client struct {
 	PrivateDns                        *privatedns.Client
 	PrivateDnsResolver                *dnsresolver.Client
 	Purview                           *purview.Client
+	Qumulo                            *qumulo.Client
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
-	Redis                             *redis_2024_03_01.Client
+	Redis                             *redis.Client
 	RedisEnterprise                   *redisenterprise.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
@@ -268,10 +270,11 @@ type Client struct {
 	ServiceConnector                  *serviceConnector.Client
 	ServiceFabric                     *serviceFabric.Client
 	ServiceFabricManaged              *serviceFabricManaged.Client
-	ServiceNetworking                 *servicenetworking_2023_11_01.Client
+	ServiceNetworking                 *servicenetworking_2025_01_01.Client
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
-	StorageCache                      *storagecache_2023_05_01.Client
+	StorageCache                      *storagecache_2024_07_01.Client
+	StorageCache_2023_05_01           *storagecache_2023_05_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
@@ -282,7 +285,7 @@ type Client struct {
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
-	Workloads                         *workloads_v2023_04_01.Client
+	Workloads                         *workloads_v2024_09_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -590,6 +593,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
 	}
+	if client.Qumulo, err = qumulo.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Qumulo: %+v", err)
+	}
 	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
 	}
@@ -637,6 +643,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
+	}
+	if client.StorageCache_2023_05_01, err = storageCache.NewClient_2023_05_01(o); err != nil {
+		return fmt.Errorf("building clients for Storage Cache 2023-05-01: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)

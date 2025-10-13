@@ -24,6 +24,8 @@ func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 			Config: AppConfigurationDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(AppConfigurationResource{}),
+				check.That(data.ResourceName).Key("data_plane_proxy_authentication_mode").HasValue("Pass-through"),
+				check.That(data.ResourceName).Key("data_plane_proxy_private_link_delegation_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("encryption.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_identifier").Exists(),
@@ -59,7 +61,6 @@ func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 }
 
 func (AppConfigurationDataSource) basic(data acceptance.TestData) string {
-	template := AppConfigurationResource{}.complete(data)
 	return fmt.Sprintf(`
 %s
 
@@ -67,5 +68,5 @@ data "azurerm_app_configuration" "test" {
   name                = azurerm_app_configuration.test.name
   resource_group_name = azurerm_app_configuration.test.resource_group_name
 }
-`, template)
+`, AppConfigurationResource{}.complete(data))
 }

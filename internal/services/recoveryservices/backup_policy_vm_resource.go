@@ -5,6 +5,7 @@ package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,45 +59,45 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			switch frequency.(string) {
 			case string(protectionpolicies.ScheduleRunTypeHourly):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is hourly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
 				}
 			case string(protectionpolicies.ScheduleRunTypeDaily):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
 				}
 			case string(protectionpolicies.ScheduleRunTypeWeekly):
 				if hasDaily {
-					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
+					return errors.New("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
-					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+					return errors.New("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
 				}
 			default:
-				return fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return errors.New("unrecognized value for backup.0.frequency")
 			}
 			return nil
 		}),
@@ -134,7 +135,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7 {
-		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
+		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
 	schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
@@ -170,7 +171,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 		Properties: vmProtectionPolicyProperties,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, policy); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, policy, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -404,7 +405,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	model.Properties = properties
-	if _, err = client.CreateOrUpdate(ctx, *id, model); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, *id, model, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -520,7 +521,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 					ScheduleRunTimes: &times,
 				}
 			default:
-				return nil, fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return nil, errors.New("unrecognized value for backup.0.frequency")
 			}
 
 			return schedule, nil

@@ -53,13 +53,13 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("the Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
-				return nil, fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if resp.Kind != botservice.KindBot {
-				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+				return nil, fmt.Errorf(" %s was not a Channel Registration - got %q", id, string(resp.Kind))
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -156,7 +156,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 
