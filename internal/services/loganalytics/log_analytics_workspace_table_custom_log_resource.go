@@ -51,13 +51,13 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, column := range table.Columns {
 				if column.TypeHint != "" && column.Type != string(tables.ColumnTypeEnumString) {
-					return errors.New("type_hint can only be set for columns of type 'string'")
+					return errors.New("`type_hint` can only be set for columns of type 'string'")
 				}
 			}
 
 			if table.Plan == string(tables.TablePlanEnumBasic) {
 				if _, ok := metadata.ResourceDiff.GetOk("retention_in_days"); ok {
-					return errors.New("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
+					return errors.New("cannot set `retention_in_days` for the `Basic` plan")
 				}
 			}
 
