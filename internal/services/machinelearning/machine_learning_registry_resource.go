@@ -204,14 +204,14 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 			param.Identity = expandedIdentity
 
-			var prop = registrymanagement.Registry{
+			prop := registrymanagement.Registry{
 				PublicNetworkAccess: pointer.To("Disabled"),
 			}
 			if model.PublicNetworkAccessEnabled {
 				prop.PublicNetworkAccess = pointer.To("Enabled")
 			}
 
-			var regions = []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
+			regions := []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
 
 			for _, region := range model.ReplicationRegion {
 				regions = append(regions, expandRegistryRegionDetail(region))
@@ -224,7 +224,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			if response.HttpResponse != nil {
-				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
+				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, response.HttpResponse)
 				if err != nil {
 					return fmt.Errorf("creating poller: %+v", err)
 				}
@@ -362,7 +362,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			if response.HttpResponse != nil {
-				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
+				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, response.HttpResponse)
 				if err != nil {
 					return fmt.Errorf("creating poller: %+v", err)
 				}
