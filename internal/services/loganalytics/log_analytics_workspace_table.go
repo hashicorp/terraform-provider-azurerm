@@ -36,22 +36,22 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 		},
 
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"type_hint": {
+		"display_by_default": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"hidden": {
@@ -60,10 +60,10 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"display_by_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+		"type_hint": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
 		},
 	}
 }

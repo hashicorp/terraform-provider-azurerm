@@ -75,32 +75,6 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`_CL$`), "This must end with '_CL'."),
 		},
 
-		"workspace_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: workspaces.ValidateWorkspaceID,
-		},
-
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"plan": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(tables.TablePlanEnumAnalytics),
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
-		},
-
 		"column": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -110,12 +84,38 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		"workspace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"labels": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"plan": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(tables.TablePlanEnumAnalytics),
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
 		},
 
 		"retention_in_days": {
