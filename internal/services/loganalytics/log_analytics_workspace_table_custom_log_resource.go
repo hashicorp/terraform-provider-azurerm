@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -48,10 +47,6 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 			var table WorkspaceTableCustomLogResourceModel
 			if err := metadata.DecodeDiff(&table); err != nil {
 				return err
-			}
-
-			if !strings.HasSuffix(table.Name, "_CL") {
-				return errors.New("name must end with '_CL' for Custom Log tables")
 			}
 
 			for _, column := range table.Columns {
