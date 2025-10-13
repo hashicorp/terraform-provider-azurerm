@@ -91,45 +91,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					// NB: Azure requires the main region's location to be the same as resource location
-					// TODO find out if this needs to be ForceNew
-					"location": commonschema.LocationWithoutForceNew(),
-
-					// TODO find out if this needs to be ForceNew
-					"storage_account_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "Standard_LRS",
-						ValidateFunc: validation.StringInSlice([]string{
-							"Standard_LRS",
-							"Standard_GRS",
-							"Standard_RAGRS",
-							"Standard_ZRS",
-							"Standard_GZRS",
-							"Standard_RAGZRS",
-							"Premium_LRS",
-							"Premium_ZRS",
-						}, false),
-					},
-
-					// TODO find out if this needs to be ForceNew
-					"hns_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"system_created_storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"system_created_container_registry_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: regionSchema(),
 			},
 		},
 
@@ -137,47 +99,49 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					// TODO find out if this needs to be ForceNew
-					"location": commonschema.LocationWithoutForceNew(),
-
-					// TODO find out if this needs to be ForceNew
-					"storage_account_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Standard_LRS",
-							"Standard_GRS",
-							"Standard_RAGRS",
-							"Standard_ZRS",
-							"Standard_GZRS",
-							"Standard_RAGZRS",
-							"Premium_LRS",
-							"Premium_ZRS",
-						}, false),
-					},
-
-					// TODO find out if this needs to be ForceNew
-					"hns_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"system_created_storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"system_created_container_registry_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: regionSchema(),
 			},
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func regionSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationWithoutForceNew(),
+
+		"storage_account_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "Standard_LRS",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Standard_LRS",
+				"Standard_GRS",
+				"Standard_RAGRS",
+				"Standard_ZRS",
+				"Standard_GZRS",
+				"Standard_RAGZRS",
+				"Premium_LRS",
+				"Premium_ZRS",
+			}, false),
+		},
+
+		"hns_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"system_created_storage_account_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_created_container_registry_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -246,23 +210,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			if model.PublicNetworkAccessEnabled {
 				prop.PublicNetworkAccess = pointer.To("Enabled")
 			}
-			// regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
-			// regions = []registrymanagement.RegistryRegionArmDetails{
-			// 	{
-			// 		Location: pointer.To(model.Location),
-			// 		AcrDetails: &[]registrymanagement.AcrDetails{
-			// 			{
-			// 				SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{},
-			// 			},
-			// 		},
-			// 		StorageAccountDetails: &[]registrymanagement.StorageAccountDetails{
-			// 			{
-			// 				SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{},
-			// 			},
-			// 		},
-			// 	},
-			// }
 			var regions = []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
 
 			for _, region := range model.ReplicationRegion {
@@ -272,8 +220,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			param.Properties = prop
 
 			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
-
-			if err != nil {
+			if response.HttpResponse != nil {
 				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
 				if err != nil {
 					return fmt.Errorf("creating poller: %+v", err)
@@ -387,53 +334,38 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				if v, ok := metadata.ResourceData.GetOk("public_network_access_enabled"); ok {
-					param.Properties.PublicNetworkAccess = pointer.To("Disabled")
-					if v.(bool) {
-						param.Properties.PublicNetworkAccess = pointer.To("Enabled")
-					}
+				param.Properties.PublicNetworkAccess = pointer.To("Disabled")
+				if model.PublicNetworkAccessEnabled {
+					param.Properties.PublicNetworkAccess = pointer.To("Enabled")
 				}
 			}
 
-			if param.Properties.RegionDetails == nil {
-				param.Properties.RegionDetails = &[]registrymanagement.RegistryRegionArmDetails{}
-			}
-			if metadata.ResourceData.HasChange("main_region") {
-				if len(*param.Properties.RegionDetails) > 0 {
-					(*param.Properties.RegionDetails)[0] = expandRegistryRegionDetail(model.MainRegion[0])
+			if metadata.ResourceData.HasChanges("main_region", "replication_region") {
+				var regions []registrymanagement.RegistryRegionArmDetails
+
+				if len(model.MainRegion) > 0 {
+					regions = append(regions, expandRegistryRegionDetail(model.MainRegion[0]))
 				}
+
+				for _, region := range model.ReplicationRegion {
+					regions = append(regions, expandRegistryRegionDetail(region))
+				}
+
+				param.Properties.RegionDetails = &regions
 			}
 
-			if metadata.ResourceData.HasChange("replication_region") {
-
-			}
-
-			var regions []registrymanagement.RegistryRegionArmDetails
-
-			regions = *param.Properties.RegionDetails
-			if len(model.MainRegion) > 0 {
-				regions[0] = expandRegistryRegionDetail(model.MainRegion[0])
-			}
-
-			for _, region := range model.ReplicationRegion {
-				regions = append(regions, expandRegistryRegionDetail(region))
-			}
-			prop.RegionDetails = &regions
-			param.Properties = prop
-
-			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
-
-			if err != nil {
+			response, err := client.RegistriesCreateOrUpdate(ctx, id, *param)
+			if response.HttpResponse != nil {
 				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, id, response.HttpResponse)
 				if err != nil {
 					return fmt.Errorf("creating poller: %+v", err)
 				}
 				if pollerType == nil {
-					return fmt.Errorf("no poller created for creating %s", id)
+					return fmt.Errorf("no poller created for updating %s", id)
 				}
 				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 				if err := poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("polling creation of %s: %+v", id, err)
+					return fmt.Errorf("polling update of %s: %+v", id, err)
 				}
 			}
 
