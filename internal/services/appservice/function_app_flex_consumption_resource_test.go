@@ -2674,6 +2674,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 `, r.template(data), data.RandomInteger, httpConcurrency)
 }
+
 func (r FunctionAppFlexConsumptionResource) backendStorageUseKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
