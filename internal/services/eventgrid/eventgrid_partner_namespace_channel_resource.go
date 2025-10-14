@@ -273,7 +273,10 @@ func (r EventGridPartnerNamespaceChannelResource) Update() sdk.ResourceFunc {
 			// API generated default message can be longer than the allowed length so we have to clear it from update payload
 			payload.Properties.MessageForActivation = nil
 
-			if metadata.ResourceData.HasChange("expiration_time_if_not_activated_in_utc") && config.ReadinessState != string(channels.ReadinessStateActivated) {
+			if metadata.ResourceData.HasChange("expiration_time_if_not_activated_in_utc") {
+				if config.ReadinessState == string(channels.ReadinessStateActivated) {
+					return fmt.Errorf("`expiration_time_if_not_activated_in_utc` can not be updated if the channel has been activated")
+				}
 				payload.Properties.ExpirationTimeIfNotActivatedUtc = pointer.To(config.ExpirationTimeIfNotActivatedInUtc)
 			}
 
