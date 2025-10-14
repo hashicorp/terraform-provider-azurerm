@@ -88,13 +88,9 @@ Rules implement the `Rule` interface with four methods:
 
 **Rule Categories:**
 - **Global Rules (G prefix)**: Apply to entire documents
-  - G001: Validates that documentation files exist for resources/data sources
-  - G002: Validates note formatting (`->`, `~>`, `!>`)
-  
 - **Section Rules (S prefix)**: Validate specific documentation sections
-  - S001: Validates the "API Providers" section format and content
-  - S002: Validates the "Timeouts" section
-  - S003: Validates the title heading structure
+
+Rules are registered in the `rule/rule.go` file and can be found in the `rule/` directory with the naming pattern `rule_<category><number>_<name>.go`.
 
 #### 3. Data Models (`data/`)
 - **TerraformNodeData**: Central data structure containing:
