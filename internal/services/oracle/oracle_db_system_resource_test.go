@@ -76,14 +76,14 @@ func (a DbSystemResource) basic(data acceptance.TestData) string {
 resource "azurerm_oracle_db_system" "test" {
   location                        = "%[3]s"
   zones               			      = ["2"]
-  name                            = "OFakeDbSystemacctest%[2]d"
+  name                            = "acctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   source                  		    = "None"
   database_edition      		      = "StandardEdition"
   db_version				              = "19.27.0.0"
   hostname                        = "hostname"
-  network_anchor_id               = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
-  resource_anchor_id              = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
+  network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
+  resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
   shape                        	  = "VM.Standard.x86"
   ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -95,31 +95,29 @@ func (a DbSystemResource) complete(data acceptance.TestData) string {
 resource "azurerm_oracle_db_system" "test" {
   location                        = "%[3]s"
   zones              			        = ["2"]
-  name                            = "OFakeVmacctest%[2]d"
+  name                            = "acctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   source                     		  = "None"
-  database_edition          		  = "StandardEdition"
+  database_edition          		  = "EnterpriseEdition"
   db_version				              = "19.27.0.0"
-  hostname                        = "hostname"
-  network_anchor_id               = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
-  resource_anchor_id              = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
+  hostname                        = "dbhost"
+  license_model                   = "LicenseIncluded"
+  network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
+  resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
   shape                        	  = "VM.Standard.x86"
   ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
   admin_password			            = "testAdminPassword123##"
-  compute_count                   = 2
+  compute_count                   = 4
   compute_model                   = "ECPU"
-  cluster_name                    = "clusterName"
   db_system_options {
-    storage_management = "ASM"
+    storage_management = "LVM"
   }
   disk_redundancy                 = "Normal"
-  display_name                	  = "OFakeDbSystemacctest%[2]d"
-  domain                  	 	    = "testDomain"
-  initial_data_storage_size_in_gb = 2
-  license_model                   = "BringYourOwnLicense"
-  node_count			          		  = 1
   pluggable_database_name         = "testPdbName"
   storage_volume_performance_mode = "HighPerformance"
+  display_name                	  = "acctest%[2]d"
+  initial_data_storage_size_in_gb = 256
+  node_count			          		  = 1
   tags = {
     test = "testTag1"
   }
@@ -136,12 +134,12 @@ resource "azurerm_oracle_db_system" "import" {
   location                        = azurerm_oracle_db_system.test.location
   name                            = azurerm_oracle_db_system.test.name
   resource_group_name             = azurerm_oracle_db_system.test.resource_group_name
-  source                  		  = "None"
-  database_edition      		  = "StandardEdition"
-  db_version				      = "19.27.0.0"
+  source                  		    = "None"
+  database_edition      		      = "StandardEdition"
+  db_version				              = "19.27.0.0"
   hostname                        = "hostname"
-  network_anchor_id               = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
-  resource_anchor_id              = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
+  network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
+  resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
   shape                        	  = "VM.Standard.x86"
   ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
 }
