@@ -4,6 +4,7 @@
 package search
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -46,6 +47,10 @@ func resourceSearchService() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -60,7 +65,6 @@ func resourceSearchService() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.SkuNameFree),
 					string(services.SkuNameBasic),
@@ -385,6 +389,12 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	model.Properties.Status = nil
 	model.Properties.StatusDetails = nil
 
+	if d.HasChange("sku") {
+		model.Sku = &services.Sku{
+			Name: pointer.ToEnum[services.SkuName](d.Get("sku").(string)),
+		}
+	}
+
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
@@ -692,6 +702,40 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
+func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	// only validate if the resource already exists
+	if diff.Id() == "" {
+		return nil
+	}
+
+	old, new := diff.GetChange("sku")
+	if old == new {
+		return nil
+	}
+
+	oldSku := old.(string)
+	newSku := new.(string)
+
+	// Define SKU hierarchy for validation - excludes Free tier
+	skuHierarchy := map[string]int{
+		string(services.SkuNameBasic):         1, // basic
+		string(services.SkuNameStandard):      2, // standard (S1)
+		string(services.SkuNameStandardTwo):   3, // standard2 (S2)
+		string(services.SkuNameStandardThree): 4, // standard3 (S3)
+		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
+	}
+
+	oldLevel, oldExists := skuHierarchy[oldSku]
+	newLevel, newExists := skuHierarchy[newSku]
+
+	// If it's not a valid upgrade, force recreation instead of blocking the change
+	if !oldExists || !newExists || newLevel <= oldLevel {
+		return diff.ForceNew("sku")
+	}
+
+	return nil
+}
+
 func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
@@ -723,7 +767,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	result := make([]interface{}, 0)
-	if input != nil || input.IPRules != nil {
+	if input != nil && input.IPRules != nil {
 		for _, rule := range *input.IPRules {
 			result = append(result, rule.Value)
 		}
