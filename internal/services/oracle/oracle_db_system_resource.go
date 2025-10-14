@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/networkanchors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -137,7 +140,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
@@ -153,7 +156,6 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(2),
 		},
 
@@ -165,9 +167,10 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"network_anchor_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: networkanchors.ValidateNetworkAnchorID,
 		},
 
 		"node_count": {
@@ -181,15 +184,15 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"pluggable_database_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.PluggableDatabaseName,
 		},
 
 		"resource_anchor_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
 		},
 
 		"shape": {
@@ -422,7 +425,7 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 					state.SshPublicKeys = tmp
 
 					// Optional
-					state.AdminPassword = pointer.From(props.AdminPassword)
+					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.ComputeModel = string(pointer.FromEnum(props.ComputeModel))
 					state.ClusterName = pointer.From(props.ClusterName)
@@ -446,7 +449,7 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 
 func (DbSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.DbSystems
 
