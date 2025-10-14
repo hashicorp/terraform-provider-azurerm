@@ -38,7 +38,7 @@ type ClientBuilder struct {
 const azureStackEnvironmentError = `
 The AzureRM Provider supports the different Azure Public Clouds - including China, Public,
 and US Government - however it does not support Azure Stack due to differences in API and
-feature availability.`
+feature availability`
 
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error
