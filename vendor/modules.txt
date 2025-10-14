@@ -164,7 +164,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250925.1224537
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251007.1195632
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -382,13 +382,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmac
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/certificates
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerappsrevisions
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/daprcomponents
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironmentsstorages
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappsrevisions
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools
@@ -1053,10 +1053,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/sharedprivatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings
@@ -1228,7 +1228,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20250925.1224537
+# github.com/hashicorp/go-azure-sdk/sdk v0.20251007.1195632
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest

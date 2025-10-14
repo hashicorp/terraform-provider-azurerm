@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
-	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
