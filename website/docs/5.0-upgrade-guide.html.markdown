@@ -34,6 +34,10 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_automation_software_update_configuration`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_hpc_cache`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -251,6 +255,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
+### `azurerm_key_vault`
+
+* The deprecated `contact` property has been removed as it is no longer supported by the resource.
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
+
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
@@ -417,6 +426,11 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_storage_queue`
+
+* The deprecated `storage_account_name` property has been removed in favor of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
 ### `azurerm_storage_share`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
@@ -518,6 +532,11 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
 
 ### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_storage_queue`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.

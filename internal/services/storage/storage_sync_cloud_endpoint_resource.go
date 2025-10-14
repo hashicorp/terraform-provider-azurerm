@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_cloud_endpoint -service-package-name storage -properties "cloud_endpoint_name:name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_cloud_endpoint -service-package-name storage -properties "name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id"
 
 func resourceStorageSyncCloudEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

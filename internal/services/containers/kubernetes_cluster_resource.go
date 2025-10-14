@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -175,6 +175,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
+						},
+						"virtual_network_integration_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 					},
 				},
@@ -1632,6 +1642,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"ai_toolchain_operator_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1879,6 +1895,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("ai_toolchain_operator_enabled").(bool) {
+		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(true),
+		}
 	}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
@@ -2425,6 +2447,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("ai_toolchain_operator_enabled") {
+		updateCluster = true
+		existing.Model.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(d.Get("ai_toolchain_operator_enabled").(bool)),
+		}
+	}
+
 	if d.HasChanges("workload_identity_enabled") {
 		updateCluster = true
 		workloadIdentity := d.Get("workload_identity_enabled").(bool)
@@ -2580,10 +2609,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
 			oldOsSku := oldOsSkuRaw.(string)
 			newOsSku := newOsSkuRaw.(string)
-			if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+			if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
 				cycleNodePool = true
 			}
-			if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+			if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
 				cycleNodePool = true
 			}
 		}
@@ -2946,6 +2975,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
+			aiToolchainOperatorEnabled := false
+			if props.AiToolchainOperatorProfile != nil {
+				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
+			}
+			d.Set("ai_toolchain_operator_enabled", aiToolchainOperatorEnabled)
+
 			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
 				if props.SecurityProfile.ImageCleaner.Enabled != nil {
 					d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
@@ -3254,21 +3289,32 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
+	apiAccessProfile.EnableVnetIntegration = pointer.To(config["virtual_network_integration_enabled"].(bool))
+
+	if v, ok := config["subnet_id"]; ok {
+		if s := v.(string); s != "" {
+			apiAccessProfile.SubnetId = pointer.To(s)
+		}
+	}
+
 	return apiAccessProfile
 }
 
 func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
-	if profile == nil || profile.AuthorizedIPRanges == nil {
+	if profile == nil {
 		return []interface{}{}
 	}
 
-	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-
-	return []interface{}{
-		map[string]interface{}{
-			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
-		},
+	// API access profile can be managed by other properties, only return it if one of the properties has been set
+	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+		return []interface{}{}
 	}
+
+	return []interface{}{map[string]interface{}{
+		"authorized_ip_ranges":                utils.FlattenStringSlice(profile.AuthorizedIPRanges),
+		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
+		"subnet_id":                           pointer.From(profile.SubnetId),
+	}}
 }
 
 func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {

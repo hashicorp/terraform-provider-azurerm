@@ -291,10 +291,10 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    backend.BackendProtocol(protocol),
+			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
 			Proxy:       proxy,
 			Tls:         tls,
-			Url:         url,
+			Url:         pointer.To(url),
 		},
 	}
 	if description, ok := d.GetOk("description"); ok {
@@ -352,7 +352,7 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("name", pointer.From(model.Name))
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("protocol", string(props.Protocol))
+			d.Set("protocol", pointer.FromEnum(props.Protocol))
 			d.Set("resource_id", pointer.From(props.ResourceId))
 			d.Set("title", pointer.From(props.Title))
 			d.Set("url", props.Url)

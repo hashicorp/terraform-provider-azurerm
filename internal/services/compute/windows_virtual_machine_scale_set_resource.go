@@ -447,6 +447,8 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -721,6 +723,12 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -932,6 +940,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			var upgradeMode virtualmachinescalesets.UpgradeMode
 			if policy := props.UpgradePolicy; policy != nil && policy.Mode != nil {
@@ -1463,6 +1475,18 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"scale_in": VirtualMachineScaleSetScaleInPolicySchema(),
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
+
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
