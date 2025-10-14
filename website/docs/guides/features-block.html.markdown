@@ -84,7 +84,7 @@ provider "azurerm" {
     recovery_services_vault {
       recover_soft_deleted_backup_protected_vm = true
     }
-    
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
