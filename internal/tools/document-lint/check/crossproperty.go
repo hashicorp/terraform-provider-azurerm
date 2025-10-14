@@ -71,7 +71,11 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 	}
 
 	if f == nil {
-		if s.Deprecated == "" && !s.Computed && path != "id" {
+		// Flag as missing if:
+		// 1. Not deprecated
+		// 2. Not the special "id" field (which is implicit)
+		shouldDocument := s.Deprecated == "" && path != "id"
+		if shouldDocument {
 			parts := strings.Split(path, ".")
 			name := parts[len(parts)-1]
 			f2 := &model.Field{
@@ -97,6 +101,14 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 		}
 		for key, val := range ele.Schema {
 			subField := f.Subs[key]
+
+			// Look for computed fields from attributes
+			if subField == nil && val.Computed {
+				sameNameAttr := f.SameNameAttr
+				if sameNameAttr != nil {
+					subField = sameNameAttr.Subs[key]
+				}
+			}
 			res = append(res, diffDocMiss(rt, path+"."+key, val, subField)...)
 		}
 	default:
@@ -255,6 +267,15 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		sub := subTF(subField.Name)
 		res = append(res, diffCodeMiss(rt, subPath, subField, sub)...)
 	}
+
+	// Also check SameNameAttr.Subs for fields that exist in both arguments and attributes
+    if f.SameNameAttr != nil && f.SameNameAttr.Subs != nil {
+        for _, subField := range f.SameNameAttr.Subs {
+            subPath := path + "." + subField.Name
+            sub := subTF(subField.Name)
+            res = append(res, diffCodeMiss(rt, subPath, subField, sub)...)
+        }
+    }
 
 	return res
 }

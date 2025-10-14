@@ -344,6 +344,9 @@ func (m *Mark) buildStruct() {
 
 	for _, f := range m.Fields {
 		fillField(f, "")
+		if f.SameNameAttr != nil {
+			fillField(f.SameNameAttr, "")
+		}
 	}
 
 	// build for block fields
