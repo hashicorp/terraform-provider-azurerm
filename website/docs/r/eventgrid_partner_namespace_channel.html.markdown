@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `channel_type` - (Optional) The type of the channel which represents the direction flow of events. The only possible value is `PartnerTopic`. Defaults to `PartnerTopic`. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
-* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`). If `readiness_state` is `Activated`, changes to this field will be ignored. 
+* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`). Once `readiness_state` is `Activated`, this field can longer be updated. 
 
 ~> **Note:** If this timer expires while the corresponding partner topic is never activated, the channel and corresponding partner topic are deleted.
 
