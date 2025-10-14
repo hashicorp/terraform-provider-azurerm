@@ -19,10 +19,10 @@ import (
 
 type ManagerNetworkGroupResource struct{}
 
-func testAccNetworkManagerNetworkGroup_basic(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,10 +33,10 @@ func testAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,10 +47,10 @@ func testAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_complete(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -61,10 +61,10 @@ func testAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_update(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -74,6 +74,20 @@ func testAccNetworkManagerNetworkGroup_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,7 +131,7 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
+  scope_accesses = ["Routing"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -151,8 +165,8 @@ func (r ManagerNetworkGroupResource) complete(data acceptance.TestData) string {
 resource "azurerm_network_manager_network_group" "test" {
   name               = "acctest-nmng-%d"
   network_manager_id = azurerm_network_manager.test.id
-  description        = "test complete"
   member_type        = "Subnet"
+  description        = "test complete"
 }
 `, template, data.RandomInteger)
 }
@@ -164,6 +178,7 @@ func (r ManagerNetworkGroupResource) update(data acceptance.TestData) string {
 resource "azurerm_network_manager_network_group" "test" {
   name               = "acctest-nmng-%d"
   network_manager_id = azurerm_network_manager.test.id
+  member_type        = "VirtualNetwork"
   description        = "test update"
 }
 `, template, data.RandomInteger)

@@ -56,10 +56,13 @@ func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateVirtualNetworkID,
+				commonids.ValidateSubnetID,
+			),
 		},
 	}
 }
