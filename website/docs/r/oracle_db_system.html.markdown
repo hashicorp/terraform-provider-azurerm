@@ -77,7 +77,7 @@ Changing this forces a new DB System to be created.
 
 * `domain` - (Optional) The domain name for the DB system. Changing this forces a new DB system to be created.
 
-* `initial_data_storage_size_in_gb` - (Optional) "Size in GB of the initial data volume that will be created and attached to a virtual machine DB system. You can scale up storage after provisioning, as needed. Note that the total storage size attached will be more than the amount you specify to allow for REDO/RECO space and software volume.
+* `initial_data_storage_size_in_gb` - (Optional) "Size in GB of the initial data volume that will be created and attached to a virtual machine DB system. You can scale up storage after provisioning, as needed. Note that the total storage size attached will be more than the amount you specify to allow for REDO/RECO space and software volume. Changing this forces a new DB system to be created.
 
 * `license_model` - (Optional) The Oracle license model that applies to all the databases on the DB system. The default is LicenseIncluded. Changing this forces a new DB system to be created.
 

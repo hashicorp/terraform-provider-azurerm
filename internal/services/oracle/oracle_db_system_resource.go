@@ -3,6 +3,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -155,7 +156,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"initial_data_storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(2),
 		},
 
@@ -190,8 +191,8 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_anchor_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
 		},
 
@@ -411,7 +412,8 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 					state.DbVersion = props.DbVersion
 					state.Hostname = props.Hostname
 					state.NetworkAnchorId = props.NetworkAnchorId
-					state.ResourceAnchorId = props.ResourceAnchorId
+					normalizedValue := strings.ToLower(props.ResourceAnchorId)
+					state.ResourceAnchorId = normalizedValue
 					state.Shape = props.Shape
 					state.Zones = pointer.From(model.Zones)
 
@@ -433,7 +435,7 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Domain = pointer.From(props.Domain)
-					state.InitialDataStorageSizeInGb = pointer.From(props.InitialDataStorageSizeInGb)
+					state.InitialDataStorageSizeInGb = int64(metadata.ResourceData.Get("initial_data_storage_size_in_gb").(int))
 					state.LicenseModel = string(pointer.From(props.LicenseModel))
 					state.NodeCount = pointer.From(props.NodeCount)
 					state.PluggableDatabaseName = pointer.From(props.PdbName)
