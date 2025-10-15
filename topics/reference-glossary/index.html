@@ -1,0 +1,1213 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Contributor documentation and reference for the Terraform AzureRM Provider">
+      
+      
+      
+      
+        <link rel="prev" href="../best-practices/">
+      
+      
+        <link rel="next" href="../reference-naming/">
+      
+      <link rel="icon" href="../../images/hashicorp-black.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Glossary - Terraform AzureRM Provider - Contributor Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="hashicorp" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#glossary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-header__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform AzureRM Provider - Contributor Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Glossary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-nav__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    Terraform AzureRM Provider - Contributor Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Welcome
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-level-overview/" class="md-nav__link">
+        Overview of the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-the-provider/" class="md-nav__link">
+        Building the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-the-provider/" class="md-nav__link">
+        Debugging the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running-the-tests/" class="md-nav__link">
+        Running Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-opening-a-pr/" class="md-nav__link">
+        Opening a Pull Request
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="false">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-feature/" class="md-nav__link">
+        Adding a new Feature
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-service-package/" class="md-nav__link">
+        Adding a new Service Package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-data-source/" class="md-nav__link">
+        Adding a new Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource/" class="md-nav__link">
+        Adding a new Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-data-source/" class="md-nav__link">
+        Adding fields to an existing Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-resource/" class="md-nav__link">
+        Adding fields to an existing Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-state-migrations/" class="md-nav__link">
+        Adding State Migrations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-identity/" class="md-nav__link">
+        Adding Resource Identity
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-breaking-changes/" class="md-nav__link">
+        Breaking Changes and Deprecations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource-vs-inline/" class="md-nav__link">
+        When to create a new Resource vs Inline Block
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="true">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-acceptance-testing/" class="md-nav__link">
+        Acceptance Testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Glossary
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Glossary
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#azure-resource-id" class="md-nav__link">
+    Azure Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-plane-api" class="md-nav__link">
+    Data Plane API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedded-sdk" class="md-nav__link">
+    Embedded SDK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-formatter" class="md-nav__link">
+    Resource ID Formatter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-parser" class="md-nav__link">
+    Resource ID Parser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-struct" class="md-nav__link">
+    Resource ID Struct
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-validator" class="md-nav__link">
+    Resource ID Validator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-manager-api" class="md-nav__link">
+    Resource Manager API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-package" class="md-nav__link">
+    Service Package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-registration" class="md-nav__link">
+    Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-migration" class="md-nav__link">
+    State Migration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-managed-resource-id" class="md-nav__link">
+    Terraform Managed Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-resource-data" class="md-nav__link">
+    Terraform Resource Data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-resource-id" class="md-nav__link">
+    Terraform Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-data-source" class="md-nav__link">
+    Typed Data Source
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-resource" class="md-nav__link">
+    Typed Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-plugin-sdk" class="md-nav__link">
+    Typed Plugin SDK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-service-registration" class="md-nav__link">
+    Typed Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-data-source" class="md-nav__link">
+    Untyped Data Source
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-resource" class="md-nav__link">
+    Untyped Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-service-registration" class="md-nav__link">
+    Untyped Service Registration
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-naming/" class="md-nav__link">
+        Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-documentation-standards/" class="md-nav__link">
+        Provider Documentation Standards
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-ids/" class="md-nav__link">
+        Resource IDs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-design-considerations/" class="md-nav__link">
+        Schema Design
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-errors/" class="md-nav__link">
+        Working with Errors
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Maintainers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintainers" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Maintainers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainer-merging/" class="md-nav__link">
+        Merging PRs
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frequently-asked-questions/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#azure-resource-id" class="md-nav__link">
+    Azure Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-plane-api" class="md-nav__link">
+    Data Plane API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedded-sdk" class="md-nav__link">
+    Embedded SDK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-formatter" class="md-nav__link">
+    Resource ID Formatter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-parser" class="md-nav__link">
+    Resource ID Parser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-struct" class="md-nav__link">
+    Resource ID Struct
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-id-validator" class="md-nav__link">
+    Resource ID Validator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-manager-api" class="md-nav__link">
+    Resource Manager API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-package" class="md-nav__link">
+    Service Package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-registration" class="md-nav__link">
+    Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-migration" class="md-nav__link">
+    State Migration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-managed-resource-id" class="md-nav__link">
+    Terraform Managed Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-resource-data" class="md-nav__link">
+    Terraform Resource Data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-resource-id" class="md-nav__link">
+    Terraform Resource ID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-data-source" class="md-nav__link">
+    Typed Data Source
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-resource" class="md-nav__link">
+    Typed Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-plugin-sdk" class="md-nav__link">
+    Typed Plugin SDK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-service-registration" class="md-nav__link">
+    Typed Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-data-source" class="md-nav__link">
+    Untyped Data Source
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-resource" class="md-nav__link">
+    Untyped Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#untyped-service-registration" class="md-nav__link">
+    Untyped Service Registration
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="glossary">Glossary<a class="headerlink" href="#glossary" title="Permanent link">#</a></h1>
+<p>This document contains a summary of the terminology used within the Azure Provider.</p>
+<h3 id="azure-resource-id">Azure Resource ID<a class="headerlink" href="#azure-resource-id" title="Permanent link">#</a></h3>
+<p>An Azure Resource ID is used to uniquely identify this Resource within Azure - in almost all cases this is a Path of Key-Value Pairs, for example:</p>
+<p><code>/subscriptions/11112222-3333-4444-555566667777/resourceGroups/myGroup</code></p>
+<p>Contains the Key-Value pairs:</p>
+<div class="highlight"><pre><span></span><code>subscriptions: 11112222-3333-4444-555566667777
+resourceGroups: myGroup
+</code></pre></div>
+<p>As the Azure Resource ID consists of user-specified Key-Value Pairs, the Azure Resource ID is predictable.</p>
+<h3 id="data-plane-api">Data Plane API<a class="headerlink" href="#data-plane-api" title="Permanent link">#</a></h3>
+<p>A Data Plane API provides access to data for resources provisioned via the Resource Manager API. Some examples:</p>
+<ul>
+<li>The App Configuration Data Plane API allows for managing Keys and Features within an App Configuration.</li>
+<li>The Storage Data Plane API allows for the uploading/downloading of Blobs within a Storage Container (within a Storage Account).</li>
+</ul>
+<h3 id="embedded-sdk">Embedded SDK<a class="headerlink" href="#embedded-sdk" title="Permanent link">#</a></h3>
+<p>An Embedded SDK is an SDK that has been added directly into the providers code base (usually into <code>services/{name}/sdk</code>) rather than using go modules and vendoring it into <code>/vendor</code>.</p>
+<p>Whilst we generally vendor SDKs instead, we have a number of SDKs which aren't available elsewhere and are instead vendored into the codebase (see <a href="../high-level-overview/">High Level Overview</a> for more information).</p>
+<h3 id="resource-id-formatter">Resource ID Formatter<a class="headerlink" href="#resource-id-formatter" title="Permanent link">#</a></h3>
+<p>A Resource ID Formatter is a Resource ID Struct which implements the <code>ID()</code> method - returning the (Azure) Resource ID as a string - which must be parseable using the associated Resource ID Parser.</p>
+<p>These are generally (but not always) auto-generated - see <a href="#terraform-managed-resource-id">Terraform Managed Resource ID</a> for more information.</p>
+<h3 id="resource-id-parser">Resource ID Parser<a class="headerlink" href="#resource-id-parser" title="Permanent link">#</a></h3>
+<p>A Resource ID Parser parses an (Azure) Resource ID into a Resource ID Struct - generally case-sensitively (since both Terraform Core and some downstream Azure APIs are case sensitive), but optionally case-insensitively where required.</p>
+<p>These are generally (but not always) auto-generated - see <a href="#terraform-managed-resource-id">Terraform Managed Resource ID</a> for more information.</p>
+<h3 id="resource-id-struct">Resource ID Struct<a class="headerlink" href="#resource-id-struct" title="Permanent link">#</a></h3>
+<p>A Resource ID Struct is a Golang Struct defining the user-specifiable values within an (Azure) Resource ID. For example, in the case of a Resource Group ID that would be the Subscription ID and Resource Group name.</p>
+<p>A Resource ID Struct should have an associated Resource ID Formatter, Parser and (optionally) Validator.</p>
+<p>These are generally (but not always) auto-generated - see <a href="#terraform-managed-resource-id">Terraform Managed Resource ID</a> for more information.</p>
+<h3 id="resource-id-validator">Resource ID Validator<a class="headerlink" href="#resource-id-validator" title="Permanent link">#</a></h3>
+<p>A Resource ID Validator is a Terraform Validation function which validates that the specified value is a Resource ID of the expected Type (for example a Subnet ID validator checks it’s a Subnet ID).</p>
+<p>The value is parsed case-sensitively (in some cases, an optional case-insensitive validation function is also available) using the associated Resource ID Parser.</p>
+<p>This Resource ID Validator can then be used as a validation function within Terraform Schema fields as necessary - to confirm that the user-specified value (for example, for a Subnet ID) is actually the specified type (for example, a Subnet ID) and not another Resource ID or value (for example, a Virtual Network ID).</p>
+<p>These are generally (but not always) auto-generated - see <a href="#terraform-managed-resource-id">Terraform Managed Resource ID</a> for more information.</p>
+<h3 id="resource-manager-api">Resource Manager API<a class="headerlink" href="#resource-manager-api" title="Permanent link">#</a></h3>
+<blockquote>
+<p>Some Service Teams refer to this as "Management Plane".</p>
+</blockquote>
+<p>A Resource Manager API is used to provision resources within an Azure Subscription/Management Group, for example a Resource Group or a Virtual Machine.</p>
+<p>Whilst the Resource Manager API can be used to provision resources, resources within those are generally exposed via Data Plane APIs (see above) - for example Blobs within a Storage Account.</p>
+<h3 id="service-package">Service Package<a class="headerlink" href="#service-package" title="Permanent link">#</a></h3>
+<p>A Service Package is a grouping of Data Sources and Resources (and any other associated functionality) which are related together, for example <code>Cosmos</code> or <code>Compute</code>.</p>
+<p>Each Service Package contains a Service Registration which defines the Data Sources and Resources available within that Service Package.</p>
+<p>Whilst these tend to map 1:1 to Azure Resource Providers (for example the <code>cosmos</code> Service Package contains the CosmosDB resources) - some are intentionally split out where the Resource Provider (or Service Package) would otherwise be too large (for example the Network package has Load Balancers split out).</p>
+<h3 id="service-registration">Service Registration<a class="headerlink" href="#service-registration" title="Permanent link">#</a></h3>
+<p>Each Service Package contains a Service Registration which defines the Data Sources and Resources available within that Service Package.</p>
+<p>This is either a Typed Service Registration or an Untyped Service Registration (documented below) - both available within the Typed Plugin SDK.</p>
+<p>Note that a Service Registration can be both a Typed and Untyped Service Registration by implementing both the Typed and Untyped Service Registration interfaces. This allows the mixing of both Typed and Untyped Data Sources and Resources within a Service Package.</p>
+<h3 id="state-migration">State Migration<a class="headerlink" href="#state-migration" title="Permanent link">#</a></h3>
+<p>A State Migration is used when a resource has been changed to expect something different in the state than what previous version of the provider have written to it. An example of this is if Azure started to return a Resource ID value in a different case. rather than showing this during the plan, we can write a state migration to update the ID values transparently with no action required by a user. These are found in <code>services/service/migrations</code> and documentation on how to write them can be found in the <a href="https://www.terraform.io/plugin/sdkv2/resources/state-migration">Terraform Plugin SDK</a> documentation.</p>
+<h3 id="terraform-managed-resource-id">Terraform Managed Resource ID<a class="headerlink" href="#terraform-managed-resource-id" title="Permanent link">#</a></h3>
+<p>A Terraform Managed Resource ID is a Resource ID defined in Terraform, rather than set by the Remote API.</p>
+<p>The Azure Provider is moving to use Terraform Managed Resource IDs for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource IDs over time (either in casing, or renaming segments altogether).</p>
+<p>At present these are defined in a <code>resourceids.go</code> file within each Service Package, which generates a Resource ID Formatter, Parser and Validator for this Resource ID.</p>
+<h3 id="terraform-resource-data">Terraform Resource Data<a class="headerlink" href="#terraform-resource-data" title="Permanent link">#</a></h3>
+<p>Terraform Resource Data is a wrapper around the values within either the Terraform Configuration/State, depending on when this is called.</p>
+<p>Values within the Resource Data can be accessed using <code>d.Get</code> (for example <code>d.Get(“some_field”).(string)</code>) and set using <code>d.Set</code> (for example <code>d.Set(“some_field”, “hello”)</code>).</p>
+<h3 id="terraform-resource-id">Terraform Resource ID<a class="headerlink" href="#terraform-resource-id" title="Permanent link">#</a></h3>
+<p>Each Data Source and Resource within Terraform has a Resource ID used to keep track of this resource, set at creation/import time.</p>
+<p>For a Resource this is set in the Create function after the resource has been successfully provisioned (or at Import time, when imported) - and then used in the Delete, Read and Update functions to look up this resource.</p>
+<p>Since Data Sources look up information about existing resources - and as such don’t have a Create method - these instead set the Resource ID within the Read function.</p>
+<h3 id="typed-data-source">Typed Data Source<a class="headerlink" href="#typed-data-source" title="Permanent link">#</a></h3>
+<p>A Typed Data Source is a Terraform Data Source built using the Typed Plugin SDK, allowing this Data Source to be defined using Native Go Types.</p>
+<h3 id="typed-resource">Typed Resource<a class="headerlink" href="#typed-resource" title="Permanent link">#</a></h3>
+<p>A Typed Resource is a Terraform Resource built using the Typed Plugin SDK, allowing this Resource to be defined using Native Go Types.</p>
+<h3 id="typed-plugin-sdk">Typed Plugin SDK<a class="headerlink" href="#typed-plugin-sdk" title="Permanent link">#</a></h3>
+<p>The Typed Plugin SDK is an abstraction over the Terraform Plugin SDK housed within the AzureRM Provider repository - which allows Terraform Data Sources and Resources to be built using Native Go Types.</p>
+<p>The Typed Plugin SDK contains both Golang Interfaces for Data Sources and Resources (which allows verifying these are valid at compile-time) - and a wrapper around Terraform Resource Data which allows for values from the Terraform Configuration to be  Serialized/Deserialized into a Native Go Struct.</p>
+<p>More information can be found in <a href="https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/sdk">the documentation for the Typed Plugin SDK</a>.</p>
+<h3 id="typed-service-registration">Typed Service Registration<a class="headerlink" href="#typed-service-registration" title="Permanent link">#</a></h3>
+<p>A Typed Service Registration returns a list of the Typed Data Sources and Typed Resources which are available within that Service Package.</p>
+<p>This is implemented within <a href="https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/sdk">the Typed Plugin SDK</a> as the interface <code>TypedServiceRegistration</code> (see also: <code>TypedServiceRegistrationWithAGitHubLabel</code>).</p>
+<h3 id="untyped-data-source">Untyped Data Source<a class="headerlink" href="#untyped-data-source" title="Permanent link">#</a></h3>
+<p>An Untyped Data Source is a Terraform Data Source built using the Terraform Plugin SDK directly, which looks up information about an existing Resource. These are exposed as a function which returns an instance of the Plugin SDK’s <code>Resource</code> struct - implementing whichever methods are necessary (generally, the Schema and Read/Timeouts functions).</p>
+<p>The Terraform Resource Data can be used to set fields into the Terraform State - and to set the ID using <code>d.SetId(“”)</code>.</p>
+<h3 id="untyped-resource">Untyped Resource<a class="headerlink" href="#untyped-resource" title="Permanent link">#</a></h3>
+<p>An Untyped Resource is a Terraform Resource built using the Terraform Plugin SDK directly, which manages this Resource (through either creation/import onwards). These are exposed as a function which returns an instance of the Plugin SDK’s <code>Resource</code> struct - implementing whichever methods are necessary (generally, the Schema and Create/Read/Update/Delete/Import/Timeouts functions).</p>
+<p>The Terraform Resource Data can be used to retrieve fields from the Terraform Configuration/set fields into the Terraform State - and to get/set the ID using <code>d.Id()</code> / <code>d.SetId(“”)</code>.</p>
+<h3 id="untyped-service-registration">Untyped Service Registration<a class="headerlink" href="#untyped-service-registration" title="Permanent link">#</a></h3>
+<p>An Untyped Service Registration returns a list of the Untyped Data Sources and Untyped Resources which are available within that Service Package.</p>
+<p>This is implemented within <a href="https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/sdk">the Typed Plugin SDK</a> as the interface <code>UntypedServiceRegistration</code> (see also: <code>UntypedServiceRegistrationWithAGitHubLabel</code>).</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      HashiCorp
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>
