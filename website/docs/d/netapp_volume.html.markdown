@@ -62,7 +62,7 @@ The following attributes are exported:
 * `data_protection_replication` - Volume data protection replication block
 
 * `data_protection_backup_policy` - A data protecion backup policy block
-  
+
 * `volume_path` - The unique file path of the volume.
 
 * `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.

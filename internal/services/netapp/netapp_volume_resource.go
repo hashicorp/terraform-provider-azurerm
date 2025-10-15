@@ -540,6 +540,27 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			// Validate cross-zone-region replication requirements
+			// According to Azure documentation, for cross-zone replication, both source and destination volumes must have zones
+			dataReplicationRaw := d.Get("data_protection_replication").([]interface{})
+			if len(dataReplicationRaw) > 0 {
+				// This is a destination volume with data_protection_replication configured
+				dataReplication := dataReplicationRaw[0].(map[string]interface{})
+				remoteVolumeLocation := dataReplication["remote_volume_location"].(string)
+				currentLocation := d.Get("location").(string)
+
+				// Check if this is cross-zone replication (same region)
+				if strings.EqualFold(azure.NormalizeLocation(remoteVolumeLocation), azure.NormalizeLocation(currentLocation)) {
+					// Cross-zone replication: both source and destination must have zones assigned
+					zone := d.Get("zone").(string)
+					if zone == "" {
+						return fmt.Errorf("when configuring cross-zone replication (data_protection_replication with same region), the destination volume must have a `zone` assigned")
+					}
+					// Note: We cannot validate the source volume's zone here since we don't have access to it during plan/diff
+					// The documentation states the source must also have a zone, which users must ensure separately
+				}
+			}
+
 			return nil
 		},
 	}
@@ -834,9 +855,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
 		}
 
-		// Wait for volume replication authorization to complete
-		log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
-		if err := waitForReplAuthorization(ctx, replicationClient, *replVolID); err != nil {
+		// Wait for volume replication authorization to complete on the destination volume
+		// Note: We check the destination (current volume being created), not the source
+		// This is important for one-to-many replication where checking the source would fail
+		destinationReplID, err := volumesreplication.ParseVolumeID(id.ID())
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for replication authorization on destination volume %s to complete", id)
+		if err := waitForReplAuthorization(ctx, replicationClient, *destinationReplID); err != nil {
 			return err
 		}
 	}
