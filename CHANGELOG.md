@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_consumption_budget_subscription` - remove the maximum count validation for the `notification` block [GH-29200]
 
 FEATURES:
+* **New Data Source**: `azurerm_graph_services_account` [GH-30697]
 * **New Resource**: `azurerm_api_management_workspace_policy_fragment` [GH-30678]
 * **New Resource**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
 * **New Data Source**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
