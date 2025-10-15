@@ -1,6 +1,7 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
 
 FEATURES:
 
