@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -116,7 +117,9 @@ func resourceSearchService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.HostingModeDefault),
 					string(services.HostingModeHighDensity),
-				}, false),
+				}, true),
+				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
+				DiffSuppressOnRefresh: true,
 			},
 
 			"customer_managed_key_enforcement_enabled": {
@@ -246,7 +249,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
-	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+	if skuName != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
 	}
 
@@ -265,7 +268,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
 	// 'partition_count' must be between 1 and 3.
-	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+	if skuName == services.SkuNameStandardThree && partitionCount > 3 && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 	}
 
@@ -402,7 +405,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("updating `hosting_mode` for %s: unable to validate the hosting_mode since `model.Sku` was nil", *id)
 		}
 
-		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
 		}
 
