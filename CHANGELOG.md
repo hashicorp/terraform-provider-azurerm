@@ -1,6 +1,7 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_storage_queue` - Support migrating from `storage_account_name` to `storage_account_id`  [GH-30836]
 * `azurerm_search_service` - suuports upgrading the `sku` based on tier  [GH-30842]
 * `azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
 * `azurerm_consumption_budget_management_group` - remove the maximum count validation for the `notification` block [GH-29200]
