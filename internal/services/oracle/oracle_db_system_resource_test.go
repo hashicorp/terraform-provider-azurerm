@@ -38,7 +38,7 @@ func TestDbSystemResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
 	})
 }
 
@@ -52,7 +52,7 @@ func TestDbSystemResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
 	})
 }
 
@@ -81,7 +81,8 @@ resource "azurerm_oracle_db_system" "test" {
   source                  		    = "None"
   database_edition      		      = "StandardEdition"
   db_version				              = "19.27.0.0"
-  hostname                        = "hostname"
+  hostname                        = "basictst"
+  license_model                   = "LicenseIncluded"
   network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
   resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
   shape                        	  = "VM.Standard.x86"
@@ -100,7 +101,7 @@ resource "azurerm_oracle_db_system" "test" {
   source                     		  = "None"
   database_edition          		  = "EnterpriseEdition"
   db_version				              = "19.27.0.0"
-  hostname                        = "dbhost"
+  hostname                        = "comphost"
   license_model                   = "LicenseIncluded"
   network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
   resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
@@ -137,7 +138,8 @@ resource "azurerm_oracle_db_system" "import" {
   source                  		    = "None"
   database_edition      		      = "StandardEdition"
   db_version				              = "19.27.0.0"
-  hostname                        = "hostname"
+  hostname                        = "importhost"
+  license_model                   = "LicenseIncluded"
   network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/na-white-glove"
   resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
   shape                        	  = "VM.Standard.x86"
