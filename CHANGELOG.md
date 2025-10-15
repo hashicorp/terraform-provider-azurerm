@@ -8,6 +8,7 @@ FEATURES:
 * **New Data Source**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
 
 BUG FIXES:
+* `azurerm_application_insights` - fix an issue that caused `tags` to be removed when other properties were updated [GH-30758]
 `azurerm_container_registry` - fix the `name` length validation to allow 50 rather than 49 [GH-30858]
 
 ## 4.48.0 (October 13, 2025)
