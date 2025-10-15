@@ -113,6 +113,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ConflictsWith: []string{"shared_access_signature", "client_id", "client_secret", "tenant_id"}
 		},
 
 		"shared_access_signature": {
@@ -120,6 +121,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ConflictsWith: []string{"account_key", "client_id", "client_secret", "tenant_id"}
 		},
 
 		"client_id": {
@@ -127,6 +129,8 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
 			RequiredWith: []string{"client_id", "client_secret", "tenant_id"},
+			ConflictsWith: []string{"account_key", "shared_access_signature"}
+			
 		},
 
 		"client_secret": {
@@ -135,6 +139,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"client_id", "client_secret", "tenant_id"},
+			ConflictsWith: []string{"account_key", "shared_access_signature"}
 		},
 
 		"tenant_id": {
@@ -142,6 +147,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
 			RequiredWith: []string{"client_id", "client_secret", "tenant_id"},
+			ConflictsWith: []string{"account_key", "shared_access_signature"}
 		},
 
 		"tags": commonschema.TagsForceNew(),

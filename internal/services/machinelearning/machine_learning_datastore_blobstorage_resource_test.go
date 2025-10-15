@@ -91,27 +91,19 @@ func TestAccMachineLearningDataStoreBlobStorage_Update(t *testing.T) {
 		},
 		data.ImportStep("account_key"),
 		{
-			Config: r.blobStorageSas(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("account_key", "shared_access_signature"),
-	})
-}
-
-func TestAccMachineLearningDataStoreBlobStorage_servicePrincipal(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
-	r := MachineLearningDataStoreBlobStorage{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
 			Config: r.blobStorageServicePrincipal(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("client_secret"),
+		{
+			Config: r.blobStorageSas(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key", "shared_access_signature"),
 	})
 }
 
