@@ -225,6 +225,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores
