@@ -120,7 +120,7 @@ resource "azurerm_chaos_studio_experiment" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -186,7 +186,7 @@ A `steps` block supports the following:
 
 * `name` - (Required) The name of the Step.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

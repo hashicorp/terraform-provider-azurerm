@@ -121,7 +121,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

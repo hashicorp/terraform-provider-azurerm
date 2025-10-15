@@ -19,13 +19,13 @@ data "azurerm_oracle_autonomous_database_backup" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
 * `autonomous_database_id` - The azureId of the Autonomous Database for we will be listing the backups.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

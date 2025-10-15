@@ -43,7 +43,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -137,7 +137,7 @@ A `source` block supports the following:
 ~> **Note:** This is a list of names of Prefix Lists configured on the same Local Rulestack as this Rule is being created.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

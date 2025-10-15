@@ -83,7 +83,7 @@ resource "azurerm_app_service_certificate_binding" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `ssl_state` - (Required) The type of certificate binding. Allowed values are `IpBasedEnabled` or `SniEnabled`. Changing this forces a new App Service Certificate Binding to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments listed above - the following attributes are exported:
 

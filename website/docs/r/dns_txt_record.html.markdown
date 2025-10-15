@@ -67,7 +67,7 @@ The `record` block supports:
 
 * `value` - (Required) The value of the record. Max length: 4096 characters
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

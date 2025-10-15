@@ -97,7 +97,7 @@ resource "azurerm_machine_learning_synapse_spark" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ An `identity` block supports the following:
 
 ~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -29,7 +29,7 @@ output "unique_identifier" {
 
 * `resource_group_name` - The Name of the Resource Group where the Dev Test Lab exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Dev Test Lab.
 

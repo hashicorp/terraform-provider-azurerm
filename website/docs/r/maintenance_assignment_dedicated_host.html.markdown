@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `dedicated_host_id` - (Required) Specifies the Dedicated Host ID to which the Maintenance Configuration will be assigned. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -30,7 +30,7 @@ output "subnet_id" {
 * `virtual_network_name` - Specifies the name of the Virtual Network this Subnet is located within.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Subnet.
 * `address_prefixes` - The address prefixes for the subnet.

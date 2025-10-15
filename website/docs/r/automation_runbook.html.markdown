@@ -168,7 +168,7 @@ The `job_schedule` block supports:
 
 * `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

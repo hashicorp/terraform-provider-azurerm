@@ -60,7 +60,7 @@ The following supported arguments are specific to Azure Table Storage Linked Ser
 
 * `connection_string` - (Required) The connection string to an Azure Storage Account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

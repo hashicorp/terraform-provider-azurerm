@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group under which the Iot Device Provisioning Service is located in.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

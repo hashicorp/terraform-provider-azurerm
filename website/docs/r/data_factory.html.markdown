@@ -113,7 +113,7 @@ A `vsts_configuration` block supports the following:
 
 * `publishing_enabled` - (Optional) Is automated publishing enabled? Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -93,7 +93,7 @@ resource "azurerm_express_route_circuit_connection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ The following arguments are supported:
 
 -> **Note:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

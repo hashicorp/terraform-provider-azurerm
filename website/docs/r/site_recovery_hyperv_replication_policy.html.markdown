@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `replication_interval_in_seconds` - (Required) Specifies how frequently data should be synchronized between source and target locations. Possible values are `30` and `300`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

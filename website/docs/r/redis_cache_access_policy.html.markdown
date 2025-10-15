@@ -41,7 +41,7 @@ resource "azurerm_redis_cache_access_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -78,7 +78,7 @@ The following arguments are supported:
 
 ~> **Note:** `protection_state` cannot be set to `BackupsSuspended` unless the `azurerm_recovery_services_vault` has `immutability` set to `Unlocked` or `Locked`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

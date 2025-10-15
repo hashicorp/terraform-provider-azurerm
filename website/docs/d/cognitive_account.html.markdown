@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group where the Cognitive Services Account resides.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

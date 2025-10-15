@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `select` - (Optional) A list of properties to select from the returned Storage Table Entities.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the storage table entity.
 

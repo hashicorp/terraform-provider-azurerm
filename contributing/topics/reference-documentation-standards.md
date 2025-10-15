@@ -52,7 +52,7 @@ Block arguments must have two entries in the documentation:
 Example:
 
 ```
-## Arguments Reference
+## Argument Reference
 
 `name` - (Required) The name which should be used for this resource.
 
@@ -68,7 +68,7 @@ A `block_argument` supports the following:
 
 * `nested_argument_2` - (Optional) A nested argument that may be specified.
 
-## Attributes References
+## Attribute References
 
 ...
 
@@ -97,7 +97,7 @@ Block attributes must have two entries in the documentation:
 Example:
 
 ```
-## Attributes Reference
+## Attribute Reference
 
 `id` - The ID of this resource.
 

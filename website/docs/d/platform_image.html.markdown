@@ -37,7 +37,7 @@ output "id" {
 
 * `version` - (Optional) The version of the Platform Image.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Platform Image.
 

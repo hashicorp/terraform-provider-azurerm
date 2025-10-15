@@ -32,7 +32,7 @@ output "notes" {
 
 * `user_id` - The Identifier for the User.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the API Management User.
 

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `is_verified` - (Optional) Specifies if the certificate is created in verified state. Defaults to `false`. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

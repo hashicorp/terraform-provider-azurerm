@@ -25,7 +25,7 @@ output "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `zone` - (Optional) The Cloud Exadata Infrastructure Azure zone, used to filter out the available DB System Shapes in the specific zone.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

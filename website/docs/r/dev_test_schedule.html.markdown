@@ -106,7 +106,7 @@ A `notification_settings` block supports the following:
 
 * `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

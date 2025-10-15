@@ -108,7 +108,7 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -136,7 +136,7 @@ A `customer_certificate` block supports the following:
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

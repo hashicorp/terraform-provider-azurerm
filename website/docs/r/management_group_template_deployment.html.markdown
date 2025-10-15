@@ -107,7 +107,7 @@ resource "azurerm_management_group_template_deployment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Template.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

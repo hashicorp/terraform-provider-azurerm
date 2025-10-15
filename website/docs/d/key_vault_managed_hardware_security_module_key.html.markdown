@@ -37,7 +37,7 @@ The following arguments are supported:
 
 -> **Note:** The Managed Hardware Security Module must be in the same subscription as the provider. If the Managed Hardware Security Module is in another subscription, you must create an aliased provider for that subscription.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

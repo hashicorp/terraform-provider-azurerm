@@ -147,7 +147,7 @@ A `linked_service` block supports the following:
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

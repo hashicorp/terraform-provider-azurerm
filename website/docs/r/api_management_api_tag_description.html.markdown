@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `external_documentation_description` - (Optional) The description of the external documentation resources describing the tag.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `alias_authorization_rule_id` - (Optional) The Shared access policies used to access the connection string for the alias.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

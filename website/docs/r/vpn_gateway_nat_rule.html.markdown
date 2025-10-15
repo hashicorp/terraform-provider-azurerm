@@ -53,7 +53,7 @@ resource "azurerm_vpn_gateway_nat_rule" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ A `internal_mapping` block exports the following:
 
 * `port_range` - (Optional) The single port range for the VPN Gateway Nat Rule internal mapping.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

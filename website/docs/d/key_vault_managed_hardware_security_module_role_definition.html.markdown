@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `managed_hsm_id` - (Required) The ID of the Key Vault Managed Hardware Security Module.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

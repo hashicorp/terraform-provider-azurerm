@@ -67,7 +67,7 @@ The following arguments are supported:
 
 -> **Note:** This must be specified when `versioning_scheme` is set to `Query`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

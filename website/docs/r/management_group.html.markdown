@@ -51,7 +51,7 @@ The following arguments are supported:
 
 ~> **Note:** To clear all Subscriptions from the Management Group set `subscription_ids` to an empty list
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

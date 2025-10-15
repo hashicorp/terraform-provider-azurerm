@@ -35,7 +35,7 @@ resource "azurerm_arc_resource_bridge_appliance" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Arc Resource Bridge Appliance. The only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

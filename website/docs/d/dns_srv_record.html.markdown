@@ -34,7 +34,7 @@ output "dns_srv_record_id" {
 
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The DNS SRV Record ID.
 

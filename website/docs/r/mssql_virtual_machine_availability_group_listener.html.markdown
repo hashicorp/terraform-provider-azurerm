@@ -95,7 +95,7 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -157,7 +157,7 @@ A `replica` block supports the following:
 
 * `sql_virtual_machine_id` - (Required) The ID of the SQL Virtual Machine. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

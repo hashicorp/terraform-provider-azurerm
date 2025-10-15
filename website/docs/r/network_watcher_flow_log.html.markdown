@@ -127,7 +127,7 @@ The `traffic_analytics` block supports the following:
 
 * `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes. Defaults to `60`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -74,7 +74,7 @@ A `ipv4_firewall_rule` block supports the following:
 
 * `range_end` - (Required) End of the firewall rule range as IPv4 address.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

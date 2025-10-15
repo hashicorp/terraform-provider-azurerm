@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `deployment_name` - (Required) Specifies the name of Spring Cloud Deployment which is going to be active.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -116,7 +116,7 @@ A `private_endpoint` block supports the following:
 
 ~> **Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

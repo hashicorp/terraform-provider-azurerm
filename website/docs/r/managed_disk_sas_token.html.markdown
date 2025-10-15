@@ -40,7 +40,7 @@ resource "azurerm_managed_disk_sas_token" "test" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/compute/disks/grant-access)
 for additional details on the fields above.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `account_name` - The name of the NetApp Account in which the NetApp Policy exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

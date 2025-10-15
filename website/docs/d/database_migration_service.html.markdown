@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the database migration service exists
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

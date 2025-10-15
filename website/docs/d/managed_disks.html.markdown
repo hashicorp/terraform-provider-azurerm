@@ -26,7 +26,7 @@ output "first_disk_id" {
 
 * `resource_group_name` - Specifies the name of the Resource Group where this Managed Disk exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `disk` - a `disk` block as detailed below.
 

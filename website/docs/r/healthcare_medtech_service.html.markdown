@@ -90,7 +90,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Healthcare Med Tech Service.
 
-## Attributes Reference
+## Attribute Reference
 
 The following arguments are supported:
 

@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `function_alias` - (Optional) The alias to use for the function. Required when `type` is `function`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

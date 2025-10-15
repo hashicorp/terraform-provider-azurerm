@@ -25,7 +25,7 @@ output "current_subscription_display_name" {
 
 * `subscription_id` - (Optional) Specifies the ID of the subscription. If this argument is omitted, the subscription ID of the current Azure Resource Manager provider is used.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the subscription.
 * `subscription_id` - The subscription GUID.

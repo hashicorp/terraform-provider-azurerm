@@ -59,7 +59,7 @@ resource "azurerm_storage_sync_cloud_endpoint" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `storage_account_tenant_id` - (Optional) The Tenant ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created. Defaults to the current tenant id.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

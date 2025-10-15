@@ -89,7 +89,7 @@ A `instance_bgp_peering_address` block supports the following:
 
 * `custom_ips` - (Required) A list of custom BGP peering addresses to assign to this instance.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

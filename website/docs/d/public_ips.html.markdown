@@ -26,7 +26,7 @@ data "azurerm_public_ips" "example" {
 * `name_prefix` - (Optional) A prefix match used for the IP Addresses `name` field, case sensitive.
 * `allocation_type` - (Optional) The Allocation Type for the Public IP Address. Possible values include `Static` or `Dynamic`.
 
-## Attributes Reference
+## Attribute Reference
 
 * `public_ips` - A List of `public_ips` blocks as defined below filtered by the criteria above.
 

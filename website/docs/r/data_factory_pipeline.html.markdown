@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `activities_json` - (Optional) A JSON object that contains the activities that will be associated with the Data Factory Pipeline.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

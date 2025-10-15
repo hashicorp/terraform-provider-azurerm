@@ -32,7 +32,7 @@ resource "azurerm_log_analytics_query_pack_query" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Query Pack Query.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

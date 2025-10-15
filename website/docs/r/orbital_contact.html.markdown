@@ -105,7 +105,7 @@ resource "azurerm_orbital_contact" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `contact_profile_id` - (Required) ID of the orbital contact profile. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

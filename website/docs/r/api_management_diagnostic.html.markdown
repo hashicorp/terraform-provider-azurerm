@@ -157,7 +157,7 @@ The `query_params` and `headers` blocks support the following:
 
 * `value` - (Required) The name of the header or the query parameter to mask.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

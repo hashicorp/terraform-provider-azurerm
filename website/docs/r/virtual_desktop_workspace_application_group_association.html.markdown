@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

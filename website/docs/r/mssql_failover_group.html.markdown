@@ -104,7 +104,7 @@ The `read_write_endpoint_failover_policy` block supports the following:
 
 * `grace_minutes` - (Optional) The grace period in minutes, before failover with data loss is attempted for the read-write endpoint. Required when `mode` is `Automatic`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -53,7 +53,7 @@ resource "azurerm_batch_job" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `priority` - (Optional) The priority of this Batch Job, possible values can range from -1000 (lowest) to 1000 (highest). Defaults to `0`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

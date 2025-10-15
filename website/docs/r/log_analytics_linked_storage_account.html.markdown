@@ -41,7 +41,7 @@ resource "azurerm_log_analytics_linked_storage_account" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `storage_account_ids` - (Required) The storage account resource ids to be linked.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

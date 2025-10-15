@@ -42,7 +42,7 @@ resource "azurerm_vpn_site" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -114,7 +114,7 @@ A `traffic_category` block supports the following:
 
 * `optimize_endpoint_enabled` - (Optional) Is optimize endpoint enabled? The `Optimize` endpoint is required for connectivity to every O365 service and represents the O365 scenario that is the most sensitive to network performance, latency, and availability. Defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

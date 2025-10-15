@@ -41,7 +41,7 @@ resource "azurerm_container_app_environment_dapr_component" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ A `secret` block supports the following:
 
 * `value` - (Required) The value for this secret.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

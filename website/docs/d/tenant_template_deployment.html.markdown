@@ -26,13 +26,13 @@ output "example_output" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of this Tenant Template Deployment.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

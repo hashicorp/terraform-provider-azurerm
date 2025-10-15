@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `publisher` - (Required) The Publisher of the Marketplace Image. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

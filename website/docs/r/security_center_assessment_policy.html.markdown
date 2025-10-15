@@ -20,7 +20,7 @@ resource "azurerm_security_center_assessment_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `user_impact` - (Optional) The user impact of the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

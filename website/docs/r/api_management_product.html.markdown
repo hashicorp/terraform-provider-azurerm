@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `terms` - (Optional) The Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

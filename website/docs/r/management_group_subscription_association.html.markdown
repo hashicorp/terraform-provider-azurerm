@@ -29,7 +29,7 @@ resource "azurerm_management_group_subscription_association" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The ID of the Subscription to be associated with the Management Group. Changing this forces a new Management to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

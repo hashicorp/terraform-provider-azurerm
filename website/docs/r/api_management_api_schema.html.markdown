@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `definitions` - (Optional) Types definitions. Used for Swagger/OpenAPI v1 schemas only.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

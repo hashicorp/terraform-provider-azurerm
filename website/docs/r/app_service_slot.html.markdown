@@ -489,7 +489,7 @@ A `file_system` block supports the following:
 
 * `retention_in_mb` - (Required) The maximum size in megabytes that HTTP log files can use before being removed.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

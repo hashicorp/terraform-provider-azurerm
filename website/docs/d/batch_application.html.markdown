@@ -32,7 +32,7 @@ output "batch_application_id" {
 
 * `account_name` - The name of the Batch account.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

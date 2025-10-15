@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `namespace_id` - (Required) The ID of the ServiceBus Namespace where the Service Bus Topic exists.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

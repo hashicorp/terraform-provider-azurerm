@@ -57,7 +57,7 @@ resource "azurerm_container_app_environment_storage" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `nfs_server_url` - (Optional) The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`. Changing this forces a new resource to be created.
 * 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

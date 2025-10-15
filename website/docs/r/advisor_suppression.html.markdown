@@ -29,7 +29,7 @@ resource "azurerm_advisor_suppression" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `ttl` - (Optional) A optional time to live value. If omitted, the suppression will not expire. Changing this forces a new Advisor suppression to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

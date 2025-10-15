@@ -153,7 +153,7 @@ A `contact` block supports the following:
 
 * `phone` - (Optional) Phone number of the contact.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

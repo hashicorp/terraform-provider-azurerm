@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward dead lettered messages to.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

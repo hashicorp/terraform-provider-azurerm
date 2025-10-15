@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `certificate_content` - (Optional) The content of uploaded certificate. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

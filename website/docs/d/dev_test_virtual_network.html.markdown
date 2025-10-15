@@ -30,7 +30,7 @@ output "lab_subnet_name" {
 * `lab_name` - Specifies the name of the Dev Test Lab.
 * `resource_group_name` - Specifies the name of the resource group that contains the Virtual Network.
 
-## Attributes Reference
+## Attribute Reference
 
 * `allowed_subnets` - The list of subnets enabled for the virtual network as defined below.
 * `subnet_overrides` - The list of permission overrides for the subnets as defined below.

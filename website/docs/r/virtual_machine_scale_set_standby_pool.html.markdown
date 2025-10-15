@@ -45,7 +45,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -73,7 +73,7 @@ An `elasticity_profile` block supports the following:
 
 ~> **Note:** `min_ready_capacity` cannot exceed `max_ready_capacity`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

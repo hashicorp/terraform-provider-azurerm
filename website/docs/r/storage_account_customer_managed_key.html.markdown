@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `federated_identity_client_id` - (Optional) The Client ID of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

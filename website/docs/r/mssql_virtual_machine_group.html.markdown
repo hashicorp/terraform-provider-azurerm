@@ -33,7 +33,7 @@ resource "azurerm_mssql_virtual_machine_group" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ A `wsfc_domain_profile` block supports the following:
 
 * `storage_account_url` - (Optional) The SAS URL to the Storage Container of the witness storage account. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -33,7 +33,7 @@ The following arguments are supported:
 
 - `automation_account_id` - The resource ID of the automation account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the argument listed above, the following attributes are exported:
 

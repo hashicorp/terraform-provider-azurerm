@@ -151,7 +151,7 @@ The `trigger` block supports the following:
 * `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
 * `threshold` - (Required) Result or count threshold based on which rule should be triggered. Values must be between 0 and 10000 inclusive.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

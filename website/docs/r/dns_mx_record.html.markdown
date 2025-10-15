@@ -71,7 +71,7 @@ The `record` block supports:
 
 * `exchange` - (Required) The mail server responsible for the domain covered by the MX record.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

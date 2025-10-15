@@ -31,7 +31,7 @@ resource "azurerm_eventgrid_partner_namespace" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -63,7 +63,7 @@ An `inbound_ip_rule` block supports the following:
 
 * `action` - (Optional) The action to take when the rule is matched. The only possible value is `Allow`. Defaults to `Allow`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

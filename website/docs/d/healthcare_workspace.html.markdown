@@ -29,7 +29,7 @@ output "healthcare_workspace_id" {
 
 * `resource_group_name` - The name of the Resource Group in which the Healthcare Workspace exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

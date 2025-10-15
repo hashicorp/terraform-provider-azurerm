@@ -200,7 +200,7 @@ The `trace` block supports the following:
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

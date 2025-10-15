@@ -113,7 +113,7 @@ The `identity` block supports the following:
 
 ~> **Note:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

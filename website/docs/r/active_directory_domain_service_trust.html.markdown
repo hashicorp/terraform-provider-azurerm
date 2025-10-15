@@ -31,7 +31,7 @@ resource "azurerm_active_directory_domain_service_trust" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `trusted_domain_fqdn` - (Required) The FQDN of the on-premise Active Directory Domain Service.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

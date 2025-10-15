@@ -98,7 +98,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

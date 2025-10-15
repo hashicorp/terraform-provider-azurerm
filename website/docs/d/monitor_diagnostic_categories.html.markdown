@@ -28,7 +28,7 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 * `resource_id` - The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the Resource.
 

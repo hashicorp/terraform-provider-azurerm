@@ -29,7 +29,7 @@ output "servicebus_subscription" {
 
 * `topic_id` - (Required) The ID of the ServiceBus Topic where the Service Bus Subscription exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `max_delivery_count` - The maximum number of deliveries.
 

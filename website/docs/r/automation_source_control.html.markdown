@@ -40,7 +40,7 @@ resource "azurerm_automation_source_control" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -76,7 +76,7 @@ A `security` block supports the following:
 
 * `refresh_token` - (Optional) The refresh token of specified rpeo.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

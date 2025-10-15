@@ -87,7 +87,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -183,7 +183,7 @@ A `storage_disk` block supports the following:
 
 * `vhd_type` - (Optional) The disk vhd type. Possible values are `Dynamic` and `Fixed`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

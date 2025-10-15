@@ -80,7 +80,7 @@ An `allowed_ports` block supports the following:
 
 * `transport_protocol` - (Optional) The transport protocol that the traffic will use. Possible values are `TCP` and `UDP`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

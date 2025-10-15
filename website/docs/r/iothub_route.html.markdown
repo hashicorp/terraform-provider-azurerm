@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `enabled` - (Required) Specifies whether a route is enabled.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

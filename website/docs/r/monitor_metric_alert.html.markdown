@@ -149,7 +149,7 @@ A `dimension` block supports the following:
 * `operator` - (Required) The dimension operator. Possible values are `Include`, `Exclude` and `StartsWith`.
 * `values` - (Required) The list of dimension values.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -43,7 +43,7 @@ resource "azurerm_communication_service_email_domain_association" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `email_service_domain_id` - (Required) The ID of the EMail Service Domain. Changing this forces a new communication service email domain association to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

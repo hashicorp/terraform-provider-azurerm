@@ -109,7 +109,7 @@ A `ip_rule` block supports the following:
 
 * `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`. Defaults to `Allow`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

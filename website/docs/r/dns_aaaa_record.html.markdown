@@ -84,7 +84,7 @@ The following arguments are supported:
 
 ~> **Note:** either `records` OR `target_resource_id` must be specified, but not both.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

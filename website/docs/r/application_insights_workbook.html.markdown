@@ -46,7 +46,7 @@ resource "azurerm_application_insights_workbook" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -86,7 +86,7 @@ An `identity` block exports the following:
 
 * `identity_ids` - (Optional) The list of User Assigned Managed Identity IDs assigned to this Workbook. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

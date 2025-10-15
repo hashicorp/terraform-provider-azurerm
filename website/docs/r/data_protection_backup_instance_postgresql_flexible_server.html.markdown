@@ -81,7 +81,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "e
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

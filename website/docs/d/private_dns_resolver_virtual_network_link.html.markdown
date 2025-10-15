@@ -19,7 +19,7 @@ data "azurerm_private_dns_resolver_virtual_network_link" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `dns_forwarding_ruleset_id` - (Required) ID of the Private DNS Resolver DNS Forwarding Ruleset.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -33,7 +33,7 @@ output "thumbprint" {
 
 * `resource_group_name` - The Name of the Resource Group where this Batch account exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

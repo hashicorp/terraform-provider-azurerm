@@ -38,7 +38,7 @@ resource "azurerm_application_insights_standard_web_test" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -119,7 +119,7 @@ A `validation_rules` block supports the following:
 
 * `ssl_check_enabled` - (Optional) Should the SSL check be enabled?
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

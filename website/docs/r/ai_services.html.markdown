@@ -114,7 +114,7 @@ A `storage` block supports the following:
 
 * `identity_client_id` - (Optional) The client ID of the Managed Identity associated with the Storage Account.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -63,7 +63,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 ---
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

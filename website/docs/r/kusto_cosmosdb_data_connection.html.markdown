@@ -128,7 +128,7 @@ resource "azurerm_kusto_cosmosdb_data_connection" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -150,7 +150,7 @@ The following arguments are supported:
 
 * `retrieval_start_date` - (Optional) If defined, the data connection retrieves Cosmos DB documents created or updated after the specified retrieval start date. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

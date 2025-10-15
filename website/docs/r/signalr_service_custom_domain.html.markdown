@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `signalr_custom_certificate_id` - (Required) Specifies the SignalR Custom Certificate ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

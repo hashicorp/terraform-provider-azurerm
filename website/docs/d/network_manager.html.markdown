@@ -38,7 +38,7 @@ data "azurerm_network_manager" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The Name of the Resource Group where the Network Manager exists.
 
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

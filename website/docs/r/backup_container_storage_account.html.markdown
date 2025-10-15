@@ -52,7 +52,7 @@ The following arguments are supported:
 
 -> **Note:** Azure Backup places a Resource Lock on the storage account that will cause deletion to fail until the account is unregistered from Azure Backup
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

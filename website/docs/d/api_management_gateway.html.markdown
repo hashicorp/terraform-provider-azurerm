@@ -24,7 +24,7 @@ data "azurerm_api_management_gateway" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `api_management_id` - The ID of the API Management Service in which the Gateway exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the API Management Gateway.
 

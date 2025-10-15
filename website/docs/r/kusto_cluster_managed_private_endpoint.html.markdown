@@ -50,7 +50,7 @@ resource "azurerm_kusto_cluster_managed_private_endpoint" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

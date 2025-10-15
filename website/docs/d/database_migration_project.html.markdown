@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) Name of the database migration service where resource belongs to.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

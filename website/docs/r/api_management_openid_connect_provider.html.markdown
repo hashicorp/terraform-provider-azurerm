@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this OpenID Connect Provider.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -41,7 +41,7 @@ resource "azurerm_mssql_job_agent" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to assign to this Elastic Job Agent.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

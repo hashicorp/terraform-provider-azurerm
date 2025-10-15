@@ -69,7 +69,7 @@ resource "azurerm_storage_object_replication" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ A `rules` block supports the following:
 
 * `filter_out_blobs_with_prefix` - (Optional) Specifies a list of filters prefixes, the blobs whose names begin with which will be replicated.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

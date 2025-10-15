@@ -32,7 +32,7 @@ The following arguments are supported:
 
 ~> **Note:** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

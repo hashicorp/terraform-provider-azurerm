@@ -237,7 +237,7 @@ resource "azurerm_virtual_machine_run_command" "example3" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -311,7 +311,7 @@ A `source` block supports the following arguments:
 * `script_uri` - (Optional) 
 * `script_uri_managed_identity` - (Optional) A `script_uri_managed_identity` block as defined above.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

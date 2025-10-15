@@ -324,7 +324,7 @@ An `azure_to_azure_settings` block supports the following:
 
 -> **Note:** `primary_edge_zone` and `recovery_edge_zone` must be specified together.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the arguments above, the following attributes are exported:
 

@@ -19,7 +19,7 @@ data "azurerm_databox_edge_device" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Databox Edge Device should exist. Changing this forces a new Databox Edge Device to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

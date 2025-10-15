@@ -111,7 +111,7 @@ The `dimension` block supports the following:
 * `operator` - (Optional) Operator for dimension values, - 'Include'. Defaults to `Include`.
 * `values` - (Required) List of dimension values.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

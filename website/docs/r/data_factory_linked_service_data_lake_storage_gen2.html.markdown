@@ -75,7 +75,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 ~> **Note:** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -34,7 +34,7 @@ The following arguments are supported:
 
 - `automation_account_name` - The name of the automation account in which the Automation Variable exists.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

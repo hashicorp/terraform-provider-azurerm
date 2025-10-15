@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `enable_calling` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

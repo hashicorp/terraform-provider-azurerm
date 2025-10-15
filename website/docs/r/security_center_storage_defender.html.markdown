@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `sensitive_data_discovery_enabled` - (Optional) Whether Sensitive Data Discovery should be enabled. Defaults to `false`.
  
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -33,7 +33,7 @@ output "id" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `volume_group_id` - The Elastic SAN Volume Group ID within which the Elastic SAN Volume Snapshot exists.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

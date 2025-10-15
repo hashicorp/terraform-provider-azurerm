@@ -76,7 +76,7 @@ resource "azurerm_orbital_contact_profile" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 

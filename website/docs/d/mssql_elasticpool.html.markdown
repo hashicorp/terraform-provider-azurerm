@@ -32,7 +32,7 @@ output "elasticpool_id" {
 
 * `server_name` - The name of the SQL Server which contains the elastic pool.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The ID of the elastic pool.
 

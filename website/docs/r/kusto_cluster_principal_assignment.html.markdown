@@ -43,7 +43,7 @@ resource "azurerm_kusto_cluster_principal_assignment" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -61,7 +61,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ An `ip_configurations` block supports the following:
 
 * `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic` and `Static`. Defaults to `Dynamic`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

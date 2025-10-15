@@ -34,7 +34,7 @@ resource "azurerm_logic_app_integration_account_map" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata of the Logic App Integration Account Map.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

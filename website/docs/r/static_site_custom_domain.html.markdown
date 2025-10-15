@@ -76,7 +76,7 @@ resource "azurerm_dns_txt_record" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `validation_type` - (Optional) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

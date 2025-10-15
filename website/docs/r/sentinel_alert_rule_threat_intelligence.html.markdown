@@ -54,7 +54,7 @@ resource "azurerm_sentinel_alert_rule_threat_intelligence" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether the Threat Intelligence Alert rule enabled? Defaults to `true`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

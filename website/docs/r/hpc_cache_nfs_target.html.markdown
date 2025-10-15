@@ -161,7 +161,7 @@ A `namespace_junction` block supports the following:
 
 * `access_policy_name` - (Optional) The name of the access policy applied to this target. Defaults to `default`.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

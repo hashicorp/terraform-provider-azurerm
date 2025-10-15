@@ -132,7 +132,7 @@ A `permissions` block contains:
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.
 
-## Attributes Reference
+## Attribute Reference
 
 * `sas` - The computed Account Shared Access Signature (SAS).
 

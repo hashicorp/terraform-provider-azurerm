@@ -44,7 +44,7 @@ resource "azurerm_api_management_policy" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 
-## Attributes Reference
+## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -34,7 +34,7 @@ output "private_dns_mx_record_id" {
 
 * `zone_name` - Specifies the Private DNS Zone where the resource exists.
 
-## Attributes Reference
+## Attribute Reference
 
 * `id` - The Private DNS MX Record ID.
 
