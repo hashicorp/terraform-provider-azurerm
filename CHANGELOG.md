@@ -1,7 +1,10 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
-`azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
+* `azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
+* `azurerm_consumption_budget_management_group` - remove the maximum count validation for the `notification` block [GH-29200]
+* `azurerm_consumption_budget_resource_group` - remove the maximum count validation for the `notification` block [GH-29200]
+* `azurerm_consumption_budget_subscription` - remove the maximum count validation for the `notification` block [GH-29200]
 
 FEATURES:
 * **New Resource**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
@@ -9,7 +12,7 @@ FEATURES:
 
 BUG FIXES:
 * `azurerm_application_insights` - fix an issue that caused `tags` to be removed when other properties were updated [GH-30758]
-`azurerm_container_registry` - fix the `name` length validation to allow 50 rather than 49 [GH-30858]
+* `azurerm_container_registry` - fix the `name` length validation to allow 50 rather than 49 [GH-30858]
 
 ## 4.48.0 (October 13, 2025)
 
