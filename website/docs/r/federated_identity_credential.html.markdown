@@ -25,11 +25,11 @@ resource "azurerm_user_assigned_identity" "example" {
 }
 
 resource "azurerm_federated_identity_credential" "example" {
-  name                = "example"
-  audience            = ["foo"]
-  issuer              = "https://foo"
-  parent_id           = azurerm_user_assigned_identity.example.id
-  subject             = "foo"
+  name      = "example"
+  audience  = ["foo"]
+  issuer    = "https://foo"
+  parent_id = azurerm_user_assigned_identity.example.id
+  subject   = "foo"
 }
 ```
 
