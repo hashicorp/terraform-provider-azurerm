@@ -285,7 +285,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
+		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
 	}
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
