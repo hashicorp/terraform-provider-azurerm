@@ -4,6 +4,8 @@ ENHANCEMENTS:
 `azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
 
 FEATURES:
+* **New Resource**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
+* **New Data Source**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
 
 BUG FIXES:
 `azurerm_container_registry` - fix the `name` length validation to allow 50 rather than 49 [GH-30858]
