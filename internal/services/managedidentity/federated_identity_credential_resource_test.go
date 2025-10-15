@@ -81,7 +81,6 @@ resource "azurerm_federated_identity_credential" "test" {
   audience            = ["foo"]
   issuer              = "https://foo"
   name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
   parent_id           = azurerm_user_assigned_identity.test.id
   subject             = "foo"
 }
@@ -95,7 +94,6 @@ resource "azurerm_federated_identity_credential" "test" {
   audience            = ["foo-updated"]
   issuer              = "https://foo-updated"
   name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
   parent_id           = azurerm_user_assigned_identity.test.id
   subject             = "foo-updated"
 }
@@ -109,7 +107,6 @@ resource "azurerm_federated_identity_credential" "import" {
   audience            = ["foo"]
   issuer              = "https://foo"
   name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
   parent_id           = azurerm_user_assigned_identity.test.id
   subject             = "foo"
 }
