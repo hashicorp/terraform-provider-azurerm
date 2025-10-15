@@ -58,13 +58,13 @@ func (r WorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, column := range table.Columns {
 				if column.TypeHint != "" && column.Type != string(tables.ColumnTypeEnumString) {
-					return errors.New("type_hint can only be set for columns of type 'string'")
+					return errors.New("`type_hint` can only be set for columns of type `string`")
 				}
 			}
 
 			if table.Plan == string(tables.TablePlanEnumBasic) {
 				if _, ok := metadata.ResourceDiff.GetOk("retention_in_days"); ok {
-					return errors.New("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
+					return errors.New("cannot set `retention_in_days` because the retention is fixed at eight days on Basic plan")
 				}
 			}
 
@@ -74,7 +74,7 @@ func (r WorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -160,8 +160,6 @@ func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
-
-	return args
 }
 
 func (r WorkspaceTableMicrosoftResource) Attributes() map[string]*pluginsdk.Schema {
@@ -246,7 +244,7 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
+				return err
 			}
 
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
@@ -347,7 +345,7 @@ func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
 					}
 					state.Plan = pointer.FromEnum(props.Plan)
 
-					if props.Schema != nil {
+					if schema := props.Schema; schema != nil {
 						state.DisplayName = pointer.From(props.Schema.DisplayName)
 						state.Description = pointer.From(props.Schema.Description)
 						state.SubType = pointer.FromEnum(props.Schema.TableSubType)
@@ -400,20 +398,19 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Log Analytics Workspace Table %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", *id, err)
 			}
 
-			if model := existing.Model; model == nil {
-				return fmt.Errorf("model is nil: %+v", existing)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `Model` was nil, *id)
 			}
 
 			props := existing.Model.Properties
 
 			if props == nil {
-				return fmt.Errorf("properties is nil: %+v", existing)
+				return fmt.Errorf("retrieving %s: `Properties` was nil", *id)
 			}
 
-			param := existing.Model
 
 			// Create / Update requests MUST have a nil value for `StandardColumns`
 			param.Properties.Schema.StandardColumns = nil
@@ -479,7 +476,7 @@ func (r WorkspaceTableMicrosoftResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			// We can't delete Microsoft tables, so we'll just set the retention to workspace default
