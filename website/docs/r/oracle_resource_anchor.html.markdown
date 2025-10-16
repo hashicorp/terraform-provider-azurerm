@@ -66,6 +66,6 @@ terraform import azurerm_oracle_resource_anchor.example /subscriptions/00000000-
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
+This resource uses the following Azure API Providers:
 
 * `Oracle.Database` - 2025-09-01
