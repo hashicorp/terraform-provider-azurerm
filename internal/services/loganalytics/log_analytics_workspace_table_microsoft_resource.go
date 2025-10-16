@@ -218,7 +218,7 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan:                 pointer.To(tables.TablePlanEnum(tables.TablePlanEnumAnalytics)),
+					Plan:                 pointer.To(tables.TablePlanEnumAnalytics),
 					RetentionInDays:      defaultRetentionInDaysSentinelValue,
 					TotalRetentionInDays: defaultRetentionInDaysSentinelValue,
 					Schema: &tables.Schema{

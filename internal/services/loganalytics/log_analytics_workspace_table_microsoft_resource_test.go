@@ -34,21 +34,7 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_basic(t *testing.T) {
 }
 
 func TestAccLogAnalyticsWorkspaceTableMicrosoft_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_microsoft", "test")
-	r := LogAnalyticsWorkspaceTableMicrosoftResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace_table_microsoft"),
-		},
-	})
+	t.Skip("Microsoft tables are always automatically provisioned whenever log analytics workspaces are provisioned, so there's no value in returning a 'resource already exists' error")
 }
 
 func TestAccLogAnalyticsWorkspaceTableMicrosoft_complete(t *testing.T) {
@@ -119,18 +105,6 @@ resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, t.template(data))
-}
-
-func (r LogAnalyticsWorkspaceTableMicrosoftResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_workspace_table_microsoft" "import" {
-  name         = azurerm_log_analytics_workspace_table_microsoft.test.name
-  display_name = azurerm_log_analytics_workspace_table_microsoft.test.display_name
-  workspace_id = azurerm_log_analytics_workspace_table_microsoft.test.workspace_id
-}
-`, r.basic(data))
 }
 
 func (t LogAnalyticsWorkspaceTableMicrosoftResource) complete(data acceptance.TestData) string {
