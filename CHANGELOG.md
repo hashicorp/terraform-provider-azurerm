@@ -15,6 +15,15 @@ FEATURES:
 * **New Data Source**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
 
 BUG FIXES:
+* `azurerm_windows_web_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_windows_web_app` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_windows_function_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_windows_function_app` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_linux_web_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_linux_web_app` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_linux_function_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_linux_function_app` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
+* `azurerm_function_app_flex_consumption` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
 * `azurerm_signalr_service_custom_certificate` - remove unnecessary API requests and checks that could lead to a panic [GH-30412]
 * `azurerm_application_insights` - fix an issue that caused `tags` to be removed when other properties were updated [GH-30758]
 * `azurerm_container_registry` - fix the `name` length validation to allow 50 rather than 49 [GH-30858]
