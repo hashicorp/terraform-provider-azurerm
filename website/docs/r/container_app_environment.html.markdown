@@ -73,7 +73,7 @@ The following arguments are supported:
 
 ~> **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.
 
-* `public_network_access` - The public network access setting for the Container App Environment. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `public_network_access` - (Optional) The public network access setting for the Container App Environment. Possible values are `Enabled` and `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
