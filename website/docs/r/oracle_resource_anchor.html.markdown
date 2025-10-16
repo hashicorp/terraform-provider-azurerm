@@ -63,3 +63,9 @@ oracle resource anchors can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_oracle_resource_anchor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/resourceanchors/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-09-01
