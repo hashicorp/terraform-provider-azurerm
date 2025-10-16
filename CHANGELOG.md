@@ -1,8 +1,8 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
-* `azurerm_storage_queue` - Support migrating from `storage_account_name` to `storage_account_id`  [GH-30836]
-* `azurerm_search_service` - suuports upgrading the `sku` based on tier  [GH-30842]
+* `azurerm_storage_queue` - support migrating from `storage_account_name` to `storage_account_id`  [GH-30836]
+* `azurerm_search_service` - support upgrading the `sku` based on tier  [GH-30842]
 * `azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
 * `azurerm_consumption_budget_management_group` - remove the maximum count validation for the `notification` block [GH-29200]
 * `azurerm_consumption_budget_resource_group` - remove the maximum count validation for the `notification` block [GH-29200]
@@ -15,6 +15,7 @@ FEATURES:
 * **New Data Source**: `azurerm_oracle_exascale_database_storage_vault` [GH-30043]
 
 BUG FIXES:
+* `azurerm_mssql_database` - fix validation for `min_capacity` and `auto_pause_delay_in_minutes` being set on non-serverless SKUs [GH-30856]
 * `azurerm_windows_web_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
 * `azurerm_windows_web_app` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
 * `azurerm_windows_function_app_slot` - the `auth_settings` block contents are now set into state when `auth_settings.enabled` is set to `false` [GH-30781]
