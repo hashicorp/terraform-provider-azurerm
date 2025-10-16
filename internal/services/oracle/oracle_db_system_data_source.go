@@ -25,39 +25,39 @@ type DbSystemDataModel struct {
 	Zones             zones.Schema `tfschema:"zones"`
 
 	// DbSystemProperties
-	ClusterName                  string                 `tfschema:"cluster_name"`
-	ComputeCount                 int64                  `tfschema:"compute_count"`
-	ComputeModel                 string                 `tfschema:"compute_model"`
-	DatabaseEdition              string                 `tfschema:"database_edition"`
-	DataStorageSizeInGbs         int64                  `tfschema:"data_storage_size_in_gbs"`
-	DbSystemOptions              []DbSystemOptionsModel `tfschema:"db_system_options"`
-	DbVersion                    string                 `tfschema:"db_version"`
-	DiskRedundancy               string                 `tfschema:"disk_redundancy"`
-	DisplayName                  string                 `tfschema:"display_name"`
-	Domain                       string                 `tfschema:"domain"`
-	GridImageOcid                string                 `tfschema:"grid_image_ocid"`
-	Hostname                     string                 `tfschema:"hostname"`
-	LicenseModel                 string                 `tfschema:"license_model"`
-	LifecycleDetails             string                 `tfschema:"lifecycle_details"`
-	LifecycleState               string                 `tfschema:"lifecycle_state"`
-	ListenerPort                 int64                  `tfschema:"listener_port"`
-	MemorySizeInGbs              int64                  `tfschema:"memory_size_in_gbs"`
-	NetworkAnchorId              string                 `tfschema:"network_anchor_id"`
-	NodeCount                    int64                  `tfschema:"node_count"`
-	OciUrl                       string                 `tfschema:"oci_url"`
-	Ocid                         string                 `tfschema:"ocid"`
-	ResourceAnchorId             string                 `tfschema:"resource_anchor_id"`
-	ScanDnsName                  string                 `tfschema:"scan_dns_name"`
-	ScanIPs                      []string               `tfschema:"scan_ips"`
-	Shape                        string                 `tfschema:"shape"`
-	Source                       string                 `tfschema:"source"`
-	SshPublicKeys                []string               `tfschema:"ssh_public_keys"`
-	StorageVolumePerformanceMode string                 `tfschema:"storage_volume_performance_mode"`
-	TimeZone                     string                 `tfschema:"time_zone"`
-	Version                      string                 `tfschema:"version"`
+	ClusterName                  string                       `tfschema:"cluster_name"`
+	ComputeCount                 int64                        `tfschema:"compute_count"`
+	ComputeModel                 string                       `tfschema:"compute_model"`
+	DatabaseEdition              string                       `tfschema:"database_edition"`
+	DataStorageSizeInGbs         int64                        `tfschema:"data_storage_size_in_gbs"`
+	DatabaseSystemOptions        []DatabaseSystemOptionsModel `tfschema:"database_system_options"`
+	DatabaseVersion              string                       `tfschema:"database_version"`
+	DiskRedundancy               string                       `tfschema:"disk_redundancy"`
+	DisplayName                  string                       `tfschema:"display_name"`
+	Domain                       string                       `tfschema:"domain"`
+	GridImageOcid                string                       `tfschema:"grid_image_ocid"`
+	Hostname                     string                       `tfschema:"hostname"`
+	LicenseModel                 string                       `tfschema:"license_model"`
+	LifecycleDetails             string                       `tfschema:"lifecycle_details"`
+	LifecycleState               string                       `tfschema:"lifecycle_state"`
+	ListenerPort                 int64                        `tfschema:"listener_port"`
+	MemorySizeInGbs              int64                        `tfschema:"memory_size_in_gbs"`
+	NetworkAnchorId              string                       `tfschema:"network_anchor_id"`
+	NodeCount                    int64                        `tfschema:"node_count"`
+	OciUrl                       string                       `tfschema:"oci_url"`
+	Ocid                         string                       `tfschema:"ocid"`
+	ResourceAnchorId             string                       `tfschema:"resource_anchor_id"`
+	ScanDnsName                  string                       `tfschema:"scan_dns_name"`
+	ScanIPs                      []string                     `tfschema:"scan_ips"`
+	Shape                        string                       `tfschema:"shape"`
+	Source                       string                       `tfschema:"source"`
+	SshPublicKeys                []string                     `tfschema:"ssh_public_keys"`
+	StorageVolumePerformanceMode string                       `tfschema:"storage_volume_performance_mode"`
+	TimeZone                     string                       `tfschema:"time_zone"`
+	Version                      string                       `tfschema:"version"`
 }
 
-type DbSystemOptionsModel struct {
+type DatabaseSystemOptionsModel struct {
 	StorageManagement string `tfschema:"storage_management"`
 }
 
@@ -103,7 +103,7 @@ func (d DbSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"db_system_options": {
+		"database_system_options": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -116,7 +116,7 @@ func (d DbSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"db_version": {
+		"database_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -285,7 +285,7 @@ func (d DbSystemDataSource) Read() sdk.ResourceFunc {
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
 					state.DatabaseEdition = string(props.DatabaseEdition)
-					state.DbVersion = props.DbVersion
+					state.DatabaseVersion = props.DbVersion
 
 					dbSystemProps := props.DbSystemBaseProperties()
 
@@ -293,7 +293,7 @@ func (d DbSystemDataSource) Read() sdk.ResourceFunc {
 					state.ComputeModel = pointer.FromEnum(dbSystemProps.ComputeModel)
 					state.ClusterName = pointer.From(dbSystemProps.ClusterName)
 					state.DataStorageSizeInGbs = pointer.From(dbSystemProps.DataStorageSizeInGbs)
-					state.DbSystemOptions = FlattenDbSystemOptions(dbSystemProps.DbSystemOptions)
+					state.DatabaseSystemOptions = FlattenDbSystemOptions(dbSystemProps.DbSystemOptions)
 					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
 					state.DisplayName = pointer.From(dbSystemProps.DisplayName)
 					state.Domain = pointer.From(dbSystemProps.Domain)

@@ -3,7 +3,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -32,9 +31,13 @@ type DbSystemResourceModel struct {
 	Zones             zones.Schema      `tfschema:"zones"`
 
 	// Required
+	AdminPassword    string   `tfschema:"admin_password"`
+	ComputeCount     int64    `tfschema:"compute_count"`
+	ComputeModel     string   `tfschema:"compute_model"`
 	DatabaseEdition  string   `tfschema:"database_edition"`
-	DbVersion        string   `tfschema:"db_version"`
+	DatabaseVersion  string   `tfschema:"database_version"`
 	Hostname         string   `tfschema:"hostname"`
+	LicenseModel     string   `tfschema:"license_model"`
 	NetworkAnchorId  string   `tfschema:"network_anchor_id"`
 	ResourceAnchorId string   `tfschema:"resource_anchor_id"`
 	Shape            string   `tfschema:"shape"`
@@ -42,20 +45,16 @@ type DbSystemResourceModel struct {
 	SshPublicKeys    []string `tfschema:"ssh_public_keys"`
 
 	// Optional
-	AdminPassword                string                 `tfschema:"admin_password"`
-	ClusterName                  string                 `tfschema:"cluster_name"`
-	ComputeCount                 int64                  `tfschema:"compute_count"`
-	ComputeModel                 string                 `tfschema:"compute_model"`
-	DbSystemOptions              []DbSystemOptionsModel `tfschema:"db_system_options"`
-	DiskRedundancy               string                 `tfschema:"disk_redundancy"`
-	DisplayName                  string                 `tfschema:"display_name"`
-	Domain                       string                 `tfschema:"domain"`
-	InitialDataStorageSizeInGb   int64                  `tfschema:"initial_data_storage_size_in_gb"`
-	LicenseModel                 string                 `tfschema:"license_model"`
-	NodeCount                    int64                  `tfschema:"node_count"`
-	PluggableDatabaseName        string                 `tfschema:"pluggable_database_name`
-	StorageVolumePerformanceMode string                 `tfschema:"storage_volume_performance_mode"`
-	TimeZone                     string                 `tfschema:"time_zone"`
+	ClusterName                  string                       `tfschema:"cluster_name"`
+	DatabaseSystemOptions        []DatabaseSystemOptionsModel `tfschema:"database_system_options"`
+	DiskRedundancy               string                       `tfschema:"disk_redundancy"`
+	DisplayName                  string                       `tfschema:"display_name"`
+	Domain                       string                       `tfschema:"domain"`
+	InitialDataStorageSizeInGb   int64                        `tfschema:"initial_data_storage_size_in_gb"`
+	NodeCount                    int64                        `tfschema:"node_count"`
+	PluggableDatabaseName        string                       `tfschema:"pluggable_database_name`
+	StorageVolumePerformanceMode string                       `tfschema:"storage_volume_performance_mode"`
+	TimeZone                     string                       `tfschema:"time_zone"`
 }
 
 func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
@@ -73,7 +72,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			Sensitive:    true,
 			ForceNew:     true,
 			ValidateFunc: validate.DbSystemPassword,
@@ -81,13 +80,13 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"compute_count": {
 			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 		},
 
 		"compute_model": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.DbSystemComputeModel,
 		},
@@ -106,7 +105,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"db_system_options": {
+		"database_system_options": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
@@ -120,7 +119,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"db_version": {
+		"database_version": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -130,12 +129,14 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"disk_redundancy": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.DbSystemName,
 		},
@@ -162,7 +163,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"license_model": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.DbSystemLicenseModel,
 		},
@@ -220,6 +221,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_volume_performance_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 
@@ -278,12 +280,15 @@ func (r DbSystemResource) Create() sdk.ResourceFunc {
 				Zones:    pointer.To(model.Zones),
 				Properties: &dbsystems.DbSystemProperties{
 					// Required
-					Source:           dbsystems.DbSystemSourceType(model.Source),
+					AdminPassword:    pointer.To(model.AdminPassword),
+					ComputeCount:     pointer.To(model.ComputeCount),
+					ComputeModel:     pointer.To(dbsystems.ComputeModel(model.ComputeModel)),
 					DatabaseEdition:  dbsystems.DbSystemDatabaseEditionType(model.DatabaseEdition),
-					DbVersion:        model.DbVersion,
+					DbVersion:        model.DatabaseVersion,
 					Hostname:         model.Hostname,
 					NetworkAnchorId:  model.NetworkAnchorId,
 					ResourceAnchorId: model.ResourceAnchorId,
+					Source:           dbsystems.DbSystemSourceType(model.Source),
 					Shape:            model.Shape,
 					LicenseModel:     pointer.To(dbsystems.LicenseModel(model.LicenseModel)),
 					SshPublicKeys:    model.SshPublicKeys,
@@ -291,21 +296,12 @@ func (r DbSystemResource) Create() sdk.ResourceFunc {
 			}
 
 			// Optional
-			if model.AdminPassword != "" {
-				param.Properties.AdminPassword = pointer.To(model.AdminPassword)
-			}
-			if model.ComputeCount != 0 {
-				param.Properties.ComputeCount = pointer.To(model.ComputeCount)
-			}
-			if model.ComputeModel != "" {
-				param.Properties.ComputeModel = pointer.To(dbsystems.ComputeModel(model.ComputeModel))
-			}
 			if model.ClusterName != "" {
 				param.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
-			if len(model.DbSystemOptions) > 0 {
+			if len(model.DatabaseSystemOptions) > 0 {
 				param.Properties.DbSystemOptions = &dbsystems.DbSystemOptions{
-					StorageManagement: pointer.To(dbsystems.StorageManagementType(model.DbSystemOptions[0].StorageManagement)),
+					StorageManagement: pointer.To(dbsystems.StorageManagementType(model.DatabaseSystemOptions[0].StorageManagement)),
 				}
 			}
 			if model.DiskRedundancy != "" {
@@ -407,13 +403,15 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 				state.Zones = pointer.From(model.Zones)
 
 				if props := model.Properties; props != nil {
-					state.Source = string(props.Source)
+					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.ComputeModel = string(pointer.FromEnum(props.ComputeModel))
 					state.DatabaseEdition = string(props.DatabaseEdition)
-					state.DbVersion = props.DbVersion
+					state.DatabaseVersion = props.DbVersion
 					state.Hostname = props.Hostname
 					state.NetworkAnchorId = props.NetworkAnchorId
-					normalizedValue := strings.ToLower(props.ResourceAnchorId)
-					state.ResourceAnchorId = normalizedValue
+					state.ResourceAnchorId = metadata.ResourceData.Get("resource_anchor_id").(string)
+					state.Source = string(props.Source)
 					state.Shape = props.Shape
 					state.Zones = pointer.From(model.Zones)
 
@@ -427,11 +425,8 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 					state.SshPublicKeys = tmp
 
 					// Optional
-					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
-					state.ComputeCount = pointer.From(props.ComputeCount)
-					state.ComputeModel = string(pointer.FromEnum(props.ComputeModel))
 					state.ClusterName = pointer.From(props.ClusterName)
-					state.DbSystemOptions = FlattenDbSystemOptions(props.DbSystemOptions)
+					state.DatabaseSystemOptions = FlattenDbSystemOptions(props.DbSystemOptions)
 					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Domain = pointer.From(props.Domain)
@@ -473,10 +468,10 @@ func (DbSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dbsystems.ValidateDbSystemID
 }
 
-func FlattenDbSystemOptions(input *dbsystems.DbSystemOptions) []DbSystemOptionsModel {
-	output := make([]DbSystemOptionsModel, 0)
+func FlattenDbSystemOptions(input *dbsystems.DbSystemOptions) []DatabaseSystemOptionsModel {
+	output := make([]DatabaseSystemOptionsModel, 0)
 	if input != nil {
-		return append(output, DbSystemOptionsModel{
+		return append(output, DatabaseSystemOptionsModel{
 			StorageManagement: string(pointer.From(input.StorageManagement)),
 		})
 	}
