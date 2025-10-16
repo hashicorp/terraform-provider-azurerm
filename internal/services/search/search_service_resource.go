@@ -50,6 +50,7 @@ func resourceSearchService() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
 		),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -791,4 +792,16 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	}
 
 	return replicaCount, nil
+}
+
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+
+	auth := diff.Get("local_authentication_enabled").(bool)
+	failureMode := diff.Get("authentication_failure_mode").(string)
+
+	if !auth && failureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+	}
+
+	return nil
 }
