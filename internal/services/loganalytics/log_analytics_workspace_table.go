@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var defaultRetentionInDays = pointer.To(int64(-1))
+var defaultRetentionInDaysSentinelValue = pointer.To(int64(-1))
 
 type Column struct {
 	Name             string `tfschema:"name"`
@@ -30,10 +30,10 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"type": {
+		"display_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
@@ -42,16 +42,16 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"display_by_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+		"type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 		},
 
-		"display_name": {
+		"type_hint": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
 		},
 
 		"hidden": {
@@ -60,42 +60,33 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"type_hint": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
+		"display_by_default": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 	}
 }
 
-func expandColumns(columns []Column) *[]tables.Column {
-	result := make([]tables.Column, 0, len(columns))
-	for _, column := range columns {
-		expandedColumn := tables.Column{
+func expandColumns(columns *[]Column) *[]tables.Column {
+	result := make([]tables.Column, 0, len(*columns))
+	for _, column := range *columns {
+		result = append(result, tables.Column{
 			Name:             pointer.To(column.Name),
+			DisplayName:      pointer.To(column.DisplayName),
+			Description:      pointer.To(column.Description),
 			IsHidden:         pointer.To(column.IsHidden),
 			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
 			Type:             pointer.To(tables.ColumnTypeEnum(column.Type)),
-		}
-		// NB: leaving this as empty strings will prevent the DCR from being created, seeing the following error:
-		// Bad Request({"error":{"code":"InvalidPayload","message":"Data collection rule is invalid","details":[{"code":"InvalidTransform","target":"properties.dataFlows[0]"}]}})
-		if column.DisplayName != "" {
-			expandedColumn.DisplayName = pointer.To(column.DisplayName)
-		}
-		if column.Description != "" {
-			expandedColumn.Description = pointer.To(column.Description)
-		}
-		if column.TypeHint != "" {
-			expandedColumn.DataTypeHint = pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint))
-		}
-		result = append(result, expandedColumn)
+			DataTypeHint:     pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint)),
+		})
 	}
 	return pointer.To(result)
 }
 
 func flattenColumns(columns *[]tables.Column) []Column {
 	if columns == nil {
-		return []Column{}
+		return nil
 	}
 	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {

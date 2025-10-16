@@ -67,7 +67,7 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,8 +134,6 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
-
-	return args
 }
 
 func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Schema {
@@ -215,14 +213,12 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 			}
 			client := metadata.Client.LogAnalytics.TablesClient
 
-			tableName := config.Name
-
 			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
+				return fmt.Errorf("invalid workspace object ID for table %s: %s", config.Name, err)
 			}
 
-			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
+			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, config.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -233,13 +229,15 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan: pointer.To(tables.TablePlanEnum(config.Plan)),
+					Plan:                 pointer.To(tables.TablePlanEnum(config.Plan)),
+					RetentionInDays:      defaultRetentionInDaysSentinelValue,
+					TotalRetentionInDays: defaultRetentionInDaysSentinelValue,
 					Schema: &tables.Schema{
-						Columns:      expandColumns(config.Columns),
+						Columns:      expandColumns(pointer.To(config.Columns)),
 						DisplayName:  pointer.To(config.DisplayName),
 						Description:  pointer.To(config.Description),
 						Labels:       pointer.To(config.Labels),
-						Name:         pointer.To(tableName),
+						Name:         pointer.To(config.Name),
 						TableSubType: pointer.To(tables.TableSubTypeEnumDataCollectionRuleBased),
 						TableType:    pointer.To(tables.TableTypeEnumCustomLog),
 					},
@@ -247,14 +245,10 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.Plan == string(tables.TablePlanEnumAnalytics) {
-				if config.RetentionInDays == 0 {
-					param.Properties.RetentionInDays = defaultRetentionInDays
-				} else {
+				if config.RetentionInDays > 0 {
 					param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
 				}
-				if config.TotalRetentionInDays == 0 {
-					param.Properties.TotalRetentionInDays = defaultRetentionInDays
-				} else {
+				if config.TotalRetentionInDays > 0 {
 					param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 				}
 			}
@@ -288,15 +282,7 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var workspaceId *workspaces.WorkspaceId
-			if workspaceStateId, ok := metadata.ResourceData.GetOk("workspace_id"); ok {
-				workspaceId, err = workspaces.ParseWorkspaceID(workspaceStateId.(string))
-				if err != nil {
-					return err
-				}
-			} else {
-				workspaceId = pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
-			}
+			workspaceId := pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
 
 			state := WorkspaceTableCustomLogResourceModel{
 				WorkspaceId: workspaceId.ID(),
@@ -321,11 +307,8 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 						state.Description = pointer.From(props.Schema.Description)
 						state.Labels = pointer.From(props.Schema.Labels)
 						state.Solutions = pointer.From(props.Schema.Solutions)
-
 						state.Columns = flattenColumns(props.Schema.Columns)
-						if props.Schema.StandardColumns != nil {
-							state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
-						}
+						state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
 					}
 				}
 			}
@@ -374,21 +357,17 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 				param.Properties.Plan = pointer.To(tables.TablePlanEnum(config.Plan))
 			}
 
-			if config.Plan == string(tables.TablePlanEnumAnalytics) {
-				if metadata.ResourceData.HasChange("retention_in_days") {
-					if config.RetentionInDays == 0 {
-						param.Properties.RetentionInDays = defaultRetentionInDays
-					} else {
-						param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
-					}
+			if metadata.ResourceData.HasChange("retention_in_days") {
+				props.RetentionInDays = defaultRetentionInDaysSentinelValue
+				if config.RetentionInDays != 0 {
+					props.RetentionInDays = pointer.To(config.RetentionInDays)
 				}
+			}
 
-				if metadata.ResourceData.HasChange("total_retention_in_days") {
-					if config.TotalRetentionInDays == 0 {
-						param.Properties.TotalRetentionInDays = defaultRetentionInDays
-					} else {
-						param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
-					}
+			if metadata.ResourceData.HasChange("total_retention_in_days") {
+				props.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
+				if config.TotalRetentionInDays == 0 {
+					props.TotalRetentionInDays = defaultRetentionInDaysSentinelValue
 				}
 			}
 
@@ -405,7 +384,7 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("column") {
-				param.Properties.Schema.Columns = expandColumns(config.Columns)
+				param.Properties.Schema.Columns = expandColumns(pointer.To(config.Columns))
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
