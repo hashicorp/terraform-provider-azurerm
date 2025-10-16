@@ -190,10 +190,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
-- `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
-- `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
+* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
 
 ## Import
 
@@ -204,11 +204,9 @@ terraform import azurerm_cognitive_account.account1 /subscriptions/00000000-0000
 ```
 
 ## API Providers
-
 <!-- This section is generated, changes will be overwritten -->
-
 This resource uses the following Azure API Providers:
 
-- `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2025-06-01
 
-- `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2024-05-01
