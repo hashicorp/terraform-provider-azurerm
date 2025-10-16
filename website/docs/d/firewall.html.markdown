@@ -46,7 +46,7 @@ The following attributes are exported:
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
-* `autoscale_configuration` - A `autoscale_configuration` block as defined below.
+* `autoscale` - A `autoscale` block as defined below.
 
 * `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
