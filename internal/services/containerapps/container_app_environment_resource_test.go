@@ -389,6 +389,19 @@ func TestAccContainerAppEnvironment_publicNetworkAccessDisabledWithPrivateEndpoi
 	})
 }
 
+func TestAccContainerAppEnvironment_publicNetworkAccessWithInternalLoadBalancerExpectError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.publicNetworkAccessEnabledWithInternalLoadBalancer(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`public_network_access` cannot be `Enabled` when `internal_load_balancer_enabled` is set to `true`"),
+		},
+	})
+}
+
 func altSubscriptionCheck() *containerAppEnvironmentAlternateSubscription {
 	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
@@ -553,7 +566,6 @@ resource "azurerm_container_app_environment" "test" {
   infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
-  public_network_access          = "Enabled"
   zone_redundancy_enabled        = true
   mutual_tls_enabled             = true
 
@@ -1037,6 +1049,57 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) publicNetworkAccessEnabledWithInternalLoadBalancer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  public_network_access          = "Enabled"
+  zone_redundancy_enabled        = true
+  mutual_tls_enabled             = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) template(data acceptance.TestData) string {

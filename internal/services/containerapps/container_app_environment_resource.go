@@ -5,6 +5,7 @@ package containerapps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -157,9 +158,10 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"public_network_access": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      managedenvironments.PublicNetworkAccessEnabled,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure sets a different value depending on whether the CAE is provisioned with its own virtual network.
+			Computed:     true,
 			Description:  "The public network access setting for the Container App Environment.",
 			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false),
 		},
@@ -275,9 +277,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
 						Destination: pointer.To(containerAppEnvironment.LogsDestination),
 					},
-					PublicNetworkAccess: pointer.ToEnum[managedenvironments.PublicNetworkAccess](containerAppEnvironment.PublicNetworkAccess),
-					VnetConfiguration:   &managedenvironments.VnetConfiguration{},
-					ZoneRedundant:       pointer.To(containerAppEnvironment.ZoneRedundant),
+					VnetConfiguration: &managedenvironments.VnetConfiguration{},
+					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
 					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
 						Mtls: &managedenvironments.Mtls{
 							Enabled: pointer.To(containerAppEnvironment.Mtls),
@@ -290,6 +291,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 					},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
+			}
+
+			if containerAppEnvironment.PublicNetworkAccess != "" {
+				managedEnvironment.Properties.PublicNetworkAccess = pointer.ToEnum[managedenvironments.PublicNetworkAccess](containerAppEnvironment.PublicNetworkAccess)
 			}
 
 			if containerAppEnvironment.DaprApplicationInsightsConnectionString != "" {
@@ -568,6 +573,11 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
+			var model ContainerAppEnvironmentModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			if metadata.ResourceDiff.HasChange("workload_profile") {
 				o, n := metadata.ResourceDiff.GetChange("workload_profile")
 
@@ -598,12 +608,12 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 						switch logsDestination {
 						case LogsDestinationLogAnalytics:
 							if logAnalyticsWorkspaceIDIsNull {
-								return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+								return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 							}
 
 						case LogsDestinationAzureMonitor, LogsDestinationNone:
 							if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
-								return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+								return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 							}
 						}
 					}
@@ -616,15 +626,19 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 					switch logsDestination {
 					case LogsDestinationLogAnalytics:
 						if logAnalyticsWorkspaceID == "" {
-							return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
 					case LogsDestinationAzureMonitor, LogsDestinationNone:
 						if logAnalyticsWorkspaceID != "" {
-							return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 						}
 					}
 				}
+			}
+
+			if model.InternalLoadBalancerEnabled && model.PublicNetworkAccess == string(managedenvironments.PublicNetworkAccessEnabled) {
+				return errors.New("`public_network_access` cannot be `Enabled` when `internal_load_balancer_enabled` is set to `true`")
 			}
 
 			return nil
