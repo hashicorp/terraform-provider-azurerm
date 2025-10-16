@@ -1,6 +1,7 @@
 ## 4.49.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_data_protection_backup_vault` - add support for `UserAssigned` and `SystemAssigned, UserAssigned` values to the `identity.type` property [GH-29061]
 * `azurerm_storage_queue` - support migrating from `storage_account_name` to `storage_account_id`  [GH-30836]
 * `azurerm_search_service` - support upgrading the `sku` based on tier  [GH-30842]
 * `azurerm_monitor_data_collection_rule` - improve validation for `data_sources.*.name` [GH-30851]
