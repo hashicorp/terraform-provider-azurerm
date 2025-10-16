@@ -30,8 +30,8 @@ const (
 
 type propertyMissDiff struct {
 	checkBase
-	MissType      MissType
-	correctName   string // for misspelling diff only
+	MissType    MissType
+	correctName string // for misspelling diff only
 }
 
 func newPropertyMiss(checkBase checkBase, missType MissType) *propertyMissDiff {
@@ -46,13 +46,11 @@ func (c propertyMissDiff) String() string {
 		return fmt.Sprintf("%s should be nested in %s", c.Str(), util.ItalicCode(util.XPathDir(c.correctName)))
 	case Misspelling:
 		// it can be in the wrong place
-		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.checkBase.Str(), util.FixedCode(util.XPathBase(c.correctName)))
-	case MissInCode:
-		return fmt.Sprintf("%s does not exist in the schema or is poorly formatted", c.checkBase.Str())
+		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.Str(), util.FixedCode(util.XPathBase(c.correctName)))
 	case MissInDoc:
-		return fmt.Sprintf("%s exists in schema but is missing from Arguments section in documentation", c.checkBase.Str())
+		return fmt.Sprintf("%s exists in schema but is missing from Arguments section in documentation", c.Str())
 	case MissInDocAttr:
-		return fmt.Sprintf("%s exists in schema but is missing from Attributes section in documentation", c.checkBase.Str())
+		return fmt.Sprintf("%s exists in schema but is missing from Attributes section in documentation", c.Str())
 	}
 	return fmt.Sprintf("%s does not exist in the %s or is poorly formatted", c.Str(), c.MissType)
 }

@@ -40,39 +40,20 @@ func Test_unmarshalFile(t *testing.T) {
 
 func TestSameNameAttrLinking(t *testing.T) {
 	// Test that linkBlockFields is working by using existing test file
-	file := filepath.Join(testDir, "test_recovery_services_vault.html.markdown")
+	file := filepath.Join(testDir, "test_identity.html.markdown")
 	m := MustNewMarkFromFile(file)
 	doc := m.BuildResourceDoc()
 
-	// The key_vault.html.markdown should have been parsed successfully
-	// This test verifies that the linkBlockFields function doesn't break existing functionality
-	if len(doc.Args) == 0 {
-		t.Fatal("Expected arguments to be parsed from key_vault.html.markdown")
-	}
-
 	// Look for any blocks that have SameNameAttr set to verify linking works
 	sameNameAttrFound := false
-	for _, field := range doc.Args {
-		if field.SameNameAttr != nil {
+	for key, field := range doc.Args {
+		if key == "identity" && field.SameNameAttr != nil {
 			sameNameAttrFound = true
-			t.Logf("Found SameNameAttr linking for field: %s", field.Name)
-			break
-		}
-		// Check nested fields too
-		if field.Subs != nil {
-			for _, subField := range field.Subs {
-				if subField.SameNameAttr != nil {
-					sameNameAttrFound = true
-					t.Logf("Found nested SameNameAttr linking for field: %s.%s", field.Name, subField.Name)
-					break
-				}
-			}
-		}
-		if sameNameAttrFound {
 			break
 		}
 	}
 
-	t.Logf("Successfully parsed key_vault.html.markdown with %d arguments and %d attributes", len(doc.Args), len(doc.Attr))
-	t.Logf("SameNameAttr linking found: %v", sameNameAttrFound)
+	if !sameNameAttrFound {
+		t.Fatalf("Expected to link sameNameAttr to Args, but not found")
+	}
 }

@@ -176,8 +176,7 @@ func TestNestedComputedMissingInAttributes(t *testing.T) {
 				},
 			},
 		},
-		Attr: model.Properties{
-		},
+		Attr: model.Properties{},
 	}
 
 	checkers := crossCheckProperty(testSchema, testDoc)
@@ -218,8 +217,7 @@ func TestOptionalComputedExistsInAttributes(t *testing.T) {
 				Pos:  model.PosArgs,
 			},
 		},
-		Attr: model.Properties{
-		},
+		Attr: model.Properties{},
 	}
 
 	checkers := crossCheckProperty(testSchema, testDoc)
