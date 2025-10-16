@@ -69,13 +69,19 @@ resource "azurerm_key_vault_secret" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret. Changing this forces a new resource to be created.
 
-* `value` - (Required) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+* `value` - (Optional) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+
+* `value_wo` - (Optional, Write-Only) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+
+* ~> **Note:** One of `value` or `value_wo` must be specified.
+
+* `value_wo_version` - (Optional) An integer value used to trigger an update for `value_wo`. This property should be incremented when updating `value_wo`.
 
 ~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
@@ -87,7 +93,7 @@ The following arguments are supported:
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). Removing this forces a new resource to be created.
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
 ## Attributes Reference
 
@@ -101,11 +107,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Secret.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Secret.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Secret.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Secret.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Secret.
 
 ## Import

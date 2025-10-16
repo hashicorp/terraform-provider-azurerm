@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -198,8 +197,8 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.DatabaseLicenseTypeBasePrice),
-					string(sql.DatabaseLicenseTypeLicenseIncluded),
+					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
+					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
 				}, false),
 			},
 

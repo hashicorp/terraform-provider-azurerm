@@ -54,7 +54,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_rule {
     name                           = "Rule2"
     enabled                        = true
-    priority                       = 2
+    priority                       = 50
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
     type                           = "MatchRule"
@@ -80,6 +80,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Log"
 
     exclusion {
       match_variable = "QueryStringArgNames"
@@ -121,54 +122,13 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
-    version = "1.0"
+    version = "1.1"
     action  = "Log"
   }
 }
 ```
 
-## Example Usage: JSChallenge Managed Rule Override
-
-```hcl
-managed_rule {
-  type    = "Microsoft_BotManagerRuleSet"
-  version = "1.1"
-  action  = "Log"
-
-  override {
-    rule_group_name = "BadBots"
-
-    rule {
-      action  = "JSChallenge"
-      enabled = true
-      rule_id = "Bot100200"
-    }
-  }
-}
-```
-
-## Example Usage: JSChallenge Custom Rule
-
-```hcl
-custom_rule {
-  name                           = "CustomJSChallenge"
-  enabled                        = true
-  priority                       = 2
-  rate_limit_duration_in_minutes = 1
-  rate_limit_threshold           = 10
-  type                           = "MatchRule"
-  action                         = "JSChallenge"
-
-  match_condition {
-    match_variable     = "RemoteAddr"
-    operator           = "IPMatch"
-    negation_condition = false
-    match_values       = ["192.168.1.0/24"]
-  }
-}
-```
-
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -186,7 +146,13 @@ The following arguments are supported:
 
 -> **Note:** The `js_challenge_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/waf-javascript-challenge) for more information.
 
-!> **Note:** Setting the`js_challenge_cookie_expiration_in_minutes` policy is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+~> **Note:** When you remove the `js_challenge_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
+
+* `captcha_cookie_expiration_in_minutes` - (Optional) Specifies the Captcha cookie lifetime in minutes. Possible values are between `5` and `1440`. Defaults to`30` minutes.
+
+-> **Note:** The `captcha_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/captcha-challenge) for more information.
+
+~> **Note:** When you remove the `captcha_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
@@ -202,6 +168,10 @@ The following arguments are supported:
 
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
 
+* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+
+!> **Note:** Setting the`log_scrubbing` block is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Front Door Firewall Policy.
@@ -212,9 +182,9 @@ A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, or `JSChallenge`.
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, `JSChallenge`, or `CAPTCHA`.
 
-!> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+!> **Note:** Setting the `action` field to `JSChallenge` or `CAPTCHA` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
@@ -260,6 +230,16 @@ A `managed_rule` block supports the following:
 
 ---
 
+A `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
+
+* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
+
+-> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+
+---
+
 An `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
@@ -298,6 +278,40 @@ An `exclusion` block supports the following:
 
 -> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
 
+---
+
+A `scrubbing_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
+
+-> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
+
+* `selector` - (Optional) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
+
+-> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
+
+* `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
+
+* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
+
+---
+
+## `scrubbing_rule` Examples:
+
+The following table shows examples of `scrubbing_rule`'s that can be used to protect sensitive data:
+
+| Match Variable               | Operator       | Selector      | What Gets Scrubbed                                                            |
+| :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
+| `RequestHeaderNames`         | Equals         | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
+| `RequestCookieNames`         | Equals         | cookieToBlock | {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
+| `RequestBodyPostArgNames`    | Equals         | var           | {"matchVariableName":"PostParamValue:var","matchVariableValue":"****"}        |
+| `RequestBodyJsonArgNames`    | Equals         | JsonValue     | {"matchVariableName":"JsonValue:key","matchVariableValue":"****"}             |
+| `QueryStringArgNames`        | Equals         | foo           | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
+| `RequestIPAddress`           | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
+| `RequestUri`                 | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -308,11 +322,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
 
 ## Import

@@ -27,6 +27,11 @@ func ImportedResource(ctx context.Context, fw *fwserver.ImportedResource) (*tfpr
 
 	proto6.State = state
 
+	identity, identityDiags := ResourceIdentity(ctx, fw.Identity)
+
+	diags = append(diags, identityDiags...)
+	proto6.Identity = identity
+
 	newPrivate, privateDiags := fw.Private.Bytes(ctx)
 
 	diags = append(diags, privateDiags...)

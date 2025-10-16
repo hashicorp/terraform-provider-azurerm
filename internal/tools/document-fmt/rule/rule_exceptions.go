@@ -1,0 +1,39 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package rule
+
+import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+)
+
+// Exceptions contains resources and rules they should skip.
+// Name format: "(d|e|r).<resource name>"
+// TODO: externalize as configurable item?
+var Exceptions = map[string]map[string]struct{}{
+	"r.azurerm_resource_provider_registration": {
+		"S002": struct{}{},
+	},
+}
+
+func SkipRule(resourceType data.ResourceType, resourceName string, ruleName string) bool {
+	prefix := ""
+	switch resourceType {
+	case data.ResourceTypeData:
+		prefix = "d"
+	case data.ResourceTypeEphemeral:
+		prefix = "e"
+	case data.ResourceTypeResource:
+		prefix = "r"
+	}
+
+	if v, ok := Exceptions[fmt.Sprintf("%s.%s", prefix, resourceName)]; ok {
+		if _, ok := v[ruleName]; ok {
+			return true
+		}
+	}
+
+	return false
+}

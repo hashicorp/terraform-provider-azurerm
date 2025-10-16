@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedstorageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsLinkedStorageAccountResource struct{}
@@ -114,7 +115,7 @@ func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("readingLog Analytics Linked Service Storage Account (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LogAnalyticsLinkedStorageAccountResource) template(data acceptance.TestData) string {
@@ -146,7 +147,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
@@ -156,6 +158,18 @@ resource "azurerm_log_analytics_linked_storage_account" "test" {
   storage_account_ids   = [azurerm_storage_account.test.id]
 }
 `, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_storage_account" "test" {
+  data_source_type    = "CustomLogs"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  storage_account_ids = [azurerm_storage_account.test.id]
+}
+`, r.template(data))
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) requiresImport(data acceptance.TestData) string {
@@ -163,10 +177,10 @@ func (r LogAnalyticsLinkedStorageAccountResource) requiresImport(data acceptance
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "import" {
-  data_source_type      = azurerm_log_analytics_linked_storage_account.test.data_source_type
-  resource_group_name   = azurerm_log_analytics_linked_storage_account.test.resource_group_name
-  workspace_resource_id = azurerm_log_analytics_linked_storage_account.test.workspace_resource_id
-  storage_account_ids   = [azurerm_storage_account.test.id]
+  data_source_type    = azurerm_log_analytics_linked_storage_account.test.data_source_type
+  resource_group_name = azurerm_log_analytics_linked_storage_account.test.resource_group_name
+  workspace_id        = azurerm_log_analytics_linked_storage_account.test.workspace_id
+  storage_account_ids = [azurerm_storage_account.test.id]
 }
 `, r.basic(data))
 }
@@ -184,10 +198,10 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "CustomLogs"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
+  data_source_type    = "CustomLogs"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  storage_account_ids = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
 }
 `, r.template(data), data.RandomString)
 }
@@ -197,10 +211,10 @@ func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "Ingestion"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  storage_account_ids   = [azurerm_storage_account.test.id]
+  data_source_type    = "Ingestion"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  storage_account_ids = [azurerm_storage_account.test.id]
 }
 `, r.template(data))
 }

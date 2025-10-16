@@ -30,6 +30,10 @@ type ReadRequest struct {
 	// operation.
 	State tfsdk.State
 
+	// Identity is the current identity of the resource prior to the Read
+	// operation. If the resource does not support identity, this value will not be set.
+	Identity *tfsdk.ResourceIdentity
+
 	// Private is provider-defined resource private state data which was previously
 	// stored with the resource state. This data is opaque to Terraform and does
 	// not affect plan output. Any existing data is copied to
@@ -56,6 +60,14 @@ type ReadResponse struct {
 	// This field is pre-populated from ReadRequest.State and
 	// should be set during the resource's Read operation.
 	State tfsdk.State
+
+	// Identity is the identity of the resource following the Read operation.
+	// This field is pre-populated from ReadRequest.Identity and
+	// should be set during the resource's Read operation.
+	//
+	// If the resource does not support identity, this value will not be set and will
+	// raise a diagnostic if set by the resource's Read operation.
+	Identity *tfsdk.ResourceIdentity
 
 	// Private is the private state resource data following the Read operation.
 	// This field is pre-populated from ReadResourceRequest.Private and

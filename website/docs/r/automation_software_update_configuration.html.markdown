@@ -10,6 +10,8 @@ description: |-
 
 Manages an Automation Software Update Configuration.
 
+!> **Note:** The `azurerm_automation_software_update_configuration` resource has been deprecated because the Azure Automation Update Management was retired on 2024-08-31 and has been shutdown on 2025-02-28. This resource will be removed in v5.0 of the AzureRM Provider. Please migrate to Azure Update Manager, and use the `azurerm_maintenance_configuration` resource combined with the appropriate assignment resources instead. See https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/log-analytics-agent-based-azure-management-services-shut-down-starting-28-februa/4381853 for more information.
+
 ## Example Usage
 
 ```hcl
@@ -87,7 +89,7 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block as defined below.
 
-~> **NOTE:** One of `linux` or `windows` must be specified.
+~> **Note:** One of `linux` or `windows` must be specified.
 
 * `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 
@@ -105,9 +107,7 @@ The following arguments are supported:
 
 A `linux` block supports the following:
 
-* `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
-
-~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
+* `classifications_included` - (Required) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
@@ -119,9 +119,7 @@ A `linux` block supports the following:
 
 A `windows` block supports the following:
 
-* `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
-
-~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
+* `classifications_included` - (Required) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `excluded_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers excluded.
 
@@ -225,7 +223,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.
@@ -239,3 +237,9 @@ Automations Software Update Configuration can be imported using the `resource id
 ```shell
 terraform import azurerm_automation_software_update_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/softwareUpdateConfigurations/suc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation` - 2019-06-01

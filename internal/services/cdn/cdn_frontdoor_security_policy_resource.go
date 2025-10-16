@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -27,11 +28,13 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorSecurityPolicyCreate,
 		Read:   resourceCdnFrontdoorSecurityPolicyRead,
+		Update: resourceCdnFrontdoorSecurityPolicyUpdate,
 		Delete: resourceCdnFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -58,7 +61,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 			"security_policies": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
@@ -66,7 +68,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 						"firewall": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
@@ -81,7 +82,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 									"association": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
-										ForceNew: true,
 										MaxItems: 1,
 
 										Elem: &pluginsdk.Resource{
@@ -90,7 +90,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 												"domain": {
 													Type:     pluginsdk.TypeList,
 													Required: true,
-													ForceNew: true,
 													MaxItems: 500,
 
 													Elem: &pluginsdk.Resource{
@@ -98,7 +97,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 															"cdn_frontdoor_domain_id": {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
-																ForceNew:     true,
 																ValidateFunc: validate.FrontDoorSecurityPolicyDomainID,
 															},
 
@@ -171,12 +169,12 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	profileModel := resp.Model
 
 	if profileModel == nil {
-		return fmt.Errorf("profileModel is 'nil'")
+		return errors.New("profileModel is 'nil'")
 	}
 
 	isStandardSku := true
 	if profileModel.Sku.Name != nil {
-		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
+		isStandardSku = strings.HasPrefix(strings.ToLower(pointer.FromEnum(profileModel.Sku.Name)), "standard")
 	}
 
 	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
@@ -273,6 +271,64 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
+func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
+	profileId, err := profiles.ParseProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	if err != nil {
+		return err
+	}
+
+	securityPolicyName := d.Get("name").(string)
+	id := securitypolicies.NewSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+	}
+
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+	resp, err := profileClient.Get(ctx, pointer.From(profileId))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve the `sku_name` from %s: %+v", *profileId, err)
+	}
+
+	profileModel := resp.Model
+
+	if profileModel == nil {
+		return errors.New("profileModel is 'nil'")
+	}
+
+	isStandardSku := true
+	if profileModel.Sku.Name != nil {
+		isStandardSku = strings.HasPrefix(strings.ToLower(pointer.FromEnum(profileModel.Sku.Name)), "standard")
+	}
+
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	if err != nil {
+		return fmt.Errorf("expanding 'security_policies': %+v", err)
+	}
+
+	props := securitypolicies.SecurityPolicy{
+		Properties: &securitypolicies.SecurityPolicyProperties{
+			Parameters: params,
+		},
+	}
+
+	// Using 'Create' for update because it is a PUT operation
+	err = client.CreateThenPoll(ctx, id, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
+}
+
 func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -306,7 +362,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 	if id := v["cdn_frontdoor_firewall_policy_id"].(string); id != "" {
 		results.WafPolicy = &securitypolicies.ResourceReference{
-			Id: utils.String(id),
+			Id: pointer.To(id),
 		}
 	}
 

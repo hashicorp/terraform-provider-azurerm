@@ -22,6 +22,10 @@ func TestValidateRouteMapName(t *testing.T) {
 			ExpectError: false,
 		},
 		{
+			Input:       "8he.l-8l_o_8",
+			ExpectError: false,
+		},
+		{
 			Input:       strings.Repeat("s", 79),
 			ExpectError: false,
 		},

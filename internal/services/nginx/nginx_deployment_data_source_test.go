@@ -70,3 +70,27 @@ func TestAccNginxDeploymentDataSource_autoscaling(t *testing.T) {
 		},
 	})
 }
+
+func (d NginxDeploymentDataSource) basicNginxAppProtect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_nginx_deployment" "test" {
+  name                = azurerm_nginx_deployment.test.name
+  resource_group_name = azurerm_nginx_deployment.test.resource_group_name
+}
+`, DeploymentResource{}.basicNginxAppProtect(data))
+}
+
+func TestAccNginxDeploymentDataSource_nginxappprotect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_nginx_deployment", "test")
+	r := NginxDeploymentDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicNginxAppProtect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("web_application_firewall.0.activation_state_enabled").HasValue("true"),
+			),
+		},
+	})
+}

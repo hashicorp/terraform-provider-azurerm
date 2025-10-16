@@ -14,7 +14,7 @@ import (
 
 // GetProviderSchema merges the schemas returned by the
 // tfprotov5.ProviderServers associated with muxServer into a single schema.
-// Resources, data sources, ephemeral resources, and functions must be returned
+// Resources, data sources, ephemeral resources, list resources, actions, and functions must be returned
 // from only one server. Provider and ProviderMeta schemas must be identical between all servers.
 func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	rpc := "GetProviderSchema"
@@ -25,8 +25,10 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 	defer s.serverDiscoveryMutex.Unlock()
 
 	resp := &tfprotov5.GetProviderSchemaResponse{
+		ActionSchemas:            make(map[string]*tfprotov5.ActionSchema),
 		DataSourceSchemas:        make(map[string]*tfprotov5.Schema),
 		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema),
+		ListResourceSchemas:      make(map[string]*tfprotov5.Schema),
 		Functions:                make(map[string]*tfprotov5.Function),
 		ResourceSchemas:          make(map[string]*tfprotov5.Schema),
 		ServerCapabilities:       serverCapabilities,
@@ -74,6 +76,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 			}
 		}
 
+		for actionType, schema := range serverResp.ActionSchemas {
+			if _, ok := resp.ActionSchemas[actionType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, actionDuplicateError(actionType))
+
+				continue
+			}
+
+			s.actions[actionType] = server
+			resp.ActionSchemas[actionType] = schema
+		}
+
 		for resourceType, schema := range serverResp.ResourceSchemas {
 			if _, ok := resp.ResourceSchemas[resourceType]; ok {
 				resp.Diagnostics = append(resp.Diagnostics, resourceDuplicateError(resourceType))
@@ -117,6 +130,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 
 			s.ephemeralResources[ephemeralResourceType] = server
 			resp.EphemeralResourceSchemas[ephemeralResourceType] = schema
+		}
+
+		for listResourceType, schema := range serverResp.ListResourceSchemas {
+			if _, ok := resp.ListResourceSchemas[listResourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, listResourceDuplicateError(listResourceType))
+
+				continue
+			}
+
+			s.listResources[listResourceType] = server
+			resp.ListResourceSchemas[listResourceType] = schema
 		}
 	}
 

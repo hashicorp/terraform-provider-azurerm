@@ -46,7 +46,7 @@ resource "azurerm_virtual_hub_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -76,6 +76,8 @@ A `routing` block supports the following:
 
 * `static_vnet_local_route_override_criteria` - (Optional) The static VNet local route override criteria that is used to determine whether NVA in spoke VNet is bypassed for traffic with destination in spoke VNet. Possible values are `Contains` and `Equal`. Defaults to `Contains`. Changing this forces a new resource to be created.
 
+* `static_vnet_propagate_static_routes_enabled` - (Optional) Whether the static routes should be propagated to the Virtual Hub. Defaults to `true`.
+
 * `static_vnet_route` - (Optional) A `static_vnet_route` block as defined below.
 
 ---
@@ -104,12 +106,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub Connection.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Hub Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Connection.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub Connection.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub Connection.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Hub Connection.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Hub Connection.
 
 ## Import
 
@@ -118,3 +120,9 @@ Virtual Hub Connection's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_hub_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/hub1/hubVirtualNetworkConnections/connection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

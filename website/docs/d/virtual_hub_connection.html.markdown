@@ -24,7 +24,7 @@ output "virtual_hub_connection_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,6 +62,8 @@ An `routing` block exports the following:
 
 * `static_vnet_local_route_override_criteria` - The static VNet local route override criteria that is used to determine whether NVA in spoke VNet is bypassed for traffic with destination in spoke VNet.
 
+* `static_vnet_propagate_static_routes_enabled` - Whether the static routes should be propagated to the Virtual Hub or not.
+
 * `static_vnet_route` - A `static_vnet_route` block as defined below.
 
 ---
@@ -84,6 +86,12 @@ A `static_vnet_route` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

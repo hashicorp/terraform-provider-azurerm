@@ -118,6 +118,9 @@ type ResourceDiff struct {
 	// The schema for the resource being worked on.
 	schema map[string]*Schema
 
+	// The identity schema for the resource being worked on.
+	identitySchema map[string]*Schema
+
 	// The current config for this resource.
 	config *terraform.ResourceConfig
 
@@ -145,15 +148,18 @@ type ResourceDiff struct {
 	// Tracks which keys were flagged as forceNew. These keys are not saved in
 	// newWriter, but we need to track them so that they can be re-diffed later.
 	forcedNewKeys map[string]bool
+
+	newIdentity *IdentityData
 }
 
 // newResourceDiff creates a new ResourceDiff instance.
-func newResourceDiff(schema map[string]*Schema, config *terraform.ResourceConfig, state *terraform.InstanceState, diff *terraform.InstanceDiff) *ResourceDiff {
+func newResourceDiff(schema schemaMapWithIdentity, config *terraform.ResourceConfig, state *terraform.InstanceState, diff *terraform.InstanceDiff) *ResourceDiff {
 	d := &ResourceDiff{
-		config: config,
-		state:  state,
-		diff:   diff,
-		schema: schema,
+		config:         config,
+		state:          state,
+		diff:           diff,
+		schema:         schema.schemaMap,
+		identitySchema: schema.identitySchema,
 	}
 
 	d.newWriter = &newValueWriter{
@@ -681,4 +687,23 @@ func (d *ResourceDiff) checkKey(key, caller string, nested bool) error {
 		return fmt.Errorf("%s only operates on computed keys - %s is not one", caller, key)
 	}
 	return nil
+}
+
+func (d *ResourceDiff) Identity() (*IdentityData, error) {
+	// return memoized value if available
+	if d.newIdentity != nil {
+		return d.newIdentity, nil
+	}
+
+	identity := map[string]string{}
+	if d.state != nil && d.state.Identity != nil {
+		identity = d.state.Identity
+	}
+
+	d.newIdentity = &IdentityData{
+		schema: d.identitySchema,
+		raw:    identity,
+	}
+
+	return d.newIdentity, nil
 }
