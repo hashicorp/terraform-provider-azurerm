@@ -117,7 +117,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return nil
 			},
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") {
+				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
 					if d.Get("min_capacity").(float64) != 0 {
 						return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
 					}
