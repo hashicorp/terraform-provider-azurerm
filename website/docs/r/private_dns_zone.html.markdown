@@ -24,7 +24,7 @@ resource "azurerm_private_dns_zone" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

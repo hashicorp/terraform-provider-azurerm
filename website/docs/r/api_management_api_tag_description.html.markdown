@@ -60,7 +60,7 @@ resource "azurerm_api_management_api_tag_description" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

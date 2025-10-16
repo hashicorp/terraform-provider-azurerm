@@ -117,7 +117,7 @@ resource "azurerm_storage_account_customer_managed_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
