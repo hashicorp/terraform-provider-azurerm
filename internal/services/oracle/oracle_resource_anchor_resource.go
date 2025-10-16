@@ -64,7 +64,7 @@ func (ResourceAnchorResource) ModelObject() interface{} {
 }
 
 func (ResourceAnchorResource) ResourceType() string {
-	return "azurerm_oracle_database_resource_anchor"
+	return "azurerm_oracle_resource_anchor"
 }
 
 func (r ResourceAnchorResource) Create() sdk.ResourceFunc {

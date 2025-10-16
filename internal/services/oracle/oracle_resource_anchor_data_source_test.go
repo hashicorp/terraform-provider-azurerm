@@ -36,9 +36,9 @@ func (d ResourceAnchorDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracle_database_resource_anchor" "test" {
-  name                = azurerm_oracle_database_resource_anchor.test.name
-  resource_group_name = azurerm_oracle_database_resource_anchor.test.resource_group_name
+data "azurerm_oracle_resource_anchor" "test" {
+  name                = azurerm_oracle_resource_anchor.test.name
+  resource_group_name = azurerm_oracle_resource_anchor.test.resource_group_name
 }
 `, ResourceAnchorResource{}.basic(data))
 }

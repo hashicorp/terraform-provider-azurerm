@@ -99,7 +99,7 @@ func TestResourceAnchorResource_requiresImport(t *testing.T) {
 func (a ResourceAnchorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_oracle_database_resource_anchor" "test" {
+resource "azurerm_oracle_resource_anchor" "test" {
   name                = "ra1-%[2]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
@@ -110,7 +110,7 @@ resource "azurerm_oracle_database_resource_anchor" "test" {
 func (a ResourceAnchorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_oracle_database_resource_anchor" "test" {
+resource "azurerm_oracle_resource_anchor" "test" {
   name                = "ra1-%[2]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
@@ -123,7 +123,7 @@ resource "azurerm_oracle_database_resource_anchor" "test" {
 func (a ResourceAnchorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_oracle_database_resource_anchor" "test" {
+resource "azurerm_oracle_resource_anchor" "test" {
   location            = "global"
   name                = "ra1-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -139,11 +139,11 @@ func (a ResourceAnchorResource) requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_database_resource_anchor" "import" {
-  location              = azurerm_oracle_database_resource_anchor.test.location
-  name                  = azurerm_oracle_database_resource_anchor.test.name
-  resource_group_name   = azurerm_oracle_database_resource_anchor.test.resource_group_name
-  linked_compartment_id = azurerm_oracle_database_resource_anchor.test.linked_compartment_id
+resource "azurerm_oracle_resource_anchor" "import" {
+  location              = azurerm_oracle_resource_anchor.test.location
+  name                  = azurerm_oracle_resource_anchor.test.name
+  resource_group_name   = azurerm_oracle_resource_anchor.test.resource_group_name
+  linked_compartment_id = azurerm_oracle_resource_anchor.test.linked_compartment_id
 }
 `, a.basic(data))
 }
