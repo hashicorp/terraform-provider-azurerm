@@ -21,7 +21,7 @@ resource "azurerm_oracle_db_system" "example" {
   cpu_core_count                  = 4
   source                  		    = "None"
   database_edition      		      = "StandardEdition"
-  db_version				              = "19.27.0.0"
+  database_version	              = "19.27.0.0"
   hostname                        = "hostname"
   network_anchor_id               = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
   resource_anchor_id              = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
@@ -34,12 +34,20 @@ resource "azurerm_oracle_db_system" "example" {
 
 The following arguments are supported:
 
+* `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin. The password must be at least nine characters and contain at least two uppercase, two lowercase, two numbers, and two special characters. The special characters must be _, #, or -. Changing this forces a new DB system to be created.
+
+* `compute_count` - (Required) The number of compute servers for the DB system. Changing this forces a new DB system to be created.
+
+* `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Changing this forces a new DB system to be created.
+
 * `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the DB system. Exadata DB systems and 2-node RAC DB systems require EnterpriseEditionExtremePerformance.
 Changing this forces a new DB System to be created.
 
-* `db_version` - (Required) A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation. Changing this forces a new DB System to be created.
+* `database_version` - (Required) A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation. Changing this forces a new DB System to be created.
 
 * `hostname` - (Required) The hostname for the DB system. Changing this forces a new DB system to be created.
+
+* `license_model` - (Required) The Oracle license model that applies to all the databases on the DB system. The default is LicenseIncluded. Changing this forces a new DB system to be created.
 
 * `location` - (Required) The Azure Region where the DB System should exist. Changing this forces a new DB system to be created.
 
@@ -61,15 +69,9 @@ Changing this forces a new DB System to be created.
 
 ---
 
-* `admin_password` - (Optional) A strong password for SYS, SYSTEM, and PDB Admin. The password must be at least nine characters and contain at least two uppercase, two lowercase, two numbers, and two special characters. The special characters must be _, #, or -. Changing this forces a new DB system to be created.
-
 * `cluster_name` - (Optional) The cluster name for Exadata and 2-node RAC virtual machine DB systems. The cluster name must begin with an alphabetic character, and may contain hyphens (-). Underscores (_) are not permitted. The cluster name can be no longer than 11 characters and is not case sensitive. Changing this forces a new DB system to be created.
 
-* `compute_count` - (Optional) The number of compute servers for the DB system. Changing this forces a new DB system to be created.
-
-* `compute_model` - (Optional) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Changing this forces a new DB system to be created.
-
-* `db_system_options` - (Optional) One or more `db_system_options` blocks as defined below.
+* `database_system_options` - (Optional) One or more `database_system_options` blocks as defined below.
 
 * `disk_redundancy` - (Optional) The type of redundancy configured for the DB system. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new DB system to be created.
 
@@ -78,8 +80,6 @@ Changing this forces a new DB System to be created.
 * `domain` - (Optional) The domain name for the DB system. Changing this forces a new DB system to be created.
 
 * `initial_data_storage_size_in_gb` - (Optional) "Size in GB of the initial data volume that will be created and attached to a virtual machine DB system. You can scale up storage after provisioning, as needed. Note that the total storage size attached will be more than the amount you specify to allow for REDO/RECO space and software volume. Changing this forces a new DB system to be created.
-
-* `license_model` - (Optional) The Oracle license model that applies to all the databases on the DB system. The default is LicenseIncluded. Changing this forces a new DB system to be created.
 
 * `node_count` - (Optional) The number of nodes in the DB system. For RAC DB systems, the value is greater than 1. Changing this forces a new DB system to be created.
 
@@ -93,7 +93,7 @@ Changing this forces a new DB System to be created.
 
 ---
 
-A `db_system_options` block supports the following:
+A `database_system_options` block supports the following:
 
 * `storage_management` - (Optional) The storage option used in DB system. ASM - Automatic storage management, LVM - Logical Volume management.
 

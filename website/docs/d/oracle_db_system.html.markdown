@@ -47,9 +47,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `database_edition` - The Oracle Database Edition that applies to all the databases on the DB system. Exadata DB systems and 2-node RAC DB systems require EnterpriseEditionExtremePerformance.
 
-* `db_system_options` - A `db_system_options` block as defined below.
+* `database_system_options` - A `database_system_options` block as defined below.
 
-* `db_version` - A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation.
+* `database_version` - A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation.
 
 * `disk_redundancy` - The type of redundancy configured for the DB system. NORMAL is 2-way redundancy. HIGH is 3-way redundancy.
 
@@ -103,7 +103,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `db_system_options` block supports the following:
+A `database_system_options` block supports the following:
 
 * `storage_management` - (Optional) The storage option used in DB system. ASM - Automatic storage management, LVM - Logical Volume management.
 
