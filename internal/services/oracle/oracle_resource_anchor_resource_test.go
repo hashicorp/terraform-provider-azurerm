@@ -64,7 +64,6 @@ func TestResourceAnchorResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
