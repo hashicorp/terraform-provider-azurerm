@@ -324,13 +324,18 @@ func (m *Mark) blockOfName(name string, parent string, pos model.PosType) (b *Bl
 
 // buildStruct build struct of blocks
 func (m *Mark) buildStruct() {
-	fillField := func(f *model.Field, parent string) {
+	var fillField func(f *model.Field, parent string)
+	fillField = func(f *model.Field, parent string) {
 		if f.Typ == model.FieldTypeBlock {
 			// find block
 			if b, msg := m.blockOfName(f.BlockTypeName, parent, f.Pos); b != nil {
 				f.Subs = b.asProperties()
 				if msg != "" {
 					f.FormatErr = msg
+				}
+				// Recursively process nested block fields
+				for _, nestedField := range b.Fields {
+					fillField(nestedField, b.Name)
 				}
 			} else {
 				if b2, _ := m.blockOfName(f.Name, parent, f.Pos); b2 != nil {
@@ -349,10 +354,35 @@ func (m *Mark) buildStruct() {
 		}
 	}
 
-	// build for block fields
+	// Link SameNameAttr for block fields
+	m.linkBlockFields()
+
+	// build for block fields - now recursive
 	for _, b := range m.Blocks {
 		for _, f := range b.Fields {
 			fillField(f, b.Name)
+		}
+	}
+}
+
+// linkBlockFields creates SameNameAttr links for block fields between Arguments and Attributes sections
+func (m *Mark) linkBlockFields() {
+	for _, block := range m.Blocks {
+		for _, field := range block.Fields {
+			if field.Typ == model.FieldTypeBlock {
+				// Find the same block in other sections (Arguments vs Attributes)
+				for _, otherBlock := range m.Blocks {
+					if otherBlock.Name == block.Name && otherBlock.pos != block.pos {
+						for _, otherField := range otherBlock.Fields {
+							if otherField.Name == field.Name && otherField.Typ == model.FieldTypeBlock {
+								field.SameNameAttr = otherField
+								otherField.SameNameAttr = field
+								break
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }

@@ -7,6 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	schema2 "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 )
 
 func TestSliceDiff(t *testing.T) {
@@ -80,5 +83,158 @@ func TestLevenshteinDist(t *testing.T) {
 		if got != arg.dist {
 			t.Fatalf("want dist %d, got %d", arg.dist, got)
 		}
+	}
+}
+
+func TestComputedMissingInAttributes(t *testing.T) {
+	testSchema := &schema.Resource{
+		ResourceType: "azurerm_test_resource",
+		Schema: &schema2.Resource{
+			Schema: map[string]*schema2.Schema{
+				"name": {
+					Type:     schema2.TypeString,
+					Required: true,
+				},
+				"computed_field": {
+					Type:     schema2.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+
+	testDoc := &model.ResourceDoc{
+		Args: model.Properties{
+			"name": &model.Field{
+				Name: "name",
+				Pos:  model.PosArgs,
+			},
+		},
+		Attr: model.Properties{},
+	}
+
+	checkers := crossCheckProperty(testSchema, testDoc)
+
+	foundComputedMissing := false
+	for _, checker := range checkers {
+		if missChecker, ok := checker.(*propertyMissDiff); ok {
+			if missChecker.key == "computed_field" && missChecker.MissType == MissInDocAttr {
+				foundComputedMissing = true
+				break
+			}
+		}
+	}
+
+	if !foundComputedMissing {
+		t.Error("Expected to find MissInDocAttr error for computed field 'computed_field', but didn't find it")
+	}
+}
+
+func TestNestedComputedMissingInAttributes(t *testing.T) {
+	testSchema := &schema.Resource{
+		ResourceType: "azurerm_test_resource",
+		Schema: &schema2.Resource{
+			Schema: map[string]*schema2.Schema{
+				"name": {
+					Type:     schema2.TypeString,
+					Required: true,
+				},
+				"block_field": {
+					Type:     schema2.TypeList,
+					Optional: true,
+					Elem: &schema2.Resource{
+						Schema: map[string]*schema2.Schema{
+							"normal_field": {
+								Type:     schema2.TypeString,
+								Optional: true,
+							},
+							"nested_computed_field": {
+								Type:     schema2.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testDoc := &model.ResourceDoc{
+		Args: model.Properties{
+			"name": &model.Field{
+				Name: "name",
+				Pos:  model.PosArgs,
+			},
+			"block_field": &model.Field{
+				Name: "block_field",
+				Pos:  model.PosArgs,
+				Subs: model.Properties{
+					"normal_field": &model.Field{
+						Name: "normal_field",
+						Pos:  model.PosArgs,
+					},
+				},
+			},
+		},
+		Attr: model.Properties{
+		},
+	}
+
+	checkers := crossCheckProperty(testSchema, testDoc)
+
+	foundNestedComputedMissing := false
+	for _, checker := range checkers {
+		if missChecker, ok := checker.(*propertyMissDiff); ok {
+			if missChecker.key == "block_field.nested_computed_field" && missChecker.MissType == MissInDocAttr {
+				foundNestedComputedMissing = true
+				break
+			}
+		}
+	}
+
+	if !foundNestedComputedMissing {
+		t.Error("Expected to find MissInDocAttr error for nested computed field 'block_field.nested_computed_field', but didn't find it")
+	}
+}
+
+func TestOptionalComputedExistsInAttributes(t *testing.T) {
+	testSchema := &schema.Resource{
+		ResourceType: "azurerm_test_resource",
+		Schema: &schema2.Resource{
+			Schema: map[string]*schema2.Schema{
+				"oc_field": {
+					Type:     schema2.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+
+	testDoc := &model.ResourceDoc{
+		Args: model.Properties{
+			"oc_field": &model.Field{
+				Name: "name",
+				Pos:  model.PosArgs,
+			},
+		},
+		Attr: model.Properties{
+		},
+	}
+
+	checkers := crossCheckProperty(testSchema, testDoc)
+
+	foundNestedComputedMissing := false
+	for _, checker := range checkers {
+		if missChecker, ok := checker.(*propertyMissDiff); ok {
+			if missChecker.key == "oc_field" && missChecker.MissType == MissInDocAttr {
+				foundNestedComputedMissing = true
+				break
+			}
+		}
+	}
+
+	if foundNestedComputedMissing {
+		t.Error("Expected `oc_field` to exist in Argument field, but receive MissInDocAttr")
 	}
 }

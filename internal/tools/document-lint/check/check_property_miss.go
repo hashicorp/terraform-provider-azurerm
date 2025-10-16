@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	schema2 "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
 )
@@ -29,8 +30,8 @@ const (
 
 type propertyMissDiff struct {
 	checkBase
-	MissType    MissType
-	correctName string // for misspelling diff only
+	MissType      MissType
+	correctName   string // for misspelling diff only
 }
 
 func newPropertyMiss(checkBase checkBase, missType MissType) *propertyMissDiff {
@@ -45,7 +46,13 @@ func (c propertyMissDiff) String() string {
 		return fmt.Sprintf("%s should be nested in %s", c.Str(), util.ItalicCode(util.XPathDir(c.correctName)))
 	case Misspelling:
 		// it can be in the wrong place
-		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.Str(), util.FixedCode(util.XPathBase(c.correctName)))
+		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.checkBase.Str(), util.FixedCode(util.XPathBase(c.correctName)))
+	case MissInCode:
+		return fmt.Sprintf("%s does not exist in the schema or is poorly formatted", c.checkBase.Str())
+	case MissInDoc:
+		return fmt.Sprintf("%s exists in schema but is missing from Arguments section in documentation", c.checkBase.Str())
+	case MissInDocAttr:
+		return fmt.Sprintf("%s exists in schema but is missing from Attributes section in documentation", c.checkBase.Str())
 	}
 	return fmt.Sprintf("%s does not exist in the %s or is poorly formatted", c.Str(), c.MissType)
 }
@@ -77,6 +84,29 @@ func newMissInCode(path string, f *model.Field) Checker {
 // miss in doc will fill a mock `f`
 func newMissInDoc(path string, f *model.Field) Checker {
 	return newMissItem(path, f, MissInDoc)
+}
+
+// miss in doc attr - for Attributes section
+func newMissInDocAttr(path string, f *model.Field) Checker {
+	return newMissItem(path, f, MissInDocAttr)
+}
+
+// Helper function to create the appropriate MissInDoc type based on schema
+func newMissInDocWithSchema(path string, f *model.Field, s *schema2.Schema) Checker {
+	if shouldBeInAttributes(s) {
+		return newMissInDocAttr(path, f)
+	}
+	return newMissInDoc(path, f)
+}
+
+// Helper function to determine if a schema field should be in Attributes section
+func shouldBeInAttributes(s *schema2.Schema) bool {
+	if s == nil {
+		return false
+	}
+
+	// Computed-only fields go to Attributes
+	return s.Computed && !s.Optional && !s.Required
 }
 
 func newMissBlockDeclare(path string, f *model.Field) Checker {

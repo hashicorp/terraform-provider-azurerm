@@ -83,7 +83,7 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 				Path:    path,
 				Content: s.GoString(),
 			}
-			res = append(res, newMissInDoc(path, f2))
+			res = append(res, newMissInDocWithSchema(path, f2, s))
 		}
 		return res
 	}
@@ -269,13 +269,13 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 	}
 
 	// Also check SameNameAttr.Subs for fields that exist in both arguments and attributes
-    if f.SameNameAttr != nil && f.SameNameAttr.Subs != nil {
-        for _, subField := range f.SameNameAttr.Subs {
-            subPath := path + "." + subField.Name
-            sub := subTF(subField.Name)
-            res = append(res, diffCodeMiss(rt, subPath, subField, sub)...)
-        }
-    }
+	if f.SameNameAttr != nil && f.SameNameAttr.Subs != nil {
+		for _, subField := range f.SameNameAttr.Subs {
+			subPath := path + "." + subField.Name
+			sub := subTF(subField.Name)
+			res = append(res, diffCodeMiss(rt, subPath, subField, sub)...)
+		}
+	}
 
 	return res
 }
