@@ -76,7 +76,7 @@ A `ip_configuration` block exports the following:
 
 A `autoscale_configuration` block exports the following:
 
-* `min_capacity`: The minimum number of capacity units for this azure firewall.
+* `min_capacity`: The minimum number of capacity units for this Azure Firewall.
 
 * `max_capacity`: The maximum number of capacity units for this Azure Firewall.
 
