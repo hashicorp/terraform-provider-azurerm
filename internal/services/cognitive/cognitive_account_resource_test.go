@@ -294,7 +294,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRules(t *testing.T) {
 func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
-	kind := "OpenAI"
+	kind := "TextAnalytics"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -318,18 +318,6 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupported(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
-		},
 	})
 }
 
