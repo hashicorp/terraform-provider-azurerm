@@ -43,13 +43,11 @@ resource "azurerm_log_analytics_workspace_table_microsoft" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Log Analytics Workspace Table Microsoft. Changing this forces a new Log Analytics Workspace Table Microsoft to be created.
+* `name` - (Required) The name which should be used for this Log Analytics Workspace Table Microsoft. Possible values are `Alert`, `AppCenterError`, `ComputerGroup`, `InsightsMetrics`, `Operation` and `Usage`. Changing this forces a new Log Analytics Workspace Table Microsoft to be created.
 
 * `workspace_id` - (Required) The ID of the log analytics workspace. Changing this forces a new Log Analytics Workspace Table Microsoft to be created.
 
 ---
-
-* `categories` - (Optional) Specifies a list of table categories.
 
 * `column` - (Optional) One or more `column` blocks as defined below.
 
@@ -59,13 +57,9 @@ The following arguments are supported:
 
 * `labels` - (Optional) Specifies a list of table labels.
 
-* `plan` - (Optional) the plan by which the logs that are ingested to this table are handled and charged. Possible values are `Basic` and `Analytics`. Defaults to `Analytics`.
-
 * `retention_in_days` - (Optional) the table retention in days, between 4 and 730. Setting this property to -1 will default to the workspace retention.
 
 -> **Note:** `retention_in_days` must be less than or equal to `total_retention_in_days`.
-
-* `sub_type` - (Required) the API and feature subtype of the table. Possible values are `Any`, `Classic`, and `DataCollectionRuleBased`. Changing this forces a new resource to be created.
 
 * `total_retention_in_days` - (Optional) the table total retention in days, between 4 and 4383. Setting this property to -1 will default to table retention.
 

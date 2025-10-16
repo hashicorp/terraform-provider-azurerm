@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var defaultRetentionInDays = pointer.To(int64(-1))
+var defaultRetentionInDaysSentinelValue = pointer.To(int64(-1))
 
 type Column struct {
 	Name             string `tfschema:"name"`
@@ -85,6 +85,9 @@ func expandColumns(columns *[]Column) *[]tables.Column {
 }
 
 func flattenColumns(columns *[]tables.Column) []Column {
+	if columns == nil {
+		return nil
+	}
 	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {
 		result = append(result, Column{

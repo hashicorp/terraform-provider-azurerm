@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -32,9 +31,6 @@ type WorkspaceTableMicrosoftResourceModel struct {
 	WorkspaceId          string   `tfschema:"workspace_id"`
 	DisplayName          string   `tfschema:"display_name"`
 	Description          string   `tfschema:"description"`
-	SubType              string   `tfschema:"sub_type"`
-	Plan                 string   `tfschema:"plan"`
-	Categories           []string `tfschema:"categories"`
 	Columns              []Column `tfschema:"column"`
 	Labels               []string `tfschema:"labels"`
 	Solutions            []string `tfschema:"solutions"`
@@ -52,19 +48,9 @@ func (r WorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			if strings.HasSuffix(table.Name, "_CL") {
-				return errors.New("name must not end with '_CL' for Microsoft tables")
-			}
-
 			for _, column := range table.Columns {
 				if column.TypeHint != "" && column.Type != string(tables.ColumnTypeEnumString) {
 					return errors.New("`type_hint` can only be set for columns of type `string`")
-				}
-			}
-
-			if table.Plan == string(tables.TablePlanEnumBasic) {
-				if _, ok := metadata.ResourceDiff.GetOk("retention_in_days"); ok {
-					return errors.New("cannot set `retention_in_days` because the retention is fixed at eight days on Basic plan")
 				}
 			}
 
@@ -76,10 +62,17 @@ func (r WorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Alert",
+				"AppCenterError",
+				"ComputerGroup",
+				"InsightsMetrics",
+				"Operation",
+				"Usage",
+			}, false),
 		},
 
 		"workspace_id": {
@@ -99,37 +92,6 @@ func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"sub_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableSubTypeEnum(), false),
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Microsoft tables can flap between "Any" and "DataCollectionRuleBased"
-				// This is due to Azure API behavior, not user changes
-				if (old == "Any" && new == "DataCollectionRuleBased") ||
-					(old == "DataCollectionRuleBased" && new == "Any") {
-					return true
-				}
-				return false
-			},
-		},
-
-		"plan": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(tables.TablePlanEnumAnalytics),
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
-		},
-
-		"categories": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"column": {
@@ -252,41 +214,30 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", tableName, err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			if model.SubType == string(tables.TableSubTypeEnumClassic) {
-				return errors.New("sub_type 'Classic' tables cannot be created with this resource")
-			}
+			// Microsoft tables are always automatically provisioned whenever log analytics workspaces are provisioned, so there's no point in returning a 'resource already exists' error
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan: pointer.To(tables.TablePlanEnum(model.Plan)),
+					Plan:                 pointer.To(tables.TablePlanEnum(tables.TablePlanEnumAnalytics)),
+					RetentionInDays:      defaultRetentionInDaysSentinelValue,
+					TotalRetentionInDays: defaultRetentionInDaysSentinelValue,
 					Schema: &tables.Schema{
-						Categories:   pointer.To(model.Categories),
-						Columns:      expandColumns(&model.Columns),
-						DisplayName:  pointer.To(model.DisplayName),
-						Description:  pointer.To(model.Description),
-						Labels:       pointer.To(model.Labels),
-						Name:         pointer.To(tableName),
-						TableSubType: pointer.To(tables.TableSubTypeEnum(model.SubType)),
-						TableType:    pointer.To(tables.TableTypeEnumMicrosoft),
+						Columns:     expandColumns(&model.Columns),
+						DisplayName: pointer.To(model.DisplayName),
+						Description: pointer.To(model.Description),
+						Labels:      pointer.To(model.Labels),
+						Name:        pointer.To(tableName),
+						TableType:   pointer.To(tables.TableTypeEnumMicrosoft),
 					},
 				},
 			}
 
-			if model.Plan == string(tables.TablePlanEnumAnalytics) {
-				if model.RetentionInDays == 0 {
-					param.Properties.RetentionInDays = defaultRetentionInDays
-				} else {
-					param.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
-				}
-				if model.TotalRetentionInDays == 0 {
-					param.Properties.TotalRetentionInDays = defaultRetentionInDays
-				} else {
-					param.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
-				}
+			if model.RetentionInDays > 0 {
+				param.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+			}
+
+			if model.TotalRetentionInDays > 0 {
+				param.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
@@ -308,15 +259,7 @@ func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var workspaceId *workspaces.WorkspaceId
-			if workspaceStateId, ok := metadata.ResourceData.GetOk("workspace_id"); ok {
-				workspaceId, err = workspaces.ParseWorkspaceID(workspaceStateId.(string))
-				if err != nil {
-					return err
-				}
-			} else {
-				workspaceId = pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
-			}
+			workspaceId := pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
 
 			client := metadata.Client.LogAnalytics.TablesClient
 
@@ -343,35 +286,14 @@ func (r WorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
 							state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 						}
 					}
-					state.Plan = pointer.FromEnum(props.Plan)
 
 					if schema := props.Schema; schema != nil {
 						state.DisplayName = pointer.From(props.Schema.DisplayName)
 						state.Description = pointer.From(props.Schema.Description)
-						state.SubType = pointer.FromEnum(props.Schema.TableSubType)
-
-						if categories, ok := metadata.ResourceData.GetOk("categories"); ok {
-							// Preserve configured categories if API doesn't return them
-							categoriesSet := categories.(*pluginsdk.Set)
-							categories := make([]string, 0, categoriesSet.Len())
-							for _, item := range categoriesSet.List() {
-								categories = append(categories, item.(string))
-							}
-							state.Categories = categories
-						}
-
 						state.Labels = pointer.From(props.Schema.Labels)
 						state.Solutions = pointer.From(props.Schema.Solutions)
-
-						if props.Schema.Columns != nil {
-							state.Columns = flattenColumns(props.Schema.Columns)
-						} else {
-							state.Columns = nil
-						}
-
-						if props.Schema.StandardColumns != nil {
-							state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
-						}
+						state.Columns = flattenColumns(props.Schema.Columns)
+						state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
 					}
 				}
 			}
@@ -402,7 +324,7 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `Model` was nil, *id)
+				return fmt.Errorf("retrieving %s: `Model` was nil", *id)
 			}
 
 			props := existing.Model.Properties
@@ -411,52 +333,42 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `Properties` was nil", *id)
 			}
 
-
 			// Create / Update requests MUST have a nil value for `StandardColumns`
-			param.Properties.Schema.StandardColumns = nil
+			props.Schema.StandardColumns = nil
 
-			if metadata.ResourceData.HasChange("plan") {
-				param.Properties.Plan = pointer.To(tables.TablePlanEnum(config.Plan))
+			props.Plan = pointer.To(tables.TablePlanEnumAnalytics)
+
+			if metadata.ResourceData.HasChange("retention_in_days") {
+				props.RetentionInDays = defaultRetentionInDaysSentinelValue
+				if config.RetentionInDays != 0 {
+					props.RetentionInDays = pointer.To(config.RetentionInDays)
+				}
 			}
 
-			if config.Plan == string(tables.TablePlanEnumAnalytics) {
-				if metadata.ResourceData.HasChange("retention_in_days") {
-					param.Properties.RetentionInDays = defaultRetentionInDays
-					if config.RetentionInDays != 0 {
-						param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
-					}
-				}
-
-				if metadata.ResourceData.HasChange("total_retention_in_days") {
-					if config.TotalRetentionInDays == 0 {
-						param.Properties.TotalRetentionInDays = defaultRetentionInDays
-					} else {
-						param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
-					}
+			if metadata.ResourceData.HasChange("total_retention_in_days") {
+				props.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
+				if config.TotalRetentionInDays == 0 {
+					props.TotalRetentionInDays = defaultRetentionInDaysSentinelValue
 				}
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				param.Properties.Schema.DisplayName = pointer.To(config.DisplayName)
+				props.Schema.DisplayName = pointer.To(config.DisplayName)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				param.Properties.Schema.Description = pointer.To(config.Description)
-			}
-
-			if metadata.ResourceData.HasChange("categories") {
-				param.Properties.Schema.Categories = pointer.To(config.Categories)
+				props.Schema.Description = pointer.To(config.Description)
 			}
 
 			if metadata.ResourceData.HasChange("labels") {
-				param.Properties.Schema.Labels = pointer.To(config.Labels)
+				props.Schema.Labels = pointer.To(config.Labels)
 			}
 
 			if metadata.ResourceData.HasChange("column") {
-				param.Properties.Schema.Columns = expandColumns(&config.Columns)
+				props.Schema.Columns = expandColumns(&config.Columns)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(existing.Model)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id.TableName, err)
 			}
 
@@ -482,8 +394,8 @@ func (r WorkspaceTableMicrosoftResource) Delete() sdk.ResourceFunc {
 			// We can't delete Microsoft tables, so we'll just set the retention to workspace default
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{
-					RetentionInDays:      defaultRetentionInDays,
-					TotalRetentionInDays: defaultRetentionInDays,
+					RetentionInDays:      defaultRetentionInDaysSentinelValue,
+					TotalRetentionInDays: defaultRetentionInDaysSentinelValue,
 					Schema: &tables.Schema{
 						Name:    pointer.To(id.TableName),
 						Columns: &[]tables.Column{},

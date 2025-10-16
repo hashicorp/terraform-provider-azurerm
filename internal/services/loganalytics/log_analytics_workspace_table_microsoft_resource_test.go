@@ -24,15 +24,12 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
-		},
-		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_log_analytics_workspace_table_microsoft.test").ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -41,9 +38,6 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_requiresImport(t *testing.T) {
 	r := LogAnalyticsWorkspaceTableMicrosoftResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.template(data),
-		},
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,29 +57,26 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
-		},
-		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_log_analytics_workspace_table_microsoft.test").ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_log_analytics_workspace_table_microsoft.test").ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_log_analytics_workspace_table_microsoft.test").ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -95,15 +86,12 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
-		},
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_log_analytics_workspace_table_microsoft.test").ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -124,14 +112,10 @@ func (t LogAnalyticsWorkspaceTableMicrosoftResource) Exists(ctx context.Context,
 func (t LogAnalyticsWorkspaceTableMicrosoftResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-import {
-  id = "${azurerm_log_analytics_workspace.test.id}/tables/AppCenterError"
-  to = azurerm_log_analytics_workspace_table_microsoft.test
-}
+
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   name         = "AppCenterError"
   display_name = "AppCenterError"
-  sub_type     = "Any"
   workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, t.template(data))
@@ -144,7 +128,6 @@ func (r LogAnalyticsWorkspaceTableMicrosoftResource) requiresImport(data accepta
 resource "azurerm_log_analytics_workspace_table_microsoft" "import" {
   name         = azurerm_log_analytics_workspace_table_microsoft.test.name
   display_name = azurerm_log_analytics_workspace_table_microsoft.test.display_name
-  sub_type     = azurerm_log_analytics_workspace_table_microsoft.test.sub_type
   workspace_id = azurerm_log_analytics_workspace_table_microsoft.test.workspace_id
 }
 `, r.basic(data))
@@ -153,20 +136,14 @@ resource "azurerm_log_analytics_workspace_table_microsoft" "import" {
 func (t LogAnalyticsWorkspaceTableMicrosoftResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-import {
-  id = "${azurerm_log_analytics_workspace.test.id}/tables/AppCenterError"
-  to = azurerm_log_analytics_workspace_table_microsoft.test
-}
+
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   name                    = "AppCenterError"
   display_name            = "AppCenterError"
-  sub_type                = "Any"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   total_retention_in_days = 30
   retention_in_days       = 30
   description             = "This is a description"
-  plan                    = "Analytics"
-  categories              = ["AppCenter"] # NOT RETURNED BY API
   labels                  = ["label1", "label2"]
   column {
     name               = "mycustom_CF"
