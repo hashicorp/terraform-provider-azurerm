@@ -12,6 +12,7 @@ This example demonstrates how to configure cross-zone-region replication for Azu
 
 ### Notes
 
-* The primary volume must have an availability zone assigned.
+* The primary volume must have an availability zone assigned if CZR is being used.
 * Cross-zone-region replication supports up to two destination replications per source volume.
+* When deploying multiple destination volumes, ensure they are created sequentially using `depends_on` to avoid conflicts when authorizing replication on the source volume. The `example_cross_region` volume depends on both `example_primary` and `example_cross_zone` to ensure proper ordering.
 * For more information, see [Manage cross-zone-region replication for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/cross-zone-region-replication-configure).

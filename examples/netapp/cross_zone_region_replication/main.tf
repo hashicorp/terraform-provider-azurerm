@@ -187,7 +187,10 @@ resource "azurerm_netapp_volume" "example_cross_region" {
     prevent_destroy = true
   }
 
-  depends_on = [azurerm_netapp_volume.example_primary]
+  depends_on = [
+    azurerm_netapp_volume.example_primary,
+    azurerm_netapp_volume.example_cross_zone
+  ]
 
   name                = "${var.prefix}-netappvolume-cross-region"
   location            = var.alt_location
