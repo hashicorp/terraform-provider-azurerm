@@ -52,7 +52,6 @@ func (ResourceAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ResourceAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -193,6 +192,5 @@ func (ResourceAnchorResource) Delete() sdk.ResourceFunc {
 }
 
 func (ResourceAnchorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-
 	return resourceanchors.ValidateResourceAnchorID
 }

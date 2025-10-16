@@ -20,7 +20,6 @@ import (
 type ResourceAnchorResource struct{}
 
 func (a ResourceAnchorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	id, err := resourceanchors.ParseResourceAnchorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -34,7 +33,6 @@ func (a ResourceAnchorResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func TestResourceAnchorResource_basic(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +47,6 @@ func TestResourceAnchorResource_basic(t *testing.T) {
 }
 
 func TestResourceAnchorResource_complete(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
