@@ -795,7 +795,6 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 }
 
 func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-
 	auth := diff.Get("local_authentication_enabled").(bool)
 	failureMode := diff.Get("authentication_failure_mode").(string)
 
