@@ -382,6 +382,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmac
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
+github.com/hashicorp/go-azure-sdk/resource-manager/confluent/2024-07-01/connectorresources
+github.com/hashicorp/go-azure-sdk/resource-manager/confluent/2024-07-01/organizationresources
+github.com/hashicorp/go-azure-sdk/resource-manager/confluent/2024-07-01/scclusterrecords
+github.com/hashicorp/go-azure-sdk/resource-manager/confluent/2024-07-01/scenvironmentrecords
+github.com/hashicorp/go-azure-sdk/resource-manager/confluent/2024-07-01/topicrecords
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps
