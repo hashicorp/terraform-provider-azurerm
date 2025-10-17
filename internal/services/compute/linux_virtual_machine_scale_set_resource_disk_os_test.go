@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
@@ -662,6 +663,56 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
+
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DC2as_v5"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type     = "Premium_LRS"
+    caching                  = "None"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  security_profile {
+    security_type        = "ConfidentialVM"
+    vtpm_enabled         = %[3]t
+    secure_boot_enabled  = %[4]t
+  }
+}
+
+`, r.template(data), data.RandomInteger, vtpm, secureBoot)
+	}
+
 	return fmt.Sprintf(`
 %s
 

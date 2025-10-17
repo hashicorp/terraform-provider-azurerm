@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachine_diskOSBasic(t *testing.T) {
@@ -1227,6 +1228,45 @@ resource "azurerm_windows_virtual_machine" "test" {
 func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
+
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DC2as_v5"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "windows-cvm"
+    sku       = "2022-datacenter-cvm"
+    version   = "latest"
+  }
+
+  security_profile {
+    security_type        = "ConfidentialVM"
+    vtpm_enabled         = %[2]t
+    secure_boot_enabled  = %[3]t
+  }
+}
+
+`, r.template(data), vtpm, secureBoot)
+	}
+
 	return fmt.Sprintf(`
 %s
 

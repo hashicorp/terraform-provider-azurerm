@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -2240,13 +2241,16 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 				return *values
 			}
 		}
-		values := securityprofile.Values{
-			SecureBoot: pointer.To(d.Get("secure_boot_enabled").(bool)),
-			VTPM:       pointer.To(d.Get("vtpm_enabled").(bool)),
+
+		var values securityprofile.Values
+		if !features.FivePointOh() {
+			values.SecureBoot = pointer.To(d.Get("secure_boot_enabled").(bool))
+			values.VTPM = pointer.To(d.Get("vtpm_enabled").(bool))
+			if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
+				values.HostEncryption = pointer.To(v.(bool))
+			}
 		}
-		if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-			values.HostEncryption = pointer.To(v.(bool))
-		}
+
 		return values
 	}()
 
