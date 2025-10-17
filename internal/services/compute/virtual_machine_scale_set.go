@@ -2258,13 +2258,16 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 				return *values
 			}
 		}
-		values := securityprofile.Values{
-			SecureBoot: pointer.To(d.Get("secure_boot_enabled").(bool)),
-			VTPM:       pointer.To(d.Get("vtpm_enabled").(bool)),
+
+		var values securityprofile.Values
+		if !features.FivePointOh() {
+			values.SecureBoot = pointer.To(d.Get("secure_boot_enabled").(bool))
+			values.VTPM = pointer.To(d.Get("vtpm_enabled").(bool))
+			if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
+				values.HostEncryption = pointer.To(v.(bool))
+			}
 		}
-		if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-			values.HostEncryption = pointer.To(v.(bool))
-		}
+
 		return values
 	}()
 
