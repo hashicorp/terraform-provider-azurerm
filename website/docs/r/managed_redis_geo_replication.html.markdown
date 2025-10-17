@@ -10,7 +10,7 @@ description: |-
 
 Manages Managed Redis Geo-Replication by linking and unlinking databases in a geo-replication group.
 
-~> **Note:** This resource manages the geo-replication group membership for Managed Redis databases. All databases to be linked must have `geo_replication_group_name` provided with the same value. Linking / unlinking will [discard all cache data and cause temporary instance outage](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication).
+~> **Note:** This resource manages the geo-replication group membership for Managed Redis databases. All databases to be linked must have `geo_replication_group_name` provided with the same value. Linking will [discard cache data and cause temporary outage](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication#add-an-existing-instance-to-an-active-geo-replication-group).
 
 ## Example Usage
 

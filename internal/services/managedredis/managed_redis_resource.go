@@ -6,6 +6,7 @@ package managedredis
 import (
 	"context"
 	"fmt"
+	"log"
 	"slices"
 	"strings"
 	"time"
@@ -488,6 +489,8 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						"default_database.0.geo_replication_group_name",
 						"default_database.0.module",
 					) {
+						log.Printf("[INFO] re-creating database %s to apply updates to immutable properties, data will be lost and Managed Redis will be unavailable during this operation", dbId)
+
 						if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
 							return fmt.Errorf("deleting database %s: %+v", dbId, err)
 						}

@@ -142,6 +142,8 @@ The following arguments are supported:
 
 A `default_database` block supports the following:
 
+~> **Note:** Updating the following properties will force a new database to be created, data will be lost and Managed Redis will be unavailable during the operation: `clustering_policy`, `geo_replication_group_name`, and `module`
+
 * `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled for the database. Defaults to `false`.
 
 * `client_protocol` - (Optional) Specifies whether redis clients can connect using TLS-encrypted or plaintext redis protocols. Possible values are `Encrypted` and `Plaintext`. Defaults to `Encrypted`.
