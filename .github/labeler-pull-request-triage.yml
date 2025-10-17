@@ -128,6 +128,11 @@ service/connections:
   - any-glob-to-any-file:
     - internal/services/connections/**/*
 
+service/confluent:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/confluent/**/*
+
 service/consumption:
 - changed-files:
   - any-glob-to-any-file:
