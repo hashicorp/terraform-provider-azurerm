@@ -5,7 +5,6 @@ package search
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -289,10 +288,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-	}
-
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
 	authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
 		ApiKeyOnly: pointer.To(apiKeyOnly),
@@ -444,9 +439,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
-		if !localAuthenticationEnabled && authenticationFailureMode != "" {
-			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-		}
 
 		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
 
