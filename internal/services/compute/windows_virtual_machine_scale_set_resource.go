@@ -685,13 +685,29 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
-		scalarOld, scalarNew := d.GetChange("encryption_at_host_enabled")
+		var scalarOld interface{}
+		var scalarNew interface{}
+		if !features.FivePointOh() {
+			scalarOld, scalarNew = d.GetChange("encryption_at_host_enabled")
+		}
+
 		blockOld, blockNew := d.GetChange("security_profile")
-		valuesOld := securityprofile.FromBlock(blockOld.([]interface{}))
-		valuesNew := securityprofile.FromBlock(blockNew.([]interface{}))
-		computedOld := valuesOld != nil && valuesOld.HostEncryption != nil && *valuesOld.HostEncryption || (scalarOld != nil && scalarOld.(bool))
-		computedNew := valuesNew != nil && valuesNew.HostEncryption != nil && *valuesNew.HostEncryption || (scalarNew != nil && scalarNew.(bool))
-		return computedOld, computedNew
+
+		resolve := func(block interface{}, scalar interface{}) bool {
+			if blockSlice, ok := block.([]interface{}); ok {
+				if values := securityprofile.FromBlock(blockSlice); values != nil && values.HostEncryption != nil {
+					return *values.HostEncryption
+				}
+			}
+
+			if scalarBool, ok := scalar.(bool); ok {
+				return scalarBool
+			}
+
+			return false
+		}
+
+		return resolve(blockOld, scalarOld), resolve(blockNew, scalarNew)
 	}()
 	if hostEncryptionOld != hostEncryptionNew {
 		if hostEncryptionNew {
@@ -1050,7 +1066,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				}
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
-				if _, ok := d.GetOk("security_profile"); ok {
+				if features.FivePointOh() {
+					if err := d.Set("security_profile", flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile)); err != nil {
+						return fmt.Errorf("setting `security_profile`: %+v", err)
+					}
+				} else if _, ok := d.GetOk("security_profile"); ok {
 					if err := d.Set("security_profile", flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile)); err != nil {
 						return fmt.Errorf("setting `security_profile`: %+v", err)
 					}
@@ -1144,7 +1164,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 }
 
 func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1235,11 +1255,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			ConflictsWith: []string{
-				"encryption_at_host_enabled",
-				"secure_boot_enabled",
-				"vtpm_enabled",
-			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"host_encryption_enabled": {
@@ -1271,15 +1286,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
-		},
-
-		"encryption_at_host_enabled": {
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
-			ConflictsWith: []string{
-				"security_profile",
-			},
 		},
 
 		"eviction_policy": {
@@ -1402,16 +1408,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"secret": windowsSecretSchema(),
 
-		"secure_boot_enabled": {
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
-			ConflictsWith: []string{
-				"security_profile",
-			},
-		},
-
 		"single_placement_group": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -1464,16 +1460,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.StringIsBase64,
 		},
 
-		"vtpm_enabled": {
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
-			ConflictsWith: []string{
-				"security_profile",
-			},
-		},
-
 		"winrm_listener": winRmListenerSchema(),
 
 		"zone_balance": {
@@ -1508,4 +1494,43 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema["security_profile"].ConflictsWith = []string{
+			"encryption_at_host_enabled",
+			"secure_boot_enabled",
+			"vtpm_enabled",
+		}
+
+		schema["encryption_at_host_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+
+		schema["secure_boot_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+
+		schema["vtpm_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+	}
+
+	return schema
 }
