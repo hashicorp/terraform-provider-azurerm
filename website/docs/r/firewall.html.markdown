@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
 
-* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
+* `autoscale` - (Optional) An `autoscale` block as defined below.
 
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 

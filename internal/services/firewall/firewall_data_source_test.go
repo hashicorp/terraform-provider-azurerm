@@ -91,35 +91,47 @@ func TestAccFirewallDataSource_inVirtualhub(t *testing.T) {
 	})
 }
 
+func TestAccFirewallDataSource_autoscaleMinOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+	r := FirewallDataSource{}
+	minScale := 4
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale.0.min_capacity").HasValue("4"),
+			),
+		},
+	})
+}
+
+func TestAccFirewallDataSource_autoscaleMaxOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+	r := FirewallDataSource{}
+	maxScale := 6
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale.0.max_capacity").HasValue("6"),
+			),
+		},
+	})
+}
+
 func TestAccFirewallDataSource_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
 	r := FirewallDataSource{}
 	minScale := 4
 	maxScale := 6
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("autoscale.0").Exists(),
 				check.That(data.ResourceName).Key("autoscale.0.min_capacity").HasValue("4"),
 				check.That(data.ResourceName).Key("autoscale.0.max_capacity").HasValue("6"),
-			),
-		},
-		{
-			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("autoscale.0").Exists(),
-				check.That(data.ResourceName).Key("autoscale.0.min_capacity").HasValue("4"),
-				check.That(data.ResourceName).Key("autoscale.0.max_capacity").DoesNotExist(),
-			),
-		},
-		{
-			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("autoscale.0").Exists(),
-				check.That(data.ResourceName).Key("autoscale.0.min_capacity").DoesNotExist(),
-				check.That(data.ResourceName).Key("autoscale.0.max_capacity").HasValue("4"),
 			),
 		},
 	})

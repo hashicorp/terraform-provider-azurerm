@@ -236,11 +236,13 @@ func resourceFirewall() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(2, 50),
+							AtLeastOneOf: []string{"autoscale.0.min_capacity", "autoscale.0.max_capacity"},
 						},
 						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(2, 50),
+							AtLeastOneOf: []string{"autoscale.0.min_capacity", "autoscale.0.max_capacity"},
 						},
 					},
 					CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -628,10 +630,10 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 func expandAutoscaleConfiguration(config []interface{}) *azurefirewalls.AzureFirewallAutoscaleConfiguration {
 	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
 	emptyConfig := make(map[string]interface{})
-	if len(config) == 1 && config[0] != nil {
+	if len(config) == 1 {
 		emptyConfig = config[0].(map[string]interface{})
 	} else {
-		return &configuration
+		return nil
 	}
 
 	min := 0
