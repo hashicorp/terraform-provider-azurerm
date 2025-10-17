@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
@@ -103,7 +103,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
-				ExpirationTime:             utils.String(d.Get("expiration_date").(string)),
+				ExpirationTime:             pointer.To(d.Get("expiration_date").(string)),
 				RegistrationTokenOperation: &tokenOperation,
 			},
 		},
