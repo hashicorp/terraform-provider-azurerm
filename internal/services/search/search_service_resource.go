@@ -5,7 +5,6 @@ package search
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -50,6 +49,7 @@ func resourceSearchService() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
 		),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -288,10 +288,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-	}
-
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
 	authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
 		ApiKeyOnly: pointer.To(apiKeyOnly),
@@ -443,9 +439,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
-		if !localAuthenticationEnabled && authenticationFailureMode != "" {
-			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-		}
 
 		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
 
@@ -791,4 +784,15 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	}
 
 	return replicaCount, nil
+}
+
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	auth := diff.Get("local_authentication_enabled").(bool)
+	failureMode := diff.Get("authentication_failure_mode").(string)
+
+	if !auth && failureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+	}
+
+	return nil
 }

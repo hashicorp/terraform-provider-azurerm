@@ -584,6 +584,10 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config:      r.apiAccessControlBoth(data, false, "http401WithBearerChallenge"),
+			ExpectError: regexp.MustCompile("cannot be defined"),
+		},
+		{
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
