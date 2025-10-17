@@ -166,7 +166,7 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 	}
 	// check if r has such path
 	if !r.HasPathFor(xPath) {
-		log.Printf("%s %s has no path [%s], there must be an error in markdwon", color.YellowString("[WARN]"), r.ResourceType, strings.Join(xPath, "."))
+		log.Printf("%s %s has no path [%s], there must be an error in markdown", color.YellowString("[WARN]"), r.ResourceType, strings.Join(xPath, "."))
 		return
 	}
 	for _, sub := range mdField.Subs {
