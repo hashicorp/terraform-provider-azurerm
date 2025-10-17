@@ -123,6 +123,11 @@ service/communication:
   - any-glob-to-any-file:
     - internal/services/communication/**/*
 
+service/confluent:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/confluent/**/*
+
 service/connections:
 - changed-files:
   - any-glob-to-any-file:
