@@ -1144,19 +1144,27 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 		}
 	}
 
-	// Wait for volume replication authorization to complete for all volumes based on primary volume status
+	// Wait for volume replication authorization to complete for all destination volumes
 	for _, volume := range pointer.From(volumeList) {
 		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil &&
 			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-			// Getting primary resource id for waiting
-			primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volume.Properties.DataProtection.Replication.RemoteVolumeResourceId))
+			// Get the capacity pool for this volume
+			capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing capacity pool ID %q: %+v", *volume.Properties.CapacityPoolResourceId, err)
 			}
 
-			// Wait for volume replication authorization to complete
-			log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", primaryId.ID())
-			if err := waitForReplAuthorization(ctx, replicationClient, pointer.From(primaryId)); err != nil {
+			// Create the destination volume ID for status checking
+			destinationReplId := volumesreplication.NewVolumeID(subscriptionId,
+				resourceGroupName,
+				accountName,
+				capacityPoolId.CapacityPoolName,
+				getUserDefinedVolumeName(volume.Name),
+			)
+
+			// Wait for volume replication authorization to complete on the destination volume
+			log.Printf("[DEBUG] Waiting for replication authorization on destination volume %s to complete", destinationReplId.ID())
+			if err := waitForReplAuthorization(ctx, replicationClient, destinationReplId); err != nil {
 				return err
 			}
 		}
