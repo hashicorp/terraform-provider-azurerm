@@ -262,8 +262,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentre
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/certificate
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/activity
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/agentregistrationinformation
