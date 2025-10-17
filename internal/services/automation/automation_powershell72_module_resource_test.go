@@ -79,12 +79,12 @@ func TestAccAutomationPowerShell72Module_complete(t *testing.T) {
 }
 
 func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := module.ParsePowerShell72ModuleID(state.ID)
+	id, err := module.ParseModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Automation.Module.PowerShell72ModuleGet(ctx, *id)
+	resp, err := clients.Automation.Module.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

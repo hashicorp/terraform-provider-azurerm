@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/listallhybridrunbookworkergroupinautomationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -183,8 +184,21 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.Automation.HybridRunbookWorkerGroup
-			if _, err = client.Delete(ctx, *id); err != nil {
+
+			// NOTE: Due to incorrect tags in Azure Swagger, the delete operation is only available
+			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the
+			// main HybridRunbookWorkerGroup client where it logically belongs
+			client := meta.Client.Automation.ListAllHybridRunbookWorkerGroupInAutomationAccount
+
+			// Convert the ID to the listallhybridrunbookworkergroupinautomationaccount package format
+			deleteId := listallhybridrunbookworkergroupinautomationaccount.NewHybridRunbookWorkerGroupID(
+				id.SubscriptionId, 
+				id.ResourceGroupName, 
+				id.AutomationAccountName, 
+				id.HybridRunbookWorkerGroupName,
+			)
+
+			if _, err = client.HybridRunbookWorkerGroupDelete(ctx, deleteId); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil

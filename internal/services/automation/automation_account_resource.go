@@ -303,7 +303,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil {

@@ -168,9 +168,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("automation_account_name", id.AutomationAccountName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)

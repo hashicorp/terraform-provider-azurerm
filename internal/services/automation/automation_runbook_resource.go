@@ -399,9 +399,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", azure.NormalizeLocation(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {
