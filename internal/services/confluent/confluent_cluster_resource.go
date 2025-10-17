@@ -21,33 +21,33 @@ import (
 type ConfluentClusterResource struct{}
 
 type ConfluentClusterResourceModel struct {
-	ClusterId         string                        `tfschema:"cluster_id"`
-	EnvironmentId     string                        `tfschema:"environment_id"`
-	OrganizationId    string                        `tfschema:"organization_id"`
-	ResourceGroupName string                        `tfschema:"resource_group_name"`
-	DisplayName       string                        `tfschema:"display_name"`
-	Availability      string                        `tfschema:"availability"`
-	Cloud             string                        `tfschema:"cloud"`
-	Region            string                        `tfschema:"region"`
-	Package           string                        `tfschema:"package"`
-	Spec              []ConfluentClusterSpecModel   `tfschema:"spec"`
+	ClusterId         string                      `tfschema:"cluster_id"`
+	EnvironmentId     string                      `tfschema:"environment_id"`
+	OrganizationId    string                      `tfschema:"organization_id"`
+	ResourceGroupName string                      `tfschema:"resource_group_name"`
+	DisplayName       string                      `tfschema:"display_name"`
+	Availability      string                      `tfschema:"availability"`
+	Cloud             string                      `tfschema:"cloud"`
+	Region            string                      `tfschema:"region"`
+	Package           string                      `tfschema:"package"`
+	Spec              []ConfluentClusterSpecModel `tfschema:"spec"`
 
 	// Computed
-	Id                      string                         `tfschema:"id"`
-	Kind                    string                         `tfschema:"kind"`
-	ApiEndpoint             string                         `tfschema:"api_endpoint"`
-	HttpEndpoint            string                         `tfschema:"http_endpoint"`
-	KafkaBootstrapEndpoint  string                         `tfschema:"kafka_bootstrap_endpoint"`
-	Metadata                []ConfluentClusterMetadataModel `tfschema:"metadata"`
-	Status                  []ConfluentClusterStatusModel   `tfschema:"status"`
+	Id                     string                          `tfschema:"id"`
+	Kind                   string                          `tfschema:"kind"`
+	ApiEndpoint            string                          `tfschema:"api_endpoint"`
+	HttpEndpoint           string                          `tfschema:"http_endpoint"`
+	KafkaBootstrapEndpoint string                          `tfschema:"kafka_bootstrap_endpoint"`
+	Metadata               []ConfluentClusterMetadataModel `tfschema:"metadata"`
+	Status                 []ConfluentClusterStatusModel   `tfschema:"status"`
 }
 
 type ConfluentClusterSpecModel struct {
-	Zone            string                                      `tfschema:"zone"`
-	Config          []ConfluentClusterConfigModel               `tfschema:"config"`
-	Environment     []ConfluentClusterNetworkEnvironmentModel   `tfschema:"environment"`
-	Network         []ConfluentClusterNetworkEnvironmentModel   `tfschema:"network"`
-	Byok            []ConfluentClusterByokModel                 `tfschema:"byok"`
+	Zone        string                                    `tfschema:"zone"`
+	Config      []ConfluentClusterConfigModel             `tfschema:"config"`
+	Environment []ConfluentClusterNetworkEnvironmentModel `tfschema:"environment"`
+	Network     []ConfluentClusterNetworkEnvironmentModel `tfschema:"network"`
+	Byok        []ConfluentClusterByokModel               `tfschema:"byok"`
 }
 
 type ConfluentClusterConfigModel struct {

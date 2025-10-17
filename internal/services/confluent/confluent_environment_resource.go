@@ -21,16 +21,16 @@ import (
 type ConfluentEnvironmentResource struct{}
 
 type ConfluentEnvironmentResourceModel struct {
-	EnvironmentId     string                                     `tfschema:"environment_id"`
-	OrganizationId    string                                     `tfschema:"organization_id"`
-	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	DisplayName       string                                     `tfschema:"display_name"`
-	StreamGovernance  []ConfluentStreamGovernanceModel           `tfschema:"stream_governance"`
+	EnvironmentId     string                           `tfschema:"environment_id"`
+	OrganizationId    string                           `tfschema:"organization_id"`
+	ResourceGroupName string                           `tfschema:"resource_group_name"`
+	DisplayName       string                           `tfschema:"display_name"`
+	StreamGovernance  []ConfluentStreamGovernanceModel `tfschema:"stream_governance"`
 
 	// Computed
-	Id               string                       `tfschema:"id"`
-	Kind             string                       `tfschema:"kind"`
-	Metadata         []ConfluentMetadataModel     `tfschema:"metadata"`
+	Id       string                   `tfschema:"id"`
+	Kind     string                   `tfschema:"kind"`
+	Metadata []ConfluentMetadataModel `tfschema:"metadata"`
 }
 
 type ConfluentStreamGovernanceModel struct {
@@ -83,8 +83,8 @@ func (r ConfluentEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"package": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringInSlice(scenvironmentrecords.PossibleValuesForPackage(), false),
 					},
 				},

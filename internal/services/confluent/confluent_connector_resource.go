@@ -21,17 +21,17 @@ import (
 type ConfluentConnectorResource struct{}
 
 type ConfluentConnectorResourceModel struct {
-	ConnectorName     string   `tfschema:"connector_name"`
-	ClusterId         string   `tfschema:"cluster_id"`
-	EnvironmentId     string   `tfschema:"environment_id"`
-	OrganizationId    string   `tfschema:"organization_id"`
-	ResourceGroupName string   `tfschema:"resource_group_name"`
-	ConnectorType     string   `tfschema:"connector_type"`
-	ConnectorClass    string   `tfschema:"connector_class"`
+	ConnectorName     string `tfschema:"connector_name"`
+	ClusterId         string `tfschema:"cluster_id"`
+	EnvironmentId     string `tfschema:"environment_id"`
+	OrganizationId    string `tfschema:"organization_id"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	ConnectorType     string `tfschema:"connector_type"`
+	ConnectorClass    string `tfschema:"connector_class"`
 
 	// Computed
-	Id            string `tfschema:"id"`
-	ConnectorId   string `tfschema:"connector_id"`
+	Id             string `tfschema:"id"`
+	ConnectorId    string `tfschema:"connector_id"`
 	ConnectorState string `tfschema:"connector_state"`
 }
 
