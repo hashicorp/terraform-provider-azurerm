@@ -95,6 +95,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_sftp":                   resourceDataFactoryLinkedServiceSFTP(),
 		"azurerm_data_factory_linked_service_snowflake":              resourceDataFactoryLinkedServiceSnowflake(),
 		"azurerm_data_factory_linked_service_sql_server":             resourceDataFactoryLinkedServiceSQLServer(),
+		"azurerm_data_factory_linked_service_sql_managed_instance":   resourceDataFactoryLinkedServiceSqlManagedInstance(),
 		"azurerm_data_factory_linked_service_synapse":                resourceDataFactoryLinkedServiceSynapse(),
 		"azurerm_data_factory_linked_service_web":                    resourceDataFactoryLinkedServiceWeb(),
 		"azurerm_data_factory_managed_private_endpoint":              resourceDataFactoryManagedPrivateEndpoint(),
