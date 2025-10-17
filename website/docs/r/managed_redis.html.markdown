@@ -144,13 +144,13 @@ A `default_database` block supports the following:
 
 * `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled for the database. Defaults to `false`.
 
-* `client_protocol` - (Optional) Specifies whether redis clients can connect using TLS-encrypted or plaintext redis protocols. Possible values are `Encrypted` and `Plaintext`. Defaults to `Encrypted`. Changing this forces a new Managed Redis instance to be created.
+* `client_protocol` - (Optional) Specifies whether redis clients can connect using TLS-encrypted or plaintext redis protocols. Possible values are `Encrypted` and `Plaintext`. Defaults to `Encrypted`.
 
-* `clustering_policy` - (Optional) Clustering policy specified at create time. Possible values are `EnterpriseCluster` and `OSSCluster`. Defaults to `OSSCluster`. Changing this forces a new Managed Redis instance to be created.
+* `clustering_policy` - (Optional) Clustering policy specified at create time. Possible values are `EnterpriseCluster` and `OSSCluster`. Defaults to `OSSCluster`. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
-* `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`. Changing this forces a new Managed Redis instance to be created.
+* `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`.
 
-* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new Managed Redis instance to be created.
+* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
@@ -176,9 +176,9 @@ An `identity` block supports the following:
 
 A `module` block supports the following:
 
-* `name` - (Required) The name which should be used for this module. Possible values are `RedisBloom`, `RedisTimeSeries`, `RediSearch` and `RedisJSON`. Changing this forces a new Managed Redis instance to be created.
+* `name` - (Required) The name which should be used for this module. Possible values are `RedisBloom`, `RedisTimeSeries`, `RediSearch` and `RedisJSON`. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
-* `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Defaults to `""`. Changing this forces a new Managed Redis instance to be created.
+* `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Defaults to `""`. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
 

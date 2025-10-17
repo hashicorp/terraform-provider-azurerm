@@ -37,6 +37,8 @@ var (
 	}
 )
 
+// Poll for cluster properties "resourceState" == "Running" as the LRO only polls for "provisioningState" and can
+// complete prematurely
 func NewClusterStatePoller(client RedisEnterpriseClientInterface, id redisenterprise.RedisEnterpriseId) *clusterStatePoller {
 	return &clusterStatePoller{
 		client: client,

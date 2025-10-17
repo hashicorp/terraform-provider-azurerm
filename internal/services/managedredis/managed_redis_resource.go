@@ -300,8 +300,6 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(clusterId)
 
-			// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
-			// on subsequent operations
 			pollerType := custompollers.NewClusterStatePoller(clusterClient, clusterId)
 			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
@@ -466,8 +464,6 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("creating cluster %s: %+v", clusterId, err)
 				}
 
-				// Poll for cluster properties "resourceState" == "Running" as the LRO sometimes return prematurely causing issues
-				// on subsequent operations
 				pollerType := custompollers.NewClusterStatePoller(clusterClient, *clusterId)
 				poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 				if err := poller.PollUntilDone(ctx); err != nil {
@@ -487,27 +483,57 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
 				default:
-					existingDb, err := dbClient.Get(ctx, dbId)
-					if err != nil {
-						return fmt.Errorf("retrieving existing %s: %+v", dbId, err)
-					}
+					if metadata.ResourceData.HasChanges(
+						"default_database.0.clustering_policy",
+						"default_database.0.geo_replication_group_name",
+						"default_database.0.module",
+					) {
+						if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
+							return fmt.Errorf("deleting database %s: %+v", dbId, err)
+						}
+						if err := createDb(ctx, dbClient, dbId, state.DefaultDatabase[0]); err != nil {
+							return fmt.Errorf("creating %s: %+v", dbId, err)
+						}
+					} else if metadata.ResourceData.HasChanges(
+						"default_database.0.access_keys_authentication_enabled",
+						"default_database.0.client_protocol",
+						"default_database.0.eviction_policy",
+					) {
+						existingDb, err := dbClient.Get(ctx, dbId)
+						if err != nil {
+							return fmt.Errorf("retrieving existing %s: %+v", dbId, err)
+						}
 
-					dbParams := existingDb.Model
+						dbParams := existingDb.Model
 
-					if dbParams == nil {
-						return fmt.Errorf("retrieving existing %s: `model` was nil", dbId)
-					}
-					if dbParams.Properties == nil {
-						return fmt.Errorf("retrieving existing %s: `properties` was nil", dbId)
-					}
+						if dbParams == nil {
+							return fmt.Errorf("retrieving existing %s: `model` was nil", dbId)
+						}
+						if dbParams.Properties == nil {
+							return fmt.Errorf("retrieving existing %s: `properties` was nil", dbId)
+						}
 
-					// AccessKeysAuthentication is the only updatable property
-					dbParams.Properties.AccessKeysAuthentication = expandAccessKeysAuth(state.DefaultDatabase[0].AccessKeysAuthenticationEnabled)
+						if metadata.ResourceData.HasChange("default_database.0.access_keys_authentication_enabled") {
+							dbParams.Properties.AccessKeysAuthentication = expandAccessKeysAuth(state.DefaultDatabase[0].AccessKeysAuthenticationEnabled)
+						}
+						if metadata.ResourceData.HasChange("default_database.0.client_protocol") {
+							dbParams.Properties.ClientProtocol = pointer.ToEnum[databases.Protocol](state.DefaultDatabase[0].ClientProtocol)
+						}
+						if metadata.ResourceData.HasChange("default_database.0.eviction_policy") {
+							dbParams.Properties.EvictionPolicy = pointer.ToEnum[databases.EvictionPolicy](state.DefaultDatabase[0].EvictionPolicy)
+						}
 
-					// Despite the method name, Create uses PUT (create-or-update behaviour), which is preferred to Update (PATCH)
-					// to simplify 'omitempty' / empty values handling on expand functions
-					if err := dbClient.CreateThenPoll(ctx, dbId, *dbParams); err != nil {
-						return fmt.Errorf("updating %s: %+v", dbId, err)
+						// Despite the method name, Create uses PUT (create-or-update behaviour), which is preferred to Update (PATCH)
+						// to simplify 'omitempty' / empty values handling on expand functions
+						if err := dbClient.CreateThenPoll(ctx, dbId, *dbParams); err != nil {
+							return fmt.Errorf("updating %s: %+v", dbId, err)
+						}
+
+						pollerType := custompollers.NewDBStatePoller(dbClient, dbId)
+						poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+						if err := poller.PollUntilDone(ctx); err != nil {
+							return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", dbId, err)
+						}
 					}
 				}
 			}
@@ -587,28 +613,6 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// Removing or adding default_database does not ForceNew, but changing certain keys does
-
-			if metadata.ResourceDiff.HasChange("default_database") {
-				oldDbs, newDbs := metadata.ResourceDiff.GetChange("default_database")
-				if dbLen(oldDbs) == 1 && dbLen(newDbs) == 1 {
-					keys := []string{
-						"default_database.0.client_protocol",
-						"default_database.0.clustering_policy",
-						"default_database.0.eviction_policy",
-						"default_database.0.geo_replication_group_name",
-						"default_database.0.module",
-						"default_database.0.port",
-					}
-
-					for _, key := range keys {
-						if metadata.ResourceDiff.HasChange(key) {
-							metadata.ResourceDiff.ForceNew(key)
-						}
-					}
-				}
-			}
-
 			return nil
 		},
 	}
@@ -626,12 +630,21 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 		},
 	}
 
-	return dbClient.CreateThenPoll(ctx, dbId, dbParams)
+	if err := dbClient.CreateThenPoll(ctx, dbId, dbParams); err != nil {
+		return fmt.Errorf("creating database %s: %+v", dbId, err)
+	}
+
+	pollerType := custompollers.NewDBStatePoller(dbClient, dbId)
+	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for `resourceState` to be `Running` for %s: %+v", dbId, err)
+	}
+	return nil
 }
 
 func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
-		return nil
+		return &redisenterprise.ClusterPropertiesEncryption{}
 	}
 
 	cmk := input[0]
