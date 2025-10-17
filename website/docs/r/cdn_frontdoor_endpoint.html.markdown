@@ -42,6 +42,8 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile within which this Front Door Endpoint should exist. Changing this forces a new Front Door Endpoint to be created.
 
+* `domain_name_label_reuse_scope` - (Optional) Specifies the scope level of the endpoint's domain reuse behavior. Changing this forces a new Front Door Endpoint to be created.
+
 ---
 
 * `enabled` - (Optional) Specifies if this Front Door Endpoint is enabled? Defaults to `true`.
@@ -72,3 +74,9 @@ Front Door Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-06-01
