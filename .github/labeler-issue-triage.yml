@@ -296,6 +296,9 @@ service/redis:
 service/relay:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_relay_((.|\n)*)###'
 
+service/resourcegraph:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_resource_graph_query((.|\n)*)###'
+
 service/search:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_search_s((.|\n)*)###'
 
