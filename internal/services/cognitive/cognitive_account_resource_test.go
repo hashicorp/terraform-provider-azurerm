@@ -294,7 +294,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRules(t *testing.T) {
 func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
-	kind := "OpenAI"
+	kind := "TextAnalytics"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -318,18 +318,6 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupported(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
-		},
 	})
 }
 
@@ -1203,33 +1191,6 @@ resource "azurerm_cognitive_account" "test" {
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
-}
-
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cognitive_account" "test" {
-  name                  = "acctestcogacc-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
-  sku_name              = "S0"
-  custom_subdomain_name = "acctestcogacc-%d"
-
-  network_acls {
-    bypass         = "AzureServices"
-    default_action = "Deny"
-    virtual_network_rules {
-      subnet_id = azurerm_subnet.test_a.id
-    }
-    virtual_network_rules {
-      subnet_id                            = azurerm_subnet.test_b.id
-      ignore_missing_vnet_service_endpoint = true
-    }
-  }
-}
-`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) networkAclsTemplate(data acceptance.TestData) string {
