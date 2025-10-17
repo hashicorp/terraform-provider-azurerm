@@ -1,6 +1,6 @@
 # document-fmt
 
-A validation and auto-fixing tool for Terraform provider documentation in the terraform-provider-azurerm repository. It enforces documentation standards by applying a set of customizable rules to ensure consistency and completeness across all resource and data source documentation files.
+A linter for the `azurerm` Terraform provider documentation. It enforces documentation standards by applying a set of customizable rules to ensure consistency and completeness across all resource and data source documentation files.
 
 ## Quickstart
 
@@ -11,9 +11,6 @@ go run ./internal/tools/document-fmt/main.go validate
 
 # Or use the make target
 make document-validate
-
-# Or use the shell script directly
-./scripts/documentfmt-validate.sh
 ```
 
 ### Fix Documentation Issues
@@ -23,9 +20,6 @@ go run ./internal/tools/document-fmt/main.go fix
 
 # Or use the make target
 make document-fix
-
-# Or use the shell script directly
-./scripts/documentfmt-fix.sh
 ```
 
 ### Command-Line Options
@@ -116,7 +110,7 @@ Rules are registered in the `rule/rule.go` file and can be found in the `rule/` 
 
 #### 6. Template Engine (`template/`)
 - Uses Go's `text/template` package to generate section content
-- Renders API provider sections, timeout blocks, etc.
+- Renders text based on provided input template.
 - Ensures consistent formatting across generated content
 
 ### Data Flow
