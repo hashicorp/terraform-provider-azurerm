@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobexecutions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
@@ -56,6 +57,7 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *jobagents.JobAgentsClient
 	JobCredentialsClient                               *jobcredentials.JobCredentialsClient
+	JobExecutionsClient                                *jobexecutions.JobExecutionsClient
 	JobsClient                                         *jobs.JobsClient
 	JobStepsClient                                     *jobsteps.JobStepsClient
 	JobTargetGroupsClient                              *jobtargetgroups.JobTargetGroupsClient
@@ -152,6 +154,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Job Credentials Client: %+v", err)
 	}
 	o.Configure(jobCredentialsClient.Client, o.Authorizers.ResourceManager)
+
+	jobExecutionsClient, err := jobexecutions.NewJobExecutionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Job Executions Client: %+v", err)
+	}
+	o.Configure(jobExecutionsClient.Client, o.Authorizers.ResourceManager)
 
 	jobsClient, err := jobs.NewJobsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -293,6 +301,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FirewallRulesClient:                                firewallRulesClient,
 		JobAgentsClient:                                    jobAgentsClient,
 		JobCredentialsClient:                               jobCredentialsClient,
+		JobExecutionsClient:                                jobExecutionsClient,
 		OutboundFirewallRulesClient:                        outboundFirewallRulesClient,
 		ServerDNSAliasClient:                               serverDNSAliasClient,
 		ServerDevOpsAuditSettingsClient:                    serverDevOpsAuditSettingsClient,

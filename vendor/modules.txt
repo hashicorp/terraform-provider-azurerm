@@ -1121,6 +1121,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobac
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobexecutions
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups
