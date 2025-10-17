@@ -37,3 +37,23 @@ func Test_unmarshalFile(t *testing.T) {
 		}
 	}
 }
+
+func TestSameNameAttrLinking(t *testing.T) {
+	// Test that linkBlockFields is working by using existing test file
+	file := filepath.Join(testDir, "test_identity.html.markdown")
+	m := MustNewMarkFromFile(file)
+	doc := m.BuildResourceDoc()
+
+	// Look for any blocks that have SameNameAttr set to verify linking works
+	sameNameAttrFound := false
+	for key, field := range doc.Args {
+		if key == "identity" && field.SameNameAttr != nil {
+			sameNameAttrFound = true
+			break
+		}
+	}
+
+	if !sameNameAttrFound {
+		t.Fatalf("Expected to link sameNameAttr to Args, but not found")
+	}
+}

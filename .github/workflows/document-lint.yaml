@@ -11,6 +11,7 @@ on:
     paths:
       - ".github/workflows/document-lint.yaml"
       - "internal/services/**"
+      - "internal/tools/document-lint/**" # workaround for tmp tests
       - "website/**"
     branches: ["main"]
 
