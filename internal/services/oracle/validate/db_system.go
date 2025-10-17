@@ -130,19 +130,6 @@ func DbSystemPassword(i interface{}, k string) (warnings []string, errors []erro
 	return []string{}, []error{}
 }
 
-func DbSystemComputeModel(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	if v != string(dbsystems.ComputeModelECPU) && v != string(dbsystems.ComputeModelOCPU) {
-		return []string{}, append(errors, fmt.Errorf("%v must be %v or %v", k, string(dbsystems.ComputeModelECPU), string(dbsystems.ComputeModelOCPU)))
-	}
-
-	return []string{}, []error{}
-}
-
 func PluggableDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

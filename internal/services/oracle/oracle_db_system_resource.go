@@ -88,7 +88,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DbSystemComputeModel,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForComputeModel(), false),
 		},
 
 		"cluster_name": {
@@ -100,9 +100,10 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"database_edition": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDbSystemDatabaseEditionType(), false),
 		},
 
 		"database_system_options": {
@@ -112,8 +113,9 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"storage_management": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageManagementType(), false),
 					},
 				},
 			},
@@ -127,10 +129,11 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_redundancy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDiskRedundancyType(), false),
 		},
 
 		"display_name": {
@@ -165,7 +168,7 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DbSystemLicenseModel,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForLicenseModel(), false),
 		},
 
 		"network_anchor_id": {
@@ -204,9 +207,10 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForSource(), false),
 		},
 
 		"ssh_public_keys": {
@@ -219,10 +223,11 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_volume_performance_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageVolumePerformanceMode(), false),
 		},
 
 		"time_zone": {
