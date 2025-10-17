@@ -1,6 +1,7 @@
 ## 4.50.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_mssql_job_target_group` - the `job_target.job_credential_id` property is no longer required when `database_name` is not set to allow for authentication using a managed identity [GH-30898]
 * Data Source: `azurerm_container_app_environment` - add support for the `public_network_access` property [GH-30817]
 * `azurerm_container_app_environment` - add support for the `public_network_access` property [GH-30817]
 * `go-azure-sdk` update to `v0.20251016.1163854` [GH-30883]
