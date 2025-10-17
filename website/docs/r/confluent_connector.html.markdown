@@ -105,3 +105,9 @@ terraform import azurerm_confluent_connector.example /subscriptions/00000000-000
 ```
 
 ~> **Note:** The current implementation provides basic connector management. For detailed connector configuration (such as Azure Blob Storage connection strings, Cosmos DB settings, etc.), additional configuration may need to be performed through the Confluent Cloud portal or CLI.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Confluent` - 2024-07-01
