@@ -33,11 +33,26 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 	}
 }
 
+// filterNonEmpty filters out empty strings from a slice
+func filterNonEmpty(strings []string) []string {
+	result := make([]string, 0, len(strings))
+	for _, s := range strings {
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
 func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
 	oldSplit := strings.Split(strings.ToLower(old), ";")
 	newSplit := strings.Split(strings.ToLower(new), ";")
+
+	// Filter out empty strings (caused by trailing semicolons)
+	oldSplit = filterNonEmpty(oldSplit)
+	newSplit = filterNonEmpty(newSplit)
 
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
@@ -59,7 +74,6 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new stri
 			return false
 		}
 	}
-
 	return true
 }
 
