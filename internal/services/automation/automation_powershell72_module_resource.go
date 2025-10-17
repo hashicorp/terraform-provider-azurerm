@@ -104,7 +104,7 @@ func (r PowerShell72ModuleResource) ResourceType() string {
 }
 
 func (r PowerShell72ModuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return module.ValidatePowerShell72ModuleID
+	return module.ValidateModuleID
 }
 
 func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
@@ -123,9 +123,9 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			accountID, _ := module.ParseAutomationAccountID(model.AutomationAccountID)
 			name := metadata.ResourceData.Get("name").(string)
 
-			id := module.NewPowerShell72ModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
+			id := module.NewModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
 
-			existing, err := client.PowerShell72ModuleGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -143,7 +143,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -175,7 +175,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 				},
 				MinTimeout: 30 * time.Second,
 				Refresh: func() (interface{}, string, error) {
-					resp, err2 := client.PowerShell72ModuleGet(ctx, id)
+					resp, err2 := client.Get(ctx, id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
 					}
@@ -215,7 +215,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automation.Module
 
-			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
+			id, err := module.ParseModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -235,7 +235,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 				parameters.Tags = tags.Expand(model.Tags)
 			}
 
-			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, *id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -267,7 +267,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 				},
 				MinTimeout: 30 * time.Second,
 				Refresh: func() (interface{}, string, error) {
-					resp, err2 := client.PowerShell72ModuleGet(ctx, *id)
+					resp, err2 := client.Get(ctx, *id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
 					}
@@ -306,12 +306,12 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automation.Module
-			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
+			id, err := module.ParseModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.PowerShell72ModuleGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -325,7 +325,7 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			output.Name = id.PowerShell72ModuleName
+			output.Name = id.ModuleName
 			output.AutomationAccountID = module.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
 			if resp.Model != nil {
 				output.Tags = tags.Flatten(resp.Model.Tags)
@@ -343,12 +343,12 @@ func (PowerShell72ModuleResource) Delete() sdk.ResourceFunc {
 		// the Func returns a function which deletes the Resource Group
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automation.Module
-			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
+			id, err := module.ParseModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.PowerShell72ModuleDelete(ctx, *id)
+			resp, err := client.Delete(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return nil

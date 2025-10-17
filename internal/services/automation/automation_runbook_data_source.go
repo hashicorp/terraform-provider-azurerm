@@ -134,7 +134,7 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state.Location = location.NormalizeNilable(model.Location)
+			state.Location = location.Normalize(model.Location)
 
 			if model.Properties.Description != nil {
 				state.Description = pointer.From(model.Properties.Description)

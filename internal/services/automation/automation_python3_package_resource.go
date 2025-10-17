@@ -136,7 +136,7 @@ func (m Python3PackageResource) Create() sdk.ResourceFunc {
 			}
 			req.Tags = &model.Tags
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, req); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
