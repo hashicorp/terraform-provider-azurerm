@@ -1,6 +1,7 @@
 ## 4.50.0 (Unreleased)
 
 ENHANCEMENTS:
+* `go-azure-sdk` update to `v0.20251016.1163854` [GH-30883]
 
 FEATURES:
 
