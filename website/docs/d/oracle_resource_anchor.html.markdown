@@ -3,7 +3,7 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_resource_anchor"
 description: |-
-  Gets information about an existing oracle resource anchor.
+  Gets information about an existing Oracle Resource Anchor.
 ---
 
 # Data Source: azurerm_oracle_resource_anchor
@@ -40,8 +40,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `linked_compartment_id` - Oracle Cloud Infrastructure compartment Id (ocid) which was created or linked by customer with resource anchor.
 
 * `location` - The Azure Region where the oracle resource anchor exists.
-
-* `provisioning_state` - The provisioning state of the resource anchor.
 
 * `tags` - A mapping of tags assigned to the oracle resource anchor.
 

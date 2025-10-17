@@ -21,14 +21,12 @@ var _ sdk.DataSource = ResourceAnchorDataSource{}
 type ResourceAnchorDataSource struct{}
 
 type ResourceAnchorDataSourceModel struct {
-	ID                string `tfschema:"id"`
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 
 	Location            string            `tfschema:"location"`
 	Tags                map[string]string `tfschema:"tags"`
 	LinkedCompartmentID string            `tfschema:"linked_compartment_id"`
-	ProvisioningState   string            `tfschema:"provisioning_state"`
 }
 
 func (ResourceAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -46,16 +44,8 @@ func (ResourceAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 		// Common fields
 		"location": commonschema.LocationComputed(),
 		"tags":     commonschema.TagsDataSource(),
-		"id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 
 		"linked_compartment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -103,10 +93,10 @@ func (ResourceAnchorDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.LinkedCompartmentID = pointer.From(props.LinkedCompartmentId)
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 				}
 			}
 
+			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}

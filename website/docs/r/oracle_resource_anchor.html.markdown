@@ -3,7 +3,7 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_resource_anchor"
 description: |-
-  Manages an oracle resource anchor.
+  Manages an Oracle Resource Anchor.
 ---
 
 # azurerm_oracle_resource_anchor
@@ -37,15 +37,13 @@ The following arguments are supported:
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the oracle  resource anchor.
+* `tags` - (Optional) A mapping of tags which should be assigned to the oracle resource anchor.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the oracle resource anchor.
-
-* `provisioning_state` - The provisioning state of the resource anchor.
 
 ## Timeouts
 

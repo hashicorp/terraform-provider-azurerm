@@ -26,7 +26,6 @@ func TestResourceAnchorDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("linked_compartment_id").Exists(),
-				check.That(data.ResourceName).Key("provisioning_state").Exists(),
 			),
 		},
 	})

@@ -65,7 +65,7 @@ func TestResourceAnchorResource_update(t *testing.T) {
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -74,6 +74,13 @@ func TestResourceAnchorResource_update(t *testing.T) {
 
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -140,10 +147,9 @@ func (a ResourceAnchorResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_oracle_resource_anchor" "import" {
-  location              = azurerm_oracle_resource_anchor.test.location
-  name                  = azurerm_oracle_resource_anchor.test.name
-  resource_group_name   = azurerm_oracle_resource_anchor.test.resource_group_name
-  linked_compartment_id = azurerm_oracle_resource_anchor.test.linked_compartment_id
+  location            = azurerm_oracle_resource_anchor.test.location
+  name                = azurerm_oracle_resource_anchor.test.name
+  resource_group_name = azurerm_oracle_resource_anchor.test.resource_group_name
 }
 `, a.basic(data))
 }

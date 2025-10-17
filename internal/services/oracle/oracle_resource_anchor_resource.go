@@ -25,7 +25,6 @@ type ResourceAnchorResourceModel struct {
 	Name                string            `tfschema:"name"`
 	ResourceGroupName   string            `tfschema:"resource_group_name"`
 	LinkedCompartmentID string            `tfschema:"linked_compartment_id"`
-	ProvisioningState   string            `tfschema:"provisioning_state"`
 	Tags                map[string]string `tfschema:"tags"`
 }
 
@@ -39,20 +38,15 @@ func (ResourceAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"linked_compartment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-			Optional: true,
-		},
-
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                commonschema.Tags(),
+
+		"tags": commonschema.Tags(),
 	}
 }
 
 func (ResourceAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"provisioning_state": {
+		"linked_compartment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -129,10 +123,8 @@ func (ResourceAnchorResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = model.Location
 				state.Tags = pointer.From(model.Tags)
-
 				if props := model.Properties; props != nil {
 					state.LinkedCompartmentID = pointer.From(props.LinkedCompartmentId)
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 				}
 			}
 
