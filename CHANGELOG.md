@@ -1,6 +1,7 @@
 ## 4.50.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_container_app_environment` - add support for the `public_network_access` property [GH-30817]
 * `go-azure-sdk` update to `v0.20251016.1163854` [GH-30883]
 
 FEATURES:
