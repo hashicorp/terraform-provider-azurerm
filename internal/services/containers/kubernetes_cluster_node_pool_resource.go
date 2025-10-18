@@ -1894,11 +1894,11 @@ func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSe
 	v := input[0].(map[string]interface{})
 	result := &agentpools.AgentPoolSecurityProfile{}
 
-	if enableVTPM := v["enable_vtpm"].(bool); enableVTPM {
+	if enableVTPM, ok := v["enable_vtpm"].(bool); ok {
 		result.EnableVTPM = pointer.To(enableVTPM)
 	}
 
-	if enableSecureBoot := v["enable_secure_boot"].(bool); enableSecureBoot {
+	if enableSecureBoot, ok := v["enable_secure_boot"].(bool); ok {
 		result.EnableSecureBoot = pointer.To(enableSecureBoot)
 	}
 
