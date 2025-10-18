@@ -77,7 +77,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -495,7 +495,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Hadoop HDInsight Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Hadoop HDInsight Cluster.
@@ -514,4 +514,4 @@ terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HDInsight`: 2021-06-01
+* `Microsoft.HDInsight` - 2021-06-01

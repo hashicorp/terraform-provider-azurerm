@@ -431,5 +431,33 @@ resource "azurerm_consumption_budget_subscription" "test" {
       azurerm_monitor_action_group.test.id,
     ]
   }
+
+  notification {
+    threshold      = 25
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 50
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 75
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 125
+    operator       = "EqualTo"
+    threshold_type = "Forecasted"
+    contact_emails = ["foo@example.com"]
+  }
 }`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }

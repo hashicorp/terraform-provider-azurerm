@@ -277,11 +277,13 @@ func (ht *serverHandlerTransport) writeStatus(s *ServerStream, st *status.Status
 	if err == nil { // transport has not been closed
 		// Note: The trailer fields are compressed with hpack after this call returns.
 		// No WireLength field is set here.
+		s.hdrMu.Lock()
 		for _, sh := range ht.stats {
 			sh.HandleRPC(s.Context(), &stats.OutTrailer{
 				Trailer: s.trailer.Copy(),
 			})
 		}
+		s.hdrMu.Unlock()
 	}
 	ht.Close(errors.New("finished writing status"))
 	return err
@@ -498,5 +500,5 @@ func mapRecvMsgError(err error) error {
 	if strings.Contains(err.Error(), "body closed by handler") {
 		return status.Error(codes.Canceled, err.Error())
 	}
-	return connectionErrorf(true, err, err.Error())
+	return connectionErrorf(true, err, "%s", err.Error())
 }

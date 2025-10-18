@@ -171,10 +171,18 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.ServerVersionOneFive),
+					string(servers.ServerVersionOneFour),
+					string(servers.ServerVersionOneOne),
+					string(servers.ServerVersionOneSix),
+					string(servers.ServerVersionOneThree),
+					string(servers.ServerVersionOneTwo),
+					"17", // version 17 is supported but not yet present as an enum in the SDK
+				}, false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -186,6 +194,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeReviveDropped),
 					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
@@ -307,7 +316,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -333,7 +342,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -433,6 +442,27 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
+			oldIdentity := oldIdentityRaw.([]interface{})
+			oldIdentityType := string(identity.TypeNone)
+			if len(oldIdentity) > 0 {
+				oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+				oldIdentityType = oldIdentityBlock["type"].(string)
+			}
+
+			newIdentity := newIdentityRaw.([]interface{})
+			newIdentityType := string(identity.TypeNone)
+			if len(newIdentity) > 0 {
+				newIdentityBlock := newIdentity[0].(map[string]interface{})
+				newIdentityType = newIdentityBlock["type"].(string)
+			}
+
+			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
+				diff.ForceNew("identity.0.type")
 			}
 
 			return nil
@@ -670,6 +700,20 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", pointer.From(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+
+			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
+			sourceResourceId := pointer.From(props.SourceServerResourceId)
+			if sourceResourceId == "" {
+				sourceResourceId = d.Get("source_server_id").(string)
+			}
+			d.Set("source_server_id", sourceResourceId)
+
+			// `pointInTimeUTC` has "x-ms-mutability": ["create"], so it's only used at creation.
+			// Without "read," it's not persisted in the resource model and won't appear in GET responses.
+			// So read it from the configuration.
+			d.Set("point_in_time_restore_time_in_utc", d.Get("point_in_time_restore_time_in_utc").(string))
 
 			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
 			d.Set("replication_role", d.Get("replication_role").(string))
@@ -941,13 +985,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
+		// Login password can be set using `administrator_password` or `administrator_password_wo`
+		loginPassword := d.Get("administrator_password").(string)
+		if !woPassword.IsNull() {
+			loginPassword = woPassword.AsString()
+		}
+
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
-				AdministratorLoginPassword: pointer.To(d.Get("administrator_password").(string)),
+				AdministratorLoginPassword: &loginPassword,
 				Network:                    expandArmServerNetwork(d),
 			},
 		}

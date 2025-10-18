@@ -159,16 +159,16 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if firewall.Model == nil {
-		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `model` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `model` was nil", firewallName, resourceGroup)
 	}
 
 	if firewall.Model.Properties == nil {
-		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties` was nil", firewallName, resourceGroup)
 	}
 	props := *firewall.Model.Properties
 
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.NetworkRuleCollections
 
@@ -250,7 +250,7 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if collectionID == "" {
-		return fmt.Errorf("Cannot find ID for Network Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
+		return fmt.Errorf("cannot find ID for Network Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 	}
 	d.SetId(collectionID)
 

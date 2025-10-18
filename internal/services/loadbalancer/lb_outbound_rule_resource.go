@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,7 +21,7 @@ import (
 )
 
 func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerOutboundRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerOutboundRuleRead,
 		Update: resourceArmLoadBalancerOutboundRuleCreateUpdate,
@@ -93,8 +94,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_tcp_reset": {
+			"tcp_reset_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -114,6 +114,24 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"tcp_reset_enabled"},
+			Deprecated:    "This property is being deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
+		}
+		resource.Schema["tcp_reset_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_tcp_reset"},
+		}
+	}
+
+	return resource
 }
 
 func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -231,7 +249,10 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 				backendAddressPoolId = bapid.ID()
 			}
 			d.Set("backend_address_pool_id", backendAddressPoolId)
-			d.Set("enable_tcp_reset", props.EnableTcpReset)
+			d.Set("tcp_reset_enabled", props.EnableTcpReset)
+			if !features.FivePointOh() {
+				d.Set("enable_tcp_reset", props.EnableTcpReset)
+			}
 
 			frontendIpConfigurations := make([]interface{}, 0)
 			if configs := props.FrontendIPConfigurations; configs != nil {
@@ -338,9 +359,13 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
 		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
-
-	if v, ok := d.GetOk("enable_tcp_reset"); ok {
+	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
 		properties.EnableTcpReset = pointer.To(v.(bool))
+	}
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_tcp_reset"); ok {
+			properties.EnableTcpReset = pointer.To(v.(bool))
+		}
 	}
 
 	return &loadbalancers.OutboundRule{

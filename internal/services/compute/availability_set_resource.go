@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,16 +26,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name availability_set -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceAvailabilitySet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAvailabilitySetCreateUpdate,
-		Read:   resourceAvailabilitySetRead,
-		Update: resourceAvailabilitySetCreateUpdate,
-		Delete: resourceAvailabilitySetDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseAvailabilitySetID(id)
-			return err
-		}),
+		Create:   resourceAvailabilitySetCreateUpdate,
+		Read:     resourceAvailabilitySetRead,
+		Update:   resourceAvailabilitySetCreateUpdate,
+		Delete:   resourceAvailabilitySetDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.AvailabilitySetId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -199,7 +203,7 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
