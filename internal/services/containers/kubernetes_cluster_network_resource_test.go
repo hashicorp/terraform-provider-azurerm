@@ -4224,10 +4224,16 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) networkDataPlane(data acceptance.TestData, networkDataPlane string) string {
+	networkPolicyLine := ""
+	if networkDataPlane == "cilium" {
+		networkPolicyLine = `network_policy      = "cilium"`
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%[2]d"
   location = "%[1]s"
@@ -4245,7 +4251,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.10.0.0/16"]
-
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -4253,26 +4258,30 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
+
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
   }
+
   identity {
     type = "SystemAssigned"
   }
+
   network_profile {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
     network_data_plane  = "%[3]s"
     network_plugin_mode = "overlay"
+    %[4]s
   }
 }
-`, data.Locations.Primary, data.RandomInteger, networkDataPlane)
+`, data.Locations.Primary, data.RandomInteger, networkDataPlane, networkPolicyLine)
 }
 
 func (KubernetesClusterResource) networkPluginBase(data acceptance.TestData) string {
