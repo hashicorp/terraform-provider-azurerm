@@ -1,4 +1,4 @@
-package containers
+package containers_test
 
 import (
 	"context"
@@ -13,9 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+type KubernetesFleetAutoUpgradeProfileTestResource struct{}
+
 func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileResource{}
+	r := KubernetesFleetAutoUpgradeProfileTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +33,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 
 func TestAccKubernetesFleetAutoUpgradeProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileResource{}
+	r := KubernetesFleetAutoUpgradeProfileTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +50,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_complete(t *testing.T) {
 
 func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileResource{}
+	r := KubernetesFleetAutoUpgradeProfileTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +81,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 	})
 }
 
-func (r KubernetesFleetAutoUpgradeProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesFleetAutoUpgradeProfileTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := autoupgradeprofiles.ParseAutoUpgradeProfileID(state.ID)
 	if err != nil {
 		return nil, err
@@ -93,7 +95,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r KubernetesFleetAutoUpgradeProfileResource) basic(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +121,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r KubernetesFleetAutoUpgradeProfileResource) complete(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,10 +139,10 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
 }
 
 resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
-  name                  = "default"
-  resource_group_name   = azurerm_resource_group.test.name
-  fleet_name            = azurerm_kubernetes_fleet_manager.test.name
-  channel               = "Rapid"
+  name                    = "default"
+  resource_group_name     = azurerm_resource_group.test.name
+  fleet_name              = azurerm_kubernetes_fleet_manager.test.name
+  channel                 = "Rapid"
   node_image_upgrade_type = "Latest"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
