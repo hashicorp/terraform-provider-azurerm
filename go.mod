@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.74.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20250908.1192604
-	github.com/hashicorp/go-azure-sdk/sdk v0.20250908.1192604
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20251016.1163854
+	github.com/hashicorp/go-azure-sdk/sdk v0.20251016.1163854
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -30,7 +30,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-mux v0.21.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 	github.com/hashicorp/terraform-plugin-testing v1.13.3-0.20250904181708-22e003c0645d
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackofallops/giovanni v0.28.0

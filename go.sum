@@ -112,10 +112,10 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.74.0 h1:4zF2Fn/LVlSwZ+wYQ3zqVf8k/x4f2OKXKsVOFRfsFHg=
 github.com/hashicorp/go-azure-helpers v0.74.0/go.mod h1:tAUWC+kwZQsuNAHEIlnbojMMcC6SWQb6W1HfIeluv1E=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250908.1192604 h1:BpptWlguB7SsrKc2d8SYogYk8wXLylrHcOFmjRrZyfw=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250908.1192604/go.mod h1:qPL9vbt0e85Vzqzw8x7JOYx1xS9oqwyJTYntZG0nmwM=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250908.1192604 h1:IY6JfmKIvXXoD/NcQVEozQvM9qgJUFFKMez4R+73V5E=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250908.1192604/go.mod h1:eyNClZwQsa4Go51ScU9OYCE2EQvbNt8EjZ4eMxpQ1H8=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20251016.1163854 h1:pOmcGVy0o5kyGxDdGYXxldLwsaN79Yp/o8uqJJ2L4ho=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20251016.1163854/go.mod h1:HDFQTAmQxZ7rWA4+fdXP+0zsurg3q/IoTPVoCKIzyzs=
+github.com/hashicorp/go-azure-sdk/sdk v0.20251016.1163854 h1:CBpC8CqL2jHtGBTZdeBR6s670Ihhu5Rr78CK5yITIfo=
+github.com/hashicorp/go-azure-sdk/sdk v0.20251016.1163854/go.mod h1:eyNClZwQsa4Go51ScU9OYCE2EQvbNt8EjZ4eMxpQ1H8=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -159,8 +159,8 @@ github.com/hashicorp/terraform-plugin-log v0.9.0 h1:i7hOA+vdAItN1/7UrfBqBwvYPQ9T
 github.com/hashicorp/terraform-plugin-log v0.9.0/go.mod h1:rKL8egZQ/eXSyDqzLUuwUYLVdlYeamldAHSxjUFADow=
 github.com/hashicorp/terraform-plugin-mux v0.21.0 h1:QsEYnzSD2c3zT8zUrUGqaFGhV/Z8zRUlU7FY3ZPJFfw=
 github.com/hashicorp/terraform-plugin-mux v0.21.0/go.mod h1:Qpt8+6AD7NmL0DS7ASkN0EXpDQ2J/FnnIgeUr1tzr5A=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.0 h1:PQP7Crrc7t/ozj+P9x0/lsTzGNy3lVppH8zAJylofaE=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.0/go.mod h1:GQhpKVvvuwzD79e8/NZ+xzj+ZpWovdPAe8nfV/skwNU=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1 h1:mlAq/OrMlg04IuJT7NpefI1wwtdpWudnEmjuQs04t/4=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1/go.mod h1:GQhpKVvvuwzD79e8/NZ+xzj+ZpWovdPAe8nfV/skwNU=
 github.com/hashicorp/terraform-plugin-testing v1.13.3-0.20250904181708-22e003c0645d h1:3LdUyVlK3nB/ZmialDmfiJ0lVdEj/eIdDamvkavNjHE=
 github.com/hashicorp/terraform-plugin-testing v1.13.3-0.20250904181708-22e003c0645d/go.mod h1:CxOoj3lyTcdcekaJ0NmkjZkAAzEJMPYehiBCMyTZYeA=
 github.com/hashicorp/terraform-registry-address v0.4.0 h1:S1yCGomj30Sao4l5BMPjTGZmCNzuv7/GDTDX99E9gTk=
