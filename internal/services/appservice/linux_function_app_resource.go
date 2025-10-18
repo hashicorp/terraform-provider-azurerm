@@ -1,6 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
+
 package appservice
 
 import (
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
@@ -86,13 +88,13 @@ type LinuxFunctionAppModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
+)
 
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
@@ -100,6 +102,10 @@ func (r LinuxFunctionAppResource) ModelObject() interface{} {
 
 func (r LinuxFunctionAppResource) ResourceType() string {
 	return "azurerm_linux_function_app"
+}
+
+func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
+	return &commonids.FunctionAppId{}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -291,7 +297,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchema(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -844,7 +850,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }
@@ -1142,17 +1148,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)

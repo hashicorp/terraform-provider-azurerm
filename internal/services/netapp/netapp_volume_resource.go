@@ -16,20 +16,27 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/poolchange"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/poolchange"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+const (
+	// Volume types used in Azure NetApp Files
+	volumeTypeDataProtection = "DataProtection"
+	volumeTypeShortTermClone = "ShortTermClone"
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
@@ -91,6 +98,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					string(volumes.ServiceLevelPremium),
 					string(volumes.ServiceLevelStandard),
 					string(volumes.ServiceLevelUltra),
+					string(volumes.ServiceLevelFlexible),
 				}, false),
 			},
 
@@ -108,6 +116,14 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: snapshots.ValidateSnapshotID,
 			},
 
+			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForAcceptGrowCapacityPoolForShortTermCloneSplit(), false),
+				Description:  "While auto splitting the short term clone volume, if the parent pool does not have enough space to accommodate the volume after split, it will be automatically resized, which will lead to increased billing. To accept capacity pool size auto grow and create a short term clone volume, set the property as accepted. Can only be used in conjunction with `create_from_snapshot_resource_id`.",
+			},
+
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -120,7 +136,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -198,7 +213,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols_enabled": {
+						"protocol": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -398,6 +413,33 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Default:     false,
 				Description: "Indicates whether the volume is a large volume.",
 			},
+
+			"cool_access": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"retrieval_policy": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessRetrievalPolicy(), false),
+						},
+
+						"tiering_policy": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessTieringPolicy(), false),
+						},
+
+						"coolness_period_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 183),
+						},
+					},
+				},
+			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
@@ -418,6 +460,30 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				// All validations passed - no action needed
 			}
 
+			// Validate short-term clone properties
+			acceptGrowCapacityPool := d.Get("accept_grow_capacity_pool_for_short_term_clone_split").(string)
+
+			// Only validate if accept_grow_capacity_pool_for_short_term_clone_split is set
+			if acceptGrowCapacityPool != "" {
+				rawConfig := d.GetRawConfig().AsValueMap()
+				// Check if create_from_snapshot_resource_id is explicitly null or empty
+				// Allow computed values (where value is empty but raw config is not null)
+				if rawConfig["create_from_snapshot_resource_id"].IsNull() {
+					return fmt.Errorf("`accept_grow_capacity_pool_for_short_term_clone_split` can only be used in conjunction with `create_from_snapshot_resource_id`")
+				}
+			}
+
+			// Validate that short-term clones are not supported on large volumes
+			if acceptGrowCapacityPool != "" && isLargeVolume {
+				return fmt.Errorf("short-term clones are not supported on large volumes; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `large_volume_enabled` is true")
+			}
+
+			// Validate that short-term clones are not supported with cool access
+			coolAccessConfig := d.Get("cool_access").([]interface{})
+			if acceptGrowCapacityPool != "" && len(coolAccessConfig) > 0 {
+				return fmt.Errorf("short-term clones are not supported on volumes enabled for cool access; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `cool_access` is configured")
+			}
+
 			if d.HasChanges("service_level", "pool_name") {
 				serviceLevelChange := d.HasChange("service_level")
 				poolNameChange := d.HasChange("pool_name")
@@ -432,8 +498,85 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			if !features.FivePointOh() {
+				// export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled
+				// Can't use the sdk's ConflictsWith because the properties are nested under a
+				// TypeList with a MaxItems != 1
+				for _, rule := range d.GetRawConfig().AsValueMap()["export_policy_rule"].AsValueSlice() {
+					ruleMap := rule.AsValueMap()
+					if !ruleMap["protocols_enabled"].IsNull() && !ruleMap["protocol"].IsNull() {
+						return fmt.Errorf("conflicting configuration arguments. export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled")
+					}
+				}
+			}
+
+			// Validate NFSv3 to NFSv4.1 protocol conversion restrictions
+			if d.HasChange("protocols") {
+				old, new := d.GetChange("protocols")
+				oldProtocols := old.(*pluginsdk.Set).List()
+				newProtocols := new.(*pluginsdk.Set).List()
+
+				// Convert to string slices for validation
+				oldProtocolsStr := make([]string, len(oldProtocols))
+				newProtocolsStr := make([]string, len(newProtocols))
+
+				for i, v := range oldProtocols {
+					oldProtocolsStr[i] = v.(string)
+				}
+				for i, v := range newProtocols {
+					newProtocolsStr[i] = v.(string)
+				}
+
+				kerberosEnabled := d.Get("kerberos_enabled").(bool)
+				dataReplication := d.Get("data_protection_replication").([]interface{})
+
+				// Get the new export policy rules configuration to validate against new protocols
+				// Always use the new configuration when protocols are changing to ensure validation against intended state
+				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
+
+				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				for _, err := range validationErrors {
+					return err
+				}
+			}
+
 			return nil
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			MinItems:   1,
+			Deprecated: "this property has been deprecated in favour of `export_policy_rule.protocol` and will be removed in version 5.0 of the Provider.",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
+
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocol"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
 	}
 
 	return resource
@@ -499,6 +642,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 	}
 
+	acceptGrowCapacityPool := d.Get("accept_grow_capacity_pool_for_short_term_clone_split").(string)
+
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 
 	exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
@@ -522,7 +667,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if strings.EqualFold(endpointType, "dst") {
 			authorizeReplication = true
-			volumeType = "DataProtection"
+			volumeType = volumeTypeDataProtection
 		}
 	}
 
@@ -591,8 +736,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s", strings.Join(propertyMismatch, "\n"))
 			}
+		}
+
+		if acceptGrowCapacityPool != "" {
+			volumeType = volumeTypeShortTermClone
 		}
 	}
 
@@ -632,8 +781,20 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Zones: zones,
 	}
 
+	if acceptGrowCapacityPool != "" {
+		parameters.Properties.AcceptGrowCapacityPoolForShortTermCloneSplit = pointer.ToEnum[volumes.AcceptGrowCapacityPoolForShortTermCloneSplit](acceptGrowCapacityPool)
+	}
+
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
 		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
+	}
+
+	if len(d.Get("cool_access").([]interface{})) > 0 {
+		coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
+		parameters.Properties.CoolAccess = pointer.To(true)
+		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+		parameters.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
 	}
 
 	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
@@ -716,8 +877,19 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("export_policy_rule") {
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+		var protocolOverride []string
+		// Only override export policy protocols if we're also changing volume protocols
+		if d.HasChange("protocols") {
+			protocols := d.Get("protocols").(*pluginsdk.Set).List()
+			protocolOverride = *utils.ExpandStringSlice(protocols)
+		}
+		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 		update.Properties.ExportPolicy = exportPolicyRule
+	}
+
+	if d.HasChange("protocols") {
+		protocols := d.Get("protocols").(*pluginsdk.Set).List()
+		update.Properties.ProtocolTypes = utils.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -774,6 +946,27 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
 			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
 			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		}
+	}
+
+	if d.HasChange("cool_access") {
+		if len(d.Get("cool_access").([]interface{})) > 0 {
+			coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
+			update.Properties.CoolAccess = pointer.To(true)
+
+			if d.HasChange("cool_access.0.retrieval_policy") {
+				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+			}
+
+			if d.HasChange("cool_access.0.tiering_policy") {
+				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+			}
+
+			if d.HasChange("cool_access.0.coolness_period_in_days") {
+				update.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
+			}
+		} else {
+			update.Properties.CoolAccess = pointer.To(false)
 		}
 	}
 
@@ -870,6 +1063,20 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
+
+		if pointer.From(props.CoolAccess) {
+			// enums returned from the API are inconsistent so normalize them here
+			// https://github.com/Azure/azure-rest-api-specs/issues/35371
+			coolAccess := map[string]interface{}{
+				"retrieval_policy":        normalizeCoolAccessRetrievalPolicy(pointer.From(props.CoolAccessRetrievalPolicy)),
+				"tiering_policy":          normalizeCoolAccessTieringPolicy(pointer.From(props.CoolAccessTieringPolicy)),
+				"coolness_period_in_days": pointer.From(props.CoolnessPeriod),
+			}
+			d.Set("cool_access", []interface{}{coolAccess})
+		} else {
+			d.Set("cool_access", []interface{}{})
+		}
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {
@@ -1070,8 +1277,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocol"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1083,6 +1289,25 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1125,7 +1350,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 	}
 }
 
-func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -1137,18 +1362,54 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv41Enabled := false
 			cifsEnabled := false
 
-			if vpe := v["protocols_enabled"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "cifs":
-								cifsEnabled = true
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
+			// If overrideProtocols is provided (during protocol conversion), use those protocols
+			// instead of reading from the export policy rule configuration
+			if len(overrideProtocols) > 0 {
+				for _, protocol := range overrideProtocols {
+					switch strings.ToLower(protocol) {
+					case "cifs":
+						cifsEnabled = true
+					case "nfsv3":
+						nfsv3Enabled = true
+					case "nfsv4.1":
+						nfsv41Enabled = true
+					}
+				}
+			} else {
+				// Use existing logic when no protocol override is provided
+				// This handles both FivePointOh() v5 and !FivePointOh() v4 cases
+				if vpe := v["protocol"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
+							}
+						}
+					}
+				}
+				if !features.FivePointOh() {
+					if vpe := v["protocols_enabled"]; vpe != nil {
+						protocolsEnabled := vpe.([]interface{})
+						if len(protocolsEnabled) != 0 {
+							for _, protocol := range protocolsEnabled {
+								if protocol != nil {
+									switch strings.ToLower(protocol.(string)) {
+									case "cifs":
+										cifsEnabled = true
+									case "nfsv3":
+										nfsv3Enabled = true
+									case "nfsv4.1":
+										nfsv41Enabled = true
+									}
+								}
 							}
 						}
 					}
@@ -1214,12 +1475,17 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
+			"protocol":                       utils.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
+
+		if !features.FivePointOh() {
+			result["protocols_enabled"] = utils.FlattenStringSlice(&protocolsEnabled)
+		}
+
 		results = append(results, result)
 	}
 
@@ -1304,5 +1570,29 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
 		},
+	}
+}
+
+func normalizeCoolAccessTieringPolicy(coolAccessTieringPolicy volumes.CoolAccessTieringPolicy) string {
+	switch strings.ToLower(string(coolAccessTieringPolicy)) {
+	case "auto":
+		return string(volumes.CoolAccessTieringPolicyAuto)
+	case "snapshot-only":
+		return string(volumes.CoolAccessTieringPolicySnapshotOnly)
+	default:
+		return string(coolAccessTieringPolicy)
+	}
+}
+
+func normalizeCoolAccessRetrievalPolicy(coolAccessRetrievalPolicy volumes.CoolAccessRetrievalPolicy) string {
+	switch strings.ToLower(string(coolAccessRetrievalPolicy)) {
+	case "never":
+		return string(volumes.CoolAccessRetrievalPolicyNever)
+	case "default":
+		return string(volumes.CoolAccessRetrievalPolicyDefault)
+	case "on-read":
+		return string(volumes.CoolAccessRetrievalPolicyOnRead)
+	default:
+		return string(coolAccessRetrievalPolicy)
 	}
 }

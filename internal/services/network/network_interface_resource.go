@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -25,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_interface -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
@@ -34,10 +38,11 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 		Update: resourceNetworkInterfaceUpdate,
 		Delete: resourceNetworkInterfaceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseNetworkInterfaceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.NetworkInterfaceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.NetworkInterfaceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -422,7 +427,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
 func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -531,10 +536,12 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -604,7 +611,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if privateIpAddressVersion == networkinterfaces.IPVersionIPvFour && subnetId == "" {
-			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
+			return nil, errors.New("a Subnet ID must be specified for an IPv4 Network Interface")
 		}
 
 		if subnetId != "" {
@@ -649,7 +656,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if !hasPrimary {
-			return nil, fmt.Errorf("If multiple `ip_configurations` are specified - one must be designated as `primary`.")
+			return nil, errors.New("if multiple `ip_configurations` are specified - one must be designated as `primary`")
 		}
 	}
 

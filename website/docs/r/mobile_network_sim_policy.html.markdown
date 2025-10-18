@@ -54,12 +54,10 @@ resource "azurerm_mobile_network_service" "example" {
 }
 
 resource "azurerm_mobile_network_slice" "example" {
-  name              = "example-mns"
-  mobile_network_id = azurerm_mobile_network.example.id
-  location          = azurerm_resource_group.example.location
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "example-mns"
+  mobile_network_id  = azurerm_mobile_network.example.id
+  location           = azurerm_resource_group.example.location
+  slice_service_type = 1
 }
 
 resource "azurerm_mobile_network_sim_policy" "example" {
@@ -180,7 +178,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Mobile Network Sim Policies.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Sim Policies.
@@ -199,4 +197,4 @@ terraform import azurerm_mobile_network_sim_policy.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MobileNetwork`: 2022-11-01
+* `Microsoft.MobileNetwork` - 2022-11-01

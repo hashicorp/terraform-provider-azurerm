@@ -29,7 +29,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App exists.
 
-* `location` - The Azure region in which this Static Web App exists.
+## Attributes Reference
+
+* `id` - The ID of the Static Web App
 
 * `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.
 
@@ -37,19 +39,21 @@ The following arguments are supported:
 
 * `basic_auth` - A `basic_auth` block as defined below.
 
-* `configuration_file_changes_enabled` - Are changes to the configuration file permitted. 
+* `configuration_file_changes_enabled` - Are changes to the configuration file permitted.
 
 * `default_host_name` - The default host name of the Static Web App.
 
-* `preview_environments_enabled` - Are Preview (Staging) environments enabled. 
+* `identity` - An `identity` block as defined below.
 
-* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Static Web App. Defaults to `true`.
+* `location` - The Azure region in which this Static Web App exists.
 
-* `sku_tier` - The SKU tier of the Static Web App.
+* `preview_environments_enabled` - Are Preview (Staging) environments enabled.
+
+* `public_network_access_enabled` - Should public network access be enabled for the Static Web App.
 
 * `sku_size` - The SKU size of the Static Web App.
 
-* `identity` - An `identity` block as defined below.
+* `sku_tier` - The SKU tier of the Static Web App.
 
 * `repository_branch` - Repository branch of the Static Web App.
 
@@ -73,7 +77,7 @@ A `basic_auth` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App
 
@@ -81,4 +85,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-01-01
+* `Microsoft.Web` - 2023-01-01

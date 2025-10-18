@@ -809,7 +809,7 @@ func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -862,11 +862,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -889,7 +889,7 @@ func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -942,7 +942,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {

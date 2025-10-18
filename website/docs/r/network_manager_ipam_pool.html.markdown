@@ -49,13 +49,13 @@ The following arguments are supported:
 
 * `address_prefixes` - (Required) Specifies a list of IPv4 or IPv6 IP address prefixes. Changing this forces a new Network Manager IPAM Pool to be created.
 
-* `display_name` - (Required) The display name for the Network Manager IPAM Pool.
-
 * `location` - (Required) The Azure Region where the Network Manager IPAM Pool should exist. Changing this forces a new Network Manager IPAM Pool to be created.
 
 ---
 
 * `description` - (Optional) The description of the Network Manager IPAM Pool.
+
+* `display_name` - (Optional) The display name for the Network Manager IPAM Pool.
 
 * `parent_pool_name` - (Optional) The name of the parent IPAM Pool. Changing this forces a new Network Manager IPAM Pool to be created.
 
@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Manager IPAM Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager IPAM Pool.
@@ -88,4 +88,4 @@ terraform import azurerm_network_manager_ipam_pool.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

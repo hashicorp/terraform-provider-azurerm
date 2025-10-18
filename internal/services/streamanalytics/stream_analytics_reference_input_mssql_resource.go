@@ -223,12 +223,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			reference, ok := input.(inputs.ReferenceInputProperties)
+			reference, ok := props.(inputs.ReferenceInputProperties)
 			if !ok {
 				return fmt.Errorf("converting %s to Reference Input", *id)
 			}

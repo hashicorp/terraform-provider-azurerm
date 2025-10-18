@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -366,7 +367,12 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"public_ip_prefix_id":           publicIpPrefixId,
 			"subnet_id":                     subnetId,
-			"zones":                         zones.FlattenUntyped(config.Zones),
+		}
+
+		flattenedZones := zones.FlattenUntyped(config.Zones)
+
+		if len(flattenedZones) > 0 {
+			out["zones"] = flattenedZones
 		}
 
 		result = append(result, out)
@@ -375,7 +381,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 }
 
 func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -426,14 +432,14 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true, // TODO: why is this computed?
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true, // TODO: remove computed in 4.0 and use ignore_changes
+						// Not using O+C here causes drift
+						Computed: true,
 						ValidateFunc: validation.Any(
 							validation.IsIPAddress,
 							validation.StringIsEmpty,
@@ -443,7 +449,8 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"private_ip_address_version": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true, // TODO: why is this computed?
+						// Not using O+C here causes drift
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(loadbalancers.IPVersionIPvFour),
 							string(loadbalancers.IPVersionIPvSix),
@@ -453,7 +460,6 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true, // TODO: why is this computed?
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
@@ -536,6 +542,25 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		schema["subnet_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		}
+		schema["public_ip_address_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
+			ValidateFunc: commonids.ValidatePublicIPAddressID,
+		}
+	}
+
+	return schema
 }
 
 func expandEdgeZone(input string) *edgezones.Model {

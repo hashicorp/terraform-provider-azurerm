@@ -4,6 +4,7 @@
 package monitor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -14,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -227,6 +228,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 								"OperationalExcellence",
 								"Performance",
 								"HighAvailability",
+								"Security",
 							},
 								false,
 							),
@@ -392,8 +394,31 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+				// Validate location constraints for Activity Log Alert resources
+				location := diff.Get("location").(string)
+				normalizedLocation := azure.NormalizeLocation(location)
+
+				supportedLocations := []string{"global", "westeurope", "northeurope", "eastus2euap"}
+				supported := false
+				for _, supportedLocation := range supportedLocations {
+					if normalizedLocation == strings.ToLower(supportedLocation) {
+						supported = true
+						break
+					}
+				}
+
+				if !supported {
+					return fmt.Errorf("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions: [%s], got `%s`", strings.Join(supportedLocations, ", "), location)
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 

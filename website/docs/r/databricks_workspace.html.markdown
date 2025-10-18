@@ -32,7 +32,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 -> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -195,7 +195,7 @@ A `storage_account_identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
@@ -214,6 +214,6 @@ terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks`: 2024-05-01, 2022-10-01-preview
+* `Microsoft.Databricks` - 2024-05-01, 2022-10-01-preview
 
-* `Microsoft.Network`: 2024-05-01, 2023-09-01
+* `Microsoft.Network` - 2024-05-01, 2023-09-01

@@ -2127,8 +2127,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassNames(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentNames(component)),
+					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
+					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
 					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
 				}
 

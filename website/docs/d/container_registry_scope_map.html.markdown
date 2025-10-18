@@ -25,7 +25,7 @@ output "actions" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Container Registry token.
 * `container_registry_name` - The Name of the Container Registry where the token exists.
@@ -41,7 +41,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry scope map.
 
@@ -49,4 +49,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

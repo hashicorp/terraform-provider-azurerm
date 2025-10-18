@@ -56,7 +56,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +135,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -180,7 +180,7 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

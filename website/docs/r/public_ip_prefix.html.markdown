@@ -31,7 +31,7 @@ resource "azurerm_public_ip_prefix" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,6 +40,10 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the Public IP Prefix. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `custom_ip_prefix_id` - (Optional) The Custom IP Prefix ID associated with the Public IP Prefix. Changing this forces a new resource to be created.
+
+-> **Note:** When `ip_version` is set to `IPv6`, `custom_ip_prefix_id` must reference a regional (child) range rather than a global (parent) range. For more details on creating a Public IP Prefix from a custom IP prefix, see [here](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/manage-custom-ip-address-prefix#create-a-public-ip-prefix-from-a-custom-ip-prefix).
 
 * `sku` - (Optional) The SKU of the Public IP Prefix. Accepted values are `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
@@ -68,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Public IP Prefix.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Prefix.
@@ -87,4 +91,4 @@ terraform import azurerm_public_ip_prefix.myPublicIpPrefix /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

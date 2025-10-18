@@ -23,6 +23,10 @@ type CreateRequest struct {
 	// Plan is the planned state for the resource.
 	Plan tfsdk.Plan
 
+	// Identity is the planned identity for the resource. If the resource does not
+	// support identity, this value will not be set.
+	Identity *tfsdk.ResourceIdentity
+
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
 }
@@ -36,6 +40,14 @@ type CreateResponse struct {
 	// This field is pre-populated from CreateRequest.Plan and
 	// should be set during the resource's Create operation.
 	State tfsdk.State
+
+	// Identity is the identity of the resource following the Create operation.
+	// This field is pre-populated from CreateRequest.Identity and
+	// should be set during the resource's Create operation.
+	//
+	// If the resource does not support identity, this value will not be set and will
+	// raise a diagnostic if set by the resource's Create operation.
+	Identity *tfsdk.ResourceIdentity
 
 	// Private is the private state resource data following the Create operation.
 	// This field is not pre-populated as there is no pre-existing private state

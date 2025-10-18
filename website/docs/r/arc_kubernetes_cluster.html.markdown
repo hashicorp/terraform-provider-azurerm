@@ -92,7 +92,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Arc Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Arc Kubernetes Cluster.
@@ -111,4 +111,4 @@ terraform import azurerm_arc_kubernetes_cluster.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kubernetes`: 2024-01-01
+* `Microsoft.Kubernetes` - 2024-01-01

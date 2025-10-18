@@ -296,8 +296,9 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   vpn_link {
-    name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    name                = "link1"
+    dpd_timeout_seconds = 30
+    vpn_site_link_id    = azurerm_vpn_site.test.link[0].id
   }
   vpn_link {
     name             = "link2"
@@ -721,6 +722,8 @@ resource "azurerm_route_map" "test" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  depends_on = [azurerm_vpn_site.test]
 }
 
 resource "azurerm_route_map" "test2" {
@@ -744,6 +747,8 @@ resource "azurerm_route_map" "test2" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  depends_on = [azurerm_route_map.test]
 }
 
 resource "azurerm_vpn_gateway_connection" "test" {
@@ -842,6 +847,8 @@ resource "azurerm_vpn_site" "test" {
     name       = "link2"
     ip_address = "10.0.1.2"
   }
+
+  depends_on = [azurerm_vpn_gateway.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

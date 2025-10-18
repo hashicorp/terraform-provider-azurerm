@@ -98,6 +98,12 @@ The following arguments are supported:
 
 * `dev_center_attached_network_name` - (Required) The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.
 
+* `managed_virtual_network_regions` - (Optional) A list of the regions of the managed Virtual Network. When specified, the Dev Center Project Pool will use a Microsoft managed network.
+
+~> **Note:** Currently only one region can be specified for `managed_virtual_network_regions`.
+
+* `single_sign_on_enabled` - (Optional) Specifies whether Dev Boxes in the Pool will have SSO enabled or disabled. Defaults to `false`.
+
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
@@ -110,7 +116,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project Pool.
@@ -129,4 +135,4 @@ terraform import azurerm_dev_center_project_pool.example /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

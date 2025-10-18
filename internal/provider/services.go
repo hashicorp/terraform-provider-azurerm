@@ -158,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},
@@ -187,6 +188,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtestservice.Registration{},
 		loganalytics.Registration{},
+		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
@@ -339,12 +341,15 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	}()
 }
 
-func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
-	services := []sdk.FrameworkTypedServiceRegistration{
+func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
+	services := []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		compute.Registration{},
 		keyvault.Registration{},
+		network.Registration{},
+		storage.Registration{},
 	}
 
 	return services

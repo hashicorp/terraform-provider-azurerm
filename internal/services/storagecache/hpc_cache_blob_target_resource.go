@@ -161,7 +161,7 @@ func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{})
 	if m := resp.Model; m != nil {
 		if props := m.Properties; props != nil {
 			if props.TargetType != storagetargets.StorageTargetTypeClfs {
-				return fmt.Errorf("The type of this HPC Cache Target %q is not a Blob Target", id)
+				return fmt.Errorf("the type of this HPC Cache Target %q is not a Blob Target", id)
 			}
 
 			storageContainerId := ""

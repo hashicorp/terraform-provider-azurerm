@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -12,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = ExadataInfraResource{}
@@ -37,8 +39,10 @@ type ExadataInfraResourceModel struct {
 	StorageCount int64  `tfschema:"storage_count"`
 
 	// Optional
-	CustomerContacts  []string                 `tfschema:"customer_contacts"`
-	MaintenanceWindow []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	DatabaseServerType string                   `tfschema:"database_server_type"`
+	StorageServerType  string                   `tfschema:"storage_server_type"`
+	CustomerContacts   []string                 `tfschema:"customer_contacts"`
+	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
@@ -61,6 +65,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validate.ComputeCount,
 			ForceNew:     true,
+		},
+
+		"database_server_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"display_name": {
@@ -172,6 +184,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"storage_server_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(1, 255),
+		},
+
 		"tags": commonschema.Tags(),
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
@@ -227,7 +247,12 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					CustomerContacts: pointer.To(ExpandCustomerContacts(model.CustomerContacts)),
 				},
 			}
-
+			if model.DatabaseServerType != "" {
+				param.Properties.DatabaseServerType = pointer.To(model.DatabaseServerType)
+			}
+			if model.StorageServerType != "" {
+				param.Properties.StorageServerType = pointer.To(model.StorageServerType)
+			}
 			if len(model.MaintenanceWindow) > 0 {
 				param.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
 					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
@@ -324,6 +349,8 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 					state.StorageCount = pointer.From(props.StorageCount)
 					state.Shape = props.Shape
 					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
+					state.DatabaseServerType = pointer.From(props.DatabaseServerType)
+					state.StorageServerType = pointer.From(props.StorageServerType)
 				}
 			}
 

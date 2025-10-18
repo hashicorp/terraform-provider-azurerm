@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -289,7 +288,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -1158,17 +1157,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
