@@ -548,7 +548,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.UserData = pointer.To(userData.(string))
 	}
 
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *virtualmachinescalesets.VirtualMachineScaleSetOSProfile
@@ -674,13 +674,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
+		vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
-
-	if virtualMachineProfile.OsProfile == nil {
-		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-	}
-	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
