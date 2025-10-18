@@ -557,9 +557,6 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 
 	results := make([]AppServiceV3InboundDependencies, 0, len(inboundNetworking.Items))
 	for _, v := range inboundNetworking.Items {
-		if err != nil {
-			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
-		}
 		result := AppServiceV3InboundDependencies{
 			Description: pointer.From(v.Description),
 		}
