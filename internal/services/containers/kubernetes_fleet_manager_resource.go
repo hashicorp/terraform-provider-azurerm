@@ -79,40 +79,6 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 		},
 
-		"auto_upgrade_profile": {
-			Optional: true,
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Required: true,
-						Type:     pluginsdk.TypeString,
-					},
-
-					"channel": {
-						Required: true,
-						Type:     pluginsdk.TypeString,
-					},
-
-					"disabled": {
-						Optional: true,
-						Type:     pluginsdk.TypeBool,
-					},
-
-					"node_image_selection": {
-						Optional: true,
-						Type:     pluginsdk.TypeString,
-					},
-
-					"update_strategy_id": {
-						Optional: true,
-						Type:     pluginsdk.TypeString,
-					},
-				},
-			},
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }

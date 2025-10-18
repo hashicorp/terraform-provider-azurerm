@@ -1,5 +1,9 @@
 ---
-subcategory: "Container Service"
+subcategory: "Container"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_kubernetes_fleet_auto_upgrade_profile"
+description: |-
+  Manages a Kubernetes Fleet Auto Upgrade Profile.
 ---
 
 # azurerm_kubernetes_fleet_auto_upgrade_profile

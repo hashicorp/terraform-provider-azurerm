@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/autoupgradeprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,9 +41,10 @@ func (r KubernetesFleetAutoUpgradeProfileResource) ResourceType() string {
 func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			ForceNew:     true,
+			Required:     true,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice([]string{"default"}, false),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -69,7 +71,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*plugi
 		"update_strategy_id": {
 			Optional:     true,
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: fleetupdatestrategies.ValidateUpdateStrategyID,
 		},
 	}
 }
