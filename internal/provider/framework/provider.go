@@ -424,6 +424,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"data_plane_available": schema.BoolAttribute{
 										Optional: true,
 									},
+									"data_plane_auth_any_scope_enabled": schema.BoolAttribute{
+										Optional: true,
+									},
 								},
 							},
 						},
