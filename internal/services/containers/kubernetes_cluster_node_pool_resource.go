@@ -430,6 +430,28 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"security_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enable_vtpm": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+						Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+					},
+					"enable_secure_boot": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+						Description: "Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+					},
+				},
+			},
+		},
 	}
 
 	return s
@@ -690,6 +712,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := d.Get("security_profile").([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -919,6 +945,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+	}
+
+	if d.HasChange("security_profile") {
+		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security_profile").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -1230,6 +1260,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}
 
@@ -1850,4 +1884,46 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.AgentPoolSecurityProfile{}
+
+	if enableVTPM, ok := v["enable_vtpm"].(bool); ok {
+		result.EnableVTPM = pointer.To(enableVTPM)
+	}
+
+	if enableSecureBoot, ok := v["enable_secure_boot"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(enableSecureBoot)
+	}
+
+	return result
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enableVTPM := false
+	if input.EnableVTPM != nil {
+		enableVTPM = *input.EnableVTPM
+	}
+
+	enableSecureBoot := false
+	if input.EnableSecureBoot != nil {
+		enableSecureBoot = *input.EnableSecureBoot
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enable_vtpm":        enableVTPM,
+			"enable_secure_boot": enableSecureBoot,
+		},
+	}
 }
