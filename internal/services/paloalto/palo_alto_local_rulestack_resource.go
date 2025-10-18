@@ -137,7 +137,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRuleStackModel{}
 
@@ -212,7 +212,7 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
@@ -268,7 +268,7 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -287,7 +287,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {

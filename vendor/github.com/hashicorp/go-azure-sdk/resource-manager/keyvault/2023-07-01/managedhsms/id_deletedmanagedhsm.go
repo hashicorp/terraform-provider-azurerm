@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &DeletedManagedHSMId{}
 
-// DeletedManagedHSMId is a struct representing the Resource ID for a Deleted Managed H S M
+// DeletedManagedHSMId is a struct representing the Resource ID for a Deleted Managed HSM
 type DeletedManagedHSMId struct {
 	SubscriptionId        string
 	LocationName          string
@@ -84,7 +84,7 @@ func (id *DeletedManagedHSMId) FromParseResult(input resourceids.ParseResult) er
 	return nil
 }
 
-// ValidateDeletedManagedHSMID checks that 'input' can be parsed as a Deleted Managed H S M ID
+// ValidateDeletedManagedHSMID checks that 'input' can be parsed as a Deleted Managed HSM ID
 func ValidateDeletedManagedHSMID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateDeletedManagedHSMID(input interface{}, key string) (warnings []stri
 	return
 }
 
-// ID returns the formatted Deleted Managed H S M ID
+// ID returns the formatted Deleted Managed HSM ID
 func (id DeletedManagedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.KeyVault/locations/%s/deletedManagedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.DeletedManagedHSMName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Deleted Managed H S M ID
+// Segments returns a slice of Resource ID Segments which comprise this Deleted Managed HSM ID
 func (id DeletedManagedHSMId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id DeletedManagedHSMId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Deleted Managed H S M ID
+// String returns a human-readable description of this Deleted Managed HSM ID
 func (id DeletedManagedHSMId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Location Name: %q", id.LocationName),
-		fmt.Sprintf("Deleted Managed H S M Name: %q", id.DeletedManagedHSMName),
+		fmt.Sprintf("Deleted Managed HSM Name: %q", id.DeletedManagedHSMName),
 	}
-	return fmt.Sprintf("Deleted Managed H S M (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Deleted Managed HSM (%s)", strings.Join(components, "\n"))
 }

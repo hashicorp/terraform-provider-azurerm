@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `rulestack_id` - (Required) The ID of the Local Rulestack in which to create this Rule. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
-* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
+* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Possible values are between 1 and 1000000. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
 ~> **Note:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
@@ -145,7 +145,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Palo Alto Local Rulestack Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Local Rulestack Rule.

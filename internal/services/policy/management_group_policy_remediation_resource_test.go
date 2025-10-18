@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupPolicyRemediationResource struct{}
@@ -40,7 +40,21 @@ func TestAccAzureRMManagementGroupPolicyRemediation_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -58,12 +72,12 @@ func (r ManagementGroupPolicyRemediationResource) Exists(ctx context.Context, cl
 	resp, err := client.Policy.RemediationsClient.GetAtManagementGroup(ctx, *id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r ManagementGroupPolicyRemediationResource) template(data acceptance.TestData) string {
@@ -110,10 +124,12 @@ func (r ManagementGroupPolicyRemediationResource) complete(data acceptance.TestD
 %s
 
 resource "azurerm_management_group_policy_remediation" "test" {
-  name                 = "acctestremediation-%[2]s"
-  management_group_id  = azurerm_management_group.test.id
-  policy_assignment_id = azurerm_management_group_policy_assignment.test.id
-  location_filters     = ["westus"]
+  name                = "acctestremediation-%[2]s"
+  management_group_id = azurerm_management_group.test.id
+
+  policy_assignment_id           = azurerm_management_group_policy_assignment.test.id
+  policy_definition_reference_id = "RandomStringWithUpperCaseCharacters"
+  location_filters               = ["%[3]s"]
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString, data.Locations.Secondary)
 }
