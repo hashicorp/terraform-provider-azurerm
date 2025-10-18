@@ -3561,37 +3561,33 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  sku_tier            = "Standard"
+
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
   }
+
   network_profile {
     network_plugin = "azure"
   }
+
   identity {
     type = "SystemAssigned"
   }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                   = "pool1"
+  name                   = "internal"
   kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
-  vm_size                = "Standard_DS2_v2"
+  vm_size                = "Standard_D2s_v3"
   node_count             = 1
   vnet_subnet_id         = azurerm_subnet.test.id
   pod_subnet_id          = azurerm_subnet.test.id
   pod_ip_allocation_mode = "StaticBlock"
 }
-`, data.RandomInteger, // resource_group name
-		data.Locations.Primary, // resource_group location
-		data.RandomInteger,     // virtual_network name
-		data.RandomInteger,     // subnet name
-		data.RandomInteger,     // kubernetes_cluster name
-		data.RandomInteger,     // kubernetes_cluster dns_prefix
-	)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterNodePoolResource) podIPAllocationModeConfigUpdated(data acceptance.TestData) string {
@@ -3624,35 +3620,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  sku_tier            = "Standard"
+
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
   }
+
   network_profile {
     network_plugin = "azure"
   }
+
   identity {
     type = "SystemAssigned"
   }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                   = "pool1"
+  name                   = "internal"
   kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
-  vm_size                = "Standard_DS2_v2"
+  vm_size                = "Standard_D2s_v3"
   node_count             = 1
   vnet_subnet_id         = azurerm_subnet.test.id
   pod_subnet_id          = azurerm_subnet.test.id
   pod_ip_allocation_mode = "DynamicIndividual"
 }
-`, data.RandomInteger, // resource_group name
-		data.Locations.Primary, // resource_group location
-		data.RandomInteger,     // virtual_network name
-		data.RandomInteger,     // subnet name
-		data.RandomInteger,     // kubernetes_cluster name
-		data.RandomInteger,     // kubernetes_cluster dns_prefix
-	)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
