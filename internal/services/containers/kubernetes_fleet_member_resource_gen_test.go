@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetmembers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ func (r KubernetesFleetMemberTestResource) Exists(ctx context.Context, clients *
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20240401.FleetMembers.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20250301.FleetMembers.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
