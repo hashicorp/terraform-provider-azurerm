@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	sdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,10 +55,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			sdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("admin_password"), cty.GetAttrPath("admin_password_wo")),
-		},
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -78,15 +73,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				RequiredWith: []string{
-					"admin_username",
-				},
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 					"admin_password_wo",
 				},
 				ValidateFunc: computeValidate.WindowsAdminPassword,
-				ExactlyOneOf: []string{"admin_password", "admin_password_wo"},
 			},
 
 			"admin_password_wo": {
@@ -94,8 +85,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:      true,
 				WriteOnly:     true,
 				RequiredWith:  []string{"admin_password_wo_version"},
-				ConflictsWith: []string{"admin_password"},
-				ExactlyOneOf:  []string{"admin_password", "admin_password_wo"},
+				ConflictsWith: []string{"admin_password", "os_managed_disk_id"},
 				ValidateFunc:  computeValidate.WindowsAdminPassword,
 			},
 
@@ -110,9 +100,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				RequiredWith: []string{
-					"admin_password",
-				},
 				ExactlyOneOf: []string{
 					"admin_username",
 					"os_managed_disk_id",
