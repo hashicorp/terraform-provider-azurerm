@@ -62,6 +62,19 @@ func TestAccDataFactoryLinkedServiceKeyVault_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceKeyVault_withDynamicExpression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
+	r := LinkedServiceKeyVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dynamicExpressionInKeyVaultBaseUrl(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LinkedServiceKeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
@@ -206,4 +219,35 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceKeyVaultResource) dynamicExpressionInKeyVaultBaseUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name                                  = "acctestlskv%[1]d"
+  data_factory_id                       = azurerm_data_factory.test.id
+  key_vault_base_url_dynamic_expression = "@{concat('https://my-kv-', linkedService().envVar, '.vault.azure.net')}"
+  parameters = {
+    envVar = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
