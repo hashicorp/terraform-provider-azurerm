@@ -30,7 +30,7 @@ resource "azurerm_network_ddos_protection_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

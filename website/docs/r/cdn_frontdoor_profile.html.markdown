@@ -45,7 +45,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

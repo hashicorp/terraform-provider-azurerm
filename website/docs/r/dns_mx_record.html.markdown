@@ -47,7 +47,7 @@ resource "azurerm_dns_mx_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

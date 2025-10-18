@@ -89,7 +89,7 @@ resource "azurerm_firewall_nat_rule_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -128,6 +128,12 @@ A `rule` block supports the following:
 * `translated_address` - (Required) The address of the service behind the Firewall.
 
 * `translated_port` - (Required) The port of the service behind the Firewall.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Firewall NAT Rule Collection.
 
 ## Timeouts
 

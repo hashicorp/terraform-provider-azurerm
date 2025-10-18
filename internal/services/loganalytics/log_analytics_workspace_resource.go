@@ -317,7 +317,13 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+		// In v4.0, we can not set default values for those O+C properties, we can only set the values manually.
+		// `GetOk()` can not determine if the it's just zero-value (false) or the user specified `false`
+		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
+			parameters.Properties.Features.DisableLocalAuth = pointer.To(false)
+		}
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
+			v := d.Get("local_authentication_disabled")
 			parameters.Properties.Features.DisableLocalAuth = pointer.To(v.(bool))
 		}
 	}

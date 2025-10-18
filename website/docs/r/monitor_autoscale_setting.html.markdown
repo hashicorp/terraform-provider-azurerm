@@ -425,7 +425,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

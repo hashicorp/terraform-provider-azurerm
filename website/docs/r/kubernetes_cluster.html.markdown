@@ -61,7 +61,7 @@ output "kube_config" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -226,6 +226,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
 
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
+* `ai_toolchain_operator_enabled` - (Optional) Specifies whether the AI Toolchain Operator should be enabled for the Cluster. Defaults to `false`.
 
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
 

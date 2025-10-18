@@ -42,7 +42,7 @@ resource "azurerm_postgresql_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

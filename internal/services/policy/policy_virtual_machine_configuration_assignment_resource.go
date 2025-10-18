@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,7 +38,7 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(id)
+			_, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(id)
 			return err
 		}),
 
@@ -135,7 +135,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 		return err
 	}
 
-	id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
+	id := guestconfigurationassignments.NewVirtualMachineProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -150,7 +150,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	}
 	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
 	assignment := guestconfigurationassignments.GuestConfigurationAssignment{
-		Name:     utils.String(id.GuestConfigurationAssignmentName),
+		Name:     *utils.String(id.GuestConfigurationAssignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfigurationassignments.GuestConfigurationAssignmentProperties{
 			GuestConfiguration: guestConfiguration,
@@ -184,7 +184,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(d.Id())
+	id, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentDelete(d *pluginsdk.Reso
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(d.Id())
+	id, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}

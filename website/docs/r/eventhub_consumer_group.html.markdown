@@ -47,7 +47,7 @@ resource "azurerm_eventhub_consumer_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
