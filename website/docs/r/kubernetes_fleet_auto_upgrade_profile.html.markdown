@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Auto Upgrade Profile. Must be `default`.
+* `name` - (Required) The name of the Auto Upgrade Profile. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Kubernetes Fleet Auto Upgrade Profile should exist.
 

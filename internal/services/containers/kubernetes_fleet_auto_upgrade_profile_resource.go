@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -44,7 +45,13 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*plugi
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{"default"}, false),
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 50),
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`),
+					"name must start and end with a lowercase letter or number, and can only contain lowercase letters, numbers, and hyphens",
+				),
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
