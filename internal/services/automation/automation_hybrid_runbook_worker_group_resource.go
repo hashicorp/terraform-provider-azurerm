@@ -192,9 +192,9 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 
 			// Convert the ID to the listallhybridrunbookworkergroupinautomationaccount package format
 			deleteId := listallhybridrunbookworkergroupinautomationaccount.NewHybridRunbookWorkerGroupID(
-				id.SubscriptionId, 
-				id.ResourceGroupName, 
-				id.AutomationAccountName, 
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutomationAccountName,
 				id.HybridRunbookWorkerGroupName,
 			)
 
