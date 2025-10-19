@@ -130,7 +130,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 			}
 
 			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{
-				Properties: &hybridrunbookworker.HybridRunbookWorkerCreateOrUpdateProperties{},
+				Properties: &hybridrunbookworker.HybridRunbookWorkerCreateOrUpdateParameters{},
 			}
 			if model.VmResourceId != "" {
 				req.Properties.VMResourceId = utils.String(model.VmResourceId)
