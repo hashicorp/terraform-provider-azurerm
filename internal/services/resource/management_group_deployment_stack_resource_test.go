@@ -124,9 +124,9 @@ resource "azurerm_management_group_deployment_stack" "test" {
   management_group_id = azurerm_management_group.test.id
 
   template_content = jsonencode({
-    "$schema" = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
+    "$schema"        = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
     "contentVersion" = "1.0.0.0"
-    "resources" = []
+    "resources"      = []
   })
 
   action_on_unmanage {
@@ -175,14 +175,14 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_management_group_deployment_stack" "test" {
-  name                      = "acctestds-%[1]d"
-  location                  = %[2]q
-  management_group_id       = azurerm_management_group.test.id
-  description               = "Test deployment stack"
+  name                       = "acctestds-%[1]d"
+  location                   = %[2]q
+  management_group_id        = azurerm_management_group.test.id
+  description                = "Test deployment stack"
   deployment_subscription_id = data.azurerm_client_config.current.subscription_id
 
   template_content = jsonencode({
-    "$schema" = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
+    "$schema"        = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
     "contentVersion" = "1.0.0.0"
     "parameters" = {
       "policyName" = {
@@ -191,16 +191,16 @@ resource "azurerm_management_group_deployment_stack" "test" {
     }
     "resources" = [
       {
-        "type" = "Microsoft.Authorization/policyDefinitions"
+        "type"       = "Microsoft.Authorization/policyDefinitions"
         "apiVersion" = "2021-06-01"
-        "name" = "[parameters('policyName')]"
+        "name"       = "[parameters('policyName')]"
         "properties" = {
-          "policyType" = "Custom"
-          "mode" = "All"
+          "policyType"  = "Custom"
+          "mode"        = "All"
           "displayName" = "Test Policy"
           "policyRule" = {
             "if" = {
-              "field" = "type"
+              "field"  = "type"
               "equals" = "Microsoft.Storage/storageAccounts"
             }
             "then" = {

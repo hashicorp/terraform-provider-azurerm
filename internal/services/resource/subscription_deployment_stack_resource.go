@@ -20,9 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var (
-	_ sdk.ResourceWithUpdate = SubscriptionDeploymentStackResource{}
-)
+var _ sdk.ResourceWithUpdate = SubscriptionDeploymentStackResource{}
 
 type SubscriptionDeploymentStackResource struct{}
 

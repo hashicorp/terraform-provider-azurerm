@@ -123,4 +123,4 @@ terraform import azurerm_management_group_deployment_stack.example /providers/Mi
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Resources` - 2024-03-01
+* `Microsoft.Management` - 2024-03-01

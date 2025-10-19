@@ -19,9 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var (
-	_ sdk.ResourceWithUpdate = ManagementGroupDeploymentStackResource{}
-)
+var _ sdk.ResourceWithUpdate = ManagementGroupDeploymentStackResource{}
 
 type ManagementGroupDeploymentStackResource struct{}
 

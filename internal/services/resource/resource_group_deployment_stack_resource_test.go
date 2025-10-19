@@ -204,13 +204,13 @@ resource "azurerm_resource_group_deployment_stack" "test" {
   })
 
   action_on_unmanage {
-    resources        = "delete"
-    resource_groups  = "detach"
+    resources         = "delete"
+    resource_groups   = "detach"
     management_groups = "detach"
   }
 
   deny_settings {
-    mode                   = "denyDelete"
+    mode                  = "denyDelete"
     apply_to_child_scopes = false
   }
 

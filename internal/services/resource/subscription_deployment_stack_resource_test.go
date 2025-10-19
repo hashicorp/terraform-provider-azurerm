@@ -117,9 +117,9 @@ resource "azurerm_subscription_deployment_stack" "test" {
   location = %q
 
   template_content = jsonencode({
-    "$schema" = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
+    "$schema"        = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
     "contentVersion" = "1.0.0.0"
-    "resources" = []
+    "resources"      = []
   })
 
   action_on_unmanage {
@@ -166,13 +166,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_subscription_deployment_stack" "test" {
-  name                        = "acctestds-%[1]d"
-  location                    = %[2]q
-  description                 = "Test deployment stack"
+  name                           = "acctestds-%[1]d"
+  location                       = %[2]q
+  description                    = "Test deployment stack"
   deployment_resource_group_name = azurerm_resource_group.test.name
 
   template_content = jsonencode({
-    "$schema" = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
+    "$schema"        = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
     "contentVersion" = "1.0.0.0"
     "parameters" = {
       "storageAccountName" = {
@@ -181,10 +181,10 @@ resource "azurerm_subscription_deployment_stack" "test" {
     }
     "resources" = [
       {
-        "type" = "Microsoft.Storage/storageAccounts"
+        "type"       = "Microsoft.Storage/storageAccounts"
         "apiVersion" = "2021-04-01"
-        "name" = "[parameters('storageAccountName')]"
-        "location" = %[2]q
+        "name"       = "[parameters('storageAccountName')]"
+        "location"   = %[2]q
         "sku" = {
           "name" = "Standard_LRS"
         }
@@ -200,13 +200,13 @@ resource "azurerm_subscription_deployment_stack" "test" {
   })
 
   action_on_unmanage {
-    resources        = "delete"
-    resource_groups  = "delete"
+    resources         = "delete"
+    resource_groups   = "delete"
     management_groups = "detach"
   }
 
   deny_settings {
-    mode                 = "denyDelete"
+    mode                  = "denyDelete"
     apply_to_child_scopes = true
   }
 
