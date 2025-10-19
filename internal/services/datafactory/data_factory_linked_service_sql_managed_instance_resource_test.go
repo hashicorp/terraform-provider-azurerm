@@ -210,12 +210,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
-  name                = "acctestlssqlmi%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Server=myserver.database.windows.net;Database=mydatabase"
-  service_principal_id = "00000000-0000-0000-0000-000000000000"
+  name                  = "acctestlssqlmi%[1]d"
+  data_factory_id       = azurerm_data_factory.test.id
+  connection_string     = "Server=myserver.database.windows.net;Database=mydatabase"
+  service_principal_id  = "00000000-0000-0000-0000-000000000000"
   service_principal_key = "testkey"
-  tenant              = "11111111-1111-1111-1111-111111111111"
+  tenant                = "11111111-1111-1111-1111-111111111111"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -252,8 +252,8 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
-  name            = "acctestlssqlmi%[1]d"
-  data_factory_id = azurerm_data_factory.test.id
+  name              = "acctestlssqlmi%[1]d"
+  data_factory_id   = azurerm_data_factory.test.id
   connection_string = "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser"
 
   key_vault_password {
@@ -322,15 +322,15 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
-  name                      = "acctestlssqlmi%[2]d"
-  data_factory_id           = azurerm_data_factory.test.id
-  connection_string         = "Server=myserver.database.windows.net;Database=mydatabase;"
-  service_principal_id      = "00000000-0000-0000-0000-000000000000"
-  service_principal_key     = "testkey"
-  tenant                    = "11111111-1111-1111-1111-111111111111"
-  integration_runtime_name  = azurerm_data_factory_integration_runtime_azure.test.name
-  annotations               = ["test1", "test2", "test3"]
-  description               = "complete test description"
+  name                     = "acctestlssqlmi%[2]d"
+  data_factory_id          = azurerm_data_factory.test.id
+  connection_string        = "Server=myserver.database.windows.net;Database=mydatabase;"
+  service_principal_id     = "00000000-0000-0000-0000-000000000000"
+  service_principal_key    = "testkey"
+  tenant                   = "11111111-1111-1111-1111-111111111111"
+  integration_runtime_name = azurerm_data_factory_integration_runtime_azure.test.name
+  annotations              = ["test1", "test2", "test3"]
+  description              = "complete test description"
 
   parameters = {
     param1 = "value1"
