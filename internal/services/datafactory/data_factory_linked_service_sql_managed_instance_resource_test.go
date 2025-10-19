@@ -29,12 +29,6 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		data.ImportStep(),
 	})
 }
@@ -50,7 +44,28 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("service_principal_key", "key_vault_password"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSQLManagedInstance_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
+	r := LinkedServiceSQLManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep("service_principal_key"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -95,7 +110,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultConnectionString(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("key_vault_password.0.linked_service_name", "key_vault_connection_string.0.secret_name"),
 	})
 }
 
@@ -138,13 +153,8 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
   description       = "test description"
 
   parameters = {
-    foo = "test1"
-    bar = "test2"
-  }
-
-  additional_properties = {
-    foo = "test1"
-    bar = "test2"
+    param1 = "value1"
+    param2 = "value2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -175,13 +185,8 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
   description       = "test description 2"
 
   parameters = {
-    foo  = "test1"
-    bar  = "test2"
-    buzz = "test3"
-  }
-
-  additional_properties = {
-    foo = "test1"
+    param1 = "value1"
+    param2 = "value2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -319,7 +324,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
   name                      = "acctestlssqlmi%[2]d"
   data_factory_id           = azurerm_data_factory.test.id
-  connection_string         = "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;"
+  connection_string         = "Server=myserver.database.windows.net;Database=mydatabase;"
   service_principal_id      = "00000000-0000-0000-0000-000000000000"
   service_principal_key     = "testkey"
   tenant                    = "11111111-1111-1111-1111-111111111111"
@@ -328,14 +333,8 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
   description               = "complete test description"
 
   parameters = {
-    foo  = "test1"
-    bar  = "test2"
-    buzz = "test3"
-  }
-
-  additional_properties = {
-    foo = "test1"
-    bar = "test2"
+    param1 = "value1"
+    param2 = "value2"
   }
 }
 `, r.template(data), data.RandomInteger)

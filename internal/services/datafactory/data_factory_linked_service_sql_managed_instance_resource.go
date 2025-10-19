@@ -4,342 +4,698 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
-func resourceDataFactoryLinkedServiceSqlManagedInstance() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSqlManagedInstanceCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceSqlManagedInstanceRead,
-		Update: resourceDataFactoryLinkedServiceSqlManagedInstanceCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceSqlManagedInstanceDelete,
+type LinkedServiceSqlManagedInstanceResource struct{}
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.LinkedServiceID(id)
-			return err
-		}, importDataFactoryLinkedService(datafactory.TypeBasicLinkedServiceTypeAzureSQLMI)),
+type LinkedServiceSqlManagedInstanceModel struct {
+	Name                     string                           `tfschema:"name"`
+	DataFactoryID            string                           `tfschema:"data_factory_id"`
+	Annotations              []string                         `tfschema:"annotations"`
+	ConnectionString         string                           `tfschema:"connection_string"`
+	Description              string                           `tfschema:"description"`
+	IntegrationRuntimeName   string                           `tfschema:"integration_runtime_name"`
+	KeyVaultConnectionString []KeyVaultConnectionStringConfig `tfschema:"key_vault_connection_string"`
+	KeyVaultPassword         []KeyVaultPasswordConfig         `tfschema:"key_vault_password"`
+	Parameters               map[string]string                `tfschema:"parameters"`
+	ServicePrincipalID       string                           `tfschema:"service_principal_id"`
+	ServicePrincipalKey      string                           `tfschema:"service_principal_key"`
+	Tenant                   string                           `tfschema:"tenant"`
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type KeyVaultConnectionStringConfig struct {
+	LinkedServiceName string `tfschema:"linked_service_name"`
+	SecretName        string `tfschema:"secret_name"`
+}
+
+type KeyVaultPasswordConfig struct {
+	LinkedServiceName string `tfschema:"linked_service_name"`
+	SecretName        string `tfschema:"secret_name"`
+}
+
+var _ sdk.ResourceWithUpdate = LinkedServiceSqlManagedInstanceResource{}
+var _ sdk.ResourceWithCustomizeDiff = LinkedServiceSqlManagedInstanceResource{}
+
+func (r LinkedServiceSqlManagedInstanceResource) ModelObject() interface{} {
+	return &LinkedServiceSqlManagedInstanceModel{}
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) ResourceType() string {
+	return "azurerm_data_factory_linked_service_sql_managed_instance"
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.LinkedServiceID
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LinkedServiceDatasetName,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
+		"data_factory_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: factories.ValidateFactoryID,
+		},
+
+		"annotations": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.LinkedServiceDatasetName,
-			},
-
-			"data_factory_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: factories.ValidateFactoryID,
-			},
-
-			"additional_properties": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"annotations": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"connection_string": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
-				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+		},
 
-			"integration_runtime_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"connection_string": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
+			DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
+			ValidateFunc:     validation.StringIsNotEmpty,
+		},
 
-			"key_vault_connection_string": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
-				MaxItems:     1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"integration_runtime_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"key_vault_connection_string": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
+			MaxItems:     1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"linked_service_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"secret_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
+		},
 
-			"key_vault_password": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"key_vault_password": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"linked_service_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"secret_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
+		},
 
-			"parameters": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+		"parameters": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
+		},
 
-			"service_principal_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"service_principal_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"service_principal_key", "tenant"},
+		},
 
-			"service_principal_key": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"service_principal_key": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"service_principal_id", "tenant"},
+		},
 
-			"tenant": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"tenant": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"service_principal_id", "service_principal_key"},
 		},
 	}
 }
 
-func resourceDataFactoryLinkedServiceSqlManagedInstanceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r LinkedServiceSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
 
-	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
-	if err != nil {
-		return err
-	}
+func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.LinkedServicesClient
 
-	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			var config LinkedServiceSqlManagedInstanceModel
+			if err := metadata.Decode(&config); err != nil {
+				return err
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_managed_instance", id.ID())
-		}
-	}
+			dataFactoryId, err := factories.ParseFactoryID(config.DataFactoryID)
+			if err != nil {
+				return err
+			}
 
-	password := d.Get("key_vault_password").([]interface{})
-
-	sqlMILinkedService := &datafactory.AzureSQLMILinkedService{
-		Description: utils.String(d.Get("description").(string)),
-		Type:        datafactory.TypeBasicLinkedServiceTypeAzureSQLMI,
-		AzureSQLMILinkedServiceTypeProperties: &datafactory.AzureSQLMILinkedServiceTypeProperties{
-			Password: expandAzureKeyVaultSecretReference(password),
-		},
-	}
-
-	if v, ok := d.GetOk("connection_string"); ok {
-		sqlMILinkedService.ConnectionString = v.(string)
-	}
-
-	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlMILinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("service_principal_id"); ok {
-		sqlMILinkedService.ServicePrincipalID = v.(string)
-	}
-
-	if v, ok := d.GetOk("service_principal_key"); ok {
-		sqlMILinkedService.ServicePrincipalKey = &datafactory.SecureString{
-			Type:  datafactory.TypeSecureString,
-			Value: utils.String(v.(string)),
-		}
-	}
-
-	if v, ok := d.GetOk("tenant"); ok {
-		sqlMILinkedService.Tenant = v.(string)
-	}
-
-	if v, ok := d.GetOk("parameters"); ok {
-		sqlMILinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
-	}
-
-	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		sqlMILinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
-	}
-
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sqlMILinkedService.Annotations = &annotations
-	}
-
-	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlMILinkedService.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	linkedService := datafactory.LinkedServiceResource{
-		Properties: sqlMILinkedService,
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceDataFactoryLinkedServiceSqlManagedInstanceRead(d, meta)
-}
-
-func resourceDataFactoryLinkedServiceSqlManagedInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.LinkedServiceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	d.Set("name", id.Name)
-	d.Set("data_factory_id", dataFactoryId.ID())
-
-	sqlMI, ok := resp.Properties.AsAzureSQLMILinkedService()
-	if !ok {
-		return fmt.Errorf("classifying %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureSQLMI, *resp.Type)
-	}
-
-	d.Set("description", sqlMI.Description)
-
-	if sqlMI.AzureSQLMILinkedServiceTypeProperties != nil {
-		props := sqlMI.AzureSQLMILinkedServiceTypeProperties
-
-		if props.ConnectionString != nil {
-			if val, ok := props.ConnectionString.(map[string]interface{}); ok {
-				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
-					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
+			id := parse.NewLinkedServiceID(metadata.Client.Account.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, config.Name)
+			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
+			existing, err := client.Get(ctx, linkedServiceId, linkedservices.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
-			} else if val, ok := props.ConnectionString.(string); ok {
-				d.Set("connection_string", val)
 			}
-		}
 
-		d.Set("service_principal_id", props.ServicePrincipalID)
-		d.Set("tenant", props.Tenant)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_managed_instance", id.ID())
+			}
 
-		if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(props.Password)); err != nil {
-			return fmt.Errorf("setting `key_vault_password`: %+v", err)
-		}
+			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
+				Description: utils.String(config.Description),
+				Type:        "AzureSqlMI",
+				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
+					Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
+				},
+			}
+
+			if config.ConnectionString != "" {
+				connStr := interface{}(config.ConnectionString)
+				sqlMILinkedService.TypeProperties.ConnectionString = &connStr
+			}
+
+			if len(config.KeyVaultConnectionString) > 0 {
+				keyVaultConnStr := expandKeyVaultConnectionStringFromConfig(config.KeyVaultConnectionString)
+				sqlMILinkedService.TypeProperties.ConnectionString = &keyVaultConnStr
+			}
+
+			if config.ServicePrincipalID != "" {
+				spID := interface{}(config.ServicePrincipalID)
+				sqlMILinkedService.TypeProperties.ServicePrincipalId = &spID
+			}
+
+			if config.ServicePrincipalKey != "" {
+				secureString := linkedservices.SecureString{
+					Type:  "SecureString",
+					Value: config.ServicePrincipalKey,
+				}
+				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
+				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
+			}
+
+			if config.Tenant != "" {
+				sqlMILinkedService.TypeProperties.Tenant = pointer.To(interface{}(config.Tenant))
+			}
+
+			if len(config.Parameters) > 0 {
+				parameters := make(map[string]linkedservices.ParameterSpecification)
+				for key, value := range config.Parameters {
+					val := interface{}(value)
+					parameters[key] = linkedservices.ParameterSpecification{
+						Type:         linkedservices.ParameterTypeString,
+						DefaultValue: &val,
+					}
+				}
+				sqlMILinkedService.Parameters = &parameters
+			}
+
+			if config.IntegrationRuntimeName != "" {
+				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+					ReferenceName: config.IntegrationRuntimeName,
+				}
+			}
+
+			if config.IntegrationRuntimeName != "" {
+				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+					ReferenceName: config.IntegrationRuntimeName,
+				}
+			}
+
+			if len(config.Annotations) > 0 {
+				annotations := make([]interface{}, len(config.Annotations))
+				for i, v := range config.Annotations {
+					annotations[i] = v
+				}
+				sqlMILinkedService.Annotations = &annotations
+			}
+
+			linkedService := linkedservices.LinkedServiceResource{
+				Properties: sqlMILinkedService,
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, linkedServiceId, linkedService, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
 	}
-
-	annotations := flattenDataFactoryAnnotations(sqlMI.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("setting `annotations`: %+v", err)
-	}
-
-	parameters := flattenLinkedServiceParameters(sqlMI.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("setting `parameters`: %+v", err)
-	}
-
-	if connectVia := sqlMI.ConnectVia; connectVia != nil {
-		if connectVia.ReferenceName != nil {
-			d.Set("integration_runtime_name", connectVia.ReferenceName)
-		}
-	}
-
-	d.Set("additional_properties", sqlMI.AdditionalProperties)
-
-	return nil
 }
 
-func resourceDataFactoryLinkedServiceSqlManagedInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.LinkedServicesClient
 
-	id, err := parse.LinkedServiceID(d.Id())
-	if err != nil {
-		return err
+			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
+
+			resp, err := client.Get(ctx, linkedServiceId, linkedservices.DefaultGetOperationOptions())
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			existing, ok := resp.Model.Properties.(linkedservices.AzureSqlMILinkedService)
+			if !ok {
+				return fmt.Errorf("classifying %s: Expected: %q Received: %T", id, "AzureSqlMI", resp.Model.Properties)
+			}
+
+			if existing.Type != "AzureSqlMI" {
+				return fmt.Errorf("classifying %s: Expected: %q Received: %q", id, "AzureSqlMI", existing.Type)
+			}
+
+			state := LinkedServiceSqlManagedInstanceModel{
+				Name:          id.Name,
+				DataFactoryID: dataFactoryId.ID(),
+			}
+
+			if existing.Description != nil {
+				state.Description = *existing.Description
+			}
+
+			props := existing.TypeProperties
+
+			if props.ConnectionString != nil {
+				if val, ok := (*props.ConnectionString).(map[string]interface{}); ok {
+					state.KeyVaultConnectionString = flattenKeyVaultConnectionStringToConfig(val)
+				} else if val, ok := (*props.ConnectionString).(string); ok {
+					state.ConnectionString = val
+				}
+			}
+
+			if props.ServicePrincipalId != nil {
+				if id, ok := (*props.ServicePrincipalId).(string); ok {
+					state.ServicePrincipalID = id
+				}
+			}
+
+			if props.Tenant != nil {
+				if tenant, ok := (*props.Tenant).(string); ok {
+					state.Tenant = tenant
+				}
+			}
+
+			if v, exists := metadata.ResourceData.GetOk("service_principal_key"); exists {
+				state.ServicePrincipalKey = v.(string)
+			}
+
+			// TODO: Fix password handling for new SDK
+			// state.KeyVaultPassword = flattenKeyVaultPasswordToConfig(props.Password)
+
+			if existing.Annotations != nil {
+				annotations := make([]string, 0)
+				for _, annotation := range *existing.Annotations {
+					if str, ok := annotation.(string); ok {
+						annotations = append(annotations, str)
+					}
+				}
+				state.Annotations = annotations
+			}
+
+			if existing.Parameters != nil {
+				parameters := make(map[string]string)
+				for key, param := range *existing.Parameters {
+					if param.DefaultValue != nil {
+						if str, ok := (*param.DefaultValue).(string); ok {
+							parameters[key] = str
+						}
+					}
+				}
+				state.Parameters = parameters
+			}
+
+			if connectVia := existing.ConnectVia; connectVia != nil {
+				state.IntegrationRuntimeName = connectVia.ReferenceName
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.LinkedServicesClient
+
+			var config LinkedServiceSqlManagedInstanceModel
+			if err := metadata.Decode(&config); err != nil {
+				return err
+			}
+
+			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
+
+			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
+				Description:    utils.String(config.Description),
+				Type:           "AzureSqlMI",
+				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
+					// Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
+				},
+			}
+
+			if config.ConnectionString != "" {
+				connStr := interface{}(config.ConnectionString)
+				sqlMILinkedService.TypeProperties.ConnectionString = &connStr
+			}
+
+			if len(config.KeyVaultConnectionString) > 0 {
+				keyVaultConnStr := expandKeyVaultConnectionStringFromConfig(config.KeyVaultConnectionString)
+				sqlMILinkedService.TypeProperties.ConnectionString = &keyVaultConnStr
+			}
+
+			if config.ServicePrincipalID != "" {
+				spID := interface{}(config.ServicePrincipalID)
+				sqlMILinkedService.TypeProperties.ServicePrincipalId = &spID
+			}
+
+			if config.ServicePrincipalKey != "" {
+				secureString := linkedservices.SecureString{
+					Type:  "SecureString",
+					Value: config.ServicePrincipalKey,
+				}
+				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
+				// ServicePrincipalCredential should be set to the same value as ServicePrincipalKey for service principal auth
+				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
+			}
+
+			if config.Tenant != "" {
+				tenant := interface{}(config.Tenant)
+				sqlMILinkedService.TypeProperties.Tenant = &tenant
+			}
+
+			if len(config.Parameters) > 0 {
+				parameters := make(map[string]linkedservices.ParameterSpecification)
+				for key, value := range config.Parameters {
+					val := interface{}(value)
+					parameters[key] = linkedservices.ParameterSpecification{
+						Type:         linkedservices.ParameterTypeString,
+						DefaultValue: &val,
+					}
+				}
+				sqlMILinkedService.Parameters = &parameters
+			}
+
+			if config.IntegrationRuntimeName != "" {
+				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+					ReferenceName: config.IntegrationRuntimeName,
+				}
+			}
+
+			if len(config.Annotations) > 0 {
+				annotations := make([]interface{}, len(config.Annotations))
+				for i, v := range config.Annotations {
+					annotations[i] = v
+				}
+				sqlMILinkedService.Annotations = &annotations
+			}
+
+			linkedService := linkedservices.LinkedServiceResource{
+				Properties: sqlMILinkedService,
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, linkedServiceId, linkedService, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.LinkedServicesClient
+
+			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
+
+			resp, err := client.Delete(ctx, linkedServiceId)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("deleting %s: %+v", id, err)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandKeyVaultConnectionStringFromConfig(input []KeyVaultConnectionStringConfig) interface{} {
+	if len(input) == 0 {
+		return nil
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+	config := input[0]
+	return &linkedservices.AzureKeyVaultSecretReference{
+		SecretName: config.SecretName,
+		Store: linkedservices.LinkedServiceReference{
+			Type:          linkedservices.TypeLinkedServiceReference,
+			ReferenceName: config.LinkedServiceName,
+		},
+	}
+}
+
+func expandKeyVaultPasswordFromConfig(input []KeyVaultPasswordConfig) *linkedservices.AzureKeyVaultSecretReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0]
+	return &linkedservices.AzureKeyVaultSecretReference{
+		SecretName: config.SecretName,
+		Store: linkedservices.LinkedServiceReference{
+			Type:          linkedservices.TypeLinkedServiceReference,
+			ReferenceName: config.LinkedServiceName,
+		},
+	}
+}
+
+func flattenKeyVaultConnectionStringToConfig(input interface{}) []KeyVaultConnectionStringConfig {
+	if input == nil {
+		return []KeyVaultConnectionStringConfig{}
+	}
+
+	// Try to use the existing flatten function first
+	flattened := flattenAzureKeyVaultConnectionString(input.(map[string]interface{}))
+	if len(flattened) == 0 {
+		return []KeyVaultConnectionStringConfig{}
+	}
+
+	configMap := flattened[0].(map[string]interface{})
+	return []KeyVaultConnectionStringConfig{{
+		LinkedServiceName: configMap["linked_service_name"].(string),
+		SecretName:        configMap["secret_name"].(string),
+	}}
+}
+
+func flattenKeyVaultPasswordToConfig(input *linkedservices.AzureKeyVaultSecretReference) []KeyVaultPasswordConfig {
+	if input == nil {
+		return []KeyVaultPasswordConfig{}
+	}
+
+	config := KeyVaultPasswordConfig{}
+
+	if secretName, ok := input.SecretName.(string); ok {
+		config.SecretName = secretName
+	}
+
+	// ReferenceName is a string, not a pointer in linkedservices SDK
+	config.LinkedServiceName = input.Store.ReferenceName
+
+	return []KeyVaultPasswordConfig{config}
+}
+
+func expandParametersMapFromConfig(input map[string]string) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+	for k, v := range input {
+		result[k] = v
+	}
+	return result
+}
+
+func flattenParametersMapToConfig(input map[string]interface{}) map[string]string {
+	if len(input) == 0 {
+		return map[string]string{}
+	}
+
+	result := make(map[string]string)
+	for k, v := range input {
+		if str, ok := v.(string); ok {
+			result[k] = str
+		}
+	}
+	return result
+}
+
+// Helper function to check if a connection string contains authentication information
+func connectionStringContainsAuth(connectionString string) bool {
+	if connectionString == "" {
+		return false
+	}
+
+	// Convert to lowercase for case-insensitive matching
+	connStr := strings.ToLower(connectionString)
+
+	// Check for common authentication parameters
+	authParams := []string{
+		"user id=",
+		"userid=",
+		"uid=",
+		"password=",
+		"pwd=",
+		"integrated security=true",
+		"trusted_connection=yes",
+		"trusted_connection=true",
+	}
+
+	for _, param := range authParams {
+		if strings.Contains(connStr, param) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Helper function to check if service principal authentication is being used
+func isServicePrincipalAuth(d interface{}) bool {
+	var servicePrincipalID, servicePrincipalKey, tenant string
+
+	// Handle both ResourceData and ResourceDiff
+	switch rd := d.(type) {
+	case *pluginsdk.ResourceData:
+		servicePrincipalID = rd.Get("service_principal_id").(string)
+		servicePrincipalKey = rd.Get("service_principal_key").(string)
+		tenant = rd.Get("tenant").(string)
+	case *pluginsdk.ResourceDiff:
+		servicePrincipalID = rd.Get("service_principal_id").(string)
+		servicePrincipalKey = rd.Get("service_principal_key").(string)
+		tenant = rd.Get("tenant").(string)
+	}
+
+	return servicePrincipalID != "" || servicePrincipalKey != "" || tenant != ""
+}
+
+// Helper function to validate service principal authentication is complete
+func validateServicePrincipalAuth(d interface{}) error {
+	var servicePrincipalID, servicePrincipalKey, tenant string
+
+	// Handle both ResourceData and ResourceDiff
+	switch rd := d.(type) {
+	case *pluginsdk.ResourceData:
+		servicePrincipalID = rd.Get("service_principal_id").(string)
+		servicePrincipalKey = rd.Get("service_principal_key").(string)
+		tenant = rd.Get("tenant").(string)
+	case *pluginsdk.ResourceDiff:
+		servicePrincipalID = rd.Get("service_principal_id").(string)
+		servicePrincipalKey = rd.Get("service_principal_key").(string)
+		tenant = rd.Get("tenant").(string)
+	}
+
+	// If any service principal field is set, all must be set
+	if servicePrincipalID != "" || servicePrincipalKey != "" || tenant != "" {
+		if servicePrincipalID == "" {
+			return fmt.Errorf("service_principal_id is required when using service principal authentication")
+		}
+		if servicePrincipalKey == "" {
+			return fmt.Errorf("service_principal_key is required when using service principal authentication")
+		}
+		if tenant == "" {
+			return fmt.Errorf("tenant is required when using service principal authentication")
 		}
 	}
 
