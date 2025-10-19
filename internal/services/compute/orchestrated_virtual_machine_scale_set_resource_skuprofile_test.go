@@ -69,6 +69,43 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompati
 	})
 }
 
+// TODO: Remove in v5.0
+func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `vm_sizes` field is deprecated and has been removed in v5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
+	data.Locations.Primary = "eastus2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuProfileDeprecatedSimple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+		{
+			Config: r.skuProfileDeprecatedUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+		{
+			Config: r.skuProfileDeprecatedSimple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -536,6 +573,15 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedSimple(d
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "LowestPrice"
     vm_sizes = ["Standard_B1ls", "Standard_B1s"]
+  }`
+	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
+}
+
+// TODO: Remove in v5.0
+func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedUpdate(data acceptance.TestData) string {
+	skuProfileBlock := `  sku_profile {
+    allocation_strategy = "LowestPrice"
+    vm_sizes = ["Standard_B1ls", "Standard_B1s", "Standard_B2s"]
   }`
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
 }

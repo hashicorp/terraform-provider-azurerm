@@ -1719,40 +1719,75 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 	v := input[0].(map[string]interface{})
 	allocationStrategy := v["allocation_strategy"].(string)
 	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
-	vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
 
 	if !features.FivePointOh() {
-		vmSizesRaw := v["vm_sizes"].(*pluginsdk.Set).List()
-		if len(vmSizesRaw) > 0 {
-			for _, vmSize := range vmSizesRaw {
-				vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
-					Name: pointer.To(vmSize.(string)),
-				})
-			}
-		}
-	}
-
-	for i, vmSizeRaw := range vmSizeRaw {
-		vmSizeMap := vmSizeRaw.(map[string]interface{})
-		vmSize := virtualmachinescalesets.SkuProfileVMSize{
-			Name: pointer.To(vmSizeMap["name"].(string)),
-		}
-
-		if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+		// In v4.x, we must use GetRawConfig to get only user-configured values, not merged with O+C state
+		rawConfig := d.GetRawConfig()
+		if !rawConfig.IsNull() {
 			if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
 				if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
-					if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
-						if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
-							if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
-								vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
+					skuProfileConfig := skuProfiles[0].AsValueMap()
+
+					if vmSizesField := skuProfileConfig["vm_sizes"]; !vmSizesField.IsNull() {
+						vmSizesSlice := vmSizesField.AsValueSet().Values()
+						for _, vmSizeVal := range vmSizesSlice {
+							vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
+								Name: pointer.To(vmSizeVal.AsString()),
+							})
+						}
+					}
+
+					if vmSizeField := skuProfileConfig["vm_size"]; !vmSizeField.IsNull() {
+						vmSizeSlice := vmSizeField.AsValueSet().Values()
+						for _, vmSizeVal := range vmSizeSlice {
+							if vmSizeVal.IsNull() {
+								continue
 							}
+
+							vmSizeMap := vmSizeVal.AsValueMap()
+							vmSize := virtualmachinescalesets.SkuProfileVMSize{
+								Name: pointer.To(vmSizeMap["name"].AsString()),
+							}
+
+							if rankVal := vmSizeMap["rank"]; !rankVal.IsNull() {
+								rank, _ := rankVal.AsBigFloat().Int64()
+								vmSize.Rank = pointer.To(rank)
+							}
+
+							vmSizes = append(vmSizes, vmSize)
 						}
 					}
 				}
 			}
 		}
+	}
 
-		vmSizes = append(vmSizes, vmSize)
+	if features.FivePointOh() {
+		vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
+		for i, vmSizeRaw := range vmSizeRaw {
+			vmSizeMap := vmSizeRaw.(map[string]interface{})
+			vmSize := virtualmachinescalesets.SkuProfileVMSize{
+				Name: pointer.To(vmSizeMap["name"].(string)),
+			}
+
+			// We must use d.GetRawConfig() since the rank field values are from 0 to 2, this will
+			// allow us to differentiate between user configured 0 and go's default int zero value
+			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+				if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
+					if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
+						if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
+							if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
+								if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
+									vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
+								}
+							}
+						}
+					}
+				}
+			}
+
+			vmSizes = append(vmSizes, vmSize)
+		}
 	}
 
 	return &virtualmachinescalesets.SkuProfile{
