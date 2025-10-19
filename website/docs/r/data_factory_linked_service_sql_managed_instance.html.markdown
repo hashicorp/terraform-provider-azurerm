@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) The connection string in which to authenticate with the SQL Managed Instance. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
 
+-> **Note:** When using service principal authentication, the connection string must not contain authentication values like `User Id`.
+
 * `description` - (Optional) The description for the Data Factory Linked Service SQL Managed Instance.
 
 * `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service SQL Managed Instance.
@@ -51,11 +53,9 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service SQL Managed Instance.
 
-* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service SQL Managed Instance.
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure SQL Managed Instance.
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure SQL Managed Instance. Required if `service_principal_key` is set.
-
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure SQL Managed Instance. Required if `service_principal_id` is set.
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure SQL Managed Instance.
 
 * `tenant` - (Optional) The tenant id or name in which to authenticate against the Azure SQL Managed Instance.
 
@@ -101,3 +101,9 @@ Data Factory Linked Service SQL Managed Instances can be imported using the `res
 ```shell
 terraform import azurerm_data_factory_linked_service_sql_managed_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/example/linkedservices/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01

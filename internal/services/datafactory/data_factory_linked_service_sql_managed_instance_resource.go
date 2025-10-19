@@ -6,7 +6,6 @@ package datafactory
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceSqlManagedInstanceResource struct{}
@@ -50,7 +48,6 @@ type KeyVaultPasswordConfig struct {
 }
 
 var _ sdk.ResourceWithUpdate = LinkedServiceSqlManagedInstanceResource{}
-var _ sdk.ResourceWithCustomizeDiff = LinkedServiceSqlManagedInstanceResource{}
 
 func (r LinkedServiceSqlManagedInstanceResource) ModelObject() interface{} {
 	return &LinkedServiceSqlManagedInstanceModel{}
@@ -218,7 +215,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
-				Description: utils.String(config.Description),
+				Description: pointer.To(config.Description),
 				Type:        "AzureSqlMI",
 				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
 					Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
@@ -375,8 +372,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				state.ServicePrincipalKey = v.(string)
 			}
 
-			// TODO: Fix password handling for new SDK
-			// state.KeyVaultPassword = flattenKeyVaultPasswordToConfig(props.Password)
+			state.KeyVaultPassword = flattenKeyVaultPasswordToConfig(props.Password)
 
 			if existing.Annotations != nil {
 				annotations := make([]string, 0)
@@ -428,10 +424,10 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 
 			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
-				Description:    utils.String(config.Description),
-				Type:           "AzureSqlMI",
+				Description: pointer.To(config.Description),
+				Type:        "AzureSqlMI",
 				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
-					// Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
+					Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
 				},
 			}
 
@@ -456,7 +452,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					Value: config.ServicePrincipalKey,
 				}
 				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
-				// ServicePrincipalCredential should be set to the same value as ServicePrincipalKey for service principal auth
+
 				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
 			}
 
@@ -565,7 +561,6 @@ func flattenKeyVaultConnectionStringToConfig(input interface{}) []KeyVaultConnec
 		return []KeyVaultConnectionStringConfig{}
 	}
 
-	// Try to use the existing flatten function first
 	flattened := flattenAzureKeyVaultConnectionString(input.(map[string]interface{}))
 	if len(flattened) == 0 {
 		return []KeyVaultConnectionStringConfig{}
@@ -589,115 +584,7 @@ func flattenKeyVaultPasswordToConfig(input *linkedservices.AzureKeyVaultSecretRe
 		config.SecretName = secretName
 	}
 
-	// ReferenceName is a string, not a pointer in linkedservices SDK
 	config.LinkedServiceName = input.Store.ReferenceName
 
 	return []KeyVaultPasswordConfig{config}
-}
-
-func expandParametersMapFromConfig(input map[string]string) map[string]interface{} {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make(map[string]interface{})
-	for k, v := range input {
-		result[k] = v
-	}
-	return result
-}
-
-func flattenParametersMapToConfig(input map[string]interface{}) map[string]string {
-	if len(input) == 0 {
-		return map[string]string{}
-	}
-
-	result := make(map[string]string)
-	for k, v := range input {
-		if str, ok := v.(string); ok {
-			result[k] = str
-		}
-	}
-	return result
-}
-
-// Helper function to check if a connection string contains authentication information
-func connectionStringContainsAuth(connectionString string) bool {
-	if connectionString == "" {
-		return false
-	}
-
-	// Convert to lowercase for case-insensitive matching
-	connStr := strings.ToLower(connectionString)
-
-	// Check for common authentication parameters
-	authParams := []string{
-		"user id=",
-		"userid=",
-		"uid=",
-		"password=",
-		"pwd=",
-		"integrated security=true",
-		"trusted_connection=yes",
-		"trusted_connection=true",
-	}
-
-	for _, param := range authParams {
-		if strings.Contains(connStr, param) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// Helper function to check if service principal authentication is being used
-func isServicePrincipalAuth(d interface{}) bool {
-	var servicePrincipalID, servicePrincipalKey, tenant string
-
-	// Handle both ResourceData and ResourceDiff
-	switch rd := d.(type) {
-	case *pluginsdk.ResourceData:
-		servicePrincipalID = rd.Get("service_principal_id").(string)
-		servicePrincipalKey = rd.Get("service_principal_key").(string)
-		tenant = rd.Get("tenant").(string)
-	case *pluginsdk.ResourceDiff:
-		servicePrincipalID = rd.Get("service_principal_id").(string)
-		servicePrincipalKey = rd.Get("service_principal_key").(string)
-		tenant = rd.Get("tenant").(string)
-	}
-
-	return servicePrincipalID != "" || servicePrincipalKey != "" || tenant != ""
-}
-
-// Helper function to validate service principal authentication is complete
-func validateServicePrincipalAuth(d interface{}) error {
-	var servicePrincipalID, servicePrincipalKey, tenant string
-
-	// Handle both ResourceData and ResourceDiff
-	switch rd := d.(type) {
-	case *pluginsdk.ResourceData:
-		servicePrincipalID = rd.Get("service_principal_id").(string)
-		servicePrincipalKey = rd.Get("service_principal_key").(string)
-		tenant = rd.Get("tenant").(string)
-	case *pluginsdk.ResourceDiff:
-		servicePrincipalID = rd.Get("service_principal_id").(string)
-		servicePrincipalKey = rd.Get("service_principal_key").(string)
-		tenant = rd.Get("tenant").(string)
-	}
-
-	// If any service principal field is set, all must be set
-	if servicePrincipalID != "" || servicePrincipalKey != "" || tenant != "" {
-		if servicePrincipalID == "" {
-			return fmt.Errorf("service_principal_id is required when using service principal authentication")
-		}
-		if servicePrincipalKey == "" {
-			return fmt.Errorf("service_principal_key is required when using service principal authentication")
-		}
-		if tenant == "" {
-			return fmt.Errorf("tenant is required when using service principal authentication")
-		}
-	}
-
-	return nil
 }
