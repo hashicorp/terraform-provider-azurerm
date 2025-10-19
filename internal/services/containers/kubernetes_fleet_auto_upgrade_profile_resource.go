@@ -42,9 +42,9 @@ func (r KubernetesFleetAutoUpgradeProfileResource) ResourceType() string {
 func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew:     true,
-			Required:     true,
-			Type:         pluginsdk.TypeString,
+			ForceNew: true,
+			Required: true,
+			Type:     pluginsdk.TypeString,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 50),
 				validation.StringMatch(
