@@ -492,10 +492,10 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						log.Printf("[INFO] re-creating database %s to apply updates to immutable properties, data will be lost and Managed Redis will be unavailable during this operation", dbId)
 
 						if err := dbClient.DeleteThenPoll(ctx, dbId); err != nil {
-							return fmt.Errorf("deleting database %s: %+v", dbId, err)
+							return fmt.Errorf("deleting database %s for re-creation: %+v", dbId, err)
 						}
 						if err := createDb(ctx, dbClient, dbId, state.DefaultDatabase[0]); err != nil {
-							return fmt.Errorf("creating %s: %+v", dbId, err)
+							return fmt.Errorf("re-creating %s: %+v", dbId, err)
 						}
 					} else if metadata.ResourceData.HasChanges(
 						"default_database.0.access_keys_authentication_enabled",
