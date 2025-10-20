@@ -543,7 +543,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			// Validate cross-zone-region replication requirements
 			// According to Azure documentation, for cross-zone replication, both source and destination volumes must have zones
 			dataReplicationRaw := d.Get("data_protection_replication").([]interface{})
-			if len(dataReplicationRaw) > 0 {
+			if len(dataReplicationRaw) > 0 && dataReplicationRaw[0] != nil {
 				// This is a destination volume with data_protection_replication configured
 				dataReplication := dataReplicationRaw[0].(map[string]interface{})
 				remoteVolumeLocation := dataReplication["remote_volume_location"].(string)
