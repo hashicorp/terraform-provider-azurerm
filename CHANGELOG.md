@@ -1,6 +1,7 @@
 ## 4.50.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_search_service` - implement plan time error when `local_authentication_enabled = false` and `authentication_failure_mode` is set [GH-30882]
 * `azurerm_mssql_job_target_group` - the `job_target.job_credential_id` property is no longer required when `database_name` is not set to allow for authentication using a managed identity [GH-30898]
 * Data Source: `azurerm_container_app_environment` - add support for the `public_network_access` property [GH-30817]
 * `azurerm_container_app_environment` - add support for the `public_network_access` property [GH-30817]
