@@ -182,7 +182,7 @@ A `module` block supports the following:
 
 * `name` - (Required) The name which should be used for this module. Possible values are `RedisBloom`, `RedisTimeSeries`, `RediSearch` and `RedisJSON`. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
-* `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Defaults to `""`. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
+* `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
 
