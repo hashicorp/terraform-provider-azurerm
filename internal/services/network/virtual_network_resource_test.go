@@ -270,7 +270,7 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPool(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -285,7 +285,7 @@ func TestAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -300,7 +300,7 @@ func TestAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -315,7 +315,7 @@ func TestAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -344,7 +344,7 @@ func TestAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
