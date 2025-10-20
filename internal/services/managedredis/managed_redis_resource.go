@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -113,7 +114,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						ValidateFunc: keyVaultValidate.NestedItemId,
 					},
 
 					"user_assigned_identity_id": {
