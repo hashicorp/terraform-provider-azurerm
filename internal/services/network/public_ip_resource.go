@@ -181,7 +181,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(old.(string) == "" && new.(string) != "")
+				return old.(string) != "" || new.(string) == ""
 			}),
 		),
 	}

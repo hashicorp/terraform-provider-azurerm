@@ -138,7 +138,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -168,7 +168,7 @@ resource "azuread_service_principal_password" "test" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   tenant_id            = azuread_service_principal.test.application_tenant_id
   client_id            = azuread_service_principal.test.client_id
   client_secret        = azuread_service_principal_password.test.value
@@ -190,7 +190,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   name                 = "acctestdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
 }
 
 provider "azurerm-alt" {
@@ -229,7 +229,7 @@ resource "azurerm_storage_container" "testalt" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "crosssub" {
   name                 = "acctestdcrosssub%[5]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.testalt.resource_manager_id
+  storage_container_id = azurerm_storage_container.testalt.id
 }
 	`, template, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"), data.Locations.Primary, data.RandomIntOfLength(10))
 }
@@ -280,7 +280,8 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

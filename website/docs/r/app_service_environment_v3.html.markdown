@@ -81,7 +81,7 @@ resource "azurerm_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created.
 
@@ -157,7 +157,7 @@ An `inbound_network_dependencies` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.

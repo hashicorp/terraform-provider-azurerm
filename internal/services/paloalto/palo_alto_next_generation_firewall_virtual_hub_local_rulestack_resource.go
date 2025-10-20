@@ -111,7 +111,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
-			localRuleStackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			localRuleStackClient := metadata.Client.PaloAlto.LocalRulestacks
 			var model NextGenerationFirewallVHubLocalRuleStackModel
 
 			if err := metadata.Decode(&model); err != nil {

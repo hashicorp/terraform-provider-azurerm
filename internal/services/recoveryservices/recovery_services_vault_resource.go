@@ -5,6 +5,7 @@ package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -767,7 +768,7 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	}
 	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
 		if *encryption.KekIdentity.UseSystemAssignedIdentity {
-			return nil, fmt.Errorf(" `use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set.")
+			return nil, errors.New("`use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set")
 		}
 		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
 	}

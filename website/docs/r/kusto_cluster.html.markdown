@@ -34,7 +34,7 @@ resource "azurerm_kusto_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `language_extensions` - (Optional) A `language_extensions` block as defined below.
+* `language_extension` - (Optional) A `language_extension` block as defined below.
 
 * `optimized_auto_scale` - (Optional) An `optimized_auto_scale` block as defined below.
 
@@ -94,7 +94,7 @@ An `identity` block supports the following:
 
 ---
 
-A `language_extensions` block supports the following:
+A `language_extension` block supports the following:
 
 * `name` - (Required) The name of the language extension. Possible values are `PYTHON` and `R`. 
 
@@ -142,7 +142,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster.

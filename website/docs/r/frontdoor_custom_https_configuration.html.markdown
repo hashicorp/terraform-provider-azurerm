@@ -99,7 +99,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to. Changing this forces a new resource to be created.
 
@@ -137,7 +137,7 @@ The `custom_https_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Custom HTTPS Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom HTTPS Configuration.
