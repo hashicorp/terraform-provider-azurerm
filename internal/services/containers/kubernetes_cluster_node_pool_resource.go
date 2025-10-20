@@ -449,6 +449,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 								"manual": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
+									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"size": {
@@ -2005,19 +2006,9 @@ func flattenAgentPoolScaleProfile(input *agentpools.ScaleProfile) []interface{} 
 	manual := []interface{}{}
 	if input.Manual != nil {
 		for _, item := range *input.Manual {
-			size := ""
-			if item.Size != nil {
-				size = *item.Size
-			}
-
-			count := 0
-			if item.Count != nil {
-				count = int(*item.Count)
-			}
-
 			manual = append(manual, map[string]interface{}{
-				"size":  size,
-				"count": count,
+				"size":  pointer.From(item.Size),
+				"count": pointer.From(item.Count),
 			})
 		}
 	}

@@ -310,9 +310,13 @@ A `virtual_machine_profile` block supports the following:
 
 * `scale` - A `scale` block as defined below.
 
+---
+
 A `scale` block supports the following:
 
 * `manual` - A list of `manual` blocks as defined below.
+
+---
 
 A `manual` block supports the following:
 
