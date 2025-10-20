@@ -96,6 +96,20 @@ func TestAccManagedRedis_withPrivateEndpoint(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedis_withModuleArgs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withModuleArgs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagedRedis_skuDoesNotSupportGeoReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
@@ -152,7 +166,7 @@ func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagedRedisResource) template(data acceptance.TestData, skuName string) string {
+func (r ManagedRedisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,13 +182,9 @@ resource "azurerm_managed_redis" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
-  sku_name = "%[3]s"
+  sku_name = "Balanced_B0"
 }
-`, data.RandomInteger, data.Locations.Primary, skuName)
-}
-
-func (r ManagedRedisResource) basic(data acceptance.TestData) string {
-	return r.template(data, "Balanced_B0")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisResource) requiresImport(data acceptance.TestData) string {
@@ -286,12 +296,10 @@ resource "azurerm_managed_redis" "test" {
 
     module {
       name = "RediSearch"
-      args = ""
     }
 
     module {
       name = "RedisJSON"
-      args = ""
     }
   }
 
@@ -402,6 +410,34 @@ resource "azurerm_private_endpoint" "test" {
     is_manual_connection           = false
     private_connection_resource_id = azurerm_managed_redis.test.id
     subresource_names              = ["redisEnterprise"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisResource) withModuleArgs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    module {
+      name = "RedisBloom"
+      args = "ERROR_RATE 0.20 INITIAL_SIZE 400"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
