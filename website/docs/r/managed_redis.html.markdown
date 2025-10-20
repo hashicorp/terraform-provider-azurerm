@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The features and specification of the Managed Redis instance to deploy. Refer to [the documentation](https://learn.microsoft.com/rest/api/redis/redisenterprisecache/redis-enterprise/create?view=rest-redis-redisenterprisecache-2025-04-01&tabs=HTTP#skuname) for valid values. `Balanced_B3` SKU or higher is required for geo-replication. Changing this forces a new Managed Redis instance to be created.
 
-~> **Note:**  `Enterprise_` and `EnterpriseFlash_` prefixed SKUs were previously used by Redis Enterprise, and [not supported by Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
+~> **Note:** `Enterprise_` and `EnterpriseFlash_` prefixed SKUs were previously used by Redis Enterprise, and [not supported by Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
 * `default_database` - (Optional) A `default_database` block as defined below. A Managed Redis instance will not be functional without a database. This block is intentionally optional to allow removal and re-creation of the database for troubleshooting purposes. A default database can be created or deleted in-place, however most properties will trigger an entire cluster replacement if changed.
 
