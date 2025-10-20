@@ -20,10 +20,9 @@ type DataflowProfileModel struct {
 	Name              string                           `tfschema:"name"`
 	ResourceGroupName string                           `tfschema:"resource_group_name"`
 	InstanceName      string                           `tfschema:"instance_name"`
-	InstanceCount     *int                             `tfschema:"instance_count"`
+	InstanceCount     *int64                           `tfschema:"instance_count"`
 	Diagnostics       *DataflowProfileDiagnosticsModel `tfschema:"diagnostics"`
-	ExtendedLocation  *ExtendedLocationModel           `tfschema:"extended_location"`
-	Tags              map[string]string                `tfschema:"tags"`
+	ExtendedLocation  ExtendedLocationModel            `tfschema:"extended_location"`
 	ProvisioningState *string                          `tfschema:"provisioning_state"`
 }
 
@@ -33,25 +32,11 @@ type DataflowProfileDiagnosticsModel struct {
 }
 
 type DataflowProfileDiagnosticsLogsModel struct {
-	Level           *string `tfschema:"level"`
-	OpenTelemetryExportConfig *DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel `tfschema:"open_telemetry_export_config"`
-}
-
-type DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel struct {
-	Level    string  `tfschema:"level"`
-	OtlpGrpcEndpoint *string `tfschema:"otlp_grpc_endpoint"`
-	IntervalSeconds  *int    `tfschema:"interval_seconds"`
+	Level *string `tfschema:"level"`
 }
 
 type DataflowProfileDiagnosticsMetricsModel struct {
-	PrometheusPort            *int    `tfschema:"prometheus_port"`
-	OpenTelemetryExportConfig *DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel `tfschema:"open_telemetry_export_config"`
-}
-
-type DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel struct {
-	Level    string  `tfschema:"level"`
-	OtlpGrpcEndpoint *string `tfschema:"otlp_grpc_endpoint"`
-	IntervalSeconds  *int    `tfschema:"interval_seconds"`
+	PrometheusPort *int64 `tfschema:"prometheus_port"`
 }
 
 func (r DataflowProfileResource) ModelObject() interface{} {
@@ -92,11 +77,32 @@ func (r DataflowProfileResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
 			),
 		},
+		"extended_location": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CustomLocation",
+						}, false),
+					},
+				},
+			},
+		},
 		"instance_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      1,
-			ValidateFunc: validation.IntBetween(1, 16),
+			ValidateFunc: validation.IntBetween(1, 1000),
 		},
 		"diagnostics": {
 			Type:     pluginsdk.TypeList,
@@ -114,42 +120,12 @@ func (r DataflowProfileResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										"Debug",
-										"Info",
-										"Warn",
-										"Error",
-										"Trace",
+										"trace",
+										"debug",
+										"info",
+										"warn",
+										"error",
 									}, false),
-								},
-								"open_telemetry_export_config": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"level": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													"Debug",
-													"Info",
-													"Warn",
-													"Error",
-													"Trace",
-												}, false),
-											},
-											"otlp_grpc_endpoint": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(1, 253),
-											},
-											"interval_seconds": {
-												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												ValidateFunc: validation.IntBetween(1, 3600),
-											},
-										},
-									},
 								},
 							},
 						},
@@ -163,70 +139,12 @@ func (r DataflowProfileResource) Arguments() map[string]*pluginsdk.Schema {
 								"prometheus_port": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(1024, 65535),
-								},
-								"open_telemetry_export_config": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"level": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													"Debug",
-													"Info",
-													"Warn",
-													"Error",
-													"Trace",
-												}, false),
-											},
-											"otlp_grpc_endpoint": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(1, 253),
-											},
-											"interval_seconds": {
-												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												ValidateFunc: validation.IntBetween(1, 3600),
-											},
-										},
-									},
+									ValidateFunc: validation.IntBetween(1, 65535),
 								},
 							},
 						},
 					},
 				},
-			},
-		},
-		"extended_location": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CustomLocation",
-						}, false),
-					},
-				},
-			},
-		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
 			},
 		},
 	}
@@ -236,7 +154,6 @@ func (r DataflowProfileResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
 	}
@@ -258,15 +175,8 @@ func (r DataflowProfileResource) Create() sdk.ResourceFunc {
 
 			// Build payload
 			payload := dataflowprofile.DataflowProfileResource{
-				Properties: expandDataflowProfileProperties(model),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
+				ExtendedLocation: expandDataflowProfileExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowProfileProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -302,17 +212,11 @@ func (r DataflowProfileResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
-				}
+				model.ExtendedLocation = flattenDataflowProfileExtendedLocation(respModel.ExtendedLocation)
 
 				if respModel.Properties != nil {
 					flattenDataflowProfileProperties(respModel.Properties, &model)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -341,37 +245,13 @@ func (r DataflowProfileResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("instance_count") &&
-			   !metadata.ResourceData.HasChange("diagnostics") {
-				return nil
+			// For dataflow profile, we use CreateOrUpdate for updates since there's no dedicated Update method
+			payload := dataflowprofile.DataflowProfileResource{
+				ExtendedLocation: expandDataflowProfileExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowProfileProperties(model),
 			}
 
-			payload := dataflowprofile.DataflowProfilePatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include properties if they changed
-			if metadata.ResourceData.HasChange("instance_count") || metadata.ResourceData.HasChange("diagnostics") {
-				payload.Properties = &dataflowprofile.DataflowProfilePropertiesPatch{
-					InstanceCount: expandInstanceCount(model.InstanceCount),
-					Diagnostics:   expandDataflowProfileDiagnosticsPatch(model.Diagnostics),
-				}
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -401,11 +281,26 @@ func (r DataflowProfileResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expand/flatten operations
+func expandDataflowProfileExtendedLocation(input ExtendedLocationModel) dataflowprofile.ExtendedLocation {
+	return dataflowprofile.ExtendedLocation{
+		Name: *input.Name,
+		Type: dataflowprofile.ExtendedLocationType(*input.Type),
+	}
+}
+
+func flattenDataflowProfileExtendedLocation(input dataflowprofile.ExtendedLocation) ExtendedLocationModel {
+	typeStr := string(input.Type)
+	return ExtendedLocationModel{
+		Name: &input.Name,
+		Type: &typeStr,
+	}
+}
+
 func expandDataflowProfileProperties(model DataflowProfileModel) *dataflowprofile.DataflowProfileProperties {
 	props := &dataflowprofile.DataflowProfileProperties{}
 
 	if model.InstanceCount != nil {
-		props.InstanceCount = expandInstanceCount(model.InstanceCount)
+		props.InstanceCount = model.InstanceCount
 	}
 
 	if model.Diagnostics != nil {
@@ -415,90 +310,22 @@ func expandDataflowProfileProperties(model DataflowProfileModel) *dataflowprofil
 	return props
 }
 
-func expandInstanceCount(instanceCount *int) *int64 {
-	if instanceCount == nil {
-		return nil
-	}
-	count := int64(*instanceCount)
-	return &count
-}
-
 func expandDataflowProfileDiagnostics(model DataflowProfileDiagnosticsModel) *dataflowprofile.ProfileDiagnostics {
-	diagnostics := &dataflowprofile.ProfileDiagnostics{}
+	result := &dataflowprofile.ProfileDiagnostics{}
 
 	if model.Logs != nil {
-		diagnostics.Logs = expandDataflowProfileDiagnosticsLogs(*model.Logs)
+		result.Logs = &dataflowprofile.DiagnosticsLogs{
+			Level: model.Logs.Level,
+		}
 	}
 
 	if model.Metrics != nil {
-		diagnostics.Metrics = expandDataflowProfileDiagnosticsMetrics(*model.Metrics)
+		result.Metrics = &dataflowprofile.Metrics{
+			PrometheusPort: model.Metrics.PrometheusPort,
+		}
 	}
 
-	return diagnostics
-}
-
-func expandDataflowProfileDiagnosticsLogs(model DataflowProfileDiagnosticsLogsModel) *dataflowprofile.DiagnosticsLogs {
-	logs := &dataflowprofile.DiagnosticsLogs{}
-
-	if model.Level != nil {
-		level := dataflowprofile.Level(*model.Level)
-		logs.Level = &level
-	}
-
-	if model.OpenTelemetryExportConfig != nil {
-		logs.OpenTelemetryExportConfig = expandDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(*model.OpenTelemetryExportConfig)
-	}
-
-	return logs
-}
-
-func expandDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(model DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel) *dataflowprofile.OpenTelemetryExportConfig {
-	config := &dataflowprofile.OpenTelemetryExportConfig{
-		Level: dataflowprofile.Level(model.Level),
-	}
-
-	if model.OtlpGrpcEndpoint != nil {
-		config.OtlpGrpcEndpoint = model.OtlpGrpcEndpoint
-	}
-
-	if model.IntervalSeconds != nil {
-		intervalSeconds := int64(*model.IntervalSeconds)
-		config.IntervalSeconds = &intervalSeconds
-	}
-
-	return config
-}
-
-func expandDataflowProfileDiagnosticsMetrics(model DataflowProfileDiagnosticsMetricsModel) *dataflowprofile.Metrics {
-	metrics := &dataflowprofile.Metrics{}
-
-	if model.PrometheusPort != nil {
-		prometheusPort := int64(*model.PrometheusPort)
-		metrics.PrometheusPort = &prometheusPort
-	}
-
-	if model.OpenTelemetryExportConfig != nil {
-		metrics.OpenTelemetryExportConfig = expandDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(*model.OpenTelemetryExportConfig)
-	}
-
-	return metrics
-}
-
-func expandDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(model DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel) *dataflowprofile.OpenTelemetryExportConfig {
-	config := &dataflowprofile.OpenTelemetryExportConfig{
-		Level: dataflowprofile.Level(model.Level),
-	}
-
-	if model.OtlpGrpcEndpoint != nil {
-		config.OtlpGrpcEndpoint = model.OtlpGrpcEndpoint
-	}
-
-	if model.IntervalSeconds != nil {
-		intervalSeconds := int64(*model.IntervalSeconds)
-		config.IntervalSeconds = &intervalSeconds
-	}
-
-	return config
+	return result
 }
 
 func flattenDataflowProfileProperties(props *dataflowprofile.DataflowProfileProperties, model *DataflowProfileModel) {
@@ -507,8 +334,7 @@ func flattenDataflowProfileProperties(props *dataflowprofile.DataflowProfileProp
 	}
 
 	if props.InstanceCount != nil {
-		instanceCount := int(*props.InstanceCount)
-		model.InstanceCount = &instanceCount
+		model.InstanceCount = props.InstanceCount
 	}
 
 	if props.Diagnostics != nil {
@@ -520,84 +346,16 @@ func flattenDataflowProfileDiagnostics(diagnostics dataflowprofile.ProfileDiagno
 	result := &DataflowProfileDiagnosticsModel{}
 
 	if diagnostics.Logs != nil {
-		result.Logs = flattenDataflowProfileDiagnosticsLogs(*diagnostics.Logs)
+		result.Logs = &DataflowProfileDiagnosticsLogsModel{
+			Level: diagnostics.Logs.Level,
+		}
 	}
 
 	if diagnostics.Metrics != nil {
-		result.Metrics = flattenDataflowProfileDiagnosticsMetrics(*diagnostics.Metrics)
+		result.Metrics = &DataflowProfileDiagnosticsMetricsModel{
+			PrometheusPort: diagnostics.Metrics.PrometheusPort,
+		}
 	}
 
 	return result
-}
-
-func flattenDataflowProfileDiagnosticsLogs(logs dataflowprofile.DiagnosticsLogs) *DataflowProfileDiagnosticsLogsModel {
-	result := &DataflowProfileDiagnosticsLogsModel{}
-
-	if logs.Level != nil {
-		level := string(*logs.Level)
-		result.Level = &level
-	}
-
-	if logs.OpenTelemetryExportConfig != nil {
-		result.OpenTelemetryExportConfig = flattenDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(*logs.OpenTelemetryExportConfig)
-	}
-
-	return result
-}
-
-func flattenDataflowProfileDiagnosticsLogsOpenTelemetryExportConfig(config dataflowprofile.OpenTelemetryExportConfig) *DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel {
-	result := &DataflowProfileDiagnosticsLogsOpenTelemetryExportConfigModel{
-		Level: string(config.Level),
-	}
-
-	if config.OtlpGrpcEndpoint != nil {
-		result.OtlpGrpcEndpoint = config.OtlpGrpcEndpoint
-	}
-
-	if config.IntervalSeconds != nil {
-		intervalSeconds := int(*config.IntervalSeconds)
-		result.IntervalSeconds = &intervalSeconds
-	}
-
-	return result
-}
-
-func flattenDataflowProfileDiagnosticsMetrics(metrics dataflowprofile.Metrics) *DataflowProfileDiagnosticsMetricsModel {
-	result := &DataflowProfileDiagnosticsMetricsModel{}
-
-	if metrics.PrometheusPort != nil {
-		prometheusPort := int(*metrics.PrometheusPort)
-		result.PrometheusPort = &prometheusPort
-	}
-
-	if metrics.OpenTelemetryExportConfig != nil {
-		result.OpenTelemetryExportConfig = flattenDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(*metrics.OpenTelemetryExportConfig)
-	}
-
-	return result
-}
-
-func flattenDataflowProfileDiagnosticsMetricsOpenTelemetryExportConfig(config dataflowprofile.OpenTelemetryExportConfig) *DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel {
-	result := &DataflowProfileDiagnosticsMetricsOpenTelemetryExportConfigModel{
-		Level: string(config.Level),
-	}
-
-	if config.OtlpGrpcEndpoint != nil {
-		result.OtlpGrpcEndpoint = config.OtlpGrpcEndpoint
-	}
-
-	if config.IntervalSeconds != nil {
-		intervalSeconds := int(*config.IntervalSeconds)
-		result.IntervalSeconds = &intervalSeconds
-	}
-
-	return result
-}
-
-// Patch functions for update operations
-func expandDataflowProfileDiagnosticsPatch(model *DataflowProfileDiagnosticsModel) *dataflowprofile.ProfileDiagnostics {
-	if model == nil {
-		return nil
-	}
-	return expandDataflowProfileDiagnostics(*model)
 }

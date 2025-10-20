@@ -17,60 +17,59 @@ type BrokerListenerResource struct{}
 var _ sdk.ResourceWithUpdate = BrokerListenerResource{}
 
 type BrokerListenerModel struct {
-	Name              string                      `tfschema:"name"`
-	ResourceGroupName string                      `tfschema:"resource_group_name"`
-	InstanceName      string                      `tfschema:"instance_name"`
-	BrokerName        string                      `tfschema:"broker_name"`
-	ServiceName       *string                     `tfschema:"service_name"`
-	ServiceType       *string                     `tfschema:"service_type"`
-	Ports             []BrokerListenerPortModel   `tfschema:"ports"`
-	ExtendedLocation  *ExtendedLocationModel      `tfschema:"extended_location"`
-	Tags              map[string]string           `tfschema:"tags"`
-	ProvisioningState *string                     `tfschema:"provisioning_state"`
+	Name                 string                    `tfschema:"name"`
+	ResourceGroupName    string                    `tfschema:"resource_group_name"`
+	InstanceName         string                    `tfschema:"instance_name"`
+	BrokerName           string                    `tfschema:"broker_name"`
+	ExtendedLocationName string                    `tfschema:"extended_location_name"`
+	ServiceName          *string                   `tfschema:"service_name"`
+	ServiceType          *string                   `tfschema:"service_type"`
+	Ports                []BrokerListenerPortModel `tfschema:"ports"`
+	ProvisioningState    *string                   `tfschema:"provisioning_state"`
 }
 
 type BrokerListenerPortModel struct {
-	Port              int                           `tfschema:"port"`
-	NodePort          *int                          `tfschema:"node_port"`
-	Protocol          *string                       `tfschema:"protocol"`
-	AuthenticationRef *string                       `tfschema:"authentication_ref"`
-	AuthorizationRef  *string                       `tfschema:"authorization_ref"`
-	Tls               *BrokerListenerTlsModel       `tfschema:"tls"`
+	Port              int                     `tfschema:"port"`
+	NodePort          *int                    `tfschema:"node_port"`
+	Protocol          *string                 `tfschema:"protocol"`
+	AuthenticationRef *string                 `tfschema:"authentication_ref"`
+	AuthorizationRef  *string                 `tfschema:"authorization_ref"`
+	Tls               *BrokerListenerTlsModel `tfschema:"tls"`
 }
 
 type BrokerListenerTlsModel struct {
-	Mode                        string                                         `tfschema:"mode"`
-	CertManagerCertificateSpec  *BrokerListenerCertManagerCertificateSpecModel `tfschema:"cert_manager_certificate_spec"`
-	Manual                      *BrokerListenerManualModel                     `tfschema:"manual"`
+	Mode                       string                                         `tfschema:"mode"`
+	CertManagerCertificateSpec *BrokerListenerCertManagerCertificateSpecModel `tfschema:"cert_manager_certificate_spec"`
+	Manual                     *BrokerListenerManualModel                     `tfschema:"manual"`
 }
 
 type BrokerListenerCertManagerCertificateSpecModel struct {
-	Duration    *string                                    `tfschema:"duration"`
-	SecretName  *string                                    `tfschema:"secret_name"`
-	RenewBefore *string                                    `tfschema:"renew_before"`
-	IssuerRef   *BrokerListenerIssuerRefModel              `tfschema:"issuer_ref"`
-	PrivateKey  *BrokerListenerPrivateKeyModel             `tfschema:"private_key"`
-	San         *BrokerListenerSanModel                    `tfschema:"san"`
+	Duration    *string                        `tfschema:"duration"`
+	SecretName  *string                        `tfschema:"secret_name"`
+	RenewBefore *string                        `tfschema:"renew_before"`
+	IssuerRef   BrokerListenerIssuerRefModel   `tfschema:"issuer_ref"` // Required field
+	PrivateKey  *BrokerListenerPrivateKeyModel `tfschema:"private_key"`
+	San         *BrokerListenerSanModel        `tfschema:"san"`
 }
 
 type BrokerListenerIssuerRefModel struct {
-	Group *string `tfschema:"group"`
-	Kind  *string `tfschema:"kind"`
-	Name  *string `tfschema:"name"`
+	Group string `tfschema:"group"` // Required
+	Kind  string `tfschema:"kind"`  // Required
+	Name  string `tfschema:"name"`  // Required
 }
 
 type BrokerListenerPrivateKeyModel struct {
-	Algorithm      *string `tfschema:"algorithm"`
-	RotationPolicy *string `tfschema:"rotation_policy"`
+	Algorithm      string `tfschema:"algorithm"`       // Required
+	RotationPolicy string `tfschema:"rotation_policy"` // Required
 }
 
 type BrokerListenerSanModel struct {
-	Dns *[]string `tfschema:"dns"`
-	Ip  *[]string `tfschema:"ip"`
+	Dns []string `tfschema:"dns"` // Required
+	Ip  []string `tfschema:"ip"`  // Required
 }
 
 type BrokerListenerManualModel struct {
-	SecretRef *string `tfschema:"secret_ref"`
+	SecretRef string `tfschema:"secret_ref"` // Required
 }
 
 func (r BrokerListenerResource) ModelObject() interface{} {
@@ -120,6 +119,12 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
 			),
 		},
+		"extended_location_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 		"service_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -128,10 +133,11 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  "ClusterIp",
 			ValidateFunc: validation.StringInSlice([]string{
 				"LoadBalancer",
 				"NodePort",
-				"ClusterIP",
+				"ClusterIp", // Corrected from "ClusterIP"
 			}, false),
 		},
 		"ports": {
@@ -153,6 +159,7 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 					"protocol": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						Default:  "Mqtt",
 						ValidateFunc: validation.StringInSlice([]string{
 							"MQTT",
 							"WebSockets",
@@ -178,9 +185,8 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										"Disabled",
+										"Automatic", // Only supported modes
 										"Manual",
-										"Automatic",
 									}, false),
 								},
 								"cert_manager_certificate_spec": {
@@ -206,23 +212,26 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 											},
 											"issuer_ref": {
 												Type:     pluginsdk.TypeList,
-												Optional: true,
+												Required: true, // Changed from Optional
 												MaxItems: 1,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"group": {
 															Type:         pluginsdk.TypeString,
-															Optional:     true,
+															Required:     true, // Changed from Optional
 															ValidateFunc: validation.StringLenBetween(1, 253),
 														},
 														"kind": {
-															Type:         pluginsdk.TypeString,
-															Optional:     true,
-															ValidateFunc: validation.StringLenBetween(1, 63),
+															Type:     pluginsdk.TypeString,
+															Required: true, // Changed from Optional
+															ValidateFunc: validation.StringInSlice([]string{
+																"ClusterIssuer",
+																"Issuer",
+															}, false),
 														},
 														"name": {
 															Type:         pluginsdk.TypeString,
-															Optional:     true,
+															Required:     true, // Changed from Optional
 															ValidateFunc: validation.StringLenBetween(1, 253),
 														},
 													},
@@ -236,16 +245,20 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 													Schema: map[string]*pluginsdk.Schema{
 														"algorithm": {
 															Type:     pluginsdk.TypeString,
-															Optional: true,
+															Required: true, // Changed from Optional
 															ValidateFunc: validation.StringInSlice([]string{
-																"RSA",
-																"ECDSA",
+																"Rsa2048",
+																"Rsa4096",
+																"Rsa8192",
+																"Ec256",
+																"Ec384",
+																"Ec521",
 																"Ed25519",
 															}, false),
 														},
 														"rotation_policy": {
 															Type:     pluginsdk.TypeString,
-															Optional: true,
+															Required: true, // Changed from Optional
 															ValidateFunc: validation.StringInSlice([]string{
 																"Always",
 																"Never",
@@ -262,7 +275,7 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 													Schema: map[string]*pluginsdk.Schema{
 														"dns": {
 															Type:     pluginsdk.TypeList,
-															Optional: true,
+															Required: true, // Changed from Optional
 															Elem: &pluginsdk.Schema{
 																Type:         pluginsdk.TypeString,
 																ValidateFunc: validation.StringLenBetween(1, 253),
@@ -270,7 +283,7 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 														},
 														"ip": {
 															Type:     pluginsdk.TypeList,
-															Optional: true,
+															Required: true, // Changed from Optional
 															Elem: &pluginsdk.Schema{
 																Type:         pluginsdk.TypeString,
 																ValidateFunc: validation.IsIPAddress,
@@ -290,7 +303,7 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 										Schema: map[string]*pluginsdk.Schema{
 											"secret_ref": {
 												Type:         pluginsdk.TypeString,
-												Optional:     true,
+												Required:     true, // Changed from Optional
 												ValidateFunc: validation.StringLenBetween(1, 253),
 											},
 										},
@@ -302,34 +315,6 @@ func (r BrokerListenerResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"extended_location": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CustomLocation",
-						}, false),
-					},
-				},
-			},
-		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
 	}
 }
 
@@ -337,7 +322,6 @@ func (r BrokerListenerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
 	}
@@ -357,17 +341,19 @@ func (r BrokerListenerResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := brokerlistener.NewListenerID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.BrokerName, model.Name)
 
-			// Build payload
+			// Check if resource already exists
+			existing, err := client.Get(ctx, id)
+			if err == nil && existing.Model != nil {
+				return fmt.Errorf("IoT Operations Broker Listener %q already exists", id.ListenerName)
+			}
+
+			// Build payload with required ExtendedLocation
 			payload := brokerlistener.BrokerListenerResource{
+				ExtendedLocation: brokerlistener.ExtendedLocation{
+					Name: model.ExtendedLocationName,
+					Type: brokerlistener.ExtendedLocationTypeCustomLocation,
+				},
 				Properties: expandBrokerListenerProperties(model),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -404,17 +390,11 @@ func (r BrokerListenerResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
-				}
+				model.ExtendedLocationName = respModel.ExtendedLocation.Name
 
 				if respModel.Properties != nil {
 					flattenBrokerListenerProperties(respModel.Properties, &model)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -443,41 +423,16 @@ func (r BrokerListenerResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("service_name") &&
-			   !metadata.ResourceData.HasChange("service_type") &&
-			   !metadata.ResourceData.HasChange("ports") {
-				return nil
+			// Since there's no separate Update method, use CreateOrUpdate
+			payload := brokerlistener.BrokerListenerResource{
+				ExtendedLocation: brokerlistener.ExtendedLocation{
+					Name: model.ExtendedLocationName,
+					Type: brokerlistener.ExtendedLocationTypeCustomLocation,
+				},
+				Properties: expandBrokerListenerProperties(model),
 			}
 
-			payload := brokerlistener.BrokerListenerPatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include properties if they changed
-			if metadata.ResourceData.HasChange("service_name") ||
-			   metadata.ResourceData.HasChange("service_type") ||
-			   metadata.ResourceData.HasChange("ports") {
-				payload.Properties = &brokerlistener.BrokerListenerPropertiesPatch{
-					ServiceName: model.ServiceName,
-					ServiceType: model.ServiceType,
-					Ports:       expandBrokerListenerPorts(model.Ports),
-				}
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -524,11 +479,7 @@ func expandBrokerListenerProperties(model BrokerListenerModel) *brokerlistener.B
 	return props
 }
 
-func expandBrokerListenerPorts(ports []BrokerListenerPortModel) *[]brokerlistener.ListenerPort {
-	if len(ports) == 0 {
-		return nil
-	}
-
+func expandBrokerListenerPorts(ports []BrokerListenerPortModel) []brokerlistener.ListenerPort {
 	result := make([]brokerlistener.ListenerPort, 0, len(ports))
 
 	for _, port := range ports {
@@ -560,7 +511,7 @@ func expandBrokerListenerPorts(ports []BrokerListenerPortModel) *[]brokerlistene
 		result = append(result, listenerPort)
 	}
 
-	return &result
+	return result
 }
 
 func expandBrokerListenerTls(tls BrokerListenerTlsModel) *brokerlistener.TlsCertMethod {
@@ -581,7 +532,9 @@ func expandBrokerListenerTls(tls BrokerListenerTlsModel) *brokerlistener.TlsCert
 }
 
 func expandBrokerListenerCertManagerSpec(spec BrokerListenerCertManagerCertificateSpecModel) *brokerlistener.CertManagerCertificateSpec {
-	result := &brokerlistener.CertManagerCertificateSpec{}
+	result := &brokerlistener.CertManagerCertificateSpec{
+		IssuerRef: expandBrokerListenerIssuerRef(spec.IssuerRef), // Required field
+	}
 
 	if spec.Duration != nil {
 		result.Duration = spec.Duration
@@ -595,10 +548,6 @@ func expandBrokerListenerCertManagerSpec(spec BrokerListenerCertManagerCertifica
 		result.RenewBefore = spec.RenewBefore
 	}
 
-	if spec.IssuerRef != nil {
-		result.IssuerRef = expandBrokerListenerIssuerRef(*spec.IssuerRef)
-	}
-
 	if spec.PrivateKey != nil {
 		result.PrivateKey = expandBrokerListenerPrivateKey(*spec.PrivateKey)
 	}
@@ -610,62 +559,32 @@ func expandBrokerListenerCertManagerSpec(spec BrokerListenerCertManagerCertifica
 	return result
 }
 
-func expandBrokerListenerIssuerRef(issuerRef BrokerListenerIssuerRefModel) *brokerlistener.CertManagerIssuerRef {
-	result := &brokerlistener.CertManagerIssuerRef{}
-
-	if issuerRef.Group != nil {
-		result.Group = issuerRef.Group
+func expandBrokerListenerIssuerRef(issuerRef BrokerListenerIssuerRefModel) brokerlistener.CertManagerIssuerRef {
+	return brokerlistener.CertManagerIssuerRef{
+		Group: issuerRef.Group,
+		Kind:  brokerlistener.CertManagerIssuerKind(issuerRef.Kind),
+		Name:  issuerRef.Name,
 	}
-
-	if issuerRef.Kind != nil {
-		result.Kind = issuerRef.Kind
-	}
-
-	if issuerRef.Name != nil {
-		result.Name = issuerRef.Name
-	}
-
-	return result
 }
 
 func expandBrokerListenerPrivateKey(privateKey BrokerListenerPrivateKeyModel) *brokerlistener.CertManagerPrivateKey {
-	result := &brokerlistener.CertManagerPrivateKey{}
-
-	if privateKey.Algorithm != nil {
-		algorithm := brokerlistener.PrivateKeyAlgorithm(*privateKey.Algorithm)
-		result.Algorithm = &algorithm
+	return &brokerlistener.CertManagerPrivateKey{
+		Algorithm:      brokerlistener.PrivateKeyAlgorithm(privateKey.Algorithm),
+		RotationPolicy: brokerlistener.PrivateKeyRotationPolicy(privateKey.RotationPolicy),
 	}
-
-	if privateKey.RotationPolicy != nil {
-		rotationPolicy := brokerlistener.PrivateKeyRotationPolicy(*privateKey.RotationPolicy)
-		result.RotationPolicy = &rotationPolicy
-	}
-
-	return result
 }
 
 func expandBrokerListenerSan(san BrokerListenerSanModel) *brokerlistener.SanForCert {
-	result := &brokerlistener.SanForCert{}
-
-	if san.Dns != nil {
-		result.Dns = san.Dns
+	return &brokerlistener.SanForCert{
+		Dns: san.Dns,
+		IP:  san.Ip,
 	}
-
-	if san.Ip != nil {
-		result.Ip = san.Ip
-	}
-
-	return result
 }
 
-func expandBrokerListenerManual(manual BrokerListenerManualModel) *brokerlistener.ManualCertMethod {
-	result := &brokerlistener.ManualCertMethod{}
-
-	if manual.SecretRef != nil {
-		result.SecretRef = manual.SecretRef
+func expandBrokerListenerManual(manual BrokerListenerManualModel) *brokerlistener.X509ManualCertificate {
+	return &brokerlistener.X509ManualCertificate{
+		SecretRef: manual.SecretRef,
 	}
-
-	return result
 }
 
 func flattenBrokerListenerProperties(props *brokerlistener.BrokerListenerProperties, model *BrokerListenerModel) {
@@ -682,9 +601,7 @@ func flattenBrokerListenerProperties(props *brokerlistener.BrokerListenerPropert
 		model.ServiceType = &serviceType
 	}
 
-	if props.Ports != nil {
-		model.Ports = flattenBrokerListenerPorts(*props.Ports)
-	}
+	model.Ports = flattenBrokerListenerPorts(props.Ports)
 }
 
 func flattenBrokerListenerPorts(ports []brokerlistener.ListenerPort) []BrokerListenerPortModel {
@@ -740,7 +657,9 @@ func flattenBrokerListenerTls(tls brokerlistener.TlsCertMethod) *BrokerListenerT
 }
 
 func flattenBrokerListenerCertManagerSpec(spec brokerlistener.CertManagerCertificateSpec) *BrokerListenerCertManagerCertificateSpecModel {
-	result := &BrokerListenerCertManagerCertificateSpecModel{}
+	result := &BrokerListenerCertManagerCertificateSpecModel{
+		IssuerRef: flattenBrokerListenerIssuerRef(spec.IssuerRef), // Required field
+	}
 
 	if spec.Duration != nil {
 		result.Duration = spec.Duration
@@ -754,10 +673,6 @@ func flattenBrokerListenerCertManagerSpec(spec brokerlistener.CertManagerCertifi
 		result.RenewBefore = spec.RenewBefore
 	}
 
-	if spec.IssuerRef != nil {
-		result.IssuerRef = flattenBrokerListenerIssuerRef(*spec.IssuerRef)
-	}
-
 	if spec.PrivateKey != nil {
 		result.PrivateKey = flattenBrokerListenerPrivateKey(*spec.PrivateKey)
 	}
@@ -769,60 +684,30 @@ func flattenBrokerListenerCertManagerSpec(spec brokerlistener.CertManagerCertifi
 	return result
 }
 
-func flattenBrokerListenerIssuerRef(issuerRef brokerlistener.CertManagerIssuerRef) *BrokerListenerIssuerRefModel {
-	result := &BrokerListenerIssuerRefModel{}
-
-	if issuerRef.Group != nil {
-		result.Group = issuerRef.Group
+func flattenBrokerListenerIssuerRef(issuerRef brokerlistener.CertManagerIssuerRef) BrokerListenerIssuerRefModel {
+	return BrokerListenerIssuerRefModel{
+		Group: issuerRef.Group,
+		Kind:  string(issuerRef.Kind),
+		Name:  issuerRef.Name,
 	}
-
-	if issuerRef.Kind != nil {
-		result.Kind = issuerRef.Kind
-	}
-
-	if issuerRef.Name != nil {
-		result.Name = issuerRef.Name
-	}
-
-	return result
 }
 
 func flattenBrokerListenerPrivateKey(privateKey brokerlistener.CertManagerPrivateKey) *BrokerListenerPrivateKeyModel {
-	result := &BrokerListenerPrivateKeyModel{}
-
-	if privateKey.Algorithm != nil {
-		algorithm := string(*privateKey.Algorithm)
-		result.Algorithm = &algorithm
+	return &BrokerListenerPrivateKeyModel{
+		Algorithm:      string(privateKey.Algorithm),
+		RotationPolicy: string(privateKey.RotationPolicy),
 	}
-
-	if privateKey.RotationPolicy != nil {
-		rotationPolicy := string(*privateKey.RotationPolicy)
-		result.RotationPolicy = &rotationPolicy
-	}
-
-	return result
 }
 
 func flattenBrokerListenerSan(san brokerlistener.SanForCert) *BrokerListenerSanModel {
-	result := &BrokerListenerSanModel{}
-
-	if san.Dns != nil {
-		result.Dns = san.Dns
+	return &BrokerListenerSanModel{
+		Dns: san.Dns,
+		Ip:  san.IP,
 	}
-
-	if san.Ip != nil {
-		result.Ip = san.Ip
-	}
-
-	return result
 }
 
-func flattenBrokerListenerManual(manual brokerlistener.ManualCertMethod) *BrokerListenerManualModel {
-	result := &BrokerListenerManualModel{}
-
-	if manual.SecretRef != nil {
-		result.SecretRef = manual.SecretRef
+func flattenBrokerListenerManual(manual brokerlistener.X509ManualCertificate) *BrokerListenerManualModel {
+	return &BrokerListenerManualModel{
+		SecretRef: manual.SecretRef,
 	}
-
-	return result
 }

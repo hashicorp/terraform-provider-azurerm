@@ -21,6 +21,9 @@ resource "azurerm_iotoperations_instance" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
+  extended_location_name = var.custom_location_id
+  extended_location_type = "CustomLocation"
+
   identity {
     type = "SystemAssigned"
   }
@@ -31,6 +34,11 @@ resource "azurerm_iotoperations_instance" "example" {
 resource "azurerm_iotoperations_dataflow_profile" "example" {
   name                = var.dataflow_profile_name
   iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
 
   instance_count = var.dataflow_profile_instance_count
 
@@ -47,6 +55,11 @@ resource "azurerm_iotoperations_dataflow_profile" "example" {
 resource "azurerm_iotoperations_dataflow" "example" {
   name                      = var.dataflow_name
   dataflow_profile_id      = azurerm_iotoperations_dataflow_profile.example.id
+
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
 
   mode = var.dataflow_mode
 

@@ -27,7 +27,7 @@ resource_group_name = "existing-resource-group-name"
 
 # Required Resource IDs (replace with your actual values)
 custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ExtendedLocation/customLocations/example-location"
-schema_registry_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DeviceRegistry/schemaRegistries/example-registry"
+schema_registry_ref = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DeviceRegistry/schemaRegistries/example-registry"
 ```
 
 ### Step 2: Find Required Resources

@@ -1,51 +1,85 @@
-package iotoperations
+package iotoperations_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerauthentication"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func TestAccBrokerAuthentication_basic(t *testing.T) {
-	resourceName := "azurerm_broker_authentication.test"
+type BrokerAuthenticationResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { /* add pre-checks if needed */ },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBrokerAuthenticationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBrokerAuthenticationConfig_basic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", "test-broker-auth"),
-					resource.TestCheckResourceAttr(resourceName, "resource_group_name", "test-rg"),
-					resource.TestCheckResourceAttr(resourceName, "instance_name", "test-instance"),
-					resource.TestCheckResourceAttr(resourceName, "broker_name", "test-broker"),
-				),
-			},
+func TestAccBrokerAuthentication_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotoperations_broker_authentication", "test")
+	r := BrokerAuthenticationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-broker-auth"),
+				check.That(data.ResourceName).Key("authentication_methods.0.method").HasValue("ServiceAccountToken"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccBrokerAuthenticationConfig_basic() string {
+func (r BrokerAuthenticationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := brokerauthentication.ParseAuthenticationID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	client := clients.IoTOperations.BrokerAuthenticationClient
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("IoT Operations Broker Authentication %q was not found", id.AuthenticationName)
+		}
+		return nil, fmt.Errorf("retrieving IoT Operations Broker Authentication %q: %+v", id.AuthenticationName, err)
+	}
+
+	exists := resp.Model != nil
+	return &exists, nil
+}
+
+func (r BrokerAuthenticationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_broker_authentication" "test" {
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iot-%d"
+  location = "%s"
+}
+
+resource "azurerm_iotoperations_broker_authentication" "test" {
   name                = "test-broker-auth"
-  resource_group_name = "test-rg"
+  resource_group_name = azurerm_resource_group.test.name
   instance_name       = "test-instance"
   broker_name         = "test-broker"
+  location            = azurerm_resource_group.test.location
 
   authentication_methods {
     method = "ServiceAccountToken"
-    # Add other nested fields as needed
+    service_account_token_settings {
+      audiences = ["test-audience"]
+    }
   }
 
   extended_location {
-    name = "qmbrfwcpwwhggszhrdjv"
+    name = "test-custom-location"
     type = "CustomLocation"
   }
 }
-`)
+`, data.RandomInteger, data.Locations.Primary)
 }

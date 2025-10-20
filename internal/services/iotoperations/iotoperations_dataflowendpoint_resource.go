@@ -17,124 +17,155 @@ type DataflowEndpointResource struct{}
 var _ sdk.ResourceWithUpdate = DataflowEndpointResource{}
 
 type DataflowEndpointModel struct {
-	Name              string                              `tfschema:"name"`
-	ResourceGroupName string                              `tfschema:"resource_group_name"`
-	InstanceName      string                              `tfschema:"instance_name"`
-	EndpointType      string                              `tfschema:"endpoint_type"`
-	DataExplorerSettings *DataflowEndpointDataExplorerModel `tfschema:"data_explorer_settings"`
+	Name                    string                                `tfschema:"name"`
+	ResourceGroupName       string                                `tfschema:"resource_group_name"`
+	InstanceName            string                                `tfschema:"instance_name"`
+	EndpointType            string                                `tfschema:"endpoint_type"`
+	ExtendedLocation        ExtendedLocationModel                 `tfschema:"extended_location"`
+	DataExplorerSettings    *DataflowEndpointDataExplorerModel    `tfschema:"data_explorer_settings"`
 	DataLakeStorageSettings *DataflowEndpointDataLakeStorageModel `tfschema:"data_lake_storage_settings"`
-	FabricOneLakeSettings *DataflowEndpointFabricOneLakeModel `tfschema:"fabric_one_lake_settings"`
-	KafkaSettings     *DataflowEndpointKafkaModel         `tfschema:"kafka_settings"`
-	LocalStorageSettings *DataflowEndpointLocalStorageModel `tfschema:"local_storage_settings"`
-	MqttSettings      *DataflowEndpointMqttModel          `tfschema:"mqtt_settings"`
-	ExtendedLocation  *ExtendedLocationModel              `tfschema:"extended_location"`
-	Tags              map[string]string                   `tfschema:"tags"`
-	ProvisioningState *string                             `tfschema:"provisioning_state"`
+	FabricOneLakeSettings   *DataflowEndpointFabricOneLakeModel   `tfschema:"fabric_one_lake_settings"`
+	KafkaSettings           *DataflowEndpointKafkaModel           `tfschema:"kafka_settings"`
+	LocalStorageSettings    *DataflowEndpointLocalStorageModel    `tfschema:"local_storage_settings"`
+	MqttSettings            *DataflowEndpointMqttModel            `tfschema:"mqtt_settings"`
+	ProvisioningState       *string                               `tfschema:"provisioning_state"`
 }
 
 type DataflowEndpointDataExplorerModel struct {
-	Database string                                `tfschema:"database"`
-	Host     string                                `tfschema:"host"`
-	Batching *DataflowEndpointBatchingModel        `tfschema:"batching"`
-	Authentication *DataflowEndpointAuthenticationModel `tfschema:"authentication"`
+	Authentication DataflowEndpointDataExplorerAuthenticationModel `tfschema:"authentication"`
+	Batching       *BatchingConfigurationModel                     `tfschema:"batching"`
+	Database       string                                          `tfschema:"database"`
+	Host           string                                          `tfschema:"host"`
+}
+
+type DataflowEndpointDataExplorerAuthenticationModel struct {
+	Method                                string                                                       `tfschema:"method"`
+	SystemAssignedManagedIdentitySettings *DataflowEndpointAuthenticationSystemAssignedManagedIdentity `tfschema:"system_assigned_managed_identity_settings"`
+	UserAssignedManagedIdentitySettings   *DataflowEndpointAuthenticationUserAssignedManagedIdentity   `tfschema:"user_assigned_managed_identity_settings"`
 }
 
 type DataflowEndpointDataLakeStorageModel struct {
-	Host       string                                `tfschema:"host"`
-	Batching   *DataflowEndpointBatchingModel        `tfschema:"batching"`
-	Authentication *DataflowEndpointAuthenticationModel `tfschema:"authentication"`
+	Authentication DataflowEndpointDataLakeStorageAuthenticationModel `tfschema:"authentication"`
+	Batching       *BatchingConfigurationModel                        `tfschema:"batching"`
+	Host           string                                             `tfschema:"host"`
+}
+
+type DataflowEndpointDataLakeStorageAuthenticationModel struct {
+	Method                                string                                                       `tfschema:"method"`
+	AccessTokenSettings                   *DataflowEndpointAuthenticationAccessTokenModel              `tfschema:"access_token_settings"`
+	SystemAssignedManagedIdentitySettings *DataflowEndpointAuthenticationSystemAssignedManagedIdentity `tfschema:"system_assigned_managed_identity_settings"`
+	UserAssignedManagedIdentitySettings   *DataflowEndpointAuthenticationUserAssignedManagedIdentity   `tfschema:"user_assigned_managed_identity_settings"`
 }
 
 type DataflowEndpointFabricOneLakeModel struct {
-	Host       string                                `tfschema:"host"`
-	Names      []string                              `tfschema:"names"`
-	OneLakePathType string                           `tfschema:"one_lake_path_type"`
-	Workspace  string                                `tfschema:"workspace"`
-	Batching   *DataflowEndpointBatchingModel        `tfschema:"batching"`
-	Authentication *DataflowEndpointAuthenticationModel `tfschema:"authentication"`
+	Authentication  DataflowEndpointFabricOneLakeAuthenticationModel `tfschema:"authentication"`
+	Batching        *BatchingConfigurationModel                      `tfschema:"batching"`
+	Host            string                                           `tfschema:"host"`
+	Names           DataflowEndpointFabricOneLakeNamesModel          `tfschema:"names"`
+	OneLakePathType string                                           `tfschema:"one_lake_path_type"`
+}
+
+type DataflowEndpointFabricOneLakeAuthenticationModel struct {
+	Method                                string                                                       `tfschema:"method"`
+	SystemAssignedManagedIdentitySettings *DataflowEndpointAuthenticationSystemAssignedManagedIdentity `tfschema:"system_assigned_managed_identity_settings"`
+	UserAssignedManagedIdentitySettings   *DataflowEndpointAuthenticationUserAssignedManagedIdentity   `tfschema:"user_assigned_managed_identity_settings"`
+}
+
+type DataflowEndpointFabricOneLakeNamesModel struct {
+	LakehouseName string `tfschema:"lakehouse_name"`
+	WorkspaceName string `tfschema:"workspace_name"`
 }
 
 type DataflowEndpointKafkaModel struct {
-	Host            string                                `tfschema:"host"`
-	Batching        *DataflowEndpointBatchingModel        `tfschema:"batching"`
-	Kafka           *DataflowEndpointKafkaSettingsModel   `tfschema:"kafka"`
-	Authentication  *DataflowEndpointAuthenticationModel  `tfschema:"authentication"`
+	Authentication       DataflowEndpointKafkaAuthenticationModel `tfschema:"authentication"`
+	Batching             *DataflowEndpointKafkaBatchingModel      `tfschema:"batching"`
+	CloudEventAttributes *string                                  `tfschema:"cloud_event_attributes"`
+	Compression          *string                                  `tfschema:"compression"`
+	ConsumerGroupId      *string                                  `tfschema:"consumer_group_id"`
+	CopyMqttProperties   *string                                  `tfschema:"copy_mqtt_properties"`
+	Host                 string                                   `tfschema:"host"`
+	KafkaAcks            *string                                  `tfschema:"kafka_acks"`
+	PartitionStrategy    *string                                  `tfschema:"partition_strategy"`
+	Tls                  *TlsPropertiesModel                      `tfschema:"tls"`
 }
 
-type DataflowEndpointKafkaSettingsModel struct {
-	ConsumerGroupId *string `tfschema:"consumer_group_id"`
-	Compression     *string `tfschema:"compression"`
-	Batching        *DataflowEndpointKafkaBatchingModel `tfschema:"batching"`
+type DataflowEndpointKafkaAuthenticationModel struct {
+	Method                                string                                                       `tfschema:"method"`
+	SaslSettings                          *DataflowEndpointAuthenticationSaslModel                     `tfschema:"sasl_settings"`
+	SystemAssignedManagedIdentitySettings *DataflowEndpointAuthenticationSystemAssignedManagedIdentity `tfschema:"system_assigned_managed_identity_settings"`
+	UserAssignedManagedIdentitySettings   *DataflowEndpointAuthenticationUserAssignedManagedIdentity   `tfschema:"user_assigned_managed_identity_settings"`
+	X509CertificateSettings               *DataflowEndpointAuthenticationX509Model                     `tfschema:"x509_certificate_settings"`
 }
 
 type DataflowEndpointKafkaBatchingModel struct {
-	Mode         *string `tfschema:"mode"`
-	LatencyMs    *int    `tfschema:"latency_ms"`
-	MaxBytes     *int    `tfschema:"max_bytes"`
-	MaxMessages  *int    `tfschema:"max_messages"`
+	LatencyMs   *int64  `tfschema:"latency_ms"`
+	MaxBytes    *int64  `tfschema:"max_bytes"`
+	MaxMessages *int64  `tfschema:"max_messages"`
+	Mode        *string `tfschema:"mode"`
 }
 
 type DataflowEndpointLocalStorageModel struct {
-	Path string `tfschema:"path"`
+	PersistentVolumeClaimRef string `tfschema:"persistent_volume_claim_ref"`
 }
 
 type DataflowEndpointMqttModel struct {
-	Host                 string                                `tfschema:"host"`
-	KeepAliveSeconds     *int                                  `tfschema:"keep_alive_seconds"`
-	Retain               *string                               `tfschema:"retain"`
-	SessionExpirySeconds *int                                  `tfschema:"session_expiry_seconds"`
-	MaxInflightMessages  *int                                  `tfschema:"max_inflight_messages"`
-	Qos                  *int                                  `tfschema:"qos"`
-	Protocol             *string                               `tfschema:"protocol"`
-	ClientIdPrefix       *string                               `tfschema:"client_id_prefix"`
-	TlsSettings          *DataflowEndpointMqttTlsModel         `tfschema:"tls_settings"`
-	Authentication       *DataflowEndpointAuthenticationModel  `tfschema:"authentication"`
+	Authentication       DataflowEndpointMqttAuthenticationModel `tfschema:"authentication"`
+	ClientIdPrefix       *string                                 `tfschema:"client_id_prefix"`
+	CloudEventAttributes *string                                 `tfschema:"cloud_event_attributes"`
+	Host                 *string                                 `tfschema:"host"`
+	KeepAliveSeconds     *int64                                  `tfschema:"keep_alive_seconds"`
+	MaxInflightMessages  *int64                                  `tfschema:"max_inflight_messages"`
+	Protocol             *string                                 `tfschema:"protocol"`
+	Qos                  *int64                                  `tfschema:"qos"`
+	Retain               *string                                 `tfschema:"retain"`
+	SessionExpirySeconds *int64                                  `tfschema:"session_expiry_seconds"`
+	Tls                  *TlsPropertiesModel                     `tfschema:"tls"`
 }
 
-type DataflowEndpointMqttTlsModel struct {
-	Mode                             string  `tfschema:"mode"`
-	TrustedCaCertificateConfigMapRef *string `tfschema:"trusted_ca_certificate_config_map_ref"`
+type DataflowEndpointMqttAuthenticationModel struct {
+	Method                                string                                                       `tfschema:"method"`
+	ServiceAccountTokenSettings           *DataflowEndpointAuthenticationServiceAccountTokenModel      `tfschema:"service_account_token_settings"`
+	SystemAssignedManagedIdentitySettings *DataflowEndpointAuthenticationSystemAssignedManagedIdentity `tfschema:"system_assigned_managed_identity_settings"`
+	UserAssignedManagedIdentitySettings   *DataflowEndpointAuthenticationUserAssignedManagedIdentity   `tfschema:"user_assigned_managed_identity_settings"`
+	X509CertificateSettings               *DataflowEndpointAuthenticationX509Model                     `tfschema:"x509_certificate_settings"`
 }
 
-type DataflowEndpointBatchingModel struct {
-	LatencySeconds *int `tfschema:"latency_seconds"`
-	MaxMessages    *int `tfschema:"max_messages"`
-}
-
-type DataflowEndpointAuthenticationModel struct {
-	Method                                string                                                  `tfschema:"method"`
-	SystemAssignedManagedIdentitySettings *DataflowEndpointSystemAssignedManagedIdentityModel     `tfschema:"system_assigned_managed_identity_settings"`
-	UserAssignedManagedIdentitySettings   *DataflowEndpointUserAssignedManagedIdentityModel       `tfschema:"user_assigned_managed_identity_settings"`
-	ServiceAccountTokenSettings           *DataflowEndpointServiceAccountTokenModel               `tfschema:"service_account_token_settings"`
-	X509CertificateSettings               *DataflowEndpointX509CertificateModel                   `tfschema:"x509_certificate_settings"`
-	AccessTokenSettings                   *DataflowEndpointAccessTokenModel                       `tfschema:"access_token_settings"`
-	SaslSettings                          *DataflowEndpointSaslModel                              `tfschema:"sasl_settings"`
-}
-
-type DataflowEndpointSystemAssignedManagedIdentityModel struct {
-	Audience string `tfschema:"audience"`
-}
-
-type DataflowEndpointUserAssignedManagedIdentityModel struct {
-	ClientId string `tfschema:"client_id"`
-	Audience string `tfschema:"audience"`
-}
-
-type DataflowEndpointServiceAccountTokenModel struct {
-	Audience string `tfschema:"audience"`
-}
-
-type DataflowEndpointX509CertificateModel struct {
+// Common authentication models
+type DataflowEndpointAuthenticationAccessTokenModel struct {
 	SecretRef string `tfschema:"secret_ref"`
 }
 
-type DataflowEndpointAccessTokenModel struct {
-	SecretRef string `tfschema:"secret_ref"`
-}
-
-type DataflowEndpointSaslModel struct {
+type DataflowEndpointAuthenticationSaslModel struct {
 	SaslType  string `tfschema:"sasl_type"`
 	SecretRef string `tfschema:"secret_ref"`
+}
+
+type DataflowEndpointAuthenticationServiceAccountTokenModel struct {
+	Audience string `tfschema:"audience"`
+}
+
+type DataflowEndpointAuthenticationSystemAssignedManagedIdentity struct {
+	Audience *string `tfschema:"audience"`
+}
+
+type DataflowEndpointAuthenticationUserAssignedManagedIdentity struct {
+	ClientId string  `tfschema:"client_id"`
+	Scope    *string `tfschema:"scope"`
+	TenantId string  `tfschema:"tenant_id"`
+}
+
+type DataflowEndpointAuthenticationX509Model struct {
+	SecretRef string `tfschema:"secret_ref"`
+}
+
+type BatchingConfigurationModel struct {
+	LatencySeconds *int64 `tfschema:"latency_seconds"`
+	MaxMessages    *int64 `tfschema:"max_messages"`
+}
+
+type TlsPropertiesModel struct {
+	Mode                             *string `tfschema:"mode"`
+	TrustedCaCertificateConfigMapRef *string `tfschema:"trusted_ca_certificate_config_map_ref"`
 }
 
 func (r DataflowEndpointResource) ModelObject() interface{} {
@@ -187,6 +218,28 @@ func (r DataflowEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 				"LocalStorage",
 				"Mqtt",
 			}, false),
+		},
+		"extended_location": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CustomLocation",
+						}, false),
+					},
+				},
+			},
 		},
 		"data_explorer_settings": {
 			Type:          pluginsdk.TypeList,
@@ -477,27 +530,6 @@ func (r DataflowEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"extended_location": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CustomLocation",
-						}, false),
-					},
-				},
-			},
-		},
 		"tags": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -511,7 +543,7 @@ func (r DataflowEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataflowEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
 			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
@@ -668,15 +700,8 @@ func (r DataflowEndpointResource) Create() sdk.ResourceFunc {
 
 			// Build payload
 			payload := dataflowendpoint.DataflowEndpointResource{
-				Properties: expandDataflowEndpointProperties(model),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
+				ExtendedLocation: expandDataflowEndpointExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowEndpointProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -712,17 +737,11 @@ func (r DataflowEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
-				}
+				model.ExtendedLocation = flattenDataflowEndpointExtendedLocation(respModel.ExtendedLocation)
 
 				if respModel.Properties != nil {
 					flattenDataflowEndpointProperties(respModel.Properties, &model)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -751,41 +770,13 @@ func (r DataflowEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !hasDataflowEndpointSettingsChanged(metadata) {
-				return nil
+			// For dataflow endpoint, we use CreateOrUpdate for updates since there's no dedicated Update method
+			payload := dataflowendpoint.DataflowEndpointResource{
+				ExtendedLocation: expandDataflowEndpointExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowEndpointProperties(model),
 			}
 
-			payload := dataflowendpoint.DataflowEndpointPatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include properties if endpoint settings changed
-			if hasDataflowEndpointSettingsChanged(metadata) {
-				payload.Properties = &dataflowendpoint.DataflowEndpointPropertiesPatch{
-					EndpointType:            dataflowendpoint.EndpointType(model.EndpointType),
-					DataExplorerSettings:    expandDataflowEndpointDataExplorerPatch(model.DataExplorerSettings),
-					DataLakeStorageSettings: expandDataflowEndpointDataLakeStoragePatch(model.DataLakeStorageSettings),
-					FabricOneLakeSettings:   expandDataflowEndpointFabricOneLakePatch(model.FabricOneLakeSettings),
-					KafkaSettings:           expandDataflowEndpointKafkaPatch(model.KafkaSettings),
-					LocalStorageSettings:    expandDataflowEndpointLocalStoragePatch(model.LocalStorageSettings),
-					MqttSettings:            expandDataflowEndpointMqttPatch(model.MqttSettings),
-				}
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -814,18 +805,22 @@ func (r DataflowEndpointResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-// Helper function to check if any endpoint settings changed
-func hasDataflowEndpointSettingsChanged(metadata sdk.ResourceMetaData) bool {
-	return metadata.ResourceData.HasChange("endpoint_type") ||
-		   metadata.ResourceData.HasChange("data_explorer_settings") ||
-		   metadata.ResourceData.HasChange("data_lake_storage_settings") ||
-		   metadata.ResourceData.HasChange("fabric_one_lake_settings") ||
-		   metadata.ResourceData.HasChange("kafka_settings") ||
-		   metadata.ResourceData.HasChange("local_storage_settings") ||
-		   metadata.ResourceData.HasChange("mqtt_settings")
+// Helper functions for expand/flatten operations
+func expandDataflowEndpointExtendedLocation(input ExtendedLocationModel) dataflowendpoint.ExtendedLocation {
+	return dataflowendpoint.ExtendedLocation{
+		Name: *input.Name,
+		Type: dataflowendpoint.ExtendedLocationType(*input.Type),
+	}
 }
 
-// Helper functions for expand/flatten operations (simplified for brevity)
+func flattenDataflowEndpointExtendedLocation(input dataflowendpoint.ExtendedLocation) ExtendedLocationModel {
+	typeStr := string(input.Type)
+	return ExtendedLocationModel{
+		Name: &input.Name,
+		Type: &typeStr,
+	}
+}
+
 func expandDataflowEndpointProperties(model DataflowEndpointModel) *dataflowendpoint.DataflowEndpointProperties {
 	props := &dataflowendpoint.DataflowEndpointProperties{
 		EndpointType: dataflowendpoint.EndpointType(model.EndpointType),
@@ -856,6 +851,343 @@ func expandDataflowEndpointProperties(model DataflowEndpointModel) *dataflowendp
 	}
 
 	return props
+}
+
+func expandDataflowEndpointKafka(kafka DataflowEndpointKafkaModel) *dataflowendpoint.DataflowEndpointKafka {
+	result := &dataflowendpoint.DataflowEndpointKafka{
+		Host:           kafka.Host,
+		Authentication: expandDataflowEndpointKafkaAuthentication(kafka.Authentication),
+	}
+
+	if kafka.Batching != nil {
+		result.Batching = expandDataflowEndpointKafkaBatching(*kafka.Batching)
+	}
+
+	if kafka.CloudEventAttributes != nil {
+		cloudEventType := dataflowendpoint.CloudEventAttributeType(*kafka.CloudEventAttributes)
+		result.CloudEventAttributes = &cloudEventType
+	}
+
+	if kafka.Compression != nil {
+		compression := dataflowendpoint.DataflowEndpointKafkaCompression(*kafka.Compression)
+		result.Compression = &compression
+	}
+
+	if kafka.ConsumerGroupId != nil {
+		result.ConsumerGroupId = kafka.ConsumerGroupId
+	}
+
+	if kafka.CopyMqttProperties != nil {
+		copyMqtt := dataflowendpoint.OperationalMode(*kafka.CopyMqttProperties)
+		result.CopyMqttProperties = &copyMqtt
+	}
+
+	if kafka.KafkaAcks != nil {
+		acks := dataflowendpoint.DataflowEndpointKafkaAcks(*kafka.KafkaAcks)
+		result.KafkaAcks = &acks
+	}
+
+	if kafka.PartitionStrategy != nil {
+		strategy := dataflowendpoint.DataflowEndpointKafkaPartitionStrategy(*kafka.PartitionStrategy)
+		result.PartitionStrategy = &strategy
+	}
+
+	if kafka.Tls != nil {
+		result.Tls = expandTlsProperties(*kafka.Tls)
+	}
+
+	return result
+}
+
+func expandDataflowEndpointKafkaAuthentication(auth DataflowEndpointKafkaAuthenticationModel) dataflowendpoint.DataflowEndpointKafkaAuthentication {
+	result := dataflowendpoint.DataflowEndpointKafkaAuthentication{
+		Method: dataflowendpoint.KafkaAuthMethod(auth.Method),
+	}
+
+	if auth.SaslSettings != nil {
+		result.SaslSettings = &dataflowendpoint.DataflowEndpointAuthenticationSasl{
+			SaslType:  dataflowendpoint.DataflowEndpointAuthenticationSaslType(auth.SaslSettings.SaslType),
+			SecretRef: auth.SaslSettings.SecretRef,
+		}
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	if auth.X509CertificateSettings != nil {
+		result.X509CertificateSettings = &dataflowendpoint.DataflowEndpointAuthenticationX509{
+			SecretRef: auth.X509CertificateSettings.SecretRef,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointKafkaBatching(batching DataflowEndpointKafkaBatchingModel) *dataflowendpoint.DataflowEndpointKafkaBatching {
+	result := &dataflowendpoint.DataflowEndpointKafkaBatching{}
+
+	if batching.LatencyMs != nil {
+		result.LatencyMs = batching.LatencyMs
+	}
+
+	if batching.MaxBytes != nil {
+		result.MaxBytes = batching.MaxBytes
+	}
+
+	if batching.MaxMessages != nil {
+		result.MaxMessages = batching.MaxMessages
+	}
+
+	if batching.Mode != nil {
+		mode := dataflowendpoint.OperationalMode(*batching.Mode)
+		result.Mode = &mode
+	}
+
+	return result
+}
+
+func expandTlsProperties(tls TlsPropertiesModel) *dataflowendpoint.TlsProperties {
+	result := &dataflowendpoint.TlsProperties{}
+
+	if tls.Mode != nil {
+		mode := dataflowendpoint.OperationalMode(*tls.Mode)
+		result.Mode = &mode
+	}
+
+	if tls.TrustedCaCertificateConfigMapRef != nil {
+		result.TrustedCaCertificateConfigMapRef = tls.TrustedCaCertificateConfigMapRef
+	}
+
+	return result
+}
+
+// Additional expand functions for other endpoint types would go here...
+func expandDataflowEndpointDataExplorer(dataExplorer DataflowEndpointDataExplorerModel) *dataflowendpoint.DataflowEndpointDataExplorer {
+	result := &dataflowendpoint.DataflowEndpointDataExplorer{
+		Database:       dataExplorer.Database,
+		Host:           dataExplorer.Host,
+		Authentication: expandDataflowEndpointDataExplorerAuthentication(dataExplorer.Authentication),
+	}
+
+	if dataExplorer.Batching != nil {
+		result.Batching = &dataflowendpoint.BatchingConfiguration{
+			LatencySeconds: dataExplorer.Batching.LatencySeconds,
+			MaxMessages:    dataExplorer.Batching.MaxMessages,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointDataExplorerAuthentication(auth DataflowEndpointDataExplorerAuthenticationModel) dataflowendpoint.DataflowEndpointDataExplorerAuthentication {
+	result := dataflowendpoint.DataflowEndpointDataExplorerAuthentication{
+		Method: dataflowendpoint.ManagedIdentityMethod(auth.Method),
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointDataLakeStorage(dataLakeStorage DataflowEndpointDataLakeStorageModel) *dataflowendpoint.DataflowEndpointDataLakeStorage {
+	result := &dataflowendpoint.DataflowEndpointDataLakeStorage{
+		Host:           dataLakeStorage.Host,
+		Authentication: expandDataflowEndpointDataLakeStorageAuthentication(dataLakeStorage.Authentication),
+	}
+
+	if dataLakeStorage.Batching != nil {
+		result.Batching = &dataflowendpoint.BatchingConfiguration{
+			LatencySeconds: dataLakeStorage.Batching.LatencySeconds,
+			MaxMessages:    dataLakeStorage.Batching.MaxMessages,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointDataLakeStorageAuthentication(auth DataflowEndpointDataLakeStorageAuthenticationModel) dataflowendpoint.DataflowEndpointDataLakeStorageAuthentication {
+	result := dataflowendpoint.DataflowEndpointDataLakeStorageAuthentication{
+		Method: dataflowendpoint.DataLakeStorageAuthMethod(auth.Method),
+	}
+
+	if auth.AccessTokenSettings != nil {
+		result.AccessTokenSettings = &dataflowendpoint.DataflowEndpointAuthenticationAccessToken{
+			SecretRef: auth.AccessTokenSettings.SecretRef,
+		}
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointFabricOneLake(fabricOneLake DataflowEndpointFabricOneLakeModel) *dataflowendpoint.DataflowEndpointFabricOneLake {
+	result := &dataflowendpoint.DataflowEndpointFabricOneLake{
+		Host:            fabricOneLake.Host,
+		OneLakePathType: dataflowendpoint.DataflowEndpointFabricPathType(fabricOneLake.OneLakePathType),
+		Authentication:  expandDataflowEndpointFabricOneLakeAuthentication(fabricOneLake.Authentication),
+		Names: dataflowendpoint.DataflowEndpointFabricOneLakeNames{
+			LakehouseName: fabricOneLake.Names.LakehouseName,
+			WorkspaceName: fabricOneLake.Names.WorkspaceName,
+		},
+	}
+
+	if fabricOneLake.Batching != nil {
+		result.Batching = &dataflowendpoint.BatchingConfiguration{
+			LatencySeconds: fabricOneLake.Batching.LatencySeconds,
+			MaxMessages:    fabricOneLake.Batching.MaxMessages,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointFabricOneLakeAuthentication(auth DataflowEndpointFabricOneLakeAuthenticationModel) dataflowendpoint.DataflowEndpointFabricOneLakeAuthentication {
+	result := dataflowendpoint.DataflowEndpointFabricOneLakeAuthentication{
+		Method: dataflowendpoint.ManagedIdentityMethod(auth.Method),
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
+}
+
+func expandDataflowEndpointLocalStorage(localStorage DataflowEndpointLocalStorageModel) *dataflowendpoint.DataflowEndpointLocalStorage {
+	return &dataflowendpoint.DataflowEndpointLocalStorage{
+		PersistentVolumeClaimRef: localStorage.PersistentVolumeClaimRef,
+	}
+}
+
+func expandDataflowEndpointMqtt(mqtt DataflowEndpointMqttModel) *dataflowendpoint.DataflowEndpointMqtt {
+	result := &dataflowendpoint.DataflowEndpointMqtt{
+		Authentication: expandDataflowEndpointMqttAuthentication(mqtt.Authentication),
+	}
+
+	if mqtt.ClientIdPrefix != nil {
+		result.ClientIdPrefix = mqtt.ClientIdPrefix
+	}
+
+	if mqtt.CloudEventAttributes != nil {
+		cloudEventType := dataflowendpoint.CloudEventAttributeType(*mqtt.CloudEventAttributes)
+		result.CloudEventAttributes = &cloudEventType
+	}
+
+	if mqtt.Host != nil {
+		result.Host = mqtt.Host
+	}
+
+	if mqtt.KeepAliveSeconds != nil {
+		result.KeepAliveSeconds = mqtt.KeepAliveSeconds
+	}
+
+	if mqtt.MaxInflightMessages != nil {
+		result.MaxInflightMessages = mqtt.MaxInflightMessages
+	}
+
+	if mqtt.Protocol != nil {
+		protocol := dataflowendpoint.BrokerProtocolType(*mqtt.Protocol)
+		result.Protocol = &protocol
+	}
+
+	if mqtt.Qos != nil {
+		result.Qos = mqtt.Qos
+	}
+
+	if mqtt.Retain != nil {
+		retain := dataflowendpoint.MqttRetainType(*mqtt.Retain)
+		result.Retain = &retain
+	}
+
+	if mqtt.SessionExpirySeconds != nil {
+		result.SessionExpirySeconds = mqtt.SessionExpirySeconds
+	}
+
+	if mqtt.Tls != nil {
+		result.Tls = expandTlsProperties(*mqtt.Tls)
+	}
+
+	return result
+}
+
+func expandDataflowEndpointMqttAuthentication(auth DataflowEndpointMqttAuthenticationModel) dataflowendpoint.DataflowEndpointMqttAuthentication {
+	result := dataflowendpoint.DataflowEndpointMqttAuthentication{
+		Method: dataflowendpoint.MqttAuthMethod(auth.Method),
+	}
+
+	if auth.ServiceAccountTokenSettings != nil {
+		result.ServiceAccountTokenSettings = &dataflowendpoint.DataflowEndpointAuthenticationServiceAccountToken{
+			Audience: auth.ServiceAccountTokenSettings.Audience,
+		}
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	if auth.X509CertificateSettings != nil {
+		result.X509CertificateSettings = &dataflowendpoint.DataflowEndpointAuthenticationX509{
+			SecretRef: auth.X509CertificateSettings.SecretRef,
+		}
+	}
+
+	return result
 }
 
 func flattenDataflowEndpointProperties(props *dataflowendpoint.DataflowEndpointProperties, model *DataflowEndpointModel) {
@@ -890,484 +1222,102 @@ func flattenDataflowEndpointProperties(props *dataflowendpoint.DataflowEndpointP
 	}
 }
 
-// Expand functions (simplified examples)
-func expandDataflowEndpointDataExplorer(model DataflowEndpointDataExplorerModel) *dataflowendpoint.DataflowEndpointDataExplorer {
-	result := &dataflowendpoint.DataflowEndpointDataExplorer{
-		Database: model.Database,
-		Host:     model.Host,
+// Flatten functions would follow similar patterns...
+func flattenDataflowEndpointKafka(kafka dataflowendpoint.DataflowEndpointKafka) *DataflowEndpointKafkaModel {
+	result := &DataflowEndpointKafkaModel{
+		Host:           kafka.Host,
+		Authentication: flattenDataflowEndpointKafkaAuthentication(kafka.Authentication),
 	}
 
-	if model.Batching != nil {
-		result.Batching = expandDataflowEndpointBatching(*model.Batching)
-	}
-
-	if model.Authentication != nil {
-		result.Authentication = expandDataflowEndpointAuthentication(*model.Authentication)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointDataLakeStorage(model DataflowEndpointDataLakeStorageModel) *dataflowendpoint.DataflowEndpointDataLakeStorage {
-	result := &dataflowendpoint.DataflowEndpointDataLakeStorage{
-		Host: model.Host,
-	}
-
-	if model.Batching != nil {
-		result.Batching = expandDataflowEndpointBatching(*model.Batching)
-	}
-
-	if model.Authentication != nil {
-		result.Authentication = expandDataflowEndpointAuthentication(*model.Authentication)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointFabricOneLake(model DataflowEndpointFabricOneLakeModel) *dataflowendpoint.DataflowEndpointFabricOneLake {
-	result := &dataflowendpoint.DataflowEndpointFabricOneLake{
-		Host:            model.Host,
-		Names:           model.Names,
-		OneLakePathType: dataflowendpoint.FabricPathType(model.OneLakePathType),
-		Workspace:       model.Workspace,
-	}
-
-	if model.Batching != nil {
-		result.Batching = expandDataflowEndpointBatching(*model.Batching)
-	}
-
-	if model.Authentication != nil {
-		result.Authentication = expandDataflowEndpointAuthentication(*model.Authentication)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointKafka(model DataflowEndpointKafkaModel) *dataflowendpoint.DataflowEndpointKafka {
-	result := &dataflowendpoint.DataflowEndpointKafka{
-		Host: model.Host,
-	}
-
-	if model.Batching != nil {
-		result.Batching = expandDataflowEndpointBatching(*model.Batching)
-	}
-
-	if model.Kafka != nil {
-		result.Kafka = expandDataflowEndpointKafkaSettings(*model.Kafka)
-	}
-
-	if model.Authentication != nil {
-		result.Authentication = expandDataflowEndpointAuthentication(*model.Authentication)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointLocalStorage(model DataflowEndpointLocalStorageModel) *dataflowendpoint.DataflowEndpointLocalStorage {
-	return &dataflowendpoint.DataflowEndpointLocalStorage{
-		Path: model.Path,
-	}
-}
-
-func expandDataflowEndpointMqtt(model DataflowEndpointMqttModel) *dataflowendpoint.DataflowEndpointMqtt {
-	result := &dataflowendpoint.DataflowEndpointMqtt{
-		Host: model.Host,
-	}
-
-	if model.KeepAliveSeconds != nil {
-		result.KeepAliveSeconds = func(i int) *int64 { v := int64(i); return &v }(*model.KeepAliveSeconds)
-	}
-
-	if model.Retain != nil {
-		retain := dataflowendpoint.MqttRetainType(*model.Retain)
-		result.Retain = &retain
-	}
-
-	if model.SessionExpirySeconds != nil {
-		result.SessionExpirySeconds = func(i int) *int64 { v := int64(i); return &v }(*model.SessionExpirySeconds)
-	}
-
-	if model.MaxInflightMessages != nil {
-		result.MaxInflightMessages = func(i int) *int64 { v := int64(i); return &v }(*model.MaxInflightMessages)
-	}
-
-	if model.Qos != nil {
-		result.Qos = func(i int) *int64 { v := int64(i); return &v }(*model.Qos)
-	}
-
-	if model.Protocol != nil {
-		protocol := dataflowendpoint.BrokerProtocolType(*model.Protocol)
-		result.Protocol = &protocol
-	}
-
-	if model.ClientIdPrefix != nil {
-		result.ClientIdPrefix = model.ClientIdPrefix
-	}
-
-	if model.TlsSettings != nil {
-		result.TlsSettings = expandDataflowEndpointMqttTls(*model.TlsSettings)
-	}
-
-	if model.Authentication != nil {
-		result.Authentication = expandDataflowEndpointAuthentication(*model.Authentication)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointBatching(model DataflowEndpointBatchingModel) *dataflowendpoint.BatchingConfiguration {
-	result := &dataflowendpoint.BatchingConfiguration{}
-
-	if model.LatencySeconds != nil {
-		result.LatencySeconds = func(i int) *int64 { v := int64(i); return &v }(*model.LatencySeconds)
-	}
-
-	if model.MaxMessages != nil {
-		result.MaxMessages = func(i int) *int64 { v := int64(i); return &v }(*model.MaxMessages)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointAuthentication(model DataflowEndpointAuthenticationModel) *dataflowendpoint.DataflowEndpointAuthentication {
-	result := &dataflowendpoint.DataflowEndpointAuthentication{
-		Method: dataflowendpoint.DataflowEndpointAuthenticationMethod(model.Method),
-	}
-
-	if model.SystemAssignedManagedIdentitySettings != nil {
-		result.SystemAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
-			Audience: model.SystemAssignedManagedIdentitySettings.Audience,
+	if kafka.Batching != nil {
+		result.Batching = &DataflowEndpointKafkaBatchingModel{
+			LatencyMs:   kafka.Batching.LatencyMs,
+			MaxBytes:    kafka.Batching.MaxBytes,
+			MaxMessages: kafka.Batching.MaxMessages,
+		}
+		if kafka.Batching.Mode != nil {
+			mode := string(*kafka.Batching.Mode)
+			result.Batching.Mode = &mode
 		}
 	}
 
-	if model.UserAssignedManagedIdentitySettings != nil {
-		result.UserAssignedManagedIdentitySettings = &dataflowendpoint.DataflowEndpointAuthenticationUserAssignedManagedIdentity{
-			ClientId: model.UserAssignedManagedIdentitySettings.ClientId,
-			Audience: model.UserAssignedManagedIdentitySettings.Audience,
-		}
+	if kafka.CloudEventAttributes != nil {
+		cloudEvent := string(*kafka.CloudEventAttributes)
+		result.CloudEventAttributes = &cloudEvent
 	}
 
-	if model.ServiceAccountTokenSettings != nil {
-		result.ServiceAccountTokenSettings = &dataflowendpoint.DataflowEndpointAuthenticationServiceAccountToken{
-			Audience: model.ServiceAccountTokenSettings.Audience,
-		}
-	}
-
-	if model.X509CertificateSettings != nil {
-		result.X509CertificateSettings = &dataflowendpoint.DataflowEndpointAuthenticationX509{
-			SecretRef: model.X509CertificateSettings.SecretRef,
-		}
-	}
-
-	if model.AccessTokenSettings != nil {
-		result.AccessTokenSettings = &dataflowendpoint.DataflowEndpointAuthenticationAccessToken{
-			SecretRef: model.AccessTokenSettings.SecretRef,
-		}
-	}
-
-	if model.SaslSettings != nil {
-		result.SaslSettings = &dataflowendpoint.DataflowEndpointAuthenticationSasl{
-			SaslType:  dataflowendpoint.DataflowEndpointAuthenticationSaslType(model.SaslSettings.SaslType),
-			SecretRef: model.SaslSettings.SecretRef,
-		}
-	}
-
-	return result
-}
-
-func expandDataflowEndpointKafkaSettings(model DataflowEndpointKafkaSettingsModel) *dataflowendpoint.DataflowEndpointKafkaSettings {
-	result := &dataflowendpoint.DataflowEndpointKafkaSettings{}
-
-	if model.ConsumerGroupId != nil {
-		result.ConsumerGroupId = model.ConsumerGroupId
-	}
-
-	if model.Compression != nil {
-		compression := dataflowendpoint.DataflowEndpointKafkaCompression(*model.Compression)
+	if kafka.Compression != nil {
+		compression := string(*kafka.Compression)
 		result.Compression = &compression
 	}
 
-	if model.Batching != nil {
-		result.Batching = expandDataflowEndpointKafkaBatching(*model.Batching)
+	if kafka.ConsumerGroupId != nil {
+		result.ConsumerGroupId = kafka.ConsumerGroupId
+	}
+
+	if kafka.CopyMqttProperties != nil {
+		copyMqtt := string(*kafka.CopyMqttProperties)
+		result.CopyMqttProperties = &copyMqtt
+	}
+
+	if kafka.KafkaAcks != nil {
+		acks := string(*kafka.KafkaAcks)
+		result.KafkaAcks = &acks
+	}
+
+	if kafka.PartitionStrategy != nil {
+		strategy := string(*kafka.PartitionStrategy)
+		result.PartitionStrategy = &strategy
+	}
+
+	if kafka.Tls != nil {
+		result.Tls = flattenTlsProperties(*kafka.Tls)
 	}
 
 	return result
 }
 
-func expandDataflowEndpointKafkaBatching(model DataflowEndpointKafkaBatchingModel) *dataflowendpoint.DataflowEndpointKafkaBatching {
-	result := &dataflowendpoint.DataflowEndpointKafkaBatching{}
-
-	if model.Mode != nil {
-		mode := dataflowendpoint.OperationalMode(*model.Mode)
-		result.Mode = &mode
-	}
-
-	if model.LatencyMs != nil {
-		result.LatencyMs = func(i int) *int64 { v := int64(i); return &v }(*model.LatencyMs)
-	}
-
-	if model.MaxBytes != nil {
-		result.MaxBytes = func(i int) *int64 { v := int64(i); return &v }(*model.MaxBytes)
-	}
-
-	if model.MaxMessages != nil {
-		result.MaxMessages = func(i int) *int64 { v := int64(i); return &v }(*model.MaxMessages)
-	}
-
-	return result
-}
-
-func expandDataflowEndpointMqttTls(model DataflowEndpointMqttTlsModel) *dataflowendpoint.TlsProperties {
-	result := &dataflowendpoint.TlsProperties{
-		Mode: dataflowendpoint.OperationalMode(model.Mode),
-	}
-
-	if model.TrustedCaCertificateConfigMapRef != nil {
-		result.TrustedCaCertificateConfigMapRef = model.TrustedCaCertificateConfigMapRef
-	}
-
-	return result
-}
-
-// Flatten functions (simplified examples)
-func flattenDataflowEndpointDataExplorer(settings dataflowendpoint.DataflowEndpointDataExplorer) *DataflowEndpointDataExplorerModel {
-	result := &DataflowEndpointDataExplorerModel{
-		Database: settings.Database,
-		Host:     settings.Host,
-	}
-
-	if settings.Batching != nil {
-		result.Batching = flattenDataflowEndpointBatching(*settings.Batching)
-	}
-
-	if settings.Authentication != nil {
-		result.Authentication = flattenDataflowEndpointAuthentication(*settings.Authentication)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointDataLakeStorage(settings dataflowendpoint.DataflowEndpointDataLakeStorage) *DataflowEndpointDataLakeStorageModel {
-	result := &DataflowEndpointDataLakeStorageModel{
-		Host: settings.Host,
-	}
-
-	if settings.Batching != nil {
-		result.Batching = flattenDataflowEndpointBatching(*settings.Batching)
-	}
-
-	if settings.Authentication != nil {
-		result.Authentication = flattenDataflowEndpointAuthentication(*settings.Authentication)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointFabricOneLake(settings dataflowendpoint.DataflowEndpointFabricOneLake) *DataflowEndpointFabricOneLakeModel {
-	result := &DataflowEndpointFabricOneLakeModel{
-		Host:            settings.Host,
-		Names:           settings.Names,
-		OneLakePathType: string(settings.OneLakePathType),
-		Workspace:       settings.Workspace,
-	}
-
-	if settings.Batching != nil {
-		result.Batching = flattenDataflowEndpointBatching(*settings.Batching)
-	}
-
-	if settings.Authentication != nil {
-		result.Authentication = flattenDataflowEndpointAuthentication(*settings.Authentication)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointKafka(settings dataflowendpoint.DataflowEndpointKafka) *DataflowEndpointKafkaModel {
-	result := &DataflowEndpointKafkaModel{
-		Host: settings.Host,
-	}
-
-	if settings.Batching != nil {
-		result.Batching = flattenDataflowEndpointBatching(*settings.Batching)
-	}
-
-	if settings.Kafka != nil {
-		result.Kafka = flattenDataflowEndpointKafkaSettings(*settings.Kafka)
-	}
-
-	if settings.Authentication != nil {
-		result.Authentication = flattenDataflowEndpointAuthentication(*settings.Authentication)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointLocalStorage(settings dataflowendpoint.DataflowEndpointLocalStorage) *DataflowEndpointLocalStorageModel {
-	return &DataflowEndpointLocalStorageModel{
-		Path: settings.Path,
-	}
-}
-
-func flattenDataflowEndpointMqtt(settings dataflowendpoint.DataflowEndpointMqtt) *DataflowEndpointMqttModel {
-	result := &DataflowEndpointMqttModel{
-		Host: settings.Host,
-	}
-
-	if settings.KeepAliveSeconds != nil {
-		keepAlive := int(*settings.KeepAliveSeconds)
-		result.KeepAliveSeconds = &keepAlive
-	}
-
-	if settings.Retain != nil {
-		retain := string(*settings.Retain)
-		result.Retain = &retain
-	}
-
-	if settings.SessionExpirySeconds != nil {
-		sessionExpiry := int(*settings.SessionExpirySeconds)
-		result.SessionExpirySeconds = &sessionExpiry
-	}
-
-	if settings.MaxInflightMessages != nil {
-		maxInflight := int(*settings.MaxInflightMessages)
-		result.MaxInflightMessages = &maxInflight
-	}
-
-	if settings.Qos != nil {
-		qos := int(*settings.Qos)
-		result.Qos = &qos
-	}
-
-	if settings.Protocol != nil {
-		protocol := string(*settings.Protocol)
-		result.Protocol = &protocol
-	}
-
-	if settings.ClientIdPrefix != nil {
-		result.ClientIdPrefix = settings.ClientIdPrefix
-	}
-
-	if settings.TlsSettings != nil {
-		result.TlsSettings = flattenDataflowEndpointMqttTls(*settings.TlsSettings)
-	}
-
-	if settings.Authentication != nil {
-		result.Authentication = flattenDataflowEndpointAuthentication(*settings.Authentication)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointBatching(batching dataflowendpoint.BatchingConfiguration) *DataflowEndpointBatchingModel {
-	result := &DataflowEndpointBatchingModel{}
-
-	if batching.LatencySeconds != nil {
-		latency := int(*batching.LatencySeconds)
-		result.LatencySeconds = &latency
-	}
-
-	if batching.MaxMessages != nil {
-		maxMessages := int(*batching.MaxMessages)
-		result.MaxMessages = &maxMessages
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointAuthentication(auth dataflowendpoint.DataflowEndpointAuthentication) *DataflowEndpointAuthenticationModel {
-	result := &DataflowEndpointAuthenticationModel{
+func flattenDataflowEndpointKafkaAuthentication(auth dataflowendpoint.DataflowEndpointKafkaAuthentication) DataflowEndpointKafkaAuthenticationModel {
+	result := DataflowEndpointKafkaAuthenticationModel{
 		Method: string(auth.Method),
 	}
 
-	if auth.SystemAssignedManagedIdentitySettings != nil {
-		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointSystemAssignedManagedIdentityModel{
-			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
-		}
-	}
-
-	if auth.UserAssignedManagedIdentitySettings != nil {
-		result.UserAssignedManagedIdentitySettings = &DataflowEndpointUserAssignedManagedIdentityModel{
-			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
-			Audience: auth.UserAssignedManagedIdentitySettings.Audience,
-		}
-	}
-
-	if auth.ServiceAccountTokenSettings != nil {
-		result.ServiceAccountTokenSettings = &DataflowEndpointServiceAccountTokenModel{
-			Audience: auth.ServiceAccountTokenSettings.Audience,
-		}
-	}
-
-	if auth.X509CertificateSettings != nil {
-		result.X509CertificateSettings = &DataflowEndpointX509CertificateModel{
-			SecretRef: auth.X509CertificateSettings.SecretRef,
-		}
-	}
-
-	if auth.AccessTokenSettings != nil {
-		result.AccessTokenSettings = &DataflowEndpointAccessTokenModel{
-			SecretRef: auth.AccessTokenSettings.SecretRef,
-		}
-	}
-
 	if auth.SaslSettings != nil {
-		result.SaslSettings = &DataflowEndpointSaslModel{
+		result.SaslSettings = &DataflowEndpointAuthenticationSaslModel{
 			SaslType:  string(auth.SaslSettings.SaslType),
 			SecretRef: auth.SaslSettings.SecretRef,
 		}
 	}
 
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	if auth.X509CertificateSettings != nil {
+		result.X509CertificateSettings = &DataflowEndpointAuthenticationX509Model{
+			SecretRef: auth.X509CertificateSettings.SecretRef,
+		}
+	}
+
 	return result
 }
 
-func flattenDataflowEndpointKafkaSettings(settings dataflowendpoint.DataflowEndpointKafkaSettings) *DataflowEndpointKafkaSettingsModel {
-	result := &DataflowEndpointKafkaSettingsModel{}
+func flattenTlsProperties(tls dataflowendpoint.TlsProperties) *TlsPropertiesModel {
+	result := &TlsPropertiesModel{}
 
-	if settings.ConsumerGroupId != nil {
-		result.ConsumerGroupId = settings.ConsumerGroupId
-	}
-
-	if settings.Compression != nil {
-		compression := string(*settings.Compression)
-		result.Compression = &compression
-	}
-
-	if settings.Batching != nil {
-		result.Batching = flattenDataflowEndpointKafkaBatching(*settings.Batching)
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointKafkaBatching(batching dataflowendpoint.DataflowEndpointKafkaBatching) *DataflowEndpointKafkaBatchingModel {
-	result := &DataflowEndpointKafkaBatchingModel{}
-
-	if batching.Mode != nil {
-		mode := string(*batching.Mode)
+	if tls.Mode != nil {
+		mode := string(*tls.Mode)
 		result.Mode = &mode
-	}
-
-	if batching.LatencyMs != nil {
-		latency := int(*batching.LatencyMs)
-		result.LatencyMs = &latency
-	}
-
-	if batching.MaxBytes != nil {
-		maxBytes := int(*batching.MaxBytes)
-		result.MaxBytes = &maxBytes
-	}
-
-	if batching.MaxMessages != nil {
-		maxMessages := int(*batching.MaxMessages)
-		result.MaxMessages = &maxMessages
-	}
-
-	return result
-}
-
-func flattenDataflowEndpointMqttTls(tls dataflowendpoint.TlsProperties) *DataflowEndpointMqttTlsModel {
-	result := &DataflowEndpointMqttTlsModel{
-		Mode: string(tls.Mode),
 	}
 
 	if tls.TrustedCaCertificateConfigMapRef != nil {
@@ -1377,45 +1327,220 @@ func flattenDataflowEndpointMqttTls(tls dataflowendpoint.TlsProperties) *Dataflo
 	return result
 }
 
-// Simplified patch functions for update operations
-func expandDataflowEndpointDataExplorerPatch(model *DataflowEndpointDataExplorerModel) *dataflowendpoint.DataflowEndpointDataExplorer {
-	if model == nil {
-		return nil
+// Additional flatten functions for other endpoint types would follow...
+func flattenDataflowEndpointDataExplorer(dataExplorer dataflowendpoint.DataflowEndpointDataExplorer) *DataflowEndpointDataExplorerModel {
+	result := &DataflowEndpointDataExplorerModel{
+		Database:       dataExplorer.Database,
+		Host:           dataExplorer.Host,
+		Authentication: flattenDataflowEndpointDataExplorerAuthentication(dataExplorer.Authentication),
 	}
-	return expandDataflowEndpointDataExplorer(*model)
+
+	if dataExplorer.Batching != nil {
+		result.Batching = &BatchingConfigurationModel{
+			LatencySeconds: dataExplorer.Batching.LatencySeconds,
+			MaxMessages:    dataExplorer.Batching.MaxMessages,
+		}
+	}
+
+	return result
 }
 
-func expandDataflowEndpointDataLakeStoragePatch(model *DataflowEndpointDataLakeStorageModel) *dataflowendpoint.DataflowEndpointDataLakeStorage {
-	if model == nil {
-		return nil
+func flattenDataflowEndpointDataExplorerAuthentication(auth dataflowendpoint.DataflowEndpointDataExplorerAuthentication) DataflowEndpointDataExplorerAuthenticationModel {
+	result := DataflowEndpointDataExplorerAuthenticationModel{
+		Method: string(auth.Method),
 	}
-	return expandDataflowEndpointDataLakeStorage(*model)
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
 }
 
-func expandDataflowEndpointFabricOneLakePatch(model *DataflowEndpointFabricOneLakeModel) *dataflowendpoint.DataflowEndpointFabricOneLake {
-	if model == nil {
-		return nil
+func flattenDataflowEndpointDataLakeStorage(dataLakeStorage dataflowendpoint.DataflowEndpointDataLakeStorage) *DataflowEndpointDataLakeStorageModel {
+	result := &DataflowEndpointDataLakeStorageModel{
+		Host:           dataLakeStorage.Host,
+		Authentication: flattenDataflowEndpointDataLakeStorageAuthentication(dataLakeStorage.Authentication),
 	}
-	return expandDataflowEndpointFabricOneLake(*model)
+
+	if dataLakeStorage.Batching != nil {
+		result.Batching = &BatchingConfigurationModel{
+			LatencySeconds: dataLakeStorage.Batching.LatencySeconds,
+			MaxMessages:    dataLakeStorage.Batching.MaxMessages,
+		}
+	}
+
+	return result
 }
 
-func expandDataflowEndpointKafkaPatch(model *DataflowEndpointKafkaModel) *dataflowendpoint.DataflowEndpointKafka {
-	if model == nil {
-		return nil
+func flattenDataflowEndpointDataLakeStorageAuthentication(auth dataflowendpoint.DataflowEndpointDataLakeStorageAuthentication) DataflowEndpointDataLakeStorageAuthenticationModel {
+	result := DataflowEndpointDataLakeStorageAuthenticationModel{ // Add "Model" suffix
+		Method: string(auth.Method),
 	}
-	return expandDataflowEndpointKafka(*model)
+
+	if auth.AccessTokenSettings != nil {
+		result.AccessTokenSettings = &DataflowEndpointAuthenticationAccessTokenModel{
+			SecretRef: auth.AccessTokenSettings.SecretRef,
+		}
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
 }
 
-func expandDataflowEndpointLocalStoragePatch(model *DataflowEndpointLocalStorageModel) *dataflowendpoint.DataflowEndpointLocalStorage {
-	if model == nil {
-		return nil
+func flattenDataflowEndpointFabricOneLake(fabricOneLake dataflowendpoint.DataflowEndpointFabricOneLake) *DataflowEndpointFabricOneLakeModel {
+	result := &DataflowEndpointFabricOneLakeModel{
+		Host:            fabricOneLake.Host,
+		OneLakePathType: string(fabricOneLake.OneLakePathType),
+		Authentication:  flattenDataflowEndpointFabricOneLakeAuthentication(fabricOneLake.Authentication),
+		Names: DataflowEndpointFabricOneLakeNamesModel{
+			LakehouseName: fabricOneLake.Names.LakehouseName,
+			WorkspaceName: fabricOneLake.Names.WorkspaceName,
+		},
 	}
-	return expandDataflowEndpointLocalStorage(*model)
+
+	if fabricOneLake.Batching != nil {
+		result.Batching = &BatchingConfigurationModel{
+			LatencySeconds: fabricOneLake.Batching.LatencySeconds,
+			MaxMessages:    fabricOneLake.Batching.MaxMessages,
+		}
+	}
+
+	return result
 }
 
-func expandDataflowEndpointMqttPatch(model *DataflowEndpointMqttModel) *dataflowendpoint.DataflowEndpointMqtt {
-	if model == nil {
-		return nil
+func flattenDataflowEndpointFabricOneLakeAuthentication(auth dataflowendpoint.DataflowEndpointFabricOneLakeAuthentication) DataflowEndpointFabricOneLakeAuthenticationModel {
+	result := DataflowEndpointFabricOneLakeAuthenticationModel{
+		Method: string(auth.Method),
 	}
-	return expandDataflowEndpointMqtt(*model)
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	return result
+}
+
+func flattenDataflowEndpointLocalStorage(localStorage dataflowendpoint.DataflowEndpointLocalStorage) *DataflowEndpointLocalStorageModel {
+	return &DataflowEndpointLocalStorageModel{
+		PersistentVolumeClaimRef: localStorage.PersistentVolumeClaimRef,
+	}
+}
+
+func flattenDataflowEndpointMqtt(mqtt dataflowendpoint.DataflowEndpointMqtt) *DataflowEndpointMqttModel {
+	result := &DataflowEndpointMqttModel{
+		Authentication: flattenDataflowEndpointMqttAuthentication(mqtt.Authentication),
+	}
+
+	if mqtt.ClientIdPrefix != nil {
+		result.ClientIdPrefix = mqtt.ClientIdPrefix
+	}
+
+	if mqtt.CloudEventAttributes != nil {
+		cloudEvent := string(*mqtt.CloudEventAttributes)
+		result.CloudEventAttributes = &cloudEvent
+	}
+
+	if mqtt.Host != nil {
+		result.Host = mqtt.Host
+	}
+
+	if mqtt.KeepAliveSeconds != nil {
+		result.KeepAliveSeconds = mqtt.KeepAliveSeconds
+	}
+
+	if mqtt.MaxInflightMessages != nil {
+		result.MaxInflightMessages = mqtt.MaxInflightMessages
+	}
+
+	if mqtt.Protocol != nil {
+		protocol := string(*mqtt.Protocol)
+		result.Protocol = &protocol
+	}
+
+	if mqtt.Qos != nil {
+		result.Qos = mqtt.Qos
+	}
+
+	if mqtt.Retain != nil {
+		retain := string(*mqtt.Retain)
+		result.Retain = &retain
+	}
+
+	if mqtt.SessionExpirySeconds != nil {
+		result.SessionExpirySeconds = mqtt.SessionExpirySeconds
+	}
+
+	if mqtt.Tls != nil {
+		result.Tls = flattenTlsProperties(*mqtt.Tls)
+	}
+
+	return result
+}
+
+func flattenDataflowEndpointMqttAuthentication(auth dataflowendpoint.DataflowEndpointMqttAuthentication) DataflowEndpointMqttAuthenticationModel {
+	result := DataflowEndpointMqttAuthenticationModel{
+		Method: string(auth.Method),
+	}
+
+	if auth.ServiceAccountTokenSettings != nil {
+		result.ServiceAccountTokenSettings = &DataflowEndpointAuthenticationServiceAccountTokenModel{
+			Audience: auth.ServiceAccountTokenSettings.Audience,
+		}
+	}
+
+	if auth.SystemAssignedManagedIdentitySettings != nil {
+		result.SystemAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationSystemAssignedManagedIdentity{
+			Audience: auth.SystemAssignedManagedIdentitySettings.Audience,
+		}
+	}
+
+	if auth.UserAssignedManagedIdentitySettings != nil {
+		result.UserAssignedManagedIdentitySettings = &DataflowEndpointAuthenticationUserAssignedManagedIdentity{
+			ClientId: auth.UserAssignedManagedIdentitySettings.ClientId,
+			TenantId: auth.UserAssignedManagedIdentitySettings.TenantId,
+			Scope:    auth.UserAssignedManagedIdentitySettings.Scope,
+		}
+	}
+
+	if auth.X509CertificateSettings != nil {
+		result.X509CertificateSettings = &DataflowEndpointAuthenticationX509Model{
+			SecretRef: auth.X509CertificateSettings.SecretRef,
+		}
+	}
+
+	return result
 }

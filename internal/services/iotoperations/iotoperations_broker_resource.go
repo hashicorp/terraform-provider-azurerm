@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/broker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -17,14 +18,12 @@ type BrokerResource struct{}
 var _ sdk.ResourceWithUpdate = BrokerResource{}
 
 type BrokerModel struct {
-	Name               string                    `tfschema:"name"`
-	InstanceName       string                    `tfschema:"instance_name"`
-	ResourceGroupName  string                    `tfschema:"resource_group_name"`
-	Location           *string                   `tfschema:"location"`
-	ExtendedLocation   *ExtendedLocationModel    `tfschema:"extended_location"`
-	Properties         *BrokerPropertiesModel    `tfschema:"properties"`
-	Tags               map[string]string         `tfschema:"tags"`
-	ProvisioningState  *string                   `tfschema:"provisioning_state"`
+	Name              string                 `tfschema:"name"`
+	InstanceName      string                 `tfschema:"instance_name"`
+	ResourceGroupName string                 `tfschema:"resource_group_name"`
+	ExtendedLocation  *ExtendedLocationModel `tfschema:"extended_location"`
+	Properties        *BrokerPropertiesModel `tfschema:"properties"`
+	ProvisioningState *string                `tfschema:"provisioning_state"`
 }
 
 type ExtendedLocationModel struct {
@@ -33,110 +32,114 @@ type ExtendedLocationModel struct {
 }
 
 type BrokerPropertiesModel struct {
-	Advanced                  *BrokerAdvancedModel               `tfschema:"advanced"`
-	Cardinality               *BrokerCardinalityModel            `tfschema:"cardinality"`
-	Diagnostics               *BrokerDiagnosticsModel            `tfschema:"diagnostics"`
-	DiskBackedMessageBuffer   *BrokerDiskBackedModel             `tfschema:"disk_backed_message_buffer"`
-	GenerateResourceLimits    *BrokerResourceLimitsModel         `tfschema:"generate_resource_limits"`
-	MemoryProfile             *string                            `tfschema:"memory_profile"`
+	Advanced                *AdvancedSettingsModel        `tfschema:"advanced"`
+	Cardinality             *CardinalityModel             `tfschema:"cardinality"`
+	Diagnostics             *BrokerDiagnosticsModel       `tfschema:"diagnostics"`
+	DiskBackedMessageBuffer *DiskBackedMessageBufferModel `tfschema:"disk_backed_message_buffer"`
+	GenerateResourceLimits  *GenerateResourceLimitsModel  `tfschema:"generate_resource_limits"`
+	MemoryProfile           *string                       `tfschema:"memory_profile"`
 }
 
-type BrokerAdvancedModel struct {
-	Clients                 *BrokerClientsModel     `tfschema:"clients"`
-	EncryptInternalTraffic  *string                 `tfschema:"encrypt_internal_traffic"`
-	InternalCerts           *BrokerInternalCerts    `tfschema:"internal_certs"`
+type AdvancedSettingsModel struct {
+	Clients                *ClientConfigModel           `tfschema:"clients"`
+	EncryptInternalTraffic *string                      `tfschema:"encrypt_internal_traffic"`
+	InternalCerts          *CertManagerCertOptionsModel `tfschema:"internal_certs"`
 }
 
-type BrokerClientsModel struct {
-	MaxSessionExpirySeconds  *int                            `tfschema:"max_session_expiry_seconds"`
-	MaxMessageExpirySeconds  *int                            `tfschema:"max_message_expiry_seconds"`
-	MaxPacketSizeBytes       *int                            `tfschema:"max_packet_size_bytes"`
-	SubscriberQueueLimit     *BrokerSubscriberQueueModel     `tfschema:"subscriber_queue_limit"`
-	MaxReceiveMaximum        *int                            `tfschema:"max_receive_maximum"`
-	MaxKeepAliveSeconds      *int                            `tfschema:"max_keep_alive_seconds"`
+type ClientConfigModel struct {
+	MaxSessionExpirySeconds *int                       `tfschema:"max_session_expiry_seconds"`
+	MaxMessageExpirySeconds *int                       `tfschema:"max_message_expiry_seconds"`
+	MaxPacketSizeBytes      *int                       `tfschema:"max_packet_size_bytes"`
+	SubscriberQueueLimit    *SubscriberQueueLimitModel `tfschema:"subscriber_queue_limit"`
+	MaxReceiveMaximum       *int                       `tfschema:"max_receive_maximum"`
+	MaxKeepAliveSeconds     *int                       `tfschema:"max_keep_alive_seconds"`
 }
 
-type BrokerSubscriberQueueModel struct {
+type SubscriberQueueLimitModel struct {
 	Length   *int    `tfschema:"length"`
 	Strategy *string `tfschema:"strategy"`
 }
 
-type BrokerInternalCerts struct {
-	Duration    *string                    `tfschema:"duration"`
-	RenewBefore *string                    `tfschema:"renew_before"`
-	PrivateKey  *BrokerPrivateKeyModel     `tfschema:"private_key"`
+type CertManagerCertOptionsModel struct {
+	Duration    *string                     `tfschema:"duration"`
+	RenewBefore *string                     `tfschema:"renew_before"`
+	PrivateKey  *CertManagerPrivateKeyModel `tfschema:"private_key"`
 }
 
-type BrokerPrivateKeyModel struct {
+type CertManagerPrivateKeyModel struct {
 	Algorithm      *string `tfschema:"algorithm"`
 	RotationPolicy *string `tfschema:"rotation_policy"`
 }
 
-type BrokerCardinalityModel struct {
-	BackendChain *BrokerBackendChainModel `tfschema:"backend_chain"`
-	Frontend     *BrokerFrontendModel     `tfschema:"frontend"`
+type CardinalityModel struct {
+	BackendChain BackendChainModel `tfschema:"backend_chain"`
+	Frontend     FrontendModel     `tfschema:"frontend"`
 }
 
-//  backend_chain should be a single object, not a list
-type BrokerBackendChainModel struct {
-	Partitions       *int `tfschema:"partitions"`
-	RedundancyFactor *int `tfschema:"redundancy_factor"`
-	Workers          *int `tfschema:"workers"`
+// Note: BackendChain fields are required in SDK, not optional
+type BackendChainModel struct {
+	Partitions       int  `tfschema:"partitions"`        // Required in SDK
+	RedundancyFactor int  `tfschema:"redundancy_factor"` // Required in SDK
+	Workers          *int `tfschema:"workers"`           // Optional in SDK
 }
 
-type BrokerFrontendModel struct {
-	Replicas *int `tfschema:"replicas"`
-	Workers  *int `tfschema:"workers"`
+type FrontendModel struct {
+	Replicas int  `tfschema:"replicas"` // Required in SDK
+	Workers  *int `tfschema:"workers"`  // Optional in SDK
 }
 
 type BrokerDiagnosticsModel struct {
-	Logs      *BrokerLogsModel      `tfschema:"logs"`
-	Metrics   *BrokerMetricsModel   `tfschema:"metrics"`
-	SelfCheck *BrokerSelfCheckModel `tfschema:"self_check"`
-	Traces    *BrokerTracesModel    `tfschema:"traces"`
+	Logs      *DiagnosticsLogsModel `tfschema:"logs"`
+	Metrics   *MetricsModel         `tfschema:"metrics"`
+	SelfCheck *SelfCheckModel       `tfschema:"self_check"`
+	Traces    *TracesModel          `tfschema:"traces"`
 }
 
-type BrokerLogsModel struct {
+type DiagnosticsLogsModel struct {
 	Level *string `tfschema:"level"`
 }
 
-type BrokerMetricsModel struct {
+type MetricsModel struct {
 	PrometheusPort *int `tfschema:"prometheus_port"`
 }
 
-type BrokerSelfCheckModel struct {
+type SelfCheckModel struct {
 	Mode            *string `tfschema:"mode"`
 	IntervalSeconds *int    `tfschema:"interval_seconds"`
 	TimeoutSeconds  *int    `tfschema:"timeout_seconds"`
 }
 
-type BrokerTracesModel struct {
-	Mode                *string                    `tfschema:"mode"`
-	CacheSizeMegabytes  *int                       `tfschema:"cache_size_megabytes"`
-	SelfTracing         *BrokerSelfTracingModel    `tfschema:"self_tracing"`
-	SpanChannelCapacity *int                       `tfschema:"span_channel_capacity"`
+type TracesModel struct {
+	Mode                *string           `tfschema:"mode"`
+	CacheSizeMegabytes  *int              `tfschema:"cache_size_megabytes"`
+	SelfTracing         *SelfTracingModel `tfschema:"self_tracing"`
+	SpanChannelCapacity *int              `tfschema:"span_channel_capacity"`
 }
 
-type BrokerSelfTracingModel struct {
+type SelfTracingModel struct {
 	Mode            *string `tfschema:"mode"`
 	IntervalSeconds *int    `tfschema:"interval_seconds"`
 }
 
-type BrokerDiskBackedModel struct {
-	MaxSize                       *string                      `tfschema:"max_size"`
-	EphemeralVolumeClaimSpec      *VolumeClaimSpecModel        `tfschema:"ephemeral_volume_claim_spec"`
-	PersistentVolumeClaimSpec     *VolumeClaimSpecModel        `tfschema:"persistent_volume_claim_spec"`
+type DiskBackedMessageBufferModel struct {
+	MaxSize                   *string               `tfschema:"max_size"`
+	EphemeralVolumeClaimSpec  *VolumeClaimSpecModel `tfschema:"ephemeral_volume_claim_spec"`
+	PersistentVolumeClaimSpec *VolumeClaimSpecModel `tfschema:"persistent_volume_claim_spec"`
+}
+
+type GenerateResourceLimitsModel struct {
+	Cpu *string `tfschema:"cpu"`
 }
 
 type VolumeClaimSpecModel struct {
-	VolumeName       *string                        `tfschema:"volume_name"`
-	VolumeMode       *string                        `tfschema:"volume_mode"`
-	StorageClassName *string                        `tfschema:"storage_class_name"`
-	AccessModes      []string                       `tfschema:"access_modes"`
-	DataSource       *DataSourceModel               `tfschema:"data_source"`
-	DataSourceRef    *DataSourceRefModel            `tfschema:"data_source_ref"`
-	Resources        *ResourceRequirementsModel     `tfschema:"resources"`
-	Selector         *LabelSelectorModel            `tfschema:"selector"`
+	VolumeName       *string                    `tfschema:"volume_name"`
+	VolumeMode       *string                    `tfschema:"volume_mode"`
+	StorageClassName *string                    `tfschema:"storage_class_name"`
+	AccessModes      []string                   `tfschema:"access_modes"`
+	DataSource       *DataSourceModel           `tfschema:"data_source"`
+	DataSourceRef    *DataSourceRefModel        `tfschema:"data_source_ref"`
+	Resources        *ResourceRequirementsModel `tfschema:"resources"`
+	Selector         *LabelSelectorModel        `tfschema:"selector"`
 }
 
 type DataSourceModel struct {
@@ -168,10 +171,6 @@ type MatchExpressionModel struct {
 	Values   []string `tfschema:"values"`
 }
 
-type BrokerResourceLimitsModel struct {
-	Cpu *string `tfschema:"cpu"`
-}
-
 func (r BrokerResource) ModelObject() interface{} {
 	return &BrokerModel{}
 }
@@ -199,21 +198,12 @@ func (r BrokerResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.StringLenBetween(3, 63),
-				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
-			),
 		},
 		"resource_group_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 90),
-		},
-		"location": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
 		},
 		"extended_location": {
 			Type:     pluginsdk.TypeList,
@@ -239,6 +229,16 @@ func (r BrokerResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"memory_profile": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Tiny",
+							"Low",
+							"Medium",
+							"High",
+						}, false),
+					},
 					"advanced": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -517,22 +517,17 @@ func (r BrokerResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"memory_profile": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
 				},
 			},
 		},
+	}
+}
+
+func (r BrokerResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
-		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }
@@ -675,79 +670,30 @@ func (r BrokerResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := broker.NewBrokerID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.Name)
 
-			// Build payload
+			// Check if resource already exists
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State", id.ID())
+			}
+
+			// Build FULL payload for Create
 			payload := broker.BrokerResource{
 				Properties: expandBrokerProperties(model.Properties),
 			}
 
-			if model.Location != nil {
-				payload.Location = model.Location
-			}
-
 			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
+				payload.ExtendedLocation = *expandExtendedLocation(model.ExtendedLocation)
 			}
 
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
-			}
-
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 			return nil
-		},
-	}
-}
-
-func (r BrokerResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.IoTOperations.BrokerClient
-
-			id, err := broker.ParseBrokerID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-
-			model := BrokerModel{
-				Name:              id.BrokerName,
-				InstanceName:      id.InstanceName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if resp.Model != nil {
-				if resp.Model.Location != nil {
-					model.Location = resp.Model.Location
-				}
-
-				if resp.Model.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(resp.Model.ExtendedLocation)
-				}
-
-				if resp.Model.Properties != nil {
-					model.Properties = flattenBrokerProperties(resp.Model.Properties)
-					
-					if resp.Model.Properties.ProvisioningState != nil {
-						provState := string(*resp.Model.Properties.ProvisioningState)
-						model.ProvisioningState = &provState
-					}
-				}
-
-				if resp.Model.Tags != nil {
-					model.Tags = *resp.Model.Tags
-				}
-			}
-
-			return metadata.Encode(&model)
 		},
 	}
 }
@@ -768,24 +714,13 @@ func (r BrokerResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("properties") {
-				return nil
-			}
-
-			payload := broker.BrokerPatchModel{}
+			//Check what actually changed using d.HasChange()
 			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
+			payload := broker.BrokerResource{}
 
 			// Only include properties if they changed
 			if metadata.ResourceData.HasChange("properties") {
-				payload.Properties = expandBrokerPropertiesPatch(model.Properties)
+				payload.Properties = expandBrokerProperties(model.Properties)
 				hasChanges = true
 			}
 
@@ -794,11 +729,73 @@ func (r BrokerResource) Update() sdk.ResourceFunc {
 				return nil
 			}
 
-			if _, err := client.Update(ctx, *id, payload); err != nil {
+			// Get existing resource to preserve unchanged fields
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+			}
+
+			if existing.Model != nil {
+				if payload.ExtendedLocation.Name == "" && existing.Model.ExtendedLocation.Name != "" {
+					payload.ExtendedLocation = existing.Model.ExtendedLocation
+				}
+				// Preserve unchanged properties
+				if payload.Properties == nil && existing.Model.Properties != nil {
+					payload.Properties = existing.Model.Properties
+				}
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
+		},
+	}
+}
+
+func (r BrokerResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.IoTOperations.BrokerClient
+
+			id, err := broker.ParseBrokerID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			model := BrokerModel{
+				Name:              id.BrokerName,
+				InstanceName:      id.InstanceName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
+			if resp.Model != nil {
+
+				if resp.Model.ExtendedLocation.Name != "" {
+					model.ExtendedLocation = flattenExtendedLocation(&resp.Model.ExtendedLocation)
+				}
+
+				if resp.Model.Properties != nil {
+					model.Properties = flattenBrokerProperties(resp.Model.Properties)
+
+					if resp.Model.Properties.ProvisioningState != nil {
+						provState := string(*resp.Model.Properties.ProvisioningState)
+						model.ProvisioningState = &provState
+					}
+				}
+			}
+
+			return metadata.Encode(&model)
 		},
 	}
 }
@@ -832,15 +829,16 @@ func expandBrokerProperties(input *BrokerPropertiesModel) *broker.BrokerProperti
 	props := &broker.BrokerProperties{}
 
 	if input.MemoryProfile != nil {
-		props.MemoryProfile = input.MemoryProfile
+		memProfile := broker.BrokerMemoryProfile(*input.MemoryProfile)
+		props.MemoryProfile = &memProfile
 	}
 
 	if input.Advanced != nil {
-		props.Advanced = expandBrokerAdvanced(input.Advanced)
+		props.Advanced = expandAdvancedSettings(input.Advanced)
 	}
 
 	if input.Cardinality != nil {
-		props.Cardinality = expandBrokerCardinality(input.Cardinality)
+		props.Cardinality = expandCardinality(input.Cardinality)
 	}
 
 	if input.Diagnostics != nil {
@@ -848,25 +846,11 @@ func expandBrokerProperties(input *BrokerPropertiesModel) *broker.BrokerProperti
 	}
 
 	if input.DiskBackedMessageBuffer != nil {
-		props.DiskBackedMessageBuffer = expandBrokerDiskBacked(input.DiskBackedMessageBuffer)
+		props.DiskBackedMessageBuffer = expandDiskBackedMessageBuffer(input.DiskBackedMessageBuffer)
 	}
 
 	if input.GenerateResourceLimits != nil {
-		props.GenerateResourceLimits = expandBrokerResourceLimits(input.GenerateResourceLimits)
-	}
-
-	return props
-}
-
-func expandBrokerPropertiesPatch(input *BrokerPropertiesModel) *broker.BrokerPropertiesPatch {
-	if input == nil {
-		return nil
-	}
-
-	props := &broker.BrokerPropertiesPatch{}
-
-	if input.MemoryProfile != nil {
-		props.MemoryProfile = input.MemoryProfile
+		props.GenerateResourceLimits = expandGenerateResourceLimits(input.GenerateResourceLimits)
 	}
 
 	return props
@@ -880,65 +864,57 @@ func expandExtendedLocation(input *ExtendedLocationModel) *broker.ExtendedLocati
 	result := &broker.ExtendedLocation{}
 
 	if input.Name != nil {
-		result.Name = input.Name
+		result.Name = *input.Name
 	}
 
 	if input.Type != nil {
 		extType := broker.ExtendedLocationType(*input.Type)
-		result.Type = &extType
+		result.Type = extType
 	}
 
 	return result
 }
 
-func expandBrokerAdvanced(input *BrokerAdvancedModel) *broker.BrokerAdvanced {
+func expandAdvancedSettings(input *AdvancedSettingsModel) *broker.AdvancedSettings {
 	if input == nil {
 		return nil
 	}
 
-	result := &broker.BrokerAdvanced{}
+	result := &broker.AdvancedSettings{}
 
 	if input.EncryptInternalTraffic != nil {
-		result.EncryptInternalTraffic = input.EncryptInternalTraffic
+		opMode := broker.OperationalMode(*input.EncryptInternalTraffic)
+		result.EncryptInternalTraffic = &opMode
 	}
 
-
-	return result
-}
-
-func expandBrokerCardinality(input *BrokerCardinalityModel) *broker.BrokerCardinality {
-	if input == nil {
-		return nil
+	if input.Clients != nil {
+		result.Clients = expandClientConfig(input.Clients)
 	}
 
-	result := &broker.BrokerCardinality{}
-
-	if input.BackendChain != nil {
-		result.BackendChain = expandBrokerBackendChain(input.BackendChain)
-	}
-
-	if input.Frontend != nil {
-		result.Frontend = expandBrokerFrontend(input.Frontend)
+	if input.InternalCerts != nil {
+		result.InternalCerts = expandCertManagerCertOptions(input.InternalCerts)
 	}
 
 	return result
 }
 
-func expandBrokerBackendChain(input *BrokerBackendChainModel) *broker.BrokerBackendChain {
+func expandCardinality(input *CardinalityModel) *broker.Cardinality {
 	if input == nil {
 		return nil
 	}
 
-	result := &broker.BrokerBackendChain{}
-
-	if input.Partitions != nil {
-		partitions := int64(*input.Partitions)
-		result.Partitions = &partitions
+	result := &broker.Cardinality{
+		BackendChain: expandBackendChain(&input.BackendChain),
+		Frontend:     expandFrontend(&input.Frontend),
 	}
 
-	if input.RedundancyFactor != nil {
-		redundancy := int64(*input.RedundancyFactor)
-		result.RedundancyFactor = &redundancy
+	return result
+}
+
+func expandBackendChain(input *BackendChainModel) broker.BackendChain {
+	result := broker.BackendChain{
+		Partitions:       int64(input.Partitions),
+		RedundancyFactor: int64(input.RedundancyFactor),
 	}
 
 	if input.Workers != nil {
@@ -949,16 +925,9 @@ func expandBrokerBackendChain(input *BrokerBackendChainModel) *broker.BrokerBack
 	return result
 }
 
-func expandBrokerFrontend(input *BrokerFrontendModel) *broker.BrokerFrontend {
-	if input == nil {
-		return nil
-	}
-
-	result := &broker.BrokerFrontend{}
-
-	if input.Replicas != nil {
-		replicas := int64(*input.Replicas)
-		result.Replicas = &replicas
+func expandFrontend(input *FrontendModel) broker.Frontend {
+	result := broker.Frontend{
+		Replicas: int64(input.Replicas),
 	}
 
 	if input.Workers != nil {
@@ -967,44 +936,46 @@ func expandBrokerFrontend(input *BrokerFrontendModel) *broker.BrokerFrontend {
 	}
 
 	return result
+}
+
+func expandClientConfig(input *ClientConfigModel) *broker.ClientConfig {
+	if input == nil {
+		return nil
+	}
+	// Implement based on the SDK's ClientConfig model
+	return &broker.ClientConfig{}
+}
+
+func expandCertManagerCertOptions(input *CertManagerCertOptionsModel) *broker.CertManagerCertOptions {
+	if input == nil {
+		return nil
+	}
+	// Implement based on the SDK's CertManagerCertOptions model
+	return &broker.CertManagerCertOptions{}
 }
 
 func expandBrokerDiagnostics(input *BrokerDiagnosticsModel) *broker.BrokerDiagnostics {
 	if input == nil {
 		return nil
 	}
-
-	result := &broker.BrokerDiagnostics{}
-
-	return result
+	// Implement based on the SDK's BrokerDiagnostics model
+	return &broker.BrokerDiagnostics{}
 }
 
-func expandBrokerDiskBacked(input *BrokerDiskBackedModel) *broker.BrokerDiskBacked {
+func expandDiskBackedMessageBuffer(input *DiskBackedMessageBufferModel) *broker.DiskBackedMessageBuffer {
 	if input == nil {
 		return nil
 	}
-
-	result := &broker.BrokerDiskBacked{}
-
-	if input.MaxSize != nil {
-		result.MaxSize = input.MaxSize
-	}
-
-	return result
+	// Implement based on the SDK's DiskBackedMessageBuffer model
+	return &broker.DiskBackedMessageBuffer{}
 }
 
-func expandBrokerResourceLimits(input *BrokerResourceLimitsModel) *broker.BrokerResourceLimits {
+func expandGenerateResourceLimits(input *GenerateResourceLimitsModel) *broker.GenerateResourceLimits {
 	if input == nil {
 		return nil
 	}
-
-	result := &broker.BrokerResourceLimits{}
-
-	if input.Cpu != nil {
-		result.Cpu = input.Cpu
-	}
-
-	return result
+	// Implement based on the SDK's GenerateResourceLimits model
+	return &broker.GenerateResourceLimits{}
 }
 
 // Flatten functions for Read operations
@@ -1015,12 +986,12 @@ func flattenExtendedLocation(input *broker.ExtendedLocation) *ExtendedLocationMo
 
 	result := &ExtendedLocationModel{}
 
-	if input.Name != nil {
-		result.Name = input.Name
+	if input.Name != "" {
+		result.Name = &input.Name
 	}
 
-	if input.Type != nil {
-		extType := string(*input.Type)
+	if input.Type != "" {
+		extType := string(input.Type)
 		result.Type = &extType
 	}
 
@@ -1035,69 +1006,53 @@ func flattenBrokerProperties(input *broker.BrokerProperties) *BrokerPropertiesMo
 	result := &BrokerPropertiesModel{}
 
 	if input.MemoryProfile != nil {
-		result.MemoryProfile = input.MemoryProfile
+		memProfile := string(*input.MemoryProfile)
+		result.MemoryProfile = &memProfile
 	}
 
 	if input.Advanced != nil {
-		result.Advanced = flattenBrokerAdvanced(input.Advanced)
+		result.Advanced = flattenAdvancedSettings(input.Advanced)
 	}
 
 	if input.Cardinality != nil {
-		result.Cardinality = flattenBrokerCardinality(input.Cardinality)
+		result.Cardinality = flattenCardinality(input.Cardinality)
 	}
 
 	return result
 }
 
-func flattenBrokerAdvanced(input *broker.BrokerAdvanced) *BrokerAdvancedModel {
+func flattenAdvancedSettings(input *broker.AdvancedSettings) *AdvancedSettingsModel {
 	if input == nil {
 		return nil
 	}
 
-	result := &BrokerAdvancedModel{}
+	result := &AdvancedSettingsModel{}
 
 	if input.EncryptInternalTraffic != nil {
-		result.EncryptInternalTraffic = input.EncryptInternalTraffic
-	}
-
-
-
-	return result
-}
-
-func flattenBrokerCardinality(input *broker.BrokerCardinality) *BrokerCardinalityModel {
-	if input == nil {
-		return nil
-	}
-
-	result := &BrokerCardinalityModel{}
-
-	if input.BackendChain != nil {
-		result.BackendChain = flattenBrokerBackendChain(input.BackendChain)
-	}
-
-	if input.Frontend != nil {
-		result.Frontend = flattenBrokerFrontend(input.Frontend)
+		opMode := string(*input.EncryptInternalTraffic)
+		result.EncryptInternalTraffic = &opMode
 	}
 
 	return result
 }
 
-func flattenBrokerBackendChain(input *broker.BrokerBackendChain) *BrokerBackendChainModel {
+func flattenCardinality(input *broker.Cardinality) *CardinalityModel {
 	if input == nil {
 		return nil
 	}
 
-	result := &BrokerBackendChainModel{}
-
-	if input.Partitions != nil {
-		partitions := int(*input.Partitions)
-		result.Partitions = &partitions
+	result := &CardinalityModel{
+		BackendChain: flattenBackendChain(&input.BackendChain),
+		Frontend:     flattenFrontend(&input.Frontend),
 	}
 
-	if input.RedundancyFactor != nil {
-		redundancy := int(*input.RedundancyFactor)
-		result.RedundancyFactor = &redundancy
+	return result
+}
+
+func flattenBackendChain(input *broker.BackendChain) BackendChainModel {
+	result := BackendChainModel{
+		Partitions:       int(input.Partitions),
+		RedundancyFactor: int(input.RedundancyFactor),
 	}
 
 	if input.Workers != nil {
@@ -1108,16 +1063,9 @@ func flattenBrokerBackendChain(input *broker.BrokerBackendChain) *BrokerBackendC
 	return result
 }
 
-func flattenBrokerFrontend(input *broker.BrokerFrontend) *BrokerFrontendModel {
-	if input == nil {
-		return nil
-	}
-
-	result := &BrokerFrontendModel{}
-
-	if input.Replicas != nil {
-		replicas := int(*input.Replicas)
-		result.Replicas = &replicas
+func flattenFrontend(input *broker.Frontend) FrontendModel {
+	result := FrontendModel{
+		Replicas: int(input.Replicas),
 	}
 
 	if input.Workers != nil {

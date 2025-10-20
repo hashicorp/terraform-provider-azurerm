@@ -17,36 +17,35 @@ type BrokerAuthorizationResource struct{}
 var _ sdk.ResourceWithUpdate = BrokerAuthorizationResource{}
 
 type BrokerAuthorizationModel struct {
-	Name                   string                                 `tfschema:"name"`
-	ResourceGroupName      string                                 `tfschema:"resource_group_name"`
-	InstanceName           string                                 `tfschema:"instance_name"`
-	BrokerName             string                                 `tfschema:"broker_name"`
-	AuthorizationPolicies  []BrokerAuthorizationPolicyModel       `tfschema:"authorization_policies"`
-	ExtendedLocation       *ExtendedLocationModel                 `tfschema:"extended_location"`
-	Tags                   map[string]string                      `tfschema:"tags"`
-	ProvisioningState      *string                                `tfschema:"provisioning_state"`
+	Name                  string                         `tfschema:"name"`
+	ResourceGroupName     string                         `tfschema:"resource_group_name"`
+	InstanceName          string                         `tfschema:"instance_name"`
+	BrokerName            string                         `tfschema:"broker_name"`
+	ExtendedLocation      ExtendedLocationModel          `tfschema:"extended_location"`
+	AuthorizationPolicies BrokerAuthorizationConfigModel `tfschema:"authorization_policies"`
+	ProvisioningState     *string                        `tfschema:"provisioning_state"`
 }
 
-type BrokerAuthorizationPolicyModel struct {
-	Cache *string                           `tfschema:"cache"`
-	Rules []BrokerAuthorizationRuleModel    `tfschema:"rules"`
+type BrokerAuthorizationConfigModel struct {
+	Cache *string                        `tfschema:"cache"`
+	Rules []BrokerAuthorizationRuleModel `tfschema:"rules"`
 }
 
 type BrokerAuthorizationRuleModel struct {
-	BrokerResources      []BrokerAuthorizationBrokerResourceModel     `tfschema:"broker_resources"`
-	Principals           []BrokerAuthorizationPrincipalModel          `tfschema:"principals"`
-	StateStoreResources  []BrokerAuthorizationStateStoreResourceModel `tfschema:"state_store_resources"`
+	BrokerResources     []BrokerAuthorizationBrokerResourceModel     `tfschema:"broker_resources"`
+	Principals          BrokerAuthorizationPrincipalModel            `tfschema:"principals"`
+	StateStoreResources []BrokerAuthorizationStateStoreResourceModel `tfschema:"state_store_resources"`
 }
 
 type BrokerAuthorizationBrokerResourceModel struct {
-	Method    string   `tfschema:"method"`
-	ClientIds []string `tfschema:"client_ids"`
-	Topics    []string `tfschema:"topics"`
+	Method  string   `tfschema:"method"`
+	Clients []string `tfschema:"clients"`
+	Topics  []string `tfschema:"topics"`
 }
 
 type BrokerAuthorizationPrincipalModel struct {
 	Attributes []map[string]string `tfschema:"attributes"`
-	ClientIds  []string            `tfschema:"client_ids"`
+	Clients    []string            `tfschema:"clients"`
 	Usernames  []string            `tfschema:"usernames"`
 }
 
@@ -103,14 +102,39 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
 			),
 		},
+		"extended_location": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						Default:  "CustomLocation",
+						ValidateFunc: validation.StringInSlice([]string{
+							"CustomLocation",
+						}, false),
+					},
+				},
+			},
+		},
 		"authorization_policies": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cache": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						Default:  "Enabled",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Enabled",
 							"Disabled",
@@ -119,11 +143,13 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 					"rules": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"broker_resources": {
 									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Required: true,
+									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"method": {
@@ -135,18 +161,20 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 													"Subscribe",
 												}, false),
 											},
-											"client_ids": {
+											"clients": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
 												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 											"topics": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
 												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -154,9 +182,26 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 								"principals": {
 									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Required: true,
+									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
+											"clients": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+											"usernames": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
 											"attributes": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
@@ -165,20 +210,6 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
-												},
-											},
-											"client_ids": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-											"usernames": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
 												},
 											},
 										},
@@ -193,15 +224,18 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 												Type:     pluginsdk.TypeString,
 												Required: true,
 												ValidateFunc: validation.StringInSlice([]string{
-													"Pattern",
 													"Binary",
+													"Pattern",
+													"String",
 												}, false),
 											},
 											"keys": {
 												Type:     pluginsdk.TypeList,
 												Required: true,
+												MinItems: 1,
 												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 											"method": {
@@ -209,8 +243,8 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 												Required: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													"Read",
-													"Write",
 													"ReadWrite",
+													"Write",
 												}, false),
 											},
 										},
@@ -222,34 +256,6 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"extended_location": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CustomLocation",
-						}, false),
-					},
-				},
-			},
-		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
 	}
 }
 
@@ -257,7 +263,6 @@ func (r BrokerAuthorizationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
 	}
@@ -277,17 +282,19 @@ func (r BrokerAuthorizationResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := brokerauthorization.NewAuthorizationID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.BrokerName, model.Name)
 
+			// Check if resource already exists
+			existing, err := client.Get(ctx, id)
+			if err == nil && existing.Model != nil {
+				return fmt.Errorf("IoT Operations Broker Authorization %q already exists", id.AuthorizationName)
+			}
+
 			// Build payload
 			payload := brokerauthorization.BrokerAuthorizationResource{
+				ExtendedLocation: brokerauthorization.ExtendedLocation{
+					Name: *model.ExtendedLocation.Name,
+					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocation.Type),
+				},
 				Properties: expandBrokerAuthorizationProperties(model.AuthorizationPolicies),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -324,17 +331,17 @@ func (r BrokerAuthorizationResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
+				model.ExtendedLocation = ExtendedLocationModel{
+					Name: &respModel.ExtendedLocation.Name,
+					Type: func() *string {
+						s := string(respModel.ExtendedLocation.Type)
+						return &s
+					}(),
 				}
 
 				if respModel.Properties != nil {
 					model.AuthorizationPolicies = flattenBrokerAuthorizationProperties(respModel.Properties)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -363,35 +370,16 @@ func (r BrokerAuthorizationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("authorization_policies") {
-				return nil
+			// Since there's no separate Update method, use CreateOrUpdate
+			payload := brokerauthorization.BrokerAuthorizationResource{
+				ExtendedLocation: brokerauthorization.ExtendedLocation{
+					Name: *model.ExtendedLocation.Name,
+					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocation.Type),
+				},
+				Properties: expandBrokerAuthorizationProperties(model.AuthorizationPolicies),
 			}
 
-			payload := brokerauthorization.BrokerAuthorizationPatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include authorization policies if they changed
-			if metadata.ResourceData.HasChange("authorization_policies") {
-				payload.Properties = &brokerauthorization.BrokerAuthorizerPropertiesPatch{
-					AuthorizationPolicies: expandBrokerAuthorizationPolicies(model.AuthorizationPolicies),
-				}
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -421,58 +409,32 @@ func (r BrokerAuthorizationResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expand/flatten operations
-func expandBrokerAuthorizationProperties(policies []BrokerAuthorizationPolicyModel) *brokerauthorization.BrokerAuthorizerProperties {
-	if len(policies) == 0 {
-		return &brokerauthorization.BrokerAuthorizerProperties{}
+func expandBrokerAuthorizationProperties(config BrokerAuthorizationConfigModel) *brokerauthorization.BrokerAuthorizationProperties {
+	authConfig := brokerauthorization.AuthorizationConfig{
+		Rules: expandBrokerAuthorizationRules(config.Rules),
 	}
 
-	result := &brokerauthorization.BrokerAuthorizerProperties{
-		AuthorizationPolicies: expandBrokerAuthorizationPolicies(policies),
+	if config.Cache != nil {
+		cache := brokerauthorization.OperationalMode(*config.Cache)
+		authConfig.Cache = &cache
 	}
 
-	return result
+	return &brokerauthorization.BrokerAuthorizationProperties{
+		AuthorizationPolicies: authConfig,
+	}
 }
 
-func expandBrokerAuthorizationPolicies(policies []BrokerAuthorizationPolicyModel) *[]brokerauthorization.BrokerAuthorizerConfig {
-	if len(policies) == 0 {
-		return nil
-	}
-
-	result := make([]brokerauthorization.BrokerAuthorizerConfig, 0, len(policies))
-
-	for _, policy := range policies {
-		authPolicy := brokerauthorization.BrokerAuthorizerConfig{}
-
-		if policy.Cache != nil {
-			authPolicy.Cache = policy.Cache
-		}
-
-		if len(policy.Rules) > 0 {
-			authPolicy.Rules = expandBrokerAuthorizationRules(policy.Rules)
-		}
-
-		result = append(result, authPolicy)
-	}
-
-	return &result
-}
-
-func expandBrokerAuthorizationRules(rules []BrokerAuthorizationRuleModel) *[]brokerauthorization.BrokerAuthorizerRule {
+func expandBrokerAuthorizationRules(rules []BrokerAuthorizationRuleModel) *[]brokerauthorization.AuthorizationRule {
 	if len(rules) == 0 {
 		return nil
 	}
 
-	result := make([]brokerauthorization.BrokerAuthorizerRule, 0, len(rules))
+	result := make([]brokerauthorization.AuthorizationRule, 0, len(rules))
 
 	for _, rule := range rules {
-		authRule := brokerauthorization.BrokerAuthorizerRule{}
-
-		if len(rule.BrokerResources) > 0 {
-			authRule.BrokerResources = expandBrokerAuthorizationBrokerResources(rule.BrokerResources)
-		}
-
-		if len(rule.Principals) > 0 {
-			authRule.Principals = expandBrokerAuthorizationPrincipals(rule.Principals)
+		authRule := brokerauthorization.AuthorizationRule{
+			BrokerResources: expandBrokerAuthorizationBrokerResources(rule.BrokerResources),
+			Principals:      expandBrokerAuthorizationPrincipals(rule.Principals),
 		}
 
 		if len(rule.StateStoreResources) > 0 {
@@ -485,20 +447,16 @@ func expandBrokerAuthorizationRules(rules []BrokerAuthorizationRuleModel) *[]bro
 	return &result
 }
 
-func expandBrokerAuthorizationBrokerResources(resources []BrokerAuthorizationBrokerResourceModel) *[]brokerauthorization.BrokerResourceRule {
-	if len(resources) == 0 {
-		return nil
-	}
-
+func expandBrokerAuthorizationBrokerResources(resources []BrokerAuthorizationBrokerResourceModel) []brokerauthorization.BrokerResourceRule {
 	result := make([]brokerauthorization.BrokerResourceRule, 0, len(resources))
 
 	for _, resource := range resources {
 		brokerResource := brokerauthorization.BrokerResourceRule{
-			Method: resource.Method,
+			Method: brokerauthorization.BrokerResourceDefinitionMethods(resource.Method),
 		}
 
-		if len(resource.ClientIds) > 0 {
-			brokerResource.ClientIds = &resource.ClientIds
+		if len(resource.Clients) > 0 {
+			brokerResource.ClientIds = &resource.Clients
 		}
 
 		if len(resource.Topics) > 0 {
@@ -508,47 +466,35 @@ func expandBrokerAuthorizationBrokerResources(resources []BrokerAuthorizationBro
 		result = append(result, brokerResource)
 	}
 
-	return &result
+	return result
 }
 
-func expandBrokerAuthorizationPrincipals(principals []BrokerAuthorizationPrincipalModel) *[]brokerauthorization.PrincipalDefinition {
-	if len(principals) == 0 {
-		return nil
+func expandBrokerAuthorizationPrincipals(principal BrokerAuthorizationPrincipalModel) brokerauthorization.PrincipalDefinition {
+	result := brokerauthorization.PrincipalDefinition{}
+
+	if len(principal.Clients) > 0 {
+		result.ClientIds = &principal.Clients
 	}
 
-	result := make([]brokerauthorization.PrincipalDefinition, 0, len(principals))
-
-	for _, principal := range principals {
-		principalDef := brokerauthorization.PrincipalDefinition{}
-
-		if len(principal.ClientIds) > 0 {
-			principalDef.ClientIds = &principal.ClientIds
-		}
-
-		if len(principal.Usernames) > 0 {
-			principalDef.Usernames = &principal.Usernames
-		}
-
-		// Note: Attributes field expansion would go here when API supports it
-
-		result = append(result, principalDef)
+	if len(principal.Usernames) > 0 {
+		result.Usernames = &principal.Usernames
 	}
 
-	return &result
+	if len(principal.Attributes) > 0 {
+		result.Attributes = &principal.Attributes
+	}
+
+	return result
 }
 
 func expandBrokerAuthorizationStateStoreResources(resources []BrokerAuthorizationStateStoreResourceModel) *[]brokerauthorization.StateStoreResourceRule {
-	if len(resources) == 0 {
-		return nil
-	}
-
 	result := make([]brokerauthorization.StateStoreResourceRule, 0, len(resources))
 
 	for _, resource := range resources {
 		stateStoreResource := brokerauthorization.StateStoreResourceRule{
-			KeyType: resource.KeyType,
+			KeyType: brokerauthorization.StateStoreResourceKeyTypes(resource.KeyType),
 			Keys:    resource.Keys,
-			Method:  resource.Method,
+			Method:  brokerauthorization.StateStoreResourceDefinitionMethods(resource.Method),
 		}
 
 		result = append(result, stateStoreResource)
@@ -557,53 +503,35 @@ func expandBrokerAuthorizationStateStoreResources(resources []BrokerAuthorizatio
 	return &result
 }
 
-func flattenBrokerAuthorizationProperties(props *brokerauthorization.BrokerAuthorizerProperties) []BrokerAuthorizationPolicyModel {
-	if props == nil || props.AuthorizationPolicies == nil {
-		return []BrokerAuthorizationPolicyModel{}
+func flattenBrokerAuthorizationProperties(props *brokerauthorization.BrokerAuthorizationProperties) BrokerAuthorizationConfigModel {
+	result := BrokerAuthorizationConfigModel{}
+
+	if props.AuthorizationPolicies.Cache != nil {
+		cache := string(*props.AuthorizationPolicies.Cache)
+		result.Cache = &cache
 	}
 
-	result := make([]BrokerAuthorizationPolicyModel, 0, len(*props.AuthorizationPolicies))
-
-	for _, policy := range *props.AuthorizationPolicies {
-		authPolicy := BrokerAuthorizationPolicyModel{}
-
-		if policy.Cache != nil {
-			authPolicy.Cache = policy.Cache
-		}
-
-		if policy.Rules != nil {
-			authPolicy.Rules = flattenBrokerAuthorizationRules(*policy.Rules)
-		}
-
-		result = append(result, authPolicy)
+	if props.AuthorizationPolicies.Rules != nil {
+		result.Rules = flattenBrokerAuthorizationRules(*props.AuthorizationPolicies.Rules)
 	}
 
 	return result
 }
 
-func flattenBrokerAuthorizationRules(rules []brokerauthorization.BrokerAuthorizerRule) []BrokerAuthorizationRuleModel {
-	if len(rules) == 0 {
-		return []BrokerAuthorizationRuleModel{}
-	}
-
+func flattenBrokerAuthorizationRules(rules []brokerauthorization.AuthorizationRule) []BrokerAuthorizationRuleModel {
 	result := make([]BrokerAuthorizationRuleModel, 0, len(rules))
 
 	for _, rule := range rules {
-		authRule := BrokerAuthorizationRuleModel{}
-
-		if rule.BrokerResources != nil {
-			authRule.BrokerResources = flattenBrokerAuthorizationBrokerResources(*rule.BrokerResources)
-		}
-
-		if rule.Principals != nil {
-			authRule.Principals = flattenBrokerAuthorizationPrincipals(*rule.Principals)
+		ruleModel := BrokerAuthorizationRuleModel{
+			BrokerResources: flattenBrokerAuthorizationBrokerResources(rule.BrokerResources),
+			Principals:      flattenBrokerAuthorizationPrincipals(rule.Principals),
 		}
 
 		if rule.StateStoreResources != nil {
-			authRule.StateStoreResources = flattenBrokerAuthorizationStateStoreResources(*rule.StateStoreResources)
+			ruleModel.StateStoreResources = flattenBrokerAuthorizationStateStoreResources(*rule.StateStoreResources)
 		}
 
-		result = append(result, authRule)
+		result = append(result, ruleModel)
 	}
 
 	return result
@@ -614,11 +542,11 @@ func flattenBrokerAuthorizationBrokerResources(resources []brokerauthorization.B
 
 	for _, resource := range resources {
 		brokerResource := BrokerAuthorizationBrokerResourceModel{
-			Method: resource.Method,
+			Method: string(resource.Method),
 		}
 
 		if resource.ClientIds != nil {
-			brokerResource.ClientIds = *resource.ClientIds
+			brokerResource.Clients = *resource.ClientIds
 		}
 
 		if resource.Topics != nil {
@@ -631,23 +559,19 @@ func flattenBrokerAuthorizationBrokerResources(resources []brokerauthorization.B
 	return result
 }
 
-func flattenBrokerAuthorizationPrincipals(principals []brokerauthorization.PrincipalDefinition) []BrokerAuthorizationPrincipalModel {
-	result := make([]BrokerAuthorizationPrincipalModel, 0, len(principals))
+func flattenBrokerAuthorizationPrincipals(principal brokerauthorization.PrincipalDefinition) BrokerAuthorizationPrincipalModel {
+	result := BrokerAuthorizationPrincipalModel{}
 
-	for _, principal := range principals {
-		principalModel := BrokerAuthorizationPrincipalModel{}
+	if principal.ClientIds != nil {
+		result.Clients = *principal.ClientIds
+	}
 
-		if principal.ClientIds != nil {
-			principalModel.ClientIds = *principal.ClientIds
-		}
+	if principal.Usernames != nil {
+		result.Usernames = *principal.Usernames
+	}
 
-		if principal.Usernames != nil {
-			principalModel.Usernames = *principal.Usernames
-		}
-
-		// Note: Attributes field flattening would go here when API supports it
-
-		result = append(result, principalModel)
+	if principal.Attributes != nil {
+		result.Attributes = *principal.Attributes
 	}
 
 	return result
@@ -658,9 +582,9 @@ func flattenBrokerAuthorizationStateStoreResources(resources []brokerauthorizati
 
 	for _, resource := range resources {
 		stateStoreResource := BrokerAuthorizationStateStoreResourceModel{
-			KeyType: resource.KeyType,
+			KeyType: string(resource.KeyType),
 			Keys:    resource.Keys,
-			Method:  resource.Method,
+			Method:  string(resource.Method),
 		}
 
 		result = append(result, stateStoreResource)

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTOperationsInstanceResource struct{}
@@ -97,7 +98,7 @@ func (r IoTOperationsInstanceResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return pluginsdk.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (IoTOperationsInstanceResource) basic(data acceptance.TestData) string {
@@ -107,20 +108,17 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-iotops-%d"
   location = "%s"
 }
 
 resource "azurerm_iotoperations_instance" "test" {
-  instanceName      = "example-iotoperations-instance"
-  resourceGroupName = azurerm_resource_group.test.name
-  subscriptionId    = data.azurerm_client_config.current.subscription_id
-  api-version       = "2024-11-01"
-  location          = azurerm_resource_group.test.location
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location           = azurerm_resource_group.test.location
+  schema_registry_ref = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.DeviceRegistry/schemaRegistries/example-registry"
 }
-
-data "azurerm_client_config" "current" {}
-`, data.ResourceGroupName, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (IoTOperationsInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -129,11 +127,10 @@ func (IoTOperationsInstanceResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_iotoperations_instance" "import" {
-  instanceName      = azurerm_iotoperations_instance.test.instanceName
-  resourceGroupName = azurerm_iotoperations_instance.test.resourceGroupName
-  subscriptionId    = azurerm_iotoperations_instance.test.subscriptionId
-  api-version       = azurerm_iotoperations_instance.test.api-version
-  location          = azurerm_iotoperations_instance.test.location
+  name                = azurerm_iotoperations_instance.test.name
+  resource_group_name = azurerm_iotoperations_instance.test.resource_group_name
+  location           = azurerm_iotoperations_instance.test.location
+  schema_registry_ref = azurerm_iotoperations_instance.test.schema_registry_ref
 }
 `, template)
 }
@@ -145,25 +142,24 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-iotops-%d"
   location = "%s"
 }
 
 resource "azurerm_iotoperations_instance" "test" {
-  instanceName      = "example-iotoperations-instance"
-  resourceGroupName = azurerm_resource_group.test.name
-  subscriptionId    = data.azurerm_client_config.current.subscription_id
-  api-version       = "2024-11-01"
-  location          = azurerm_resource_group.test.location
-  description       = "Test IoT Operations instance"
-  version           = "1.0.0"
+  name                     = "acctest-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  schema_registry_ref     = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.DeviceRegistry/schemaRegistries/example-registry"
+  description             = "This is a test IoT Operations instance for terraform acceptance test"
+  version                 = "1.0.0"
+  extended_location_name  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.ExtendedLocation/customLocations/example-location"
+  extended_location_type  = "CustomLocation"
 
   tags = {
     environment = "testing"
     cost_center = "finance"
   }
 }
-
-data "azurerm_client_config" "current" {}
-`, data.ResourceGroupName, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

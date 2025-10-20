@@ -30,6 +30,9 @@ resource "azurerm_iotoperations_instance" "example" {
   extended_location_name = var.custom_location_id
   extended_location_type = "CustomLocation"
   
+  # Required schema registry reference
+  schema_registry_ref = var.schema_registry_ref
+  
   # Optional properties
   description = "IoT Operations instance created via Terraform"
 }

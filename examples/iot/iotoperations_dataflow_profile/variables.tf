@@ -16,6 +16,17 @@ variable "instance_name" {
   default     = "iotops-instance-profiles"
 }
 
+variable "custom_location_id" {
+  description = "The resource ID of the custom location (Arc-enabled Kubernetes cluster)"
+  type        = string
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to the resources"
+  type        = map(string)
+  default     = {}
+}
+
 # High Performance Profile Variables
 variable "high_performance_profile_name" {
   description = "The name of the high-performance dataflow profile"

@@ -17,70 +17,49 @@ type BrokerAuthenticationResource struct{}
 var _ sdk.ResourceWithUpdate = BrokerAuthenticationResource{}
 
 type BrokerAuthenticationModel struct {
-	Name                   string                              `tfschema:"name"`
-	ResourceGroupName      string                              `tfschema:"resource_group_name"`
-	InstanceName           string                              `tfschema:"instance_name"`
-	BrokerName             string                              `tfschema:"broker_name"`
-	AuthenticationMethods  []BrokerAuthenticationMethodModel   `tfschema:"authentication_methods"`
-	ExtendedLocation       *ExtendedLocationModel              `tfschema:"extended_location"`
-	Tags                   map[string]string                   `tfschema:"tags"`
-	ProvisioningState      *string                             `tfschema:"provisioning_state"`
+	Name                  string                            `tfschema:"name"`
+	ResourceGroupName     string                            `tfschema:"resource_group_name"`
+	InstanceName          string                            `tfschema:"instance_name"`
+	BrokerName            string                            `tfschema:"broker_name"`
+	ExtendedLocation      ExtendedLocationModel             `tfschema:"extended_location"`
+	AuthenticationMethods []BrokerAuthenticationMethodModel `tfschema:"authentication_methods"`
+	ProvisioningState     *string                           `tfschema:"provisioning_state"`
 }
 
 type BrokerAuthenticationMethodModel struct {
-	Method         string                                    `tfschema:"method"`
-	CustomSettings *BrokerAuthenticationCustomSettingsModel `tfschema:"custom_settings"`
+	Method                      string                                        `tfschema:"method"`
+	CustomSettings              *BrokerAuthenticationCustomSettingsModel      `tfschema:"custom_settings"`
+	ServiceAccountTokenSettings *BrokerAuthenticationServiceAccountTokenModel `tfschema:"service_account_token_settings"`
+	X509Settings                *BrokerAuthenticationX509SettingsModel        `tfschema:"x509_settings"`
 }
 
 type BrokerAuthenticationCustomSettingsModel struct {
-	Auth      *BrokerAuthenticationAuthModel `tfschema:"auth"`
-	CaCertPem *string                        `tfschema:"ca_cert_pem"`
+	Auth            *BrokerAuthenticationCustomAuthModel `tfschema:"auth"`
+	CaCertConfigMap *string                              `tfschema:"ca_cert_config_map"`
+	Endpoint        string                               `tfschema:"endpoint"`
+	Headers         map[string]string                    `tfschema:"headers"`
 }
 
-type BrokerAuthenticationAuthModel struct {
-	X509 *BrokerAuthenticationX509Model `tfschema:"x509"`
+type BrokerAuthenticationCustomAuthModel struct {
+	X509 BrokerAuthenticationX509ManualModel `tfschema:"x509"`
 }
 
-type BrokerAuthenticationX509Model struct {
-	SecretRef           *string                                           `tfschema:"secret_ref"`
-	KeyVault            *BrokerAuthenticationKeyVaultModel                `tfschema:"key_vault"`
-	SecretProviderClass *BrokerAuthenticationSecretProviderClassModel     `tfschema:"secret_provider_class"`
-	Attributes          map[string]string                                 `tfschema:"attributes"`
+type BrokerAuthenticationX509ManualModel struct {
+	SecretRef string `tfschema:"secret_ref"`
 }
 
-type BrokerAuthenticationKeyVaultModel struct {
-	Vault                  *BrokerAuthenticationKeyVaultVaultModel          `tfschema:"vault"`
-	SecretProviderClass    *BrokerAuthenticationSecretProviderClassModel     `tfschema:"secret_provider_class"`
+type BrokerAuthenticationServiceAccountTokenModel struct {
+	Audiences []string `tfschema:"audiences"`
 }
 
-type BrokerAuthenticationKeyVaultVaultModel struct {
-	Credentials   *BrokerAuthenticationKeyVaultCredentialsModel `tfschema:"credentials"`
-	DirectoryId   *string                                       `tfschema:"directory_id"`
-	Name          *string                                       `tfschema:"name"`
+type BrokerAuthenticationX509SettingsModel struct {
+	AuthorizationAttributes map[string]BrokerAuthenticationX509AttributesModel `tfschema:"authorization_attributes"`
+	TrustedClientCaCert     *string                                            `tfschema:"trusted_client_ca_cert"`
 }
 
-type BrokerAuthenticationKeyVaultCredentialsModel struct {
-	ServicePrincipalLocalSecretRef *string `tfschema:"service_principal_local_secret_ref"`
-}
-
-type BrokerAuthenticationSecretProviderClassModel struct {
-	Spec *BrokerAuthenticationSecretProviderClassSpecModel `tfschema:"spec"`
-}
-
-type BrokerAuthenticationSecretProviderClassSpecModel struct {
-	AzureKeyVault *BrokerAuthenticationAzureKeyVaultModel `tfschema:"azure_key_vault"`
-}
-
-type BrokerAuthenticationAzureKeyVaultModel struct {
-	KeyvaultName *string                                             `tfschema:"keyvault_name"`
-	Secrets      []BrokerAuthenticationAzureKeyVaultSecretModel     `tfschema:"secrets"`
-	TenantId     *string                                             `tfschema:"tenant_id"`
-}
-
-type BrokerAuthenticationAzureKeyVaultSecretModel struct {
-	Name     *string `tfschema:"name"`
-	SecretId *string `tfschema:"secret_id"`
-	Version  *string `tfschema:"version"`
+type BrokerAuthenticationX509AttributesModel struct {
+	Attributes map[string]string `tfschema:"attributes"`
+	Subject    string            `tfschema:"subject"`
 }
 
 func (r BrokerAuthenticationResource) ModelObject() interface{} {
@@ -130,9 +109,33 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
 			),
 		},
+		"extended_location": {
+			Type:     pluginsdk.TypeList,
+			Required: true, // Changed from optional since SDK requires it
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						Default:  "CustomLocation",
+						ValidateFunc: validation.StringInSlice([]string{
+							"CustomLocation",
+						}, false),
+					},
+				},
+			},
+		},
 		"authentication_methods": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"method": {
@@ -150,6 +153,11 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"endpoint": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
 								"auth": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -158,20 +166,14 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 										Schema: map[string]*pluginsdk.Schema{
 											"x509": {
 												Type:     pluginsdk.TypeList,
-												Optional: true,
+												Required: true,
 												MaxItems: 1,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"secret_ref": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-														},
-														"attributes": {
-															Type:     pluginsdk.TypeMap,
-															Optional: true,
-															Elem: &pluginsdk.Schema{
-																Type: pluginsdk.TypeString,
-															},
+															Type:         pluginsdk.TypeString,
+															Required:     true,
+															ValidateFunc: validation.StringIsNotEmpty,
 														},
 													},
 												},
@@ -179,42 +181,74 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 										},
 									},
 								},
-								"ca_cert_pem": {
-									Type:     pluginsdk.TypeString,
+								"ca_cert_config_map": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"headers": {
+									Type:     pluginsdk.TypeMap,
 									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+					"service_account_token_settings": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"audiences": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"x509_settings": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"trusted_client_ca_cert": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"authorization_attributes": {
+									Type:     pluginsdk.TypeMap,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"subject": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"attributes": {
+												Type:     pluginsdk.TypeMap,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
 					},
 				},
-			},
-		},
-		"extended_location": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CustomLocation",
-						}, false),
-					},
-				},
-			},
-		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
 			},
 		},
 	}
@@ -224,7 +258,6 @@ func (r BrokerAuthenticationResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
 	}
@@ -244,17 +277,19 @@ func (r BrokerAuthenticationResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := brokerauthentication.NewAuthenticationID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.BrokerName, model.Name)
 
-			// Build payload
+			// Check if resource already exists
+			existing, err := client.Get(ctx, id)
+			if err == nil && existing.Model != nil {
+				return fmt.Errorf("IoT Operations Broker Authentication %q already exists", id.AuthenticationName)
+			}
+
+			// Build payload with proper ExtendedLocation struct
 			payload := brokerauthentication.BrokerAuthenticationResource{
+				ExtendedLocation: brokerauthentication.ExtendedLocation{
+					Name: *model.ExtendedLocation.Name,
+					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocation.Type),
+				},
 				Properties: expandBrokerAuthenticationProperties(model.AuthenticationMethods),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -291,17 +326,18 @@ func (r BrokerAuthenticationResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
+				// Properly map ExtendedLocation struct
+				model.ExtendedLocation = ExtendedLocationModel{
+					Name: &respModel.ExtendedLocation.Name,
+					Type: func() *string {
+						s := string(respModel.ExtendedLocation.Type)
+						return &s
+					}(),
 				}
 
 				if respModel.Properties != nil {
 					model.AuthenticationMethods = flattenBrokerAuthenticationProperties(respModel.Properties)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -330,35 +366,16 @@ func (r BrokerAuthenticationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("authentication_methods") {
-				return nil
+			// Since there's no separate Update method, use CreateOrUpdate
+			payload := brokerauthentication.BrokerAuthenticationResource{
+				ExtendedLocation: brokerauthentication.ExtendedLocation{
+					Name: *model.ExtendedLocation.Name,
+					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocation.Type),
+				},
+				Properties: expandBrokerAuthenticationProperties(model.AuthenticationMethods),
 			}
 
-			payload := brokerauthentication.BrokerAuthenticationPatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include authentication methods if they changed
-			if metadata.ResourceData.HasChange("authentication_methods") {
-				payload.Properties = &brokerauthentication.BrokerAuthenticatorPropertiesPatch{
-					AuthenticationMethods: expandBrokerAuthenticationMethods(model.AuthenticationMethods),
-				}
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -388,55 +405,165 @@ func (r BrokerAuthenticationResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expand/flatten operations
-func expandBrokerAuthenticationProperties(methods []BrokerAuthenticationMethodModel) *brokerauthentication.BrokerAuthenticatorProperties {
-	if len(methods) == 0 {
-		return &brokerauthentication.BrokerAuthenticatorProperties{}
-	}
-
-	result := &brokerauthentication.BrokerAuthenticatorProperties{
+func expandBrokerAuthenticationProperties(methods []BrokerAuthenticationMethodModel) *brokerauthentication.BrokerAuthenticationProperties {
+	return &brokerauthentication.BrokerAuthenticationProperties{
 		AuthenticationMethods: expandBrokerAuthenticationMethods(methods),
+	}
+}
+
+func expandBrokerAuthenticationMethods(methods []BrokerAuthenticationMethodModel) []brokerauthentication.BrokerAuthenticatorMethods {
+	result := make([]brokerauthentication.BrokerAuthenticatorMethods, 0, len(methods))
+
+	for _, method := range methods {
+		authMethod := brokerauthentication.BrokerAuthenticatorMethods{
+			Method: brokerauthentication.BrokerAuthenticationMethod(method.Method),
+		}
+
+		if method.CustomSettings != nil {
+			authMethod.CustomSettings = expandBrokerAuthenticationCustomSettings(*method.CustomSettings)
+		}
+
+		if method.ServiceAccountTokenSettings != nil {
+			authMethod.ServiceAccountTokenSettings = expandBrokerAuthenticationServiceAccountToken(*method.ServiceAccountTokenSettings)
+		}
+
+		if method.X509Settings != nil {
+			authMethod.X509Settings = expandBrokerAuthenticationX509Settings(*method.X509Settings)
+		}
+
+		result = append(result, authMethod)
 	}
 
 	return result
 }
 
-func expandBrokerAuthenticationMethods(methods []BrokerAuthenticationMethodModel) *[]brokerauthentication.BrokerAuthenticatorMethod {
-	if len(methods) == 0 {
-		return nil
+func expandBrokerAuthenticationCustomSettings(settings BrokerAuthenticationCustomSettingsModel) *brokerauthentication.BrokerAuthenticatorMethodCustom {
+	result := &brokerauthentication.BrokerAuthenticatorMethodCustom{
+		Endpoint: settings.Endpoint,
 	}
 
-	result := make([]brokerauthentication.BrokerAuthenticatorMethod, 0, len(methods))
-
-	for _, method := range methods {
-		authMethod := brokerauthentication.BrokerAuthenticatorMethod{
-			Method: method.Method,
+	if settings.Auth != nil {
+		result.Auth = &brokerauthentication.BrokerAuthenticatorCustomAuth{
+			X509: brokerauthentication.X509ManualCertificate{
+				SecretRef: settings.Auth.X509.SecretRef,
+			},
 		}
-
-		if method.CustomSettings != nil {
-			// Add custom settings expansion logic here when needed
-		}
-
-		result = append(result, authMethod)
 	}
 
-	return &result
+	if settings.CaCertConfigMap != nil {
+		result.CaCertConfigMap = settings.CaCertConfigMap
+	}
+
+	if len(settings.Headers) > 0 {
+		result.Headers = &settings.Headers
+	}
+
+	return result
 }
 
-func flattenBrokerAuthenticationProperties(props *brokerauthentication.BrokerAuthenticatorProperties) []BrokerAuthenticationMethodModel {
-	if props == nil || props.AuthenticationMethods == nil {
+func expandBrokerAuthenticationServiceAccountToken(settings BrokerAuthenticationServiceAccountTokenModel) *brokerauthentication.BrokerAuthenticatorMethodSat {
+	return &brokerauthentication.BrokerAuthenticatorMethodSat{
+		Audiences: settings.Audiences,
+	}
+}
+
+func expandBrokerAuthenticationX509Settings(settings BrokerAuthenticationX509SettingsModel) *brokerauthentication.BrokerAuthenticatorMethodX509 {
+	result := &brokerauthentication.BrokerAuthenticatorMethodX509{}
+
+	if settings.TrustedClientCaCert != nil {
+		result.TrustedClientCaCert = settings.TrustedClientCaCert
+	}
+
+	if len(settings.AuthorizationAttributes) > 0 {
+		authzAttrs := make(map[string]brokerauthentication.BrokerAuthenticatorMethodX509Attributes)
+		for key, attr := range settings.AuthorizationAttributes {
+			authzAttrs[key] = brokerauthentication.BrokerAuthenticatorMethodX509Attributes{
+				Subject:    attr.Subject,
+				Attributes: attr.Attributes,
+			}
+		}
+		result.AuthorizationAttributes = &authzAttrs
+	}
+
+	return result
+}
+
+func flattenBrokerAuthenticationProperties(props *brokerauthentication.BrokerAuthenticationProperties) []BrokerAuthenticationMethodModel {
+	if props == nil {
 		return []BrokerAuthenticationMethodModel{}
 	}
 
-	result := make([]BrokerAuthenticationMethodModel, 0, len(*props.AuthenticationMethods))
+	result := make([]BrokerAuthenticationMethodModel, 0, len(props.AuthenticationMethods))
 
-	for _, method := range *props.AuthenticationMethods {
+	for _, method := range props.AuthenticationMethods {
 		authMethod := BrokerAuthenticationMethodModel{
-			Method: method.Method,
+			Method: string(method.Method),
 		}
 
-		// Add custom settings flattening logic here when needed
+		if method.CustomSettings != nil {
+			authMethod.CustomSettings = flattenBrokerAuthenticationCustomSettings(method.CustomSettings)
+		}
+
+		if method.ServiceAccountTokenSettings != nil {
+			authMethod.ServiceAccountTokenSettings = flattenBrokerAuthenticationServiceAccountToken(method.ServiceAccountTokenSettings)
+		}
+
+		if method.X509Settings != nil {
+			authMethod.X509Settings = flattenBrokerAuthenticationX509Settings(method.X509Settings)
+		}
 
 		result = append(result, authMethod)
+	}
+
+	return result
+}
+
+func flattenBrokerAuthenticationCustomSettings(settings *brokerauthentication.BrokerAuthenticatorMethodCustom) *BrokerAuthenticationCustomSettingsModel {
+	result := &BrokerAuthenticationCustomSettingsModel{
+		Endpoint: settings.Endpoint,
+	}
+
+	if settings.Auth != nil {
+		result.Auth = &BrokerAuthenticationCustomAuthModel{
+			X509: BrokerAuthenticationX509ManualModel{
+				SecretRef: settings.Auth.X509.SecretRef,
+			},
+		}
+	}
+
+	if settings.CaCertConfigMap != nil {
+		result.CaCertConfigMap = settings.CaCertConfigMap
+	}
+
+	if settings.Headers != nil {
+		result.Headers = *settings.Headers
+	}
+
+	return result
+}
+
+func flattenBrokerAuthenticationServiceAccountToken(settings *brokerauthentication.BrokerAuthenticatorMethodSat) *BrokerAuthenticationServiceAccountTokenModel {
+	return &BrokerAuthenticationServiceAccountTokenModel{
+		Audiences: settings.Audiences,
+	}
+}
+
+func flattenBrokerAuthenticationX509Settings(settings *brokerauthentication.BrokerAuthenticatorMethodX509) *BrokerAuthenticationX509SettingsModel {
+	result := &BrokerAuthenticationX509SettingsModel{
+		AuthorizationAttributes: make(map[string]BrokerAuthenticationX509AttributesModel),
+	}
+
+	if settings.TrustedClientCaCert != nil {
+		result.TrustedClientCaCert = settings.TrustedClientCaCert
+	}
+
+	if settings.AuthorizationAttributes != nil {
+		for key, attr := range *settings.AuthorizationAttributes {
+			result.AuthorizationAttributes[key] = BrokerAuthenticationX509AttributesModel{
+				Subject:    attr.Subject,
+				Attributes: attr.Attributes,
+			}
+		}
 	}
 
 	return result

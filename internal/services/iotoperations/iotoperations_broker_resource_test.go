@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestAccBroker_basic(t *testing.T) {
@@ -54,7 +53,8 @@ func (BrokerResource) Exists(ctx context.Context, clients *clients.Client, state
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return acceptance.Exists(resp.Model), nil
+	exists := resp.Model != nil
+	return &exists, nil
 }
 
 func (BrokerResource) basic(data acceptance.TestData) string {

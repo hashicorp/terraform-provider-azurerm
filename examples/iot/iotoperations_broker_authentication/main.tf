@@ -27,12 +27,43 @@ resource "azurerm_iotoperations_broker_authentication" "example" {
   instance_name       = var.instance_name
   broker_name         = var.broker_name
   
+  extended_location {
+    name = var.custom_location_id
+    type = "CustomLocation"
+  }
+  
   authentication_methods {
-    method = "ServiceAccountToken"
+    method = "Custom"
     
     custom_settings {
+      endpoint           = "https://www.example.com"
+      ca_cert_config_map = "pdecudefqyolvncbus"
+      
+      headers = {
+        "key8518" = "bwityjy"
+      }
+      
       auth {
-        audience = var.audience
+        x509 {
+          secret_ref = "secret-name"
+        }
+      }
+    }
+    
+    service_account_token_settings {
+      audiences = ["jqyhyqatuydg"]
+    }
+    
+    x509_settings {
+      trusted_client_ca_cert = "vlctsqddl"
+      
+      authorization_attributes = {
+        "key3384" = {
+          subject = "jpgwctfeixitptfgfnqhua"
+          attributes = {
+            "key186" = "ucpajramsz"
+          }
+        }
       }
     }
   }

@@ -17,68 +17,66 @@ type DataflowResource struct{}
 var _ sdk.ResourceWithUpdate = DataflowResource{}
 
 type DataflowModel struct {
-	Name              string                    `tfschema:"name"`
-	ResourceGroupName string                    `tfschema:"resource_group_name"`
-	InstanceName      string                    `tfschema:"instance_name"`
-	DataflowProfileName string                  `tfschema:"dataflow_profile_name"`
-	Mode              *string                   `tfschema:"mode"`
-	Operations        []DataflowOperationModel  `tfschema:"operations"`
-	ExtendedLocation  *ExtendedLocationModel    `tfschema:"extended_location"`
-	Tags              map[string]string         `tfschema:"tags"`
-	ProvisioningState *string                   `tfschema:"provisioning_state"`
+	Name                string                   `tfschema:"name"`
+	ResourceGroupName   string                   `tfschema:"resource_group_name"`
+	InstanceName        string                   `tfschema:"instance_name"`
+	DataflowProfileName string                   `tfschema:"dataflow_profile_name"`
+	Mode                *string                  `tfschema:"mode"`
+	Operations          []DataflowOperationModel `tfschema:"operations"`
+	ExtendedLocation    ExtendedLocationModel    `tfschema:"extended_location"`
+	ProvisioningState   *string                  `tfschema:"provisioning_state"`
 }
 
 type DataflowOperationModel struct {
-	Name            string                             `tfschema:"name"`
-	OperationType   string                             `tfschema:"operation_type"`
-	Source          *DataflowOperationSourceModel      `tfschema:"source"`
-	Destination     *DataflowOperationDestinationModel `tfschema:"destination"`
-	BuiltInTransformations []DataflowBuiltInTransformationModel `tfschema:"built_in_transformations"`
+	Name                          *string                                     `tfschema:"name"`
+	OperationType                 string                                      `tfschema:"operation_type"`
+	SourceSettings                *DataflowSourceOperationSettingsModel       `tfschema:"source_settings"`
+	DestinationSettings           *DataflowDestinationOperationSettingsModel  `tfschema:"destination_settings"`
+	BuiltInTransformationSettings *DataflowBuiltInTransformationSettingsModel `tfschema:"built_in_transformation_settings"`
 }
 
-type DataflowOperationSourceModel struct {
-	DataSource   string  `tfschema:"data_source"`
-	AssetRef     *string `tfschema:"asset_ref"`
-	EndpointRef  string  `tfschema:"endpoint_ref"`
-	SchemaRef    *string `tfschema:"schema_ref"`
-	SerializationFormat *string `tfschema:"serialization_format"`
+type DataflowSourceOperationSettingsModel struct {
+	DataSources         []string `tfschema:"data_sources"`
+	AssetRef            *string  `tfschema:"asset_ref"`
+	EndpointRef         string   `tfschema:"endpoint_ref"`
+	SchemaRef           *string  `tfschema:"schema_ref"`
+	SerializationFormat *string  `tfschema:"serialization_format"`
 }
 
-type DataflowOperationDestinationModel struct {
-	DataDestination string  `tfschema:"data_destination"`
-	EndpointRef     string  `tfschema:"endpoint_ref"`
-	SchemaRef       *string `tfschema:"schema_ref"`
-	SerializationFormat *string `tfschema:"serialization_format"`
+type DataflowDestinationOperationSettingsModel struct {
+	DataDestination string `tfschema:"data_destination"`
+	EndpointRef     string `tfschema:"endpoint_ref"`
 }
 
-type DataflowBuiltInTransformationModel struct {
-	Filter         []DataflowFilterModel         `tfschema:"filter"`
-	Map            []DataflowMapModel            `tfschema:"map"`
-	Datasets       []DataflowDatasetModel        `tfschema:"datasets"`
-	SerializationFormat *string                  `tfschema:"serialization_format"`
-	SchemaRef      *string                       `tfschema:"schema_ref"`
+type DataflowBuiltInTransformationSettingsModel struct {
+	Datasets            []DataflowBuiltInTransformationDatasetModel `tfschema:"datasets"`
+	Filter              []DataflowBuiltInTransformationFilterModel  `tfschema:"filter"`
+	Map                 []DataflowBuiltInTransformationMapModel     `tfschema:"map"`
+	SchemaRef           *string                                     `tfschema:"schema_ref"`
+	SerializationFormat *string                                     `tfschema:"serialization_format"`
 }
 
-type DataflowFilterModel struct {
-	Type        string                        `tfschema:"type"`
-	Description *string                       `tfschema:"description"`
-	Inputs      []string                      `tfschema:"inputs"`
-	Expression  string                        `tfschema:"expression"`
+type DataflowBuiltInTransformationFilterModel struct {
+	Description *string  `tfschema:"description"`
+	Expression  string   `tfschema:"expression"`
+	Inputs      []string `tfschema:"inputs"`
+	Type        *string  `tfschema:"type"`
 }
 
-type DataflowMapModel struct {
-	Type        string                        `tfschema:"type"`
-	Description *string                       `tfschema:"description"`
-	Inputs      []string                      `tfschema:"inputs"`
-	Output      string                        `tfschema:"output"`
-	Expression  string                        `tfschema:"expression"`
+type DataflowBuiltInTransformationMapModel struct {
+	Description *string  `tfschema:"description"`
+	Expression  *string  `tfschema:"expression"`
+	Inputs      []string `tfschema:"inputs"`
+	Output      string   `tfschema:"output"`
+	Type        *string  `tfschema:"type"`
 }
 
-type DataflowDatasetModel struct {
-	Key         string                        `tfschema:"key"`
-	Description *string                       `tfschema:"description"`
-	Inputs      []string                      `tfschema:"inputs"`
-	Expression  string                        `tfschema:"expression"`
+type DataflowBuiltInTransformationDatasetModel struct {
+	Key         string   `tfschema:"key"`
+	Description *string  `tfschema:"description"`
+	Expression  *string  `tfschema:"expression"`
+	Inputs      []string `tfschema:"inputs"`
+	SchemaRef   *string  `tfschema:"schema_ref"`
 }
 
 func (r DataflowResource) ModelObject() interface{} {
@@ -131,6 +129,7 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 		"mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  "Enabled",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Enabled",
 				"Disabled",
@@ -144,7 +143,7 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 63),
 					},
 					"operation_type": {
@@ -156,16 +155,20 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 							"BuiltInTransformation",
 						}, false),
 					},
-					"source": {
+					"source_settings": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"data_source": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringLenBetween(1, 253),
+								"data_sources": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringLenBetween(1, 253),
+									},
 								},
 								"asset_ref": {
 									Type:         pluginsdk.TypeString,
@@ -186,15 +189,13 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										"JSON",
-										"Parquet",
-										"Delta",
+										"Json",
 									}, false),
 								},
 							},
 						},
 					},
-					"destination": {
+					"destination_settings": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -210,95 +211,15 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 253),
 								},
-								"schema_ref": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringLenBetween(1, 253),
-								},
-								"serialization_format": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"JSON",
-										"Parquet",
-										"Delta",
-									}, false),
-								},
 							},
 						},
 					},
-					"built_in_transformations": {
+					"built_in_transformation_settings": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"filter": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"type": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 63),
-											},
-											"description": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(1, 500),
-											},
-											"inputs": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.StringLenBetween(1, 253),
-												},
-											},
-											"expression": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 1000),
-											},
-										},
-									},
-								},
-								"map": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"type": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 63),
-											},
-											"description": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(1, 500),
-											},
-											"inputs": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.StringLenBetween(1, 253),
-												},
-											},
-											"output": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 253),
-											},
-											"expression": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 1000),
-											},
-										},
-									},
-								},
 								"datasets": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -314,6 +235,11 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 												Optional:     true,
 												ValidateFunc: validation.StringLenBetween(1, 500),
 											},
+											"expression": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 1000),
+											},
 											"inputs": {
 												Type:     pluginsdk.TypeList,
 												Required: true,
@@ -322,27 +248,102 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 													ValidateFunc: validation.StringLenBetween(1, 253),
 												},
 											},
+											"schema_ref": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 253),
+											},
+										},
+									},
+								},
+								"filter": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"description": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 500),
+											},
 											"expression": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringLenBetween(1, 1000),
 											},
+											"inputs": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringLenBetween(1, 253),
+												},
+											},
+											"type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"Filter",
+												}, false),
+											},
 										},
 									},
 								},
-								"serialization_format": {
-									Type:     pluginsdk.TypeString,
+								"map": {
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"JSON",
-										"Parquet",
-										"Delta",
-									}, false),
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"description": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 500),
+											},
+											"expression": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(1, 1000),
+											},
+											"inputs": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringLenBetween(1, 253),
+												},
+											},
+											"output": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringLenBetween(1, 253),
+											},
+											"type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"BuiltInFunction",
+													"Compute",
+													"NewProperties",
+													"PassThrough",
+													"Rename",
+												}, false),
+											},
+										},
+									},
 								},
 								"schema_ref": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringLenBetween(1, 253),
+								},
+								"serialization_format": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"Delta",
+										"Json",
+										"Parquet",
+									}, false),
 								},
 							},
 						},
@@ -352,14 +353,15 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"extended_location": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
 						Type:     pluginsdk.TypeString,
@@ -371,13 +373,6 @@ func (r DataflowResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
 	}
 }
 
@@ -385,7 +380,6 @@ func (r DataflowResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
-			// NOTE: O+C Azure automatically assigns provisioning state during resource lifecycle
 			Computed: true,
 		},
 	}
@@ -407,15 +401,8 @@ func (r DataflowResource) Create() sdk.ResourceFunc {
 
 			// Build payload
 			payload := dataflow.DataflowResource{
-				Properties: expandDataflowProperties(model),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = expandExtendedLocation(model.ExtendedLocation)
-			}
-
-			if len(model.Tags) > 0 {
-				payload.Tags = &model.Tags
+				ExtendedLocation: expandDataflowExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -452,17 +439,11 @@ func (r DataflowResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				if respModel.ExtendedLocation != nil {
-					model.ExtendedLocation = flattenExtendedLocation(respModel.ExtendedLocation)
-				}
-
-				if respModel.Tags != nil {
-					model.Tags = *respModel.Tags
-				}
+				model.ExtendedLocation = flattenDataflowExtendedLocation(respModel.ExtendedLocation)
 
 				if respModel.Properties != nil {
 					flattenDataflowProperties(respModel.Properties, &model)
-					
+
 					if respModel.Properties.ProvisioningState != nil {
 						provisioningState := string(*respModel.Properties.ProvisioningState)
 						model.ProvisioningState = &provisioningState
@@ -491,48 +472,13 @@ func (r DataflowResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Check if anything actually changed before making API call
-			if !metadata.ResourceData.HasChange("tags") && 
-			   !metadata.ResourceData.HasChange("mode") &&
-			   !metadata.ResourceData.HasChange("operations") {
-				return nil
+			// For dataflow, we use CreateOrUpdate for updates since there's no dedicated Update method
+			payload := dataflow.DataflowResource{
+				ExtendedLocation: expandDataflowExtendedLocation(model.ExtendedLocation),
+				Properties:       expandDataflowProperties(model),
 			}
 
-			payload := dataflow.DataflowPatchModel{}
-			hasChanges := false
-
-			// Only include tags if they changed
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-				hasChanges = true
-			}
-
-			// Only include properties if they changed
-			if metadata.ResourceData.HasChange("mode") ||
-			   metadata.ResourceData.HasChange("operations") {
-				patchProps := &dataflow.DataflowPropertiesPatch{}
-				
-				if metadata.ResourceData.HasChange("mode") {
-					if model.Mode != nil {
-						mode := dataflow.OperationalMode(*model.Mode)
-						patchProps.Mode = &mode
-					}
-				}
-
-				if metadata.ResourceData.HasChange("operations") {
-					patchProps.Operations = expandDataflowOperations(model.Operations)
-				}
-
-				payload.Properties = patchProps
-				hasChanges = true
-			}
-
-			// Only make API call if something actually changed
-			if !hasChanges {
-				return nil
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -562,6 +508,21 @@ func (r DataflowResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expand/flatten operations
+func expandDataflowExtendedLocation(input ExtendedLocationModel) dataflow.ExtendedLocation {
+	return dataflow.ExtendedLocation{
+		Name: *input.Name,
+		Type: dataflow.ExtendedLocationType(*input.Type),
+	}
+}
+
+func flattenDataflowExtendedLocation(input dataflow.ExtendedLocation) ExtendedLocationModel {
+	typeStr := string(input.Type)
+	return ExtendedLocationModel{
+		Name: &input.Name,
+		Type: &typeStr,
+	}
+}
+
 func expandDataflowProperties(model DataflowModel) *dataflow.DataflowProperties {
 	props := &dataflow.DataflowProperties{
 		Operations: expandDataflowOperations(model.Operations),
@@ -575,40 +536,39 @@ func expandDataflowProperties(model DataflowModel) *dataflow.DataflowProperties 
 	return props
 }
 
-func expandDataflowOperations(operations []DataflowOperationModel) *[]dataflow.DataflowOperation {
-	if len(operations) == 0 {
-		return nil
-	}
-
+func expandDataflowOperations(operations []DataflowOperationModel) []dataflow.DataflowOperation {
 	result := make([]dataflow.DataflowOperation, 0, len(operations))
 
 	for _, op := range operations {
 		operation := dataflow.DataflowOperation{
-			Name:          op.Name,
 			OperationType: dataflow.OperationType(op.OperationType),
 		}
 
-		if op.Source != nil {
-			operation.Source = expandDataflowOperationSource(*op.Source)
+		if op.Name != nil {
+			operation.Name = op.Name
 		}
 
-		if op.Destination != nil {
-			operation.Destination = expandDataflowOperationDestination(*op.Destination)
+		if op.SourceSettings != nil {
+			operation.SourceSettings = expandDataflowSourceOperationSettings(*op.SourceSettings)
 		}
 
-		if len(op.BuiltInTransformations) > 0 {
-			operation.BuiltInTransformations = expandDataflowBuiltInTransformations(op.BuiltInTransformations)
+		if op.DestinationSettings != nil {
+			operation.DestinationSettings = expandDataflowDestinationOperationSettings(*op.DestinationSettings)
+		}
+
+		if op.BuiltInTransformationSettings != nil {
+			operation.BuiltInTransformationSettings = expandDataflowBuiltInTransformationSettings(*op.BuiltInTransformationSettings)
 		}
 
 		result = append(result, operation)
 	}
 
-	return &result
+	return result
 }
 
-func expandDataflowOperationSource(source DataflowOperationSourceModel) *dataflow.DataflowSourceOperation {
-	result := &dataflow.DataflowSourceOperation{
-		DataSource:  source.DataSource,
+func expandDataflowSourceOperationSettings(source DataflowSourceOperationSettingsModel) *dataflow.DataflowSourceOperationSettings {
+	result := &dataflow.DataflowSourceOperationSettings{
+		DataSources: source.DataSources,
 		EndpointRef: source.EndpointRef,
 	}
 
@@ -628,73 +588,83 @@ func expandDataflowOperationSource(source DataflowOperationSourceModel) *dataflo
 	return result
 }
 
-func expandDataflowOperationDestination(destination DataflowOperationDestinationModel) *dataflow.DataflowDestinationOperation {
-	result := &dataflow.DataflowDestinationOperation{
+func expandDataflowDestinationOperationSettings(destination DataflowDestinationOperationSettingsModel) *dataflow.DataflowDestinationOperationSettings {
+	return &dataflow.DataflowDestinationOperationSettings{
 		DataDestination: destination.DataDestination,
 		EndpointRef:     destination.EndpointRef,
 	}
+}
 
-	if destination.SchemaRef != nil {
-		result.SchemaRef = destination.SchemaRef
+func expandDataflowBuiltInTransformationSettings(settings DataflowBuiltInTransformationSettingsModel) *dataflow.DataflowBuiltInTransformationSettings {
+	result := &dataflow.DataflowBuiltInTransformationSettings{}
+
+	if len(settings.Datasets) > 0 {
+		result.Datasets = expandDataflowBuiltInTransformationDatasets(settings.Datasets)
 	}
 
-	if destination.SerializationFormat != nil {
-		format := dataflow.DestinationSerializationFormat(*destination.SerializationFormat)
+	if len(settings.Filter) > 0 {
+		result.Filter = expandDataflowBuiltInTransformationFilters(settings.Filter)
+	}
+
+	if len(settings.Map) > 0 {
+		result.Map = expandDataflowBuiltInTransformationMaps(settings.Map)
+	}
+
+	if settings.SchemaRef != nil {
+		result.SchemaRef = settings.SchemaRef
+	}
+
+	if settings.SerializationFormat != nil {
+		format := dataflow.TransformationSerializationFormat(*settings.SerializationFormat)
 		result.SerializationFormat = &format
 	}
 
 	return result
 }
 
-func expandDataflowBuiltInTransformations(transformations []DataflowBuiltInTransformationModel) *[]dataflow.DataflowBuiltInTransformation {
-	if len(transformations) == 0 {
-		return nil
-	}
+func expandDataflowBuiltInTransformationDatasets(datasets []DataflowBuiltInTransformationDatasetModel) *[]dataflow.DataflowBuiltInTransformationDataset {
+	result := make([]dataflow.DataflowBuiltInTransformationDataset, 0, len(datasets))
 
-	result := make([]dataflow.DataflowBuiltInTransformation, 0, len(transformations))
-
-	for _, transform := range transformations {
-		transformation := dataflow.DataflowBuiltInTransformation{}
-
-		if len(transform.Filter) > 0 {
-			transformation.Filter = expandDataflowFilters(transform.Filter)
+	for _, dataset := range datasets {
+		datasetItem := dataflow.DataflowBuiltInTransformationDataset{
+			Key:    dataset.Key,
+			Inputs: dataset.Inputs,
 		}
 
-		if len(transform.Map) > 0 {
-			transformation.Map = expandDataflowMaps(transform.Map)
+		if dataset.Description != nil {
+			datasetItem.Description = dataset.Description
 		}
 
-		if len(transform.Datasets) > 0 {
-			transformation.Datasets = expandDataflowDatasets(transform.Datasets)
+		if dataset.Expression != nil {
+			datasetItem.Expression = dataset.Expression
 		}
 
-		if transform.SerializationFormat != nil {
-			format := dataflow.TransformationSerializationFormat(*transform.SerializationFormat)
-			transformation.SerializationFormat = &format
+		if dataset.SchemaRef != nil {
+			datasetItem.SchemaRef = dataset.SchemaRef
 		}
 
-		if transform.SchemaRef != nil {
-			transformation.SchemaRef = transform.SchemaRef
-		}
-
-		result = append(result, transformation)
+		result = append(result, datasetItem)
 	}
 
 	return &result
 }
 
-func expandDataflowFilters(filters []DataflowFilterModel) *[]dataflow.DataflowBuiltInTransformationFilter {
+func expandDataflowBuiltInTransformationFilters(filters []DataflowBuiltInTransformationFilterModel) *[]dataflow.DataflowBuiltInTransformationFilter {
 	result := make([]dataflow.DataflowBuiltInTransformationFilter, 0, len(filters))
 
 	for _, filter := range filters {
 		filterItem := dataflow.DataflowBuiltInTransformationFilter{
-			Type:       filter.Type,
-			Inputs:     filter.Inputs,
 			Expression: filter.Expression,
+			Inputs:     filter.Inputs,
 		}
 
 		if filter.Description != nil {
 			filterItem.Description = filter.Description
+		}
+
+		if filter.Type != nil {
+			filterType := dataflow.FilterType(*filter.Type)
+			filterItem.Type = &filterType
 		}
 
 		result = append(result, filterItem)
@@ -703,42 +673,29 @@ func expandDataflowFilters(filters []DataflowFilterModel) *[]dataflow.DataflowBu
 	return &result
 }
 
-func expandDataflowMaps(maps []DataflowMapModel) *[]dataflow.DataflowBuiltInTransformationMap {
+func expandDataflowBuiltInTransformationMaps(maps []DataflowBuiltInTransformationMapModel) *[]dataflow.DataflowBuiltInTransformationMap {
 	result := make([]dataflow.DataflowBuiltInTransformationMap, 0, len(maps))
 
 	for _, mapItem := range maps {
 		mapTransform := dataflow.DataflowBuiltInTransformationMap{
-			Type:       mapItem.Type,
-			Inputs:     mapItem.Inputs,
-			Output:     mapItem.Output,
-			Expression: mapItem.Expression,
+			Inputs: mapItem.Inputs,
+			Output: mapItem.Output,
 		}
 
 		if mapItem.Description != nil {
 			mapTransform.Description = mapItem.Description
 		}
 
+		if mapItem.Expression != nil {
+			mapTransform.Expression = mapItem.Expression
+		}
+
+		if mapItem.Type != nil {
+			mapType := dataflow.DataflowMappingType(*mapItem.Type)
+			mapTransform.Type = &mapType
+		}
+
 		result = append(result, mapTransform)
-	}
-
-	return &result
-}
-
-func expandDataflowDatasets(datasets []DataflowDatasetModel) *[]dataflow.DataflowBuiltInTransformationDataset {
-	result := make([]dataflow.DataflowBuiltInTransformationDataset, 0, len(datasets))
-
-	for _, dataset := range datasets {
-		datasetItem := dataflow.DataflowBuiltInTransformationDataset{
-			Key:        dataset.Key,
-			Inputs:     dataset.Inputs,
-			Expression: dataset.Expression,
-		}
-
-		if dataset.Description != nil {
-			datasetItem.Description = dataset.Description
-		}
-
-		result = append(result, datasetItem)
 	}
 
 	return &result
@@ -754,8 +711,8 @@ func flattenDataflowProperties(props *dataflow.DataflowProperties, model *Datafl
 		model.Mode = &mode
 	}
 
-	if props.Operations != nil {
-		model.Operations = flattenDataflowOperations(*props.Operations)
+	if len(props.Operations) > 0 {
+		model.Operations = flattenDataflowOperations(props.Operations)
 	}
 }
 
@@ -764,20 +721,23 @@ func flattenDataflowOperations(operations []dataflow.DataflowOperation) []Datafl
 
 	for _, op := range operations {
 		operation := DataflowOperationModel{
-			Name:          op.Name,
 			OperationType: string(op.OperationType),
 		}
 
-		if op.Source != nil {
-			operation.Source = flattenDataflowOperationSource(*op.Source)
+		if op.Name != nil {
+			operation.Name = op.Name
 		}
 
-		if op.Destination != nil {
-			operation.Destination = flattenDataflowOperationDestination(*op.Destination)
+		if op.SourceSettings != nil {
+			operation.SourceSettings = flattenDataflowSourceOperationSettings(*op.SourceSettings)
 		}
 
-		if op.BuiltInTransformations != nil {
-			operation.BuiltInTransformations = flattenDataflowBuiltInTransformations(*op.BuiltInTransformations)
+		if op.DestinationSettings != nil {
+			operation.DestinationSettings = flattenDataflowDestinationOperationSettings(*op.DestinationSettings)
+		}
+
+		if op.BuiltInTransformationSettings != nil {
+			operation.BuiltInTransformationSettings = flattenDataflowBuiltInTransformationSettings(*op.BuiltInTransformationSettings)
 		}
 
 		result = append(result, operation)
@@ -786,9 +746,9 @@ func flattenDataflowOperations(operations []dataflow.DataflowOperation) []Datafl
 	return result
 }
 
-func flattenDataflowOperationSource(source dataflow.DataflowSourceOperation) *DataflowOperationSourceModel {
-	result := &DataflowOperationSourceModel{
-		DataSource:  source.DataSource,
+func flattenDataflowSourceOperationSettings(source dataflow.DataflowSourceOperationSettings) *DataflowSourceOperationSettingsModel {
+	result := &DataflowSourceOperationSettingsModel{
+		DataSources: source.DataSources,
 		EndpointRef: source.EndpointRef,
 	}
 
@@ -808,69 +768,83 @@ func flattenDataflowOperationSource(source dataflow.DataflowSourceOperation) *Da
 	return result
 }
 
-func flattenDataflowOperationDestination(destination dataflow.DataflowDestinationOperation) *DataflowOperationDestinationModel {
-	result := &DataflowOperationDestinationModel{
+func flattenDataflowDestinationOperationSettings(destination dataflow.DataflowDestinationOperationSettings) *DataflowDestinationOperationSettingsModel {
+	return &DataflowDestinationOperationSettingsModel{
 		DataDestination: destination.DataDestination,
 		EndpointRef:     destination.EndpointRef,
 	}
+}
 
-	if destination.SchemaRef != nil {
-		result.SchemaRef = destination.SchemaRef
+func flattenDataflowBuiltInTransformationSettings(settings dataflow.DataflowBuiltInTransformationSettings) *DataflowBuiltInTransformationSettingsModel {
+	result := &DataflowBuiltInTransformationSettingsModel{}
+
+	if settings.Datasets != nil {
+		result.Datasets = flattenDataflowBuiltInTransformationDatasets(*settings.Datasets)
 	}
 
-	if destination.SerializationFormat != nil {
-		format := string(*destination.SerializationFormat)
+	if settings.Filter != nil {
+		result.Filter = flattenDataflowBuiltInTransformationFilters(*settings.Filter)
+	}
+
+	if settings.Map != nil {
+		result.Map = flattenDataflowBuiltInTransformationMaps(*settings.Map)
+	}
+
+	if settings.SchemaRef != nil {
+		result.SchemaRef = settings.SchemaRef
+	}
+
+	if settings.SerializationFormat != nil {
+		format := string(*settings.SerializationFormat)
 		result.SerializationFormat = &format
 	}
 
 	return result
 }
 
-func flattenDataflowBuiltInTransformations(transformations []dataflow.DataflowBuiltInTransformation) []DataflowBuiltInTransformationModel {
-	result := make([]DataflowBuiltInTransformationModel, 0, len(transformations))
+func flattenDataflowBuiltInTransformationDatasets(datasets []dataflow.DataflowBuiltInTransformationDataset) []DataflowBuiltInTransformationDatasetModel {
+	result := make([]DataflowBuiltInTransformationDatasetModel, 0, len(datasets))
 
-	for _, transform := range transformations {
-		transformation := DataflowBuiltInTransformationModel{}
-
-		if transform.Filter != nil {
-			transformation.Filter = flattenDataflowFilters(*transform.Filter)
+	for _, dataset := range datasets {
+		datasetModel := DataflowBuiltInTransformationDatasetModel{
+			Key:    dataset.Key,
+			Inputs: dataset.Inputs,
 		}
 
-		if transform.Map != nil {
-			transformation.Map = flattenDataflowMaps(*transform.Map)
+		if dataset.Description != nil {
+			datasetModel.Description = dataset.Description
 		}
 
-		if transform.Datasets != nil {
-			transformation.Datasets = flattenDataflowDatasets(*transform.Datasets)
+		if dataset.Expression != nil {
+			datasetModel.Expression = dataset.Expression
 		}
 
-		if transform.SerializationFormat != nil {
-			format := string(*transform.SerializationFormat)
-			transformation.SerializationFormat = &format
+		if dataset.SchemaRef != nil {
+			datasetModel.SchemaRef = dataset.SchemaRef
 		}
 
-		if transform.SchemaRef != nil {
-			transformation.SchemaRef = transform.SchemaRef
-		}
-
-		result = append(result, transformation)
+		result = append(result, datasetModel)
 	}
 
 	return result
 }
 
-func flattenDataflowFilters(filters []dataflow.DataflowBuiltInTransformationFilter) []DataflowFilterModel {
-	result := make([]DataflowFilterModel, 0, len(filters))
+func flattenDataflowBuiltInTransformationFilters(filters []dataflow.DataflowBuiltInTransformationFilter) []DataflowBuiltInTransformationFilterModel {
+	result := make([]DataflowBuiltInTransformationFilterModel, 0, len(filters))
 
 	for _, filter := range filters {
-		filterModel := DataflowFilterModel{
-			Type:       filter.Type,
-			Inputs:     filter.Inputs,
+		filterModel := DataflowBuiltInTransformationFilterModel{
 			Expression: filter.Expression,
+			Inputs:     filter.Inputs,
 		}
 
 		if filter.Description != nil {
 			filterModel.Description = filter.Description
+		}
+
+		if filter.Type != nil {
+			filterType := string(*filter.Type)
+			filterModel.Type = &filterType
 		}
 
 		result = append(result, filterModel)
@@ -879,42 +853,29 @@ func flattenDataflowFilters(filters []dataflow.DataflowBuiltInTransformationFilt
 	return result
 }
 
-func flattenDataflowMaps(maps []dataflow.DataflowBuiltInTransformationMap) []DataflowMapModel {
-	result := make([]DataflowMapModel, 0, len(maps))
+func flattenDataflowBuiltInTransformationMaps(maps []dataflow.DataflowBuiltInTransformationMap) []DataflowBuiltInTransformationMapModel {
+	result := make([]DataflowBuiltInTransformationMapModel, 0, len(maps))
 
 	for _, mapItem := range maps {
-		mapModel := DataflowMapModel{
-			Type:       mapItem.Type,
-			Inputs:     mapItem.Inputs,
-			Output:     mapItem.Output,
-			Expression: mapItem.Expression,
+		mapModel := DataflowBuiltInTransformationMapModel{
+			Inputs: mapItem.Inputs,
+			Output: mapItem.Output,
 		}
 
 		if mapItem.Description != nil {
 			mapModel.Description = mapItem.Description
 		}
 
+		if mapItem.Expression != nil {
+			mapModel.Expression = mapItem.Expression
+		}
+
+		if mapItem.Type != nil {
+			mapType := string(*mapItem.Type)
+			mapModel.Type = &mapType
+		}
+
 		result = append(result, mapModel)
-	}
-
-	return result
-}
-
-func flattenDataflowDatasets(datasets []dataflow.DataflowBuiltInTransformationDataset) []DataflowDatasetModel {
-	result := make([]DataflowDatasetModel, 0, len(datasets))
-
-	for _, dataset := range datasets {
-		datasetModel := DataflowDatasetModel{
-			Key:        dataset.Key,
-			Inputs:     dataset.Inputs,
-			Expression: dataset.Expression,
-		}
-
-		if dataset.Description != nil {
-			datasetModel.Description = dataset.Description
-		}
-
-		result = append(result, datasetModel)
 	}
 
 	return result

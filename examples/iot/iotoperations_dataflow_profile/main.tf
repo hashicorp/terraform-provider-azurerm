@@ -21,6 +21,9 @@ resource "azurerm_iotoperations_instance" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
+  extended_location_name = var.custom_location_id
+  extended_location_type = "CustomLocation"
+
   identity {
     type = "SystemAssigned"
   }
@@ -32,6 +35,11 @@ resource "azurerm_iotoperations_instance" "example" {
 resource "azurerm_iotoperations_dataflow_profile" "high_performance" {
   name                = var.high_performance_profile_name
   iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
 
   instance_count = var.high_performance_instance_count
 
@@ -55,6 +63,11 @@ resource "azurerm_iotoperations_dataflow_profile" "standard" {
   name                = var.standard_profile_name
   iot_operations_instance_id = azurerm_iotoperations_instance.example.id
 
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
+
   instance_count = var.standard_instance_count
 
   diagnostics {
@@ -76,6 +89,11 @@ resource "azurerm_iotoperations_dataflow_profile" "standard" {
 resource "azurerm_iotoperations_dataflow_profile" "edge" {
   name                = var.edge_profile_name
   iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
 
   instance_count = var.edge_instance_count
 
@@ -100,6 +118,11 @@ resource "azurerm_iotoperations_dataflow_profile" "development" {
 
   name                = var.development_profile_name
   iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+
+  extended_location {
+    name = azurerm_iotoperations_instance.example.extended_location_name
+    type = "CustomLocation"
+  }
 
   instance_count = var.development_instance_count
 

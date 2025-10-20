@@ -290,7 +290,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			hsm.Registration{},
 			iotcentral.Registration{},
 			iothub.Registration{},
-			iotoperations.Registration{},
 			keyvault.Registration{},
 			kusto.Registration{},
 			legacy.Registration{},

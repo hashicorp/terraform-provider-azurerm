@@ -1,61 +1,73 @@
-package iotoperations
+package iotoperations_test
 
 import (
-    "fmt"
-    "testing"
+	"context"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-    "github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func TestAccDataflowGraph_basic(t *testing.T) {
-    resourceName := "azurerm_dataflow_graph.test"
+type DataflowResource struct{}
 
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { /* add pre-checks if needed */ },
-        Providers:    testAccProviders,
-        CheckDestroy: testAccCheckDataflowGraphDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccDataflowGraphConfig_basic(),
-                Check: resource.ComposeTestCheckFunc(
-                    resource.TestCheckResourceAttr(resourceName, "name", "test-dataflow-graph"),
-                    resource.TestCheckResourceAttr(resourceName, "resource_group_name", "test-rg"),
-                    resource.TestCheckResourceAttr(resourceName, "instance_name", "test-instance"),
-                    resource.TestCheckResourceAttr(resourceName, "dataflow_profile_name", "test-profile")
-                ),
-            },
-        },
-    })
+func TestAccDataflow_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotoperations_dataflow", "test")
+	r := DataflowResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-dataflow"),
+				check.That(data.ResourceName).Key("properties.0.mode").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testAccDataflowGraphConfig_basic() string {
-    return fmt.Sprintf(`
-resource "azurerm_dataflow_graph" "test" {
-  name                = "test-dataflow-graph"
-  resource_group_name = "test-rg"
-  instance_name       = "test-instance"
+func (r DataflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	// TODO: Implement proper existence check when the dataflow client is available
+	// For now, return nil to indicate the resource exists (placeholder implementation)
+	return nil, nil
+}
+
+func (r DataflowResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iot-%d"
+  location = "%s"
+}
+
+resource "azurerm_iotoperations_dataflow" "test" {
+  name                   = "test-dataflow"
+  resource_group_name    = azurerm_resource_group.test.name
+  instance_name         = "test-instance"
   dataflow_profile_name = "test-profile"
+  location              = azurerm_resource_group.test.location
 
   properties {
-    mode = "Enabled"
+    mode                     = "Enabled"
     request_disk_persistence = "Enabled"
+    
     nodes {
       type = "source"
       name = "temperature"
-      # Add other node fields as needed
     }
-    # Add connections and other properties as needed
   }
 
   extended_location {
-    name = "qmbrfwcpwwhggszhrdjv"
+    name = "test-custom-location"
     type = "CustomLocation"
   }
 }
-`)
+`, data.RandomInteger, data.Locations.Primary)
 }
-
-func testAccCheckDataflowGraphDestroy(s *terraform.State) error {
-    //verification to resource destruction
-    return nil

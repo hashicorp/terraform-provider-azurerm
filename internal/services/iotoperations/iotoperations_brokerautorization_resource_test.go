@@ -1,37 +1,46 @@
-package iotoperations
+package iotoperations_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerauthorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccBrokerAuthorization_basic(t *testing.T) {
-    resourceName := "azurerm_iotoperations_broker_authorization.test"
-    rgName := acctest.RandomResourceGroupName("acctestRG", 16)
-    instanceName := acctest.RandomResourceName("acctestInstance", 16)
-    brokerName := acctest.RandomResourceName("acctestBroker", 16)
-    authName := acctest.RandomResourceName("acctestAuth", 16)
+	data := acceptance.BuildTestData(t, "azurerm_iotoperations_broker_authorization", "test")
+	r := BrokerAuthorizationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acctest.PreCheck(t) },
-        Providers:    acctest.Providers,
-        CheckDestroy: acctest.CheckResourceDestroy(resourceName),
-        Steps: []resource.TestStep{
-            {
-                Config: testAccBrokerAuthorization_basic(rgName, instanceName, brokerName, authName),
-                Check: resource.ComposeTestCheckFunc(
-                    resource.TestCheckResourceAttr(resourceName, "name", authName),
-                    resource.TestCheckResourceAttr(resourceName, "resource_group_name", rgName),
-                    resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-                    resource.TestCheckResourceAttr(resourceName, "broker_name", brokerName),
-                    resource.TestCheckResourceAttrSet(resourceName, "provisioning_state"),
-                ),
-            },
-        },
-    })
+type BrokerAuthorizationResource struct{}
+
+func (BrokerAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := brokerauthorization.ParseAuthorizationID(state.ID)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %s: %+v", state.ID, err)
+	}
+
+	resp, err := clients.IoTOperations.BrokerAuthorizationClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r BrokerAuthorizationResource) basic(data acceptance.TestData) string {
@@ -46,7 +55,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iotoperations_instance" "test" {
-  name                = "resource-name123"
+  name                = "acctestinstance%d"
   resource_group_name = azurerm_resource_group.test.name
   location           = azurerm_resource_group.test.location
 
@@ -57,7 +66,7 @@ resource "azurerm_iotoperations_instance" "test" {
 }
 
 resource "azurerm_iotoperations_broker" "test" {
-  name                = "resource-name123"
+  name                = "acctestbroker%d"
   resource_group_name = azurerm_resource_group.test.name
   instance_name       = azurerm_iotoperations_instance.test.name
 
@@ -72,7 +81,7 @@ resource "azurerm_iotoperations_broker" "test" {
 }
 
 resource "azurerm_iotoperations_broker_authorization" "test" {
-  name                = "resource-name123"
+  name                = "acctestauth%d"
   resource_group_name = azurerm_resource_group.test.name
   instance_name       = azurerm_iotoperations_instance.test.name
   broker_name         = azurerm_iotoperations_broker.test.name
@@ -81,18 +90,13 @@ resource "azurerm_iotoperations_broker_authorization" "test" {
     cache = "Enabled"
     rules {
       broker_resources {
-        method     = "Connect"
-        client_ids = ["nlc"]
-        topics     = ["wvuca"]
+        method = "Connect"
+        clients = ["test-client"]
+        topics = ["test-topic"]
       }
       principals {
-        attributes = [{ key5526 = "nydhzdhbldygqcn" }]
-        client_ids = ["smopeaeddsygz"]
-        usernames  = ["iozngyqndrteikszkbasinzdjtm"]
-      }
-      state_store_resources {
-        key_type = "Pattern"
-        keys     = ["tkounsqtwvzyaklxjqoerpu"]
+        clients = ["test-client"]
+        usernames = ["test-user"]
       }
     }
   }
@@ -102,5 +106,5 @@ resource "azurerm_iotoperations_broker_authorization" "test" {
     type = azurerm_iotoperations_instance.test.extended_location[0].type
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Client().SubscriptionID, data.RandomStringOfLength(10))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)
 }

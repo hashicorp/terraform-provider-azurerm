@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/broker"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerauthentication"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerauthorization"
@@ -24,29 +26,53 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	brokerAuthenticationClient := brokerauthentication.NewBrokerAuthenticationClientWithBaseURI(o.ResourceManagerEndpoint)
-	brokerAuthenticationClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	brokerAuthenticationClient, err := brokerauthentication.NewBrokerAuthenticationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BrokerAuthentication client: %+v", err)
+	}
+	o.Configure(brokerAuthenticationClient.Client, o.Authorizers.ResourceManager)
 
-	brokerAuthorizationClient := brokerauthorization.NewBrokerAuthorizationClientWithBaseURI(o.ResourceManagerEndpoint)
-	brokerAuthorizationClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	brokerAuthorizationClient, err := brokerauthorization.NewBrokerAuthorizationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BrokerAuthorization client: %+v", err)
+	}
+	o.Configure(brokerAuthorizationClient.Client, o.Authorizers.ResourceManager)
 
-	brokerClient := broker.NewBrokerClientWithBaseURI(o.ResourceManagerEndpoint)
-	brokerClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	brokerClient, err := broker.NewBrokerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Broker client: %+v", err)
+	}
+	o.Configure(brokerClient.Client, o.Authorizers.ResourceManager)
 
-	brokerListenerClient := brokerlistener.NewBrokerListenerClientWithBaseURI(o.ResourceManagerEndpoint)
-	brokerListenerClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	brokerListenerClient, err := brokerlistener.NewBrokerListenerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BrokerListener client: %+v", err)
+	}
+	o.Configure(brokerListenerClient.Client, o.Authorizers.ResourceManager)
 
-	dataflowClient := dataflow.NewDataflowClientWithBaseURI(o.ResourceManagerEndpoint)
-	dataflowClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	dataflowClient, err := dataflow.NewDataflowClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Dataflow client: %+v", err)
+	}
+	o.Configure(dataflowClient.Client, o.Authorizers.ResourceManager)
 
-	dataflowEndpointClient := dataflowendpoint.NewDataflowEndpointClientWithBaseURI(o.ResourceManagerEndpoint)
-	dataflowEndpointClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	dataflowEndpointClient, err := dataflowendpoint.NewDataflowEndpointClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DataflowEndpoint client: %+v", err)
+	}
+	o.Configure(dataflowEndpointClient.Client, o.Authorizers.ResourceManager)
 
-	dataflowProfileClient := dataflowprofile.NewDataflowProfileClientWithBaseURI(o.ResourceManagerEndpoint)
-	dataflowProfileClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	dataflowProfileClient, err := dataflowprofile.NewDataflowProfileClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DataflowProfile client: %+v", err)
+	}
+	o.Configure(dataflowProfileClient.Client, o.Authorizers.ResourceManager)
 
-	instanceClient := instance.NewInstanceClientWithBaseURI(o.ResourceManagerEndpoint)
-	instanceClient.Client.Authorizer = o.ResourceManagerAuthorizer
+	instanceClient, err := instance.NewInstanceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Instance client: %+v", err)
+	}
+	o.Configure(instanceClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		BrokerAuthenticationClient: brokerAuthenticationClient,

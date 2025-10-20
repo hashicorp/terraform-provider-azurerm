@@ -83,6 +83,7 @@ import (
 	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	iothub "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
+	iotoperations "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotoperations/clients"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
@@ -286,6 +287,7 @@ type Client struct {
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
+	IoTOperations                     *iotoperations.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -679,6 +681,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)
+	}
+	if client.IoTOperations, err = iotoperations.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for IoTOperations: %+v", err)
 	}
 
 	return nil
