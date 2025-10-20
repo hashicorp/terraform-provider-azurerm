@@ -86,7 +86,7 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "example" 
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

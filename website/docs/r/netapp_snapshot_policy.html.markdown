@@ -58,7 +58,7 @@ resource "azurerm_netapp_snapshot_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

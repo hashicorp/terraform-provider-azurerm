@@ -23,7 +23,7 @@ output "private_endpoint_status" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

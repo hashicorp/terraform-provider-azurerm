@@ -27,7 +27,7 @@ output "string_vars" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -27,7 +27,7 @@ resource "azurerm_local_network_gateway" "home" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

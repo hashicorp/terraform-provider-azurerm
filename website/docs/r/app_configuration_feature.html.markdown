@@ -44,7 +44,7 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

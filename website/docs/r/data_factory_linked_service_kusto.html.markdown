@@ -67,7 +67,7 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 

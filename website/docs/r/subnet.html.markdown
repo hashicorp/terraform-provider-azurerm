@@ -47,7 +47,7 @@ resource "azurerm_subnet" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -43,7 +43,7 @@ resource "azurerm_servicebus_subscription" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
