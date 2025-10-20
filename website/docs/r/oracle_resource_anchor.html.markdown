@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_oracle_resource_anchor
 
-Manages an oracle resource anchor.
+Manages an Oracle Resource Anchor.
 
 ## Example Usage
 
@@ -44,6 +44,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the oracle resource anchor.
+
+* `linked_compartment_id` - The Ocid of the compartment created .
 
 ## Timeouts
 

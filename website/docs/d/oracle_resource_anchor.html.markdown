@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_oracle_resource_anchor
 
-Use this data source to access information about an existing oracle resource anchor.
+Use this data source to access information about an existing Oracle Resource Anchor.
 
 ## Example Usage
 
