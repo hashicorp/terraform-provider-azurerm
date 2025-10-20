@@ -37,19 +37,6 @@ type ResourceGroupDeploymentStackModel struct {
 	Duration              string                  `tfschema:"duration"`
 }
 
-type ActionOnUnmanageModel struct {
-	Resources        string `tfschema:"resources"`
-	ResourceGroups   string `tfschema:"resource_groups"`
-	ManagementGroups string `tfschema:"management_groups"`
-}
-
-type DenySettingsModel struct {
-	Mode               string    `tfschema:"mode"`
-	ApplyToChildScopes bool      `tfschema:"apply_to_child_scopes"`
-	ExcludedActions    *[]string `tfschema:"excluded_actions"`
-	ExcludedPrincipals *[]string `tfschema:"excluded_principals"`
-}
-
 func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
