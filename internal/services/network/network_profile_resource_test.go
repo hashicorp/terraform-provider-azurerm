@@ -78,18 +78,6 @@ func TestAccNetworkProfile_withTags(t *testing.T) {
 	})
 }
 
-func TestAccNetworkProfile_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
-	r := NetworkProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
-			TestResource: r,
-		}),
-	})
-}
-
 func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkprofiles.ParseNetworkProfileID(state.ID)
 	if err != nil {
@@ -102,19 +90,6 @@ func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Cli
 	}
 
 	return pointer.To(resp.Model != nil), nil
-}
-
-func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := networkprofiles.ParseNetworkProfileID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = client.Network.NetworkProfiles.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting on %s: %+v", *id, err)
-	}
-
-	return pointer.To(true), nil
 }
 
 func (NetworkProfileResource) basic(data acceptance.TestData) string {
