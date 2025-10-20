@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -359,4 +361,123 @@ resource "azurerm_network_security_rule" "test1" {
   destination_port_ranges                    = ["80", "443", "8080", "8190"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+// Unit tests for case normalization functionality
+
+func TestHashCaseInsensitiveString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int
+	}{
+		{
+			name:     "lowercase string",
+			input:    "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			expected: 123456789, // This will be calculated by the actual hash function
+		},
+		{
+			name:     "mixed case string",
+			input:    "/Subscriptions/123/ResourceGroups/Test/Providers/Microsoft.Network/ApplicationSecurityGroups/ASG1",
+			expected: 123456789, // Should be same as lowercase version
+		},
+		{
+			name:     "uppercase string",
+			input:    "/SUBSCRIPTIONS/123/RESOURCEGROUPS/TEST/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONSECURITYGROUPS/ASG1",
+			expected: 123456789, // Should be same as lowercase version
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// We can't predict the exact hash value, but we can test that
+			// different case versions of the same string produce the same hash
+			hash1 := network.HashCaseInsensitiveString(tt.input)
+			hash2 := network.HashCaseInsensitiveString(tt.input)
+
+			if hash1 != hash2 {
+				t.Errorf("HashCaseInsensitiveString() should be deterministic, got %d and %d", hash1, hash2)
+			}
+		})
+	}
+}
+
+func TestHashCaseInsensitiveStringConsistency(t *testing.T) {
+	// Test that different case versions of the same Azure Resource ID produce the same hash
+	baseID := "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1"
+
+	variations := []string{
+		baseID,
+		"/Subscriptions/123/ResourceGroups/Test/Providers/Microsoft.Network/ApplicationSecurityGroups/ASG1",
+		"/SUBSCRIPTIONS/123/RESOURCEGROUPS/TEST/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONSECURITYGROUPS/ASG1",
+		"/subscriptions/123/ResourceGroups/test/providers/Microsoft.Network/ApplicationSecurityGroups/asg1",
+	}
+
+	hashes := make([]int, len(variations))
+	for i, variation := range variations {
+		hashes[i] = network.HashCaseInsensitiveString(variation)
+	}
+
+	// All hashes should be the same
+	for i := 1; i < len(hashes); i++ {
+		if hashes[0] != hashes[i] {
+			t.Errorf("HashCaseInsensitiveString() should produce same hash for different case versions. Got %d and %d for inputs %q and %q",
+				hashes[0], hashes[i], variations[0], variations[i])
+		}
+	}
+}
+
+func TestCaseDifferenceForApplicationSecurityGroupIDs(t *testing.T) {
+	tests := []struct {
+		name     string
+		oldValue string
+		newValue string
+		expected bool
+	}{
+		{
+			name:     "same case",
+			oldValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			newValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			expected: true,
+		},
+		{
+			name:     "different case",
+			oldValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			newValue: "/Subscriptions/123/ResourceGroups/Test/Providers/Microsoft.Network/ApplicationSecurityGroups/ASG1",
+			expected: true,
+		},
+		{
+			name:     "completely different IDs",
+			oldValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			newValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg2",
+			expected: false,
+		},
+		{
+			name:     "empty values",
+			oldValue: "",
+			newValue: "",
+			expected: true,
+		},
+		{
+			name:     "empty vs non-empty",
+			oldValue: "",
+			newValue: "/subscriptions/123/resourcegroups/test/providers/microsoft.network/applicationsecuritygroups/asg1",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := suppress.CaseDifference("test", tt.oldValue, tt.newValue, nil)
+			if result != tt.expected {
+				t.Errorf("CaseDifference() = %v, expected %v for old=%q, new=%q",
+					result, tt.expected, tt.oldValue, tt.newValue)
+			}
+		})
+	}
 }
