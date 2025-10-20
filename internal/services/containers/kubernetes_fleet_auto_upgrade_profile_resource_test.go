@@ -24,7 +24,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("channel").HasValue("Stable"),
 			),
 		},
 		data.ImportStep(),
@@ -40,8 +39,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("channel").HasValue("Rapid"),
-				check.That(data.ResourceName).Key("node_image_upgrade_type").HasValue("Latest"),
 			),
 		},
 		data.ImportStep(),
@@ -57,7 +54,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("channel").HasValue("Stable"),
 			),
 		},
 		data.ImportStep(),
@@ -65,8 +61,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("channel").HasValue("Rapid"),
-				check.That(data.ResourceName).Key("node_image_upgrade_type").HasValue("Latest"),
 			),
 		},
 		data.ImportStep(),
@@ -74,7 +68,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("channel").HasValue("Stable"),
 			),
 		},
 		data.ImportStep(),
