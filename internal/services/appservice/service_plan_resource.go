@@ -248,7 +248,11 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				// sku read
 				if sku := model.Sku; sku != nil {
 					if sku.Name != nil {
-						state.Sku = *sku.Name
+						for _, item := range helpers.AllKnownServicePlanSkus() {
+							if strings.EqualFold(*sku.Name, item) {
+								state.Sku = item
+							}
+						}
 						if sku.Capacity != nil {
 							state.WorkerCount = *sku.Capacity
 						}
