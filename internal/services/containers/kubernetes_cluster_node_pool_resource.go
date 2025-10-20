@@ -437,13 +437,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enable_vtpm": {
+					"vtpm_enabled": {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 						Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
 					},
-					"enable_secure_boot": {
+					"secure_boot_enabled": {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -1894,12 +1894,12 @@ func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSe
 	v := input[0].(map[string]interface{})
 	result := &agentpools.AgentPoolSecurityProfile{}
 
-	if enableVTPM, ok := v["enable_vtpm"].(bool); ok {
-		result.EnableVTPM = pointer.To(enableVTPM)
+	if vtpmEnabled, ok := v["vtpm_enabled"].(bool); ok {
+		result.EnableVTPM = pointer.To(vtpmEnabled)
 	}
 
-	if enableSecureBoot, ok := v["enable_secure_boot"].(bool); ok {
-		result.EnableSecureBoot = pointer.To(enableSecureBoot)
+	if secureBootEnabled, ok := v["secure_boot_enabled"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(secureBootEnabled)
 	}
 
 	return result
@@ -1910,20 +1910,10 @@ func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile)
 		return []interface{}{}
 	}
 
-	enableVTPM := false
-	if input.EnableVTPM != nil {
-		enableVTPM = *input.EnableVTPM
-	}
-
-	enableSecureBoot := false
-	if input.EnableSecureBoot != nil {
-		enableSecureBoot = *input.EnableSecureBoot
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enable_vtpm":        enableVTPM,
-			"enable_secure_boot": enableSecureBoot,
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
 		},
 	}
 }
