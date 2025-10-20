@@ -159,8 +159,8 @@ func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
 			Config: r.securityProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.0.enable_vtpm").HasValue("true"),
-				check.That(data.ResourceName).Key("security_profile.0.enable_secure_boot").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -168,8 +168,8 @@ func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
 			Config: r.securityProfileConfigUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.0.enable_vtpm").HasValue("false"),
-				check.That(data.ResourceName).Key("security_profile.0.enable_secure_boot").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -3568,8 +3568,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   security_profile {
-    enable_vtpm        = true
-    enable_secure_boot = true
+    vtpm_enabled        = true
+    secure_boot_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -3610,8 +3610,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   security_profile {
-    enable_vtpm        = false
-    enable_secure_boot = false
+    vtpm_enabled        = false
+    secure_boot_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
