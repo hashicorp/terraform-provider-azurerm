@@ -132,7 +132,7 @@ A `management_ip_configuration` block supports the following:
 
 A `autoscale` block exports the following:
 
-* min_capacity: (Optional) The minimum number of capacity units for this azure firewall. Valid values range between 2 and 50. When max_capacity is present, min_capacity cannot be greater than max_capacity. The difference between max_capacity and min_capacity must be either 0 (i.e fixed scale) or have a minimum difference of 2 (i.e min 4, max 6 and not min 4, max 5).
+* `min_capacity`: (Optional) The minimum number of capacity units for this Azure Firewall. Valid values range between 2 and 50. When `max_capacity` is present, `min_capacity` cannot be greater than `max_capacity`. The difference between `max_capacity` and `min_capacity` must be either 0 (i.e fixed scale) or have a minimum difference of 2.
 
 * max_capacity: (Optional) The maximum number of capacity units for this azure firewall. Valid values range between 2 and 50. When min_capacity is present, max_capacity must be greater than min_capacity. The difference between max_capacity and min_capacity must be either 0 (i.e fixed scale) or have a minimum difference of 2 (i.e min 4, max 6 and not min 4, max 5).
 
