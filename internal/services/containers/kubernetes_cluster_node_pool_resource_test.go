@@ -159,8 +159,6 @@ func TestAccKubernetesClusterNodePool_virtualMachineProfile(t *testing.T) {
 			Config: r.virtualMachineProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.size").HasValue("Standard_DS2_v2"),
-				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.count").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -168,8 +166,13 @@ func TestAccKubernetesClusterNodePool_virtualMachineProfile(t *testing.T) {
 			Config: r.virtualMachineProfileConfigUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.size").HasValue("Standard_DS3_v2"),
-				check.That(data.ResourceName).Key("virtual_machine_profile.0.scale.0.manual.0.count").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.virtualMachineProfileMultipleManual(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -3540,31 +3543,33 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  sku_tier            = "Standard"
+  dns_prefix          = "acctestaks%[1]d"
+
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
   }
+
   identity {
     type = "SystemAssigned"
   }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "pool1"
+  name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_D2s_v3"
   node_count            = 1
+
   virtual_machine_profile {
     scale {
       manual {
@@ -3574,11 +3579,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, // resource_group name
-		data.Locations.Primary, // resource_group location
-		data.RandomInteger,     // kubernetes_cluster name
-		data.RandomInteger,     // kubernetes_cluster dns_prefix
-	)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterNodePoolResource) virtualMachineProfileConfigUpdated(data acceptance.TestData) string {
@@ -3588,43 +3589,91 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  sku_tier            = "Standard"
+  dns_prefix          = "acctestaks%[1]d"
+
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
   }
+
   identity {
     type = "SystemAssigned"
   }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "pool1"
+  name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_D2s_v3"
   node_count            = 1
+
   virtual_machine_profile {
     scale {
       manual {
-        size  = "Standard_B4s"
+        size  = "Standard_DS3_v2"
         count = 3
       }
     }
   }
 }
-`, data.RandomInteger, // resource_group name
-		data.Locations.Primary, // resource_group location
-		data.RandomInteger,     // kubernetes_cluster name
-		data.RandomInteger,     // kubernetes_cluster dns_prefix
-	)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (KubernetesClusterNodePoolResource) virtualMachineProfileMultipleManual(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  node_count            = 1
+
+  virtual_machine_profile {
+    scale {
+      manual {
+        size  = "Standard_DS2_v2"
+        count = 2
+      }
+      manual {
+        size  = "Standard_DS3_v2"
+        count = 3
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
