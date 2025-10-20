@@ -3536,15 +3536,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
     name       = "default"
@@ -3568,7 +3568,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     secure_boot_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterNodePoolResource) securityProfileConfigUpdated(data acceptance.TestData) string {
@@ -3578,15 +3578,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
     name       = "default"
@@ -3610,5 +3610,5 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     secure_boot_enabled = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
