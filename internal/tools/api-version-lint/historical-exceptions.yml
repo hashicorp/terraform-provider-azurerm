@@ -106,10 +106,6 @@
   version: 2019-01-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: search
-  version: 2024-06-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: security
   version: 2019-01-01-preview
 
