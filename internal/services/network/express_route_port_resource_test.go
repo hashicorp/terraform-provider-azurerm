@@ -201,7 +201,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-Hong-Kong-HK1"
+  peering_location    = "Area51-ERDirect"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
