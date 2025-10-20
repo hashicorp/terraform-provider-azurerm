@@ -1181,7 +1181,7 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
 func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData, kind string, sku_name string) string {
