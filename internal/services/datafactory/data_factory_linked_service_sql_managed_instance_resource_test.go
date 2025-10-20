@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceSQLManagedInstanceResource struct{}
@@ -115,17 +115,17 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultConnectionString(
 }
 
 func (t LinkedServiceSQLManagedInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LinkedServiceID(state.ID)
+	id, err := linkedservices.ParseLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroupName, id.FactoryName, id.LinkedServiceName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Data Factory SQL Managed Instance(%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceSQLManagedInstanceResource) basic(data acceptance.TestData) string {

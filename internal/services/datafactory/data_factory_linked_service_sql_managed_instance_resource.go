@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -48,18 +47,6 @@ type KeyVaultPasswordConfig struct {
 }
 
 var _ sdk.ResourceWithUpdate = LinkedServiceSqlManagedInstanceResource{}
-
-func (r LinkedServiceSqlManagedInstanceResource) ModelObject() interface{} {
-	return &LinkedServiceSqlManagedInstanceModel{}
-}
-
-func (r LinkedServiceSqlManagedInstanceResource) ResourceType() string {
-	return "azurerm_data_factory_linked_service_sql_managed_instance"
-}
-
-func (r LinkedServiceSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.LinkedServiceID
-}
 
 func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -185,38 +172,44 @@ func (r LinkedServiceSqlManagedInstanceResource) Attributes() map[string]*plugin
 	return map[string]*pluginsdk.Schema{}
 }
 
+func (r LinkedServiceSqlManagedInstanceResource) ModelObject() interface{} {
+	return &LinkedServiceSqlManagedInstanceModel{}
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) ResourceType() string {
+	return "azurerm_data_factory_linked_service_sql_managed_instance"
+}
+
 func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataFactory.LinkedServicesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config LinkedServiceSqlManagedInstanceModel
 			if err := metadata.Decode(&config); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			dataFactoryId, err := factories.ParseFactoryID(config.DataFactoryID)
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing Data Factory ID %q: %+v", config.DataFactoryID, err)
 			}
 
-			id := parse.NewLinkedServiceID(metadata.Client.Account.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, config.Name)
-			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
-			existing, err := client.Get(ctx, linkedServiceId, linkedservices.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
+			id := linkedservices.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, config.Name)
+
+			existing, err := client.Get(ctx, id, linkedservices.DefaultGetOperationOptions())
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_managed_instance", id.ID())
 			}
 
-			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
+			parameters := &linkedservices.AzureSqlMILinkedService{
 				Description: pointer.To(config.Description),
-				Type:        "AzureSqlMI",
 				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
 					Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
 				},
@@ -224,53 +217,52 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			if config.ConnectionString != "" {
 				connStr := interface{}(config.ConnectionString)
-				sqlMILinkedService.TypeProperties.ConnectionString = &connStr
+				parameters.TypeProperties.ConnectionString = &connStr
 			}
 
 			if len(config.KeyVaultConnectionString) > 0 {
 				keyVaultConnStr := expandKeyVaultConnectionStringFromConfig(config.KeyVaultConnectionString)
-				sqlMILinkedService.TypeProperties.ConnectionString = &keyVaultConnStr
+				parameters.TypeProperties.ConnectionString = &keyVaultConnStr
 			}
 
 			if config.ServicePrincipalID != "" {
 				spID := interface{}(config.ServicePrincipalID)
-				sqlMILinkedService.TypeProperties.ServicePrincipalId = &spID
+				parameters.TypeProperties.ServicePrincipalId = &spID
 			}
 
 			if config.ServicePrincipalKey != "" {
 				secureString := linkedservices.SecureString{
-					Type:  "SecureString",
 					Value: config.ServicePrincipalKey,
 				}
-				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
-				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
+				parameters.TypeProperties.ServicePrincipalKey = secureString
+				parameters.TypeProperties.ServicePrincipalCredential = secureString
 			}
 
 			if config.Tenant != "" {
-				sqlMILinkedService.TypeProperties.Tenant = pointer.To(interface{}(config.Tenant))
+				parameters.TypeProperties.Tenant = pointer.To(interface{}(config.Tenant))
 			}
 
 			if len(config.Parameters) > 0 {
-				parameters := make(map[string]linkedservices.ParameterSpecification)
+				parameterSpec := make(map[string]linkedservices.ParameterSpecification)
 				for key, value := range config.Parameters {
 					val := interface{}(value)
-					parameters[key] = linkedservices.ParameterSpecification{
+					parameterSpec[key] = linkedservices.ParameterSpecification{
 						Type:         linkedservices.ParameterTypeString,
 						DefaultValue: &val,
 					}
 				}
-				sqlMILinkedService.Parameters = &parameters
+				parameters.Parameters = &parameterSpec
 			}
 
 			if config.IntegrationRuntimeName != "" {
-				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+				parameters.ConnectVia = &linkedservices.IntegrationRuntimeReference{
 					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
 					ReferenceName: config.IntegrationRuntimeName,
 				}
 			}
 
 			if config.IntegrationRuntimeName != "" {
-				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+				parameters.ConnectVia = &linkedservices.IntegrationRuntimeReference{
 					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
 					ReferenceName: config.IntegrationRuntimeName,
 				}
@@ -281,14 +273,14 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				for i, v := range config.Annotations {
 					annotations[i] = v
 				}
-				sqlMILinkedService.Annotations = &annotations
+				parameters.Annotations = &annotations
 			}
 
 			linkedService := linkedservices.LinkedServiceResource{
-				Properties: sqlMILinkedService,
+				Properties: parameters,
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, linkedServiceId, linkedService, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, linkedService, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -304,19 +296,17 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataFactory.LinkedServicesClient
 
-			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			id, err := linkedservices.ParseLinkedServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
-			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
-
-			resp, err := client.Get(ctx, linkedServiceId, linkedservices.DefaultGetOperationOptions())
+			resp, err := client.Get(ctx, *id, linkedservices.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
+
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -338,20 +328,19 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinkedServiceSqlManagedInstanceModel{
-				Name:          id.Name,
-				DataFactoryID: dataFactoryId.ID(),
+				Name:          id.LinkedServiceName,
+				DataFactoryID: factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
 			}
 
-			if existing.Description != nil {
-				state.Description = *existing.Description
-			}
+			state.Description = pointer.From(existing.Description)
 
 			props := existing.TypeProperties
 
 			if props.ConnectionString != nil {
 				if val, ok := (*props.ConnectionString).(map[string]interface{}); ok {
 					state.KeyVaultConnectionString = flattenKeyVaultConnectionStringToConfig(val)
-				} else if val, ok := (*props.ConnectionString).(string); ok {
+				}
+				if val, ok := (*props.ConnectionString).(string); ok {
 					state.ConnectionString = val
 				}
 			}
@@ -368,7 +357,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if v, exists := metadata.ResourceData.GetOk("service_principal_key"); exists {
+			if v, exists := metadata.ResourceData.GetOk("service_principal_key"); exists && v.(string) != "" {
 				state.ServicePrincipalKey = v.(string)
 			}
 
@@ -411,88 +400,105 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataFactory.LinkedServicesClient
 
-			var config LinkedServiceSqlManagedInstanceModel
-			if err := metadata.Decode(&config); err != nil {
-				return err
-			}
-
-			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			id, err := linkedservices.ParseLinkedServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
+			var config LinkedServiceSqlManagedInstanceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
-				Description: pointer.To(config.Description),
-				Type:        "AzureSqlMI",
-				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
-					Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
+			existing, err := client.Get(ctx, *id, linkedservices.DefaultGetOperationOptions())
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
+			}
+
+			payload := linkedservices.LinkedServiceResource{
+				Properties: &linkedservices.AzureSqlMILinkedService{
+					Description: pointer.To(config.Description),
+					TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
+						Password: expandKeyVaultPasswordFromConfig(config.KeyVaultPassword),
+					},
 				},
 			}
+			props := payload.Properties.(*linkedservices.AzureSqlMILinkedService)
 
-			if config.ConnectionString != "" {
-				connStr := interface{}(config.ConnectionString)
-				sqlMILinkedService.TypeProperties.ConnectionString = &connStr
-			}
-
-			if len(config.KeyVaultConnectionString) > 0 {
-				keyVaultConnStr := expandKeyVaultConnectionStringFromConfig(config.KeyVaultConnectionString)
-				sqlMILinkedService.TypeProperties.ConnectionString = &keyVaultConnStr
-			}
-
-			if config.ServicePrincipalID != "" {
-				spID := interface{}(config.ServicePrincipalID)
-				sqlMILinkedService.TypeProperties.ServicePrincipalId = &spID
-			}
-
-			if config.ServicePrincipalKey != "" {
-				secureString := linkedservices.SecureString{
-					Type:  "SecureString",
-					Value: config.ServicePrincipalKey,
+			if metadata.ResourceData.HasChanges("connection_string", "key_vault_connection_string") {
+				if config.ConnectionString != "" {
+					connStr := interface{}(config.ConnectionString)
+					props.TypeProperties.ConnectionString = &connStr
 				}
-				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
 
-				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
+				if len(config.KeyVaultConnectionString) > 0 {
+					keyVaultConnStr := expandKeyVaultConnectionStringFromConfig(config.KeyVaultConnectionString)
+					props.TypeProperties.ConnectionString = &keyVaultConnStr
+				}
 			}
 
-			if config.Tenant != "" {
-				tenant := interface{}(config.Tenant)
-				sqlMILinkedService.TypeProperties.Tenant = &tenant
+			if metadata.ResourceData.HasChanges("service_principal_id", "service_principal_key", "tenant") {
+				if config.ServicePrincipalID != "" {
+					spID := interface{}(config.ServicePrincipalID)
+					props.TypeProperties.ServicePrincipalId = &spID
+				}
+
+				if config.ServicePrincipalKey != "" {
+					secureString := linkedservices.SecureString{
+						Value: config.ServicePrincipalKey,
+					}
+					props.TypeProperties.ServicePrincipalKey = secureString
+					props.TypeProperties.ServicePrincipalCredential = secureString
+				}
+
+				if config.Tenant != "" {
+					tenant := interface{}(config.Tenant)
+					props.TypeProperties.Tenant = &tenant
+				}
 			}
 
-			if len(config.Parameters) > 0 {
-				parameters := make(map[string]linkedservices.ParameterSpecification)
-				for key, value := range config.Parameters {
-					val := interface{}(value)
-					parameters[key] = linkedservices.ParameterSpecification{
-						Type:         linkedservices.ParameterTypeString,
-						DefaultValue: &val,
+			if metadata.ResourceData.HasChange("parameters") {
+				if len(config.Parameters) > 0 {
+					parameterSpec := make(map[string]linkedservices.ParameterSpecification)
+					for key, value := range config.Parameters {
+						val := interface{}(value)
+						parameterSpec[key] = linkedservices.ParameterSpecification{
+							Type:         linkedservices.ParameterTypeString,
+							DefaultValue: &val,
+						}
+					}
+					props.Parameters = &parameterSpec
+				}
+			}
+
+			if metadata.ResourceData.HasChange("integration_runtime_name") {
+				if config.IntegrationRuntimeName != "" {
+					props.ConnectVia = &linkedservices.IntegrationRuntimeReference{
+						Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+						ReferenceName: config.IntegrationRuntimeName,
 					}
 				}
-				sqlMILinkedService.Parameters = &parameters
 			}
 
-			if config.IntegrationRuntimeName != "" {
-				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
-					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
-					ReferenceName: config.IntegrationRuntimeName,
+			if metadata.ResourceData.HasChange("annotations") {
+				if len(config.Annotations) > 0 {
+					annotations := make([]interface{}, len(config.Annotations))
+					for i, v := range config.Annotations {
+						annotations[i] = v
+					}
+					props.Annotations = &annotations
 				}
 			}
 
-			if len(config.Annotations) > 0 {
-				annotations := make([]interface{}, len(config.Annotations))
-				for i, v := range config.Annotations {
-					annotations[i] = v
-				}
-				sqlMILinkedService.Annotations = &annotations
-			}
-
-			linkedService := linkedservices.LinkedServiceResource{
-				Properties: sqlMILinkedService,
-			}
-
-			if _, err := client.CreateOrUpdate(ctx, linkedServiceId, linkedService, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, payload, linkedservices.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -507,14 +513,12 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataFactory.LinkedServicesClient
 
-			id, err := parse.LinkedServiceID(metadata.ResourceData.Id())
+			id, err := linkedservices.ParseLinkedServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			linkedServiceId := linkedservices.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
-
-			resp, err := client.Delete(ctx, linkedServiceId)
+			resp, err := client.Delete(ctx, *id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)
@@ -524,6 +528,10 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r LinkedServiceSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return linkedservices.ValidateLinkedServiceID
 }
 
 func expandKeyVaultConnectionStringFromConfig(input []KeyVaultConnectionStringConfig) interface{} {

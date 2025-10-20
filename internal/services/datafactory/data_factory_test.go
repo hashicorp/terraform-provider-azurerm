@@ -32,7 +32,6 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 			NoDiff: false,
 		},
 		{
-			// Test trailing semicolon handling
 			Old:    "server=myserver.database.windows.net;database=mydatabase;user id=myuser",
 			New:    "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;",
 			NoDiff: true,

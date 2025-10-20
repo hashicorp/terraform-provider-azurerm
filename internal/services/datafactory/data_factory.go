@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -33,26 +34,11 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 	}
 }
 
-// filterNonEmpty filters out empty strings from a slice
-func filterNonEmpty(strings []string) []string {
-	result := make([]string, 0, len(strings))
-	for _, s := range strings {
-		if s != "" {
-			result = append(result, s)
-		}
-	}
-	return result
-}
-
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
 func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
-
-	// Filter out empty strings (caused by trailing semicolons)
-	oldSplit = filterNonEmpty(oldSplit)
-	newSplit = filterNonEmpty(newSplit)
+	oldSplit := strings.Split(strings.TrimSuffix(strings.ToLower(old), ";"), ";")
+	newSplit := strings.Split(strings.TrimSuffix(strings.ToLower(new), ";"), ";")
 
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
@@ -74,6 +60,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new stri
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -253,8 +240,8 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	return &datafactory.AzureKeyVaultSecretReference{
 		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }
