@@ -731,7 +731,7 @@ func findRoleEligibilityScheduleRequest(ctx context.Context, client *roleeligibi
 		}
 
 		requestsResult, err := client.ListForScopeComplete(ctx, *scopeId, roleeligibilityschedulerequests.ListForScopeOperationOptions{
-			Filter: pointer.To(fmt.Sprintf("principalId eq '%s'", *principalId)),
+			Filter: pointer.To(fmt.Sprintf("principalId eq '%s' and atScope()", *principalId)),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("listing Role Eligibility Requests for principal_id %q: %+v", *principalId, err)

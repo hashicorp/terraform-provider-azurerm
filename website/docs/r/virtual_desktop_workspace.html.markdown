@@ -32,7 +32,7 @@ resource "azurerm_virtual_desktop_workspace" "workspace" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

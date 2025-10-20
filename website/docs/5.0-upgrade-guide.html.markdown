@@ -34,6 +34,10 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_automation_software_update_configuration`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_hpc_cache`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -443,6 +447,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_function_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_virtual_machine`
+
+* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
 
 ### `azurerm_windows_web_app`
 

@@ -4,6 +4,7 @@
 package markdown
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ type APISection struct {
 var _ SectionWithTemplate = &APISection{}
 
 func (s *APISection) Match(line string) bool {
-	return strings.Contains(strings.ToLower(line), "api providers")
+	return regexp.MustCompile(`#+(\s)*api providers.*`).MatchString(strings.ToLower(line))
 }
 
 func (s *APISection) SetHeading(line string) {

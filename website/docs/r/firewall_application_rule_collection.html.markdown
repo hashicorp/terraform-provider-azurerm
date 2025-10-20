@@ -81,7 +81,7 @@ resource "azurerm_firewall_application_rule_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -124,6 +124,12 @@ A `protocol` block supports the following:
 * `port` - (Required) Specify a port for the connection.
 
 * `type` - (Required) Specifies the type of connection. Possible values are `Http`, `Https` and `Mssql`.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Firewall Application Rule Collection.
 
 ## Timeouts
 

@@ -31,7 +31,7 @@ output "certificate_thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

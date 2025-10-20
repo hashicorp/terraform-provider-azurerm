@@ -19,7 +19,7 @@ data "azurerm_container_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -371,4 +371,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.App` - 2025-01-01
+* `Microsoft.App` - 2025-07-01

@@ -23,7 +23,7 @@ output "location" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the Network Security Group.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Network Security Group exists
