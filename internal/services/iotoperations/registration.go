@@ -38,12 +38,12 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		InstanceResource{},
 		// Comment out others until they compile
-		// BrokerResource{},
-		// BrokerAuthenticationResource{},
-		// BrokerAuthorizationResource{},
-		// BrokerListenerResource{},
-		// DataflowResource{},
-		// DataflowEndpointResource{},
-		// DataflowProfileResource{},
+		BrokerResource{},
+		BrokerAuthenticationResource{},
+		BrokerAuthorizationResource{},
+		BrokerListenerResource{},
+		DataflowResource{},
+	    DataflowEndpointResource{},
+		DataflowProfileResource{},
 	}
 }
