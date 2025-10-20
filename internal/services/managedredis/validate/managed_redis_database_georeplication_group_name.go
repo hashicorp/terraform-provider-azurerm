@@ -15,17 +15,14 @@ func ManagedRedisDatabaseGeoreplicationGroupName(val interface{}, argName string
 		return nil, []error{fmt.Errorf("expected type of %q to be string", argName)}
 	}
 
-	// Check length between 1-63
 	if len(v) < 1 || len(v) > 63 {
 		return nil, []error{fmt.Errorf("%q must be between 1 and 63 characters long", argName)}
 	}
 
-	// Check if it contains only letters, numbers, and hyphens
 	if !regexp.MustCompile(`^[a-zA-Z0-9-]+$`).MatchString(v) {
 		return nil, []error{fmt.Errorf("%q can only contain letters, numbers, and hyphens", argName)}
 	}
 
-	// Check if first and last characters are letters or numbers
 	firstChar := v[0]
 	lastChar := v[len(v)-1]
 	if (firstChar < 'a' || firstChar > 'z') && (firstChar < 'A' || firstChar > 'Z') && (firstChar < '0' || firstChar > '9') {
@@ -35,7 +32,6 @@ func ManagedRedisDatabaseGeoreplicationGroupName(val interface{}, argName string
 		return nil, []error{fmt.Errorf("%q must end with a letter or number", argName)}
 	}
 
-	// Check for consecutive hyphens
 	if strings.Contains(v, "--") {
 		return nil, []error{fmt.Errorf("%q cannot contain consecutive hyphens", argName)}
 	}

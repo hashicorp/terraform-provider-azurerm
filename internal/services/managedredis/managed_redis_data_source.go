@@ -229,8 +229,6 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(clusterId)
 
-			// Read cluster
-
 			if model := clusterResp.Model; model != nil {
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
@@ -248,8 +246,6 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 					state.Hostname = pointer.From(props.HostName)
 				}
 			}
-
-			// Read db
 
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {

@@ -175,8 +175,6 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// Deletion works by unlinking all databases except self
-
 			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			clusterId, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())

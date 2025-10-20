@@ -164,7 +164,6 @@ func TestClusterStatePoller_StateTransitions(t *testing.T) {
 
 	pollerType := NewClusterStatePoller(mockClient, id)
 
-	// Test first call - should be "Creating" and return in progress
 	result1, err1 := pollerType.Poll(context.Background())
 	if err1 != nil {
 		t.Fatalf("first poll error: %v", err1)
@@ -173,7 +172,6 @@ func TestClusterStatePoller_StateTransitions(t *testing.T) {
 		t.Fatalf("expected in progress, got %s", result1.Status)
 	}
 
-	// Test second call - should be "Updating" and return in progress
 	result2, err2 := pollerType.Poll(context.Background())
 	if err2 != nil {
 		t.Fatalf("second poll error: %v", err2)
@@ -182,7 +180,6 @@ func TestClusterStatePoller_StateTransitions(t *testing.T) {
 		t.Fatalf("expected in progress, got %s", result2.Status)
 	}
 
-	// Test third call - should be "Running" and return success
 	result3, err3 := pollerType.Poll(context.Background())
 	if err3 != nil {
 		t.Fatalf("third poll error: %v", err3)
