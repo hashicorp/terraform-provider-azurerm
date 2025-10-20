@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2024-03-01/deploymentstacksatsubscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubscriptionDeploymentStackResource struct{}
@@ -29,7 +29,7 @@ func TestAccSubscriptionDeploymentStack_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccSubscriptionDeploymentStack_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -74,21 +74,21 @@ func TestAccSubscriptionDeploymentStack_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -103,7 +103,7 @@ func (r SubscriptionDeploymentStackResource) Exists(ctx context.Context, client 
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SubscriptionDeploymentStackResource) basic(data acceptance.TestData) string {
@@ -210,11 +210,68 @@ resource "azurerm_subscription_deployment_stack" "test" {
     apply_to_child_scopes = true
   }
 
-  bypass_stack_out_of_sync_error = true
-
   tags = {
     environment = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r SubscriptionDeploymentStackResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription_deployment_stack" "test" {
+  name        = "acctestds-%[1]d"
+  location    = %[2]q
+  description = "Updated deployment stack"
+
+  template_content = jsonencode({
+    "$schema"        = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
+    "contentVersion" = "1.0.0.0"
+    "parameters" = {
+      "resourceGroupName" = {
+        "type" = "string"
+      }
+      "resourceGroupLocation" = {
+        "type" = "string"
+      }
+    }
+    "resources" = [
+      {
+        "type"       = "Microsoft.Resources/resourceGroups"
+        "apiVersion" = "2021-04-01"
+        "name"       = "[parameters('resourceGroupName')]"
+        "location"   = "[parameters('resourceGroupLocation')]"
+        "properties" = {}
+      }
+    ]
+  })
+
+  parameters_content = jsonencode({
+    "resourceGroupName" = {
+      "value" = "acctestRG-update-%[1]d"
+    }
+    "resourceGroupLocation" = {
+      "value" = %[2]q
+    }
+  })
+
+  action_on_unmanage {
+    resources = "detach"
+  }
+
+  deny_settings {
+    mode                  = "denyWriteAndDelete"
+    apply_to_child_scopes = true
+  }
+
+  tags = {
+    environment = "staging"
+    updated     = "true"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2024-03-01/deploymentstacksatresourcegroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupDeploymentStackResource struct{}
@@ -29,7 +29,7 @@ func TestAccResourceGroupDeploymentStack_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccResourceGroupDeploymentStack_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bypass_stack_out_of_sync_error"),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -74,21 +74,21 @@ func TestAccResourceGroupDeploymentStack_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bypass_stack_out_of_sync_error"),
+		data.ImportStep("template_content"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -103,7 +103,7 @@ func (r ResourceGroupDeploymentStackResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ResourceGroupDeploymentStackResource) basic(data acceptance.TestData) string {
@@ -213,8 +213,6 @@ resource "azurerm_resource_group_deployment_stack" "test" {
     mode                  = "denyDelete"
     apply_to_child_scopes = false
   }
-
-  bypass_stack_out_of_sync_error = true
 
   tags = {
     environment = "test"

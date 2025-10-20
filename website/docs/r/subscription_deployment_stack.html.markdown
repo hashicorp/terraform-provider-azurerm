@@ -47,8 +47,6 @@ The following arguments are supported:
 
 ---
 
-* `bypass_stack_out_of_sync_error` - (Optional) Specifies whether to bypass the error when the deployment stack is out of sync. Defaults to `false`.
-
 * `deployment_resource_group_name` - (Optional) The name of the Resource Group to deploy the resources to. Changing this forces a new Subscription Deployment Stack to be created.
 
 * `description` - (Optional) The description of the Deployment Stack.

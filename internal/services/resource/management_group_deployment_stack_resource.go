@@ -24,21 +24,19 @@ var _ sdk.ResourceWithUpdate = ManagementGroupDeploymentStackResource{}
 type ManagementGroupDeploymentStackResource struct{}
 
 type ManagementGroupDeploymentStackModel struct {
-	Name                      string                  `tfschema:"name"`
-	ManagementGroupId         string                  `tfschema:"management_group_id"`
-	Location                  string                  `tfschema:"location"`
-	TemplateContent           string                  `tfschema:"template_content"`
-	TemplateSpecVersionId     string                  `tfschema:"template_spec_version_id"`
-	ParametersContent         string                  `tfschema:"parameters_content"`
-	Description               string                  `tfschema:"description"`
-	DeploymentSubscriptionId  string                  `tfschema:"deployment_subscription_id"`
-	ActionOnUnmanage          []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
-	DenySettings              []DenySettingsModel     `tfschema:"deny_settings"`
-	BypassStackOutOfSyncError bool                    `tfschema:"bypass_stack_out_of_sync_error"`
-	Tags                      map[string]string       `tfschema:"tags"`
-	OutputContent             string                  `tfschema:"output_content"`
-	DeploymentId              string                  `tfschema:"deployment_id"`
-	Duration                  string                  `tfschema:"duration"`
+	Name                  string                  `tfschema:"name"`
+	ManagementGroupId     string                  `tfschema:"management_group_id"`
+	Location              string                  `tfschema:"location"`
+	TemplateContent       string                  `tfschema:"template_content"`
+	TemplateSpecVersionId string                  `tfschema:"template_spec_version_id"`
+	ParametersContent     string                  `tfschema:"parameters_content"`
+	Description           string                  `tfschema:"description"`
+	ActionOnUnmanage      []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
+	DenySettings          []DenySettingsModel     `tfschema:"deny_settings"`
+	Tags                  map[string]string       `tfschema:"tags"`
+	OutputContent         string                  `tfschema:"output_content"`
+	DeploymentId          string                  `tfschema:"deployment_id"`
+	Duration              string                  `tfschema:"duration"`
 }
 
 func (r ManagementGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.Schema {
@@ -58,13 +56,6 @@ func (r ManagementGroupDeploymentStackResource) Arguments() map[string]*pluginsd
 		},
 
 		"location": commonschema.Location(),
-
-		"deployment_subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-		},
 
 		"template_content": {
 			Type:     pluginsdk.TypeString,
@@ -185,12 +176,6 @@ func (r ManagementGroupDeploymentStackResource) Arguments() map[string]*pluginsd
 			},
 		},
 
-		"bypass_stack_out_of_sync_error": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -252,10 +237,6 @@ func (r ManagementGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 				properties.Description = pointer.To(model.Description)
 			}
 
-			if model.DeploymentSubscriptionId != "" {
-				properties.DeploymentScope = pointer.To(fmt.Sprintf("/subscriptions/%s", model.DeploymentSubscriptionId))
-			}
-
 			if model.TemplateContent != "" {
 				template, err := expandTemplateDeploymentBody(model.TemplateContent)
 				if err != nil {
@@ -277,15 +258,19 @@ func (r ManagementGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 				}
 				deploymentParams := make(map[string]deploymentstacksatmanagementgroup.DeploymentParameter)
 				for k, v := range *params {
+					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
+					// Extract the "value" field if it exists
+					paramValue := v
+					if paramMap, ok := v.(map[string]interface{}); ok {
+						if val, exists := paramMap["value"]; exists {
+							paramValue = val
+						}
+					}
 					deploymentParams[k] = deploymentstacksatmanagementgroup.DeploymentParameter{
-						Value: pointer.To(v),
+						Value: pointer.To(paramValue),
 					}
 				}
 				properties.Parameters = pointer.To(deploymentParams)
-			}
-
-			if model.BypassStackOutOfSyncError {
-				properties.BypassStackOutOfSyncError = pointer.To(true)
 			}
 
 			tags := model.Tags
@@ -355,15 +340,19 @@ func (r ManagementGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 				}
 				deploymentParams := make(map[string]deploymentstacksatmanagementgroup.DeploymentParameter)
 				for k, v := range *params {
+					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
+					// Extract the "value" field if it exists
+					paramValue := v
+					if paramMap, ok := v.(map[string]interface{}); ok {
+						if val, exists := paramMap["value"]; exists {
+							paramValue = val
+						}
+					}
 					deploymentParams[k] = deploymentstacksatmanagementgroup.DeploymentParameter{
-						Value: pointer.To(v),
+						Value: pointer.To(paramValue),
 					}
 				}
 				properties.Parameters = pointer.To(deploymentParams)
-			}
-
-			if model.BypassStackOutOfSyncError {
-				properties.BypassStackOutOfSyncError = pointer.To(true)
 			}
 
 			tags := model.Tags
@@ -427,32 +416,24 @@ func (r ManagementGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 						state.Description = *props.Description
 					}
 
-					if props.DeploymentScope != nil {
-						scope := *props.DeploymentScope
-						if len(scope) > 15 && scope[:15] == "/subscriptions/" {
-							state.DeploymentSubscriptionId = scope[15:]
-						}
-					}
-
-					if props.BypassStackOutOfSyncError != nil {
-						state.BypassStackOutOfSyncError = *props.BypassStackOutOfSyncError
-					}
-
+					// Handle template fields
 					if props.TemplateLink != nil && props.TemplateLink.Id != nil {
 						state.TemplateSpecVersionId = *props.TemplateLink.Id
-					} else if props.Template != nil {
-						flattenedTemplate, err := flattenTemplateDeploymentBody(*props.Template)
-						if err != nil {
-							return fmt.Errorf("flattening `template_content`: %+v", err)
-						}
-						state.TemplateContent = *flattenedTemplate
+					} else {
+						// API doesn't return template in GET responses, preserve from current state
+						state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					}
 
-					if props.Parameters != nil {
+					// For parameters, preserve the ARM parameter wrapper format
+					if props.Parameters != nil && len(*props.Parameters) > 0 {
+						// Preserve the ARM parameter format: {"paramName": {"value": "..."}}
 						params := make(map[string]interface{})
 						for k, v := range *props.Parameters {
 							if v.Value != nil {
-								params[k] = *v.Value
+								// Keep the wrapper format to match what's in config
+								params[k] = map[string]interface{}{
+									"value": *v.Value,
+								}
 							}
 						}
 						flattenedParams, err := flattenTemplateDeploymentBody(params)
@@ -460,6 +441,12 @@ func (r ManagementGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("flattening `parameters_content`: %+v", err)
 						}
 						state.ParametersContent = *flattenedParams
+					} else {
+						// If API returns empty parameters but config has parameters_content, preserve it
+						configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
+						if configParamsContent != "" {
+							state.ParametersContent = configParamsContent
+						}
 					}
 
 					if props.Outputs != nil {
@@ -599,7 +586,8 @@ func flattenManagementGroupDenySettings(input deploymentstacksatmanagementgroup.
 		result.ApplyToChildScopes = *input.ApplyToChildScopes
 	}
 
-	// Only set these if they have values - don't set empty arrays
+	// Only set excluded_actions/excluded_principals if they have values
+	// Don't set them at all if empty to avoid drift
 	if input.ExcludedActions != nil && len(*input.ExcludedActions) > 0 {
 		result.ExcludedActions = input.ExcludedActions
 	}

@@ -54,10 +54,6 @@ The following arguments are supported:
 
 ---
 
-* `bypass_stack_out_of_sync_error` - (Optional) Specifies whether to bypass the error when the deployment stack is out of sync. Defaults to `false`.
-
-* `deployment_subscription_id` - (Optional) The Subscription ID to use for the deployment scope. Changing this forces a new Management Group Deployment Stack to be created.
-
 * `description` - (Optional) The description of the Deployment Stack.
 
 * `parameters_content` - (Optional) The JSON content of the ARM Template parameters file.

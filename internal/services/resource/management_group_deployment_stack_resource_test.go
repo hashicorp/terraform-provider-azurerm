@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2024-03-01/deploymentstacksatmanagementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupDeploymentStackResource struct{}
@@ -29,7 +29,7 @@ func TestAccManagementGroupDeploymentStack_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccManagementGroupDeploymentStack_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -74,21 +74,21 @@ func TestAccManagementGroupDeploymentStack_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("template_content"),
 	})
 }
 
@@ -103,7 +103,7 @@ func (r ManagementGroupDeploymentStackResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagementGroupDeploymentStackResource) basic(data acceptance.TestData) string {
@@ -120,8 +120,8 @@ resource "azurerm_management_group" "test" {
 
 resource "azurerm_management_group_deployment_stack" "test" {
   name                = "acctestds-%[1]d"
-  location            = %[2]q
   management_group_id = azurerm_management_group.test.id
+  location            = %[2]q
 
   template_content = jsonencode({
     "$schema"        = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
@@ -146,8 +146,8 @@ func (r ManagementGroupDeploymentStackResource) requiresImport(data acceptance.T
 
 resource "azurerm_management_group_deployment_stack" "import" {
   name                = azurerm_management_group_deployment_stack.test.name
-  location            = azurerm_management_group_deployment_stack.test.location
   management_group_id = azurerm_management_group_deployment_stack.test.management_group_id
+  location            = azurerm_management_group_deployment_stack.test.location
 
   template_content = azurerm_management_group_deployment_stack.test.template_content
 
@@ -175,65 +175,71 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_management_group_deployment_stack" "test" {
-  name                       = "acctestds-%[1]d"
-  location                   = %[2]q
-  management_group_id        = azurerm_management_group.test.id
-  description                = "Test deployment stack"
-  deployment_subscription_id = data.azurerm_client_config.current.subscription_id
+  name                = "acctestds-%[1]d"
+  management_group_id = azurerm_management_group.test.id
+  location            = %[2]q
+  description         = "Test deployment stack"
 
   template_content = jsonencode({
     "$schema"        = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
     "contentVersion" = "1.0.0.0"
-    "parameters" = {
-      "policyName" = {
-        "type" = "string"
-      }
-    }
-    "resources" = [
-      {
-        "type"       = "Microsoft.Authorization/policyDefinitions"
-        "apiVersion" = "2021-06-01"
-        "name"       = "[parameters('policyName')]"
-        "properties" = {
-          "policyType"  = "Custom"
-          "mode"        = "All"
-          "displayName" = "Test Policy"
-          "policyRule" = {
-            "if" = {
-              "field"  = "type"
-              "equals" = "Microsoft.Storage/storageAccounts"
-            }
-            "then" = {
-              "effect" = "audit"
-            }
-          }
-        }
-      }
-    ]
-  })
-
-  parameters_content = jsonencode({
-    "policyName" = {
-      "value" = "acctest-policy-%[1]d"
-    }
+    "resources"      = []
   })
 
   action_on_unmanage {
     resources         = "delete"
     resource_groups   = "delete"
-    management_groups = "delete"
+    management_groups = "detach"
+  }
+
+  deny_settings {
+    mode                  = "denyDelete"
+    apply_to_child_scopes = true
+  }
+
+  tags = {
+    environment = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagementGroupDeploymentStackResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_management_group" "test" {
+  display_name = "acctestmg-%[1]d"
+}
+
+resource "azurerm_management_group_deployment_stack" "test" {
+  name                = "acctestds-%[1]d"
+  management_group_id = azurerm_management_group.test.id
+  location            = %[2]q
+  description         = "Updated deployment stack"
+
+  template_content = jsonencode({
+    "$schema"        = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
+    "contentVersion" = "1.0.0.0"
+    "resources"      = []
+  })
+
+  action_on_unmanage {
+    resources = "detach"
   }
 
   deny_settings {
     mode                  = "denyWriteAndDelete"
     apply_to_child_scopes = true
-    excluded_actions      = ["Microsoft.Authorization/policyDefinitions/delete"]
   }
 
-  bypass_stack_out_of_sync_error = true
-
   tags = {
-    environment = "test"
+    environment = "staging"
+    updated     = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

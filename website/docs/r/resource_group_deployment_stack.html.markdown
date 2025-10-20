@@ -52,8 +52,6 @@ The following arguments are supported:
 
 ---
 
-* `bypass_stack_out_of_sync_error` - (Optional) Specifies whether to bypass the error when the deployment stack is out of sync. Defaults to `false`.
-
 * `description` - (Optional) The description of the Deployment Stack.
 
 * `parameters_content` - (Optional) The JSON content of the ARM Template parameters file.
@@ -102,9 +100,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the Resource Group Deployment Stack.
+* `create` - (Defaults to 30 minutes) Used when creating the Resource Group Deployment Stack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group Deployment Stack.
-* `update` - (Defaults to 3 hours) Used when updating the Resource Group Deployment Stack.
+* `update` - (Defaults to 30 minutes) Used when updating the Resource Group Deployment Stack.
 * `delete` - (Defaults to 3 hours) Used when deleting the Resource Group Deployment Stack.
 
 ## Import

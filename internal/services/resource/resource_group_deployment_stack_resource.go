@@ -23,19 +23,18 @@ var _ sdk.ResourceWithUpdate = ResourceGroupDeploymentStackResource{}
 type ResourceGroupDeploymentStackResource struct{}
 
 type ResourceGroupDeploymentStackModel struct {
-	Name                      string                  `tfschema:"name"`
-	ResourceGroupName         string                  `tfschema:"resource_group_name"`
-	TemplateContent           string                  `tfschema:"template_content"`
-	TemplateSpecVersionId     string                  `tfschema:"template_spec_version_id"`
-	ParametersContent         string                  `tfschema:"parameters_content"`
-	Description               string                  `tfschema:"description"`
-	ActionOnUnmanage          []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
-	DenySettings              []DenySettingsModel     `tfschema:"deny_settings"`
-	BypassStackOutOfSyncError bool                    `tfschema:"bypass_stack_out_of_sync_error"`
-	Tags                      map[string]string       `tfschema:"tags"`
-	OutputContent             string                  `tfschema:"output_content"`
-	DeploymentId              string                  `tfschema:"deployment_id"`
-	Duration                  string                  `tfschema:"duration"`
+	Name                  string                  `tfschema:"name"`
+	ResourceGroupName     string                  `tfschema:"resource_group_name"`
+	TemplateContent       string                  `tfschema:"template_content"`
+	TemplateSpecVersionId string                  `tfschema:"template_spec_version_id"`
+	ParametersContent     string                  `tfschema:"parameters_content"`
+	Description           string                  `tfschema:"description"`
+	ActionOnUnmanage      []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
+	DenySettings          []DenySettingsModel     `tfschema:"deny_settings"`
+	Tags                  map[string]string       `tfschema:"tags"`
+	OutputContent         string                  `tfschema:"output_content"`
+	DeploymentId          string                  `tfschema:"deployment_id"`
+	Duration              string                  `tfschema:"duration"`
 }
 
 type ActionOnUnmanageModel struct {
@@ -62,74 +61,30 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"template_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"template_content",
-				"template_spec_version_id",
-			},
-			StateFunc:        utils.NormalizeJson,
-			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-		},
-
-		"template_spec_version_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"template_content",
-				"template_spec_version_id",
-			},
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"parameters_content": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			StateFunc:    utils.NormalizeJson,
-			ValidateFunc: validation.StringIsJSON,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(0, 256),
-		},
-
 		"action_on_unmanage": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"resources": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+					"management_groups": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 
 					"resource_groups": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 
-					"management_groups": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+					"resources": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 				},
 			},
@@ -142,13 +97,9 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatresourcegroup.DenySettingsModeNone),
-							string(deploymentstacksatresourcegroup.DenySettingsModeDenyDelete),
-							string(deploymentstacksatresourcegroup.DenySettingsModeDenyWriteAndDelete),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDenySettingsMode(), false),
 					},
 
 					"apply_to_child_scopes": {
@@ -180,29 +131,58 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 			},
 		},
 
-		"bypass_stack_out_of_sync_error": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(0, 256),
+		},
+
+		"parameters_content": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			StateFunc:    utils.NormalizeJson,
+			ValidateFunc: validation.StringIsJSON,
 		},
 
 		"tags": commonschema.Tags(),
+
+		"template_content": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"template_content",
+				"template_spec_version_id",
+			},
+			StateFunc:        utils.NormalizeJson,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"template_spec_version_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"template_content",
+				"template_spec_version_id",
+			},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 	}
 }
 
 func (r ResourceGroupDeploymentStackResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"output_content": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"deployment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"duration": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"output_content": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -219,7 +199,7 @@ func (r ResourceGroupDeploymentStackResource) ResourceType() string {
 
 func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -269,15 +249,19 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 				}
 				deploymentParams := make(map[string]deploymentstacksatresourcegroup.DeploymentParameter)
 				for k, v := range *params {
+					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
+					// Extract the "value" field if it exists
+					paramValue := v
+					if paramMap, ok := v.(map[string]interface{}); ok {
+						if val, exists := paramMap["value"]; exists {
+							paramValue = val
+						}
+					}
 					deploymentParams[k] = deploymentstacksatresourcegroup.DeploymentParameter{
-						Value: pointer.To(v),
+						Value: pointer.To(paramValue),
 					}
 				}
 				properties.Parameters = pointer.To(deploymentParams)
-			}
-
-			if model.BypassStackOutOfSyncError {
-				properties.BypassStackOutOfSyncError = pointer.To(true)
 			}
 
 			tags := model.Tags
@@ -300,9 +284,100 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 	}
 }
 
+func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
+
+			id, err := deploymentstacksatresourcegroup.ParseProviderDeploymentStackID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.DeploymentStacksGetAtResourceGroup(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			state := ResourceGroupDeploymentStackModel{
+				Name:              id.DeploymentStackName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
+			if model := resp.Model; model != nil {
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
+
+				if props := model.Properties; props != nil {
+					state.ActionOnUnmanage = flattenActionOnUnmanage(props.ActionOnUnmanage)
+					state.DenySettings = flattenDenySettings(props.DenySettings)
+
+					if props.Description != nil {
+						state.Description = *props.Description
+					}
+
+					if props.TemplateLink != nil && props.TemplateLink.Id != nil {
+						state.TemplateSpecVersionId = *props.TemplateLink.Id
+					} else {
+						// API doesn't return template in GET responses, preserve from current state
+						state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
+					}
+
+					// For parameters, preserve the config value if parameters is empty in API
+					if props.Parameters != nil && len(*props.Parameters) > 0 {
+						// Preserve the ARM parameter format: {"paramName": {"value": "..."}}
+						params := make(map[string]interface{})
+						for k, v := range *props.Parameters {
+							if v.Value != nil {
+								params[k] = map[string]interface{}{
+									"value": *v.Value,
+								}
+							}
+						}
+						flattenedParams, err := flattenTemplateDeploymentBody(params)
+						if err != nil {
+							return fmt.Errorf("flattening `parameters_content`: %+v", err)
+						}
+						state.ParametersContent = *flattenedParams
+					} else {
+						// If API returns empty parameters but config has parameters_content, preserve it
+						configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
+						if configParamsContent != "" {
+							state.ParametersContent = configParamsContent
+						}
+					}
+
+					if props.Outputs != nil {
+						flattenedOutputs, err := flattenTemplateDeploymentBody(*props.Outputs)
+						if err != nil {
+							return fmt.Errorf("flattening `output_content`: %+v", err)
+						}
+						state.OutputContent = *flattenedOutputs
+					}
+
+					if props.DeploymentId != nil {
+						state.DeploymentId = *props.DeploymentId
+					}
+
+					if props.Duration != nil {
+						state.Duration = *props.Duration
+					}
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
 func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
 
@@ -346,15 +421,19 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 				}
 				deploymentParams := make(map[string]deploymentstacksatresourcegroup.DeploymentParameter)
 				for k, v := range *params {
+					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
+					// Extract the "value" field if it exists
+					paramValue := v
+					if paramMap, ok := v.(map[string]interface{}); ok {
+						if val, exists := paramMap["value"]; exists {
+							paramValue = val
+						}
+					}
 					deploymentParams[k] = deploymentstacksatresourcegroup.DeploymentParameter{
-						Value: pointer.To(v),
+						Value: pointer.To(paramValue),
 					}
 				}
 				properties.Parameters = pointer.To(deploymentParams)
-			}
-
-			if model.BypassStackOutOfSyncError {
-				properties.BypassStackOutOfSyncError = pointer.To(true)
 			}
 
 			tags := model.Tags
@@ -372,94 +451,6 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
-		},
-	}
-}
-
-func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
-
-			id, err := deploymentstacksatresourcegroup.ParseProviderDeploymentStackID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			resp, err := client.DeploymentStacksGetAtResourceGroup(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-			state := ResourceGroupDeploymentStackModel{
-				Name:              id.DeploymentStackName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
-
-				if props := model.Properties; props != nil {
-					state.ActionOnUnmanage = flattenActionOnUnmanage(props.ActionOnUnmanage)
-					state.DenySettings = flattenDenySettings(props.DenySettings)
-
-					if props.Description != nil {
-						state.Description = *props.Description
-					}
-
-					if props.BypassStackOutOfSyncError != nil {
-						state.BypassStackOutOfSyncError = *props.BypassStackOutOfSyncError
-					}
-
-					if props.TemplateLink != nil && props.TemplateLink.Id != nil {
-						state.TemplateSpecVersionId = *props.TemplateLink.Id
-					} else if props.Template != nil {
-						flattenedTemplate, err := flattenTemplateDeploymentBody(*props.Template)
-						if err != nil {
-							return fmt.Errorf("flattening `template_content`: %+v", err)
-						}
-						state.TemplateContent = *flattenedTemplate
-					}
-
-					if props.Parameters != nil {
-						params := make(map[string]interface{})
-						for k, v := range *props.Parameters {
-							if v.Value != nil {
-								params[k] = *v.Value
-							}
-						}
-						flattenedParams, err := flattenTemplateDeploymentBody(params)
-						if err != nil {
-							return fmt.Errorf("flattening `parameters_content`: %+v", err)
-						}
-						state.ParametersContent = *flattenedParams
-					}
-
-					if props.Outputs != nil {
-						flattenedOutputs, err := flattenTemplateDeploymentBody(*props.Outputs)
-						if err != nil {
-							return fmt.Errorf("flattening `output_content`: %+v", err)
-						}
-						state.OutputContent = *flattenedOutputs
-					}
-
-					if props.DeploymentId != nil {
-						state.DeploymentId = *props.DeploymentId
-					}
-
-					if props.Duration != nil {
-						state.Duration = *props.Duration
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
 		},
 	}
 }
@@ -578,7 +569,8 @@ func flattenDenySettings(input deploymentstacksatresourcegroup.DenySettings) []D
 		result.ApplyToChildScopes = *input.ApplyToChildScopes
 	}
 
-	// Only set these if they have values - don't set empty arrays
+	// Only set excluded_actions/excluded_principals if they have values
+	// Don't set them at all if empty to avoid drift
 	if input.ExcludedActions != nil && len(*input.ExcludedActions) > 0 {
 		result.ExcludedActions = input.ExcludedActions
 	}
