@@ -108,6 +108,8 @@ A `network_acls` block supports the following:
 
 - `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`.
 
+-> **Note:** `bypass` can only be set when `kind` is set to `OpenAI`, `AIServices`, or `TextAnalytics`. Note that other types may also support this block; please [report an issue](https://github.com/hashicorp/terraform-provider-azurerm/issues) if you find one.
+
 - `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 - `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
@@ -190,10 +192,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
+- `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
+- `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
+- `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
 
 ## Import
 
@@ -204,9 +206,11 @@ terraform import azurerm_cognitive_account.account1 /subscriptions/00000000-0000
 ```
 
 ## API Providers
+
 <!-- This section is generated, changes will be overwritten -->
+
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+- `Microsoft.CognitiveServices` - 2025-06-01
 
-* `Microsoft.Network` - 2024-05-01
+- `Microsoft.Network` - 2024-05-01

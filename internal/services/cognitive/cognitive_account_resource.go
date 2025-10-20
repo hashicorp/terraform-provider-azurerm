@@ -385,6 +385,10 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				return errors.New("`dynamic_throttling_enabled` is currently not supported when `kind` is set to `OpenAI` or `AIServices`")
 			}
 
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
+				return fmt.Errorf("`network_acls.bypass` cannot be set when `kind` is set to `%s`", kind)
+			}
+
 			networkInjection := d.Get("network_injection").([]interface{})
 			if len(networkInjection) > 0 && networkInjection[0] != nil {
 				if kind != "AIServices" {
