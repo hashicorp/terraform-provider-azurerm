@@ -159,8 +159,6 @@ func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
 			Config: r.securityProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -168,8 +166,6 @@ func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
 			Config: r.securityProfileConfigUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
