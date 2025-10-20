@@ -432,14 +432,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"pod_ip_allocation_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.PodIPAllocationModeDynamicIndividual),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.PodIPAllocationModeDynamicIndividual),
-				string(agentpools.PodIPAllocationModeStaticBlock),
-			}, false),
-			Description: "Pod IP Allocation Mode. The IP allocation mode for pods in the agent pool. Must be used with podSubnetId. The default is 'DynamicIndividual'.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.PodIPAllocationModeDynamicIndividual),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
+			Description:  "Pod IP Allocation Mode. The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. The default is 'DynamicIndividual'.",
 		},
 	}
 
