@@ -295,24 +295,25 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "OpenAI"
+	sku_name := "S0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -504,24 +505,25 @@ func TestAccCognitiveAccount_aiServices_networkAclsVirtualNetworkRulesWithBypass
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "AIServices"
+	sku_name := "S0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -534,24 +536,25 @@ func TestAccCognitiveAccount_textAnalytics_networkAclsVirtualNetworkRulesWithByp
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "TextAnalytics"
+	sku_name := "F0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1155,7 +1158,7 @@ resource "azurerm_cognitive_account" "test" {
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassDefault(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassDefault(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1164,7 +1167,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1181,7 +1184,7 @@ resource "azurerm_cognitive_account" "test" {
 `, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1190,7 +1193,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1205,10 +1208,10 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassUpdated(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassUpdated(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1217,7 +1220,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1232,7 +1235,7 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
 func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data acceptance.TestData) string {
@@ -1244,7 +1247,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "Face"
-  sku_name              = "S0"
+  sku_name              = "F0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
