@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Oracle Resource Anchor.
 
-* `linked_compartment_id` - Oracle Cloud Infrastructure compartment Id (ocid) which was created or linked by customer with resource anchor.
+* `linked_compartment_id` - Oracle Cloud Infrastructure compartment [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) which was created or linked by customer with Resource Anchor.
 
 * `location` - The Azure Region where the Oracle Resource Anchor exists.
 
