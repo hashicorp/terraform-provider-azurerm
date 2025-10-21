@@ -193,7 +193,7 @@ resource "azurerm_nat_gateway" "test" {
   idle_timeout_in_minutes = 20
   zones                   = ["1"]
   tags = {
-	updated = "true"
+    updated = "true"
   }
 }
 

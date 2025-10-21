@@ -467,7 +467,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
 									// TODO - Convert this to an Write Only property?
 									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
-										if len(oldValue) >= 0 || len(newValue) == 0 {
+										if len(newValue) == 0 {
 											return true
 										}
 
