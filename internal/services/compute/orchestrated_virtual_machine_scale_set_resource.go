@@ -674,7 +674,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+		if vmssOsProfile != nil {
+			vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+		}
 
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
