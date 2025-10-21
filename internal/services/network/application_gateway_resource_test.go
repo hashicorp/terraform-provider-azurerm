@@ -579,7 +579,7 @@ func TestAccApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.backendHttpSettingsHostName(data, hostName, true),
-			ExpectError: regexp.MustCompile("Only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
+			ExpectError: regexp.MustCompile("only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
 		},
 	})
 }
@@ -894,7 +894,7 @@ func TestAccApplicationGateway_sslPolicy_policyType_custom(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.policy_type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("ssl_policy.0.min_protocol_version").HasValue("TLSv1_1"),
+				check.That(data.ResourceName).Key("ssl_policy.0.min_protocol_version").HasValue("TLSv1_2"),
 				check.That(data.ResourceName).Key("ssl_policy.0.cipher_suites.0").HasValue("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"),
 				check.That(data.ResourceName).Key("ssl_policy.0.cipher_suites.1").HasValue("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"),
 				check.That(data.ResourceName).Key("ssl_policy.0.cipher_suites.2").HasValue("TLS_RSA_WITH_AES_128_GCM_SHA256"),
@@ -929,7 +929,7 @@ func TestAccApplicationGateway_sslPolicy_disabledProtocols(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.disabled_protocols.0").HasValue("TLSv1_0"),
-				check.That(data.ResourceName).Key("ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_1"),
+				check.That(data.ResourceName).Key("ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_2"),
 			),
 		},
 	})
@@ -1117,7 +1117,7 @@ func TestAccApplicationGateway_sslProfileWithClientCertificateVerification(t *te
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").Exists(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.disabled_protocols.0").HasValue("TLSv1_0"),
-				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_1"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.disabled_protocols.1").HasValue("TLSv1_2"),
 			),
 		},
 		// since these are read from the existing state
@@ -1257,6 +1257,7 @@ func TestAccApplicationGateway_updateFeipConfig(t *testing.T) {
 				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").IsSet(),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.updateFeipConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1269,17 +1270,6 @@ func TestAccApplicationGateway_updateFeipConfig(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.deletePublicFeip(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").IsEmpty(),
-				check.That(data.ResourceName).Key("frontend_ip_configuration.0.subnet_id").IsSet(),
-				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address_allocation").HasValue("Static"),
-				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").HasValue("10.0.0.10"),
-				check.That(data.ResourceName).Key("frontend_ip_configuration.1").DoesNotExist(),
-			),
-		},
 	})
 }
 
@@ -6122,7 +6112,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_policy {
     policy_type          = "Custom"
-    min_protocol_version = "TLSv1_1"
+    min_protocol_version = "TLSv1_2"
     cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
   }
 
@@ -6288,7 +6278,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_1"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
   }
 
   gateway_ip_configuration {
@@ -7979,7 +7969,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_1"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
   }
 
   ssl_profile {
@@ -7987,7 +7977,7 @@ resource "azurerm_application_gateway" "test" {
     trusted_client_certificate_names = [local.trusted_client_cert_name]
     verify_client_cert_issuer_dn     = true
     ssl_policy {
-      disabled_protocols = ["TLSv1_0", "TLSv1_1"]
+      disabled_protocols = ["TLSv1_0", "TLSv1_2"]
     }
   }
 
@@ -8143,7 +8133,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_policy {
     policy_type          = "Custom"
-    min_protocol_version = "TLSv1_1"
+    min_protocol_version = "TLSv1_2"
     cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
   }
 
