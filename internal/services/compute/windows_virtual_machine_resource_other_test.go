@@ -3384,6 +3384,40 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  security_profile {
+    host_encryption_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3416,6 +3450,40 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherSecureBootEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-gensecond"
+    version   = "latest"
+  }
+
+  security_profile {
+    secure_boot_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3448,6 +3516,40 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherVTpmEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-gensecond"
+    version   = "latest"
+  }
+
+  security_profile {
+    vtpm_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3480,6 +3582,46 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabledWithCMK(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                = "ReadWrite"
+    storage_account_type   = "Standard_LRS"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  security_profile {
+    host_encryption_enabled = %t
+  }
+
+  depends_on = [
+    azurerm_role_assignment.disk-encryption-read-keyvault,
+    azurerm_key_vault_access_policy.disk-encryption,
+  ]
+}
+`, r.diskOSDiskDiskEncryptionSetResource(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 

@@ -141,6 +141,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
+~> **Note:** `encryption_at_host_enabled` is deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider.
+
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
+
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
 * `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `true`. Changing this forces a new Windows Virtual Machine Scale Set to be created.
@@ -199,6 +203,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `secure_boot_enabled` - (Optional) Specifies if Secure Boot and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
+~> **Note:** `secure_boot_enabled` is deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider.
+
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`, `Shared Image ID`, `Shared Image Version ID`, `Community Gallery Image ID`, `Community Gallery Image Version ID`, `Shared Gallery Image ID` and `Shared Gallery Image Version ID`.
@@ -224,6 +230,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
 * `vtpm_enabled` - (Optional) Specifies if vTPM (Virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** `vtpm_enabled` is deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -556,6 +564,13 @@ A `rolling_upgrade_policy` block supports the following:
 -> **Note:** `overprovision` must be set to `false` when `maximum_surge_instances_enabled` is specified.
 
 ---
+
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host? Changing this forces a new resource to be created.
+* `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `Standard`, `TrustedLaunch`, and `ConfidentialVM`. Changing this forces a new resource to be created.
+* `secure_boot_enabled` - (Optional) Specifies if Secure Boot should be enabled for the Virtual Machine. Changing this forces a new resource to be created.
+* `vtpm_enabled` - (Optional) Specifies if vTPM (Virtual Trusted Platform Module) should be enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
 A `secret` block supports the following:
 
