@@ -23,7 +23,7 @@ output "virtual_network_gateway_connection_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network Gateway Connection.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway Connection is located in.
@@ -130,7 +130,7 @@ The `traffic_selector_policy` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway Connection.
 

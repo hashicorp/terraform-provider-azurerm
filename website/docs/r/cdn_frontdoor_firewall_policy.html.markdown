@@ -34,19 +34,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 
-  js_challenge_cookie_expiration_in_minutes = 45
-
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestCookieNames"
-      operator       = "Equals"
-      selector       = "ChocolateChip"
-    }
-  }
-
   custom_rule {
     name                           = "Rule1"
     enabled                        = true
@@ -87,23 +74,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
       negation_condition = false
       match_values       = ["windows"]
       transforms         = ["Lowercase", "Trim"]
-    }
-  }
-
-  custom_rule {
-    name                           = "CustomJSChallenge"
-    enabled                        = true
-    priority                       = 100
-    rate_limit_duration_in_minutes = 1
-    rate_limit_threshold           = 10
-    type                           = "MatchRule"
-    action                         = "JSChallenge"
-
-    match_condition {
-      match_variable     = "RemoteAddr"
-      operator           = "IPMatch"
-      negation_condition = false
-      match_values       = ["192.168.1.0/24"]
     }
   }
 
@@ -154,21 +124,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     type    = "Microsoft_BotManagerRuleSet"
     version = "1.1"
     action  = "Log"
-
-    override {
-      rule_group_name = "BadBots"
-
-      rule {
-        action  = "JSChallenge"
-        enabled = true
-        rule_id = "Bot100200"
-      }
-    }
   }
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -186,7 +146,13 @@ The following arguments are supported:
 
 -> **Note:** The `js_challenge_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/waf-javascript-challenge) for more information.
 
-!> **Note:** Setting the`js_challenge_cookie_expiration_in_minutes` policy is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+~> **Note:** When you remove the `js_challenge_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
+
+* `captcha_cookie_expiration_in_minutes` - (Optional) Specifies the Captcha cookie lifetime in minutes. Possible values are between `5` and `1440`. Defaults to`30` minutes.
+
+-> **Note:** The `captcha_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/captcha-challenge) for more information.
+
+~> **Note:** When you remove the `captcha_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
@@ -216,9 +182,9 @@ A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, or `JSChallenge`.
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, `JSChallenge`, or `CAPTCHA`.
 
-!> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+!> **Note:** Setting the `action` field to `JSChallenge` or `CAPTCHA` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
@@ -356,7 +322,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.

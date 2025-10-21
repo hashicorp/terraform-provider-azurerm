@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
@@ -26,6 +28,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/diag"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/fromproto"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tf5serverlogging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tfplugin5"
@@ -49,7 +52,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 9
+	protocolVersionMinor uint = 10
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -1191,6 +1194,294 @@ func (s *server) CloseEphemeralResource(ctx context.Context, protoReq *tfplugin5
 	protoResp := toproto.CloseEphemeralResource_Response(resp)
 
 	return protoResp, nil
+}
+
+func (s *server) ValidateListResourceConfig(ctx context.Context, protoReq *tfplugin5.ValidateListResourceConfig_Request) (*tfplugin5.ValidateListResourceConfig_Response, error) {
+	rpc := "ValidateListResourceConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ListResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ValidateListResourceConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	listResourceServer, ok := s.downstream.(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement ValidateListResourceConfig")
+
+		protoResp := &tfplugin5.ValidateListResourceConfig_Response{
+			Diagnostics: []*tfplugin5.Diagnostic{
+				{
+					Severity: tfplugin5.Diagnostic_ERROR,
+					Summary:  "Provider ValidateListResourceConfig Not Implemented",
+					Detail: "A ValidateListResourceConfig call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements list support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.ValidateListResourceConfig(ctx, req)
+	resp, err := listResourceServer.ValidateListResourceConfig(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf5serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.ValidateListResourceConfig_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) ListResource(protoReq *tfplugin5.ListResource_Request, protoStream grpc.ServerStreamingServer[tfplugin5.ListResource_Event]) error {
+	rpc := "ListResource"
+	ctx := protoStream.Context()
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ListResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ListResourceRequest(protoReq)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.ValidateListResourceConfig below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	downstream, ok := s.downstream.(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		err := status.Error(codes.Unimplemented, "ProviderServer does not implement ListResource")
+		logging.ProtocolError(ctx, err.Error())
+		return err
+	}
+
+	resp, err := downstream.ListResource(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	for ev := range resp.Results {
+		select {
+		case <-ctx.Done():
+			logging.ProtocolTrace(ctx, "Context done")
+			return nil
+
+		default:
+			tf5serverlogging.DownstreamServerEvent(ctx, ev.Diagnostics)
+
+			protoEv := toproto.ListResource_ListResourceEvent(&ev)
+			if err := protoStream.Send(protoEv); err != nil {
+				logging.ProtocolError(ctx, "Error sending event", map[string]any{logging.KeyError: err})
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *server) ValidateActionConfig(ctx context.Context, protoReq *tfplugin5.ValidateActionConfig_Request) (*tfplugin5.ValidateActionConfig_Response, error) {
+	rpc := "ValidateActionConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ActionContext(ctx, protoReq.ActionType)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ValidateActionConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.ValidateActionConfig below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	actionsProviderServer, ok := s.downstream.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement ValidateActionConfig")
+
+		protoResp := &tfplugin5.ValidateActionConfig_Response{
+			Diagnostics: []*tfplugin5.Diagnostic{
+				{
+					Severity: tfplugin5.Diagnostic_ERROR,
+					Summary:  "Provider ValidateActionConfig Not Implemented",
+					Detail: "A ValidateActionConfig call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements action support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	resp, err := actionsProviderServer.ValidateActionConfig(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf5serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.ValidateActionConfig_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) PlanAction(ctx context.Context, protoReq *tfplugin5.PlanAction_Request) (*tfplugin5.PlanAction_Response, error) {
+	rpc := "PlanAction"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ActionContext(ctx, protoReq.ActionType)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.PlanActionRequest(protoReq)
+
+	tf5serverlogging.PlanActionClientCapabilities(ctx, req.ClientCapabilities)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.PlanAction below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	actionsProviderServer, ok := s.downstream.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement PlanAction")
+
+		protoResp := &tfplugin5.PlanAction_Response{
+			Diagnostics: []*tfplugin5.Diagnostic{
+				{
+					Severity: tfplugin5.Diagnostic_ERROR,
+					Summary:  "Provider PlanAction Not Implemented",
+					Detail: "A PlanAction call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements action support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.PlanAction(ctx, req)
+	resp, err := actionsProviderServer.PlanAction(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf5serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	tf5serverlogging.Deferred(ctx, resp.Deferred)
+
+	if resp.Deferred != nil && (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) {
+		resp.Diagnostics = append(resp.Diagnostics, invalidDeferredResponseDiag(resp.Deferred.Reason))
+	}
+
+	protoResp := toproto.PlanAction_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) InvokeAction(protoReq *tfplugin5.InvokeAction_Request, protoStream grpc.ServerStreamingServer[tfplugin5.InvokeAction_Event]) error {
+	rpc := "InvokeAction"
+	ctx := protoStream.Context()
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ActionContext(ctx, protoReq.ActionType)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.InvokeActionRequest(protoReq)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.InvokeAction below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	actionsProviderServer, ok := s.downstream.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement InvokeAction")
+
+		protoEvent := &tfplugin5.InvokeAction_Event{
+			Type: &tfplugin5.InvokeAction_Event_Completed_{
+				Completed: &tfplugin5.InvokeAction_Event_Completed{
+					Diagnostics: []*tfplugin5.Diagnostic{
+						{
+							Severity: tfplugin5.Diagnostic_ERROR,
+							Summary:  "Provider InvokeAction Not Implemented",
+							Detail: "An InvokeAction call was received by the provider, however the provider does not implement the call. " +
+								"Either upgrade the provider to a version that implements action support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+						},
+					},
+				},
+			},
+		}
+
+		return protoStream.Send(protoEvent)
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.InvokeAction(ctx, req)
+	resp, err := actionsProviderServer.InvokeAction(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	for ev := range resp.Events {
+		select {
+		case <-ctx.Done():
+			logging.ProtocolTrace(ctx, "Context done")
+			return nil
+
+		default:
+			switch ev := ev.Type.(type) {
+			// MAINTAINER NOTE: Only the completed event has diagnostics to log, otherwise we just send an empty slice.
+			case *tfprotov5.CompletedInvokeActionEventType:
+				tf5serverlogging.DownstreamServerEvent(ctx, ev.Diagnostics)
+			default:
+				tf5serverlogging.DownstreamServerEvent(ctx, make(diag.Diagnostics, 0))
+			}
+
+			protoEv := toproto.InvokeAction_InvokeActionEvent(&ev)
+			if err := protoStream.Send(protoEv); err != nil {
+				logging.ProtocolError(ctx, "Error sending event", map[string]any{logging.KeyError: err})
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func invalidDeferredResponseDiag(reason tfprotov5.DeferredReason) *tfprotov5.Diagnostic {
