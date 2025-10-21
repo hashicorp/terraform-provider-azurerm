@@ -413,18 +413,13 @@ func flattenBatchPoolIdentityReferenceToIdentityID(ref *pool.ComputeNodeIdentity
 	return ""
 }
 
-func valuesFromBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) securityprofile.Values {
-	return securityprofile.Values{
+func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
+	return securityprofile.ToBlock(securityprofile.Values{
 		HostEncryption: configProfile.EncryptionAtHost,
 		SecurityType:   (*string)(configProfile.SecurityType),
 		SecureBoot:     configProfile.UefiSettings.SecureBootEnabled,
 		VTPM:           configProfile.UefiSettings.VTpmEnabled,
-	}
-}
-
-func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
-	values := valuesFromBatchPoolSecurityProfile(configProfile)
-	return securityprofile.ToBlock(values)
+	})
 }
 
 func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAccount) map[string]interface{} {
