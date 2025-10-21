@@ -41,6 +41,7 @@ type WindowsFunctionAppSlotModel struct {
 	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
@@ -278,6 +279,8 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
+
+		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
@@ -617,6 +620,17 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
 
+			stickySettings := helpers.ExpandStickySettings(functionAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
 				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
@@ -698,6 +712,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, functionAppId)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
@@ -752,6 +771,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				FunctionAppID:                    functionAppId.ID(),
 				PublishingFTPBasicAuthEnabled:    basicAuthFTP,
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
+				StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
@@ -1079,6 +1099,31 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 				if _, err = client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: &webapps.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.Properties.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.Properties.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				functionAppId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
+				if _, err := client.UpdateSlotConfigurationNames(ctx, functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
 				}
 			}
 
