@@ -234,7 +234,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
+		Pending:                   []string{"NotFound", "Waiting"},
 		Target:                    []string{"Exists"},
 		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, id),
 		PollInterval:              3 * time.Second,
@@ -249,7 +249,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	//  authorization_key can only be set after Circuit is created
 	if erc.Properties.AuthorizationKey != nil && *erc.Properties.AuthorizationKey != "" {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
 
@@ -462,6 +462,17 @@ func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *express
 			}
 
 			return nil, "", fmt.Errorf("polling to check if the Express Route Circuit has been created: %+v", err)
+		}
+
+		if model := res.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
+			switch *model.Properties.ProvisioningState {
+			case expressroutecircuits.ProvisioningStateFailed:
+				return nil, "", fmt.Errorf("%s failed to provision: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateDeleting:
+				return nil, "", fmt.Errorf("%s is in a deleting state: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateUpdating:
+				return nil, "Waiting", nil
+			}
 		}
 
 		return res, "Exists", nil
