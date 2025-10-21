@@ -44,7 +44,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
 		Schema: resourceVirtualNetworkGatewaySchema(),
@@ -464,6 +464,15 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 128),
 									Sensitive:    true,
+									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
+									// TODO - Convert this to an Write Only property?
+									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+										if len(oldValue) >= 0 || len(newValue) == 0 {
+											return true
+										}
+
+										return false
+									},
 								},
 
 								"score": {

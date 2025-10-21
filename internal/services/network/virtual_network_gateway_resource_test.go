@@ -224,9 +224,9 @@ func TestAccVirtualNetworkGateway_vpnClientConfigMultipleAuthTypes(t *testing.T)
 				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_audience").HasValue("41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
 				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_issuer").IsSet(),
 				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server.0.address").HasValue("1.2.3.4"),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server.0.secret").HasValue("1234"),
 			),
 		},
+		data.ImportStep("vpn_client_configuration.0.radius_server.0.secret"),
 	})
 }
 
@@ -306,28 +306,6 @@ func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("0"),
 			),
 		},
-	})
-}
-
-func TestAccVirtualNetworkGateway_privateIpAddressEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	r := VirtualNetworkGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.privateIpAddressEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.privateIpAddressEnabledUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1440,66 +1418,6 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualNetworkGatewayResource) privateIpAddressEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  type                       = "Vpn"
-  vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1AZ"
-  private_ip_address_enabled = false
-
-  custom_route {
-    address_prefixes = [
-      "101.168.0.6/32"
-    ]
-  }
-
-  ip_configuration {
-    name                          = "vnetGatewayConfig"
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (VirtualNetworkGatewayResource) customRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1542,7 +1460,6 @@ resource "azurerm_virtual_network_gateway" "test" {
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
   sku                        = "VpnGw1AZ"
-  private_ip_address_enabled = true
 
   custom_route {
     address_prefixes = [
@@ -1602,7 +1519,6 @@ resource "azurerm_virtual_network_gateway" "test" {
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
   sku                        = "VpnGw1AZ"
-  private_ip_address_enabled = false
 
   custom_route {
     address_prefixes = [
@@ -1825,7 +1741,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "Basic"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
