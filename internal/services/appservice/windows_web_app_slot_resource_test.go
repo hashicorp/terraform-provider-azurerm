@@ -1112,6 +1112,35 @@ func TestAccWindowsWebAppSlot_zipDeploy(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_vnetImagePull(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withVnetProperties(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withVnetProperties(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withVnetProperties(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -2693,6 +2722,34 @@ resource "azurerm_windows_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (WindowsWebAppSlotResource) baseTemplateWithVnetProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-WAS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  virtual_network_image_pull_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r WindowsWebAppSlotResource) templateWithStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -2925,6 +2982,47 @@ resource "azurerm_windows_web_app_slot" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsWebAppSlotResource) withVnetProperties(data acceptance.TestData, vnetImagePull bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestsubnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_windows_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+
+  site_config {}
+
+  virtual_network_image_pull_enabled = %t
+}
+`, r.baseTemplateWithVnetProperties(data), data.RandomInteger, vnetImagePull)
 }
 
 func (r WindowsWebAppSlotResource) vNetIntegrationWebApp_subnet1(data acceptance.TestData) string {
