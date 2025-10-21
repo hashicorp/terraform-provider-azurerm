@@ -229,8 +229,8 @@ func (r CognitiveAccountProjectResource) Read() sdk.ResourceFunc {
 					state.IsDefault = pointer.From(props.IsDefault)
 					state.Endpoints = pointer.From(props.Endpoints)
 				}
-
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
