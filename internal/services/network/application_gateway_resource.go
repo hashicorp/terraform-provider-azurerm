@@ -3228,9 +3228,11 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 				output["unhealthy_threshold"] = int(*threshold)
 			}
 
+			port := 0
 			if props.Port != nil {
-				output["port"] = int(*props.Port)
+				port = int(*props.Port)
 			}
+			output["port"] = port
 
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
 				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
