@@ -67,7 +67,7 @@ func TestAccNatGateway_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
-				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("20"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 			),
 		},
