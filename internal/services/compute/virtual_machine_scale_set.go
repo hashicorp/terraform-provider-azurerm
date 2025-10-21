@@ -2242,15 +2242,6 @@ func flattenOrchestratedVirtualMachineScaleSetIdentity(input *identity.SystemAnd
 	return identity.FlattenUserAssignedMap(transform)
 }
 
-func valuesFromVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile) securityprofile.Values {
-	return securityprofile.Values{
-		HostEncryption: profile.EncryptionAtHost,
-		SecurityType:   (*string)(profile.SecurityType),
-		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
-		VTPM:           profile.UefiSettings.VTpmEnabled,
-	}
-}
-
 func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, securityEncryptionType string) (*virtualmachinescalesets.SecurityProfile, error) {
 	values := func() securityprofile.Values {
 		if v, ok := d.GetOk("security_profile"); ok {
@@ -2322,6 +2313,10 @@ func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalese
 		return []interface{}{}
 	}
 
-	values := valuesFromVirtualMachineScaleSetSecurityProfile(profile)
-	return securityprofile.ToBlock(values)
+	return securityprofile.ToBlock(securityprofile.Values{
+		HostEncryption: profile.EncryptionAtHost,
+		SecurityType:   (*string)(profile.SecurityType),
+		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
+		VTPM:           profile.UefiSettings.VTpmEnabled,
+	})
 }
