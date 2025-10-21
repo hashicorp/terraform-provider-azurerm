@@ -113,10 +113,10 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(120 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
