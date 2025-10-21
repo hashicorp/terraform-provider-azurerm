@@ -233,7 +233,7 @@ resource "azurerm_route_map" "test" {
       type = "Replace"
 
       parameter {
-        route_prefix = ["10.0.1.0/8"]
+        route_prefix = ["10.0.1.0/24"]
       }
     }
 
