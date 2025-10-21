@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = ResourceGroupDeploymentStackResource{}
-
 type ResourceGroupDeploymentStackResource struct{}
 
 type ResourceGroupDeploymentStackModel struct {
@@ -36,6 +34,8 @@ type ResourceGroupDeploymentStackModel struct {
 	DeploymentId          string                  `tfschema:"deployment_id"`
 	Duration              string                  `tfschema:"duration"`
 }
+
+var _ sdk.ResourceWithUpdate = ResourceGroupDeploymentStackResource{}
 
 func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -191,12 +191,12 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ResourceGroupDeploymentStackModel
-			if err := metadata.Decode(&model); err != nil {
+			var config ResourceGroupDeploymentStackModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := deploymentstacksatresourcegroup.NewProviderDeploymentStackID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := deploymentstacksatresourcegroup.NewProviderDeploymentStackID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.DeploymentStacksGetAtResourceGroup(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -206,31 +206,36 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := deploymentstacksatresourcegroup.DeploymentStackProperties{
-				ActionOnUnmanage: expandActionOnUnmanage(model.ActionOnUnmanage),
-				DenySettings:     expandDenySettings(model.DenySettings),
+			parameters := deploymentstacksatresourcegroup.DeploymentStack{
+				Properties: &deploymentstacksatresourcegroup.DeploymentStackProperties{
+					ActionOnUnmanage: expandActionOnUnmanage(config.ActionOnUnmanage),
+					DenySettings:     expandDenySettings(config.DenySettings),
+				},
+				// Tags: pointer.To(tags),
 			}
 
-			if model.Description != "" {
-				properties.Description = pointer.To(model.Description)
+			properties := parameters.Properties
+
+			if config.Description != "" {
+				properties.Description = pointer.To(config.Description)
 			}
 
-			if model.TemplateContent != "" {
-				template, err := expandTemplateDeploymentBody(model.TemplateContent)
+			if config.TemplateContent != "" {
+				template, err := expandTemplateDeploymentBody(config.TemplateContent)
 				if err != nil {
 					return fmt.Errorf("expanding `template_content`: %+v", err)
 				}
 				properties.Template = template
 			}
 
-			if model.TemplateSpecVersionId != "" {
+			if config.TemplateSpecVersionId != "" {
 				properties.TemplateLink = &deploymentstacksatresourcegroup.DeploymentStacksTemplateLink{
-					Id: pointer.To(model.TemplateSpecVersionId),
+					Id: pointer.To(config.TemplateSpecVersionId),
 				}
 			}
 
-			if model.ParametersContent != "" {
-				params, err := expandTemplateDeploymentBody(model.ParametersContent)
+			if config.ParametersContent != "" {
+				params, err := expandTemplateDeploymentBody(config.ParametersContent)
 				if err != nil {
 					return fmt.Errorf("expanding `parameters_content`: %+v", err)
 				}
@@ -251,17 +256,12 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 				properties.Parameters = pointer.To(deploymentParams)
 			}
 
-			tags := model.Tags
-			if tags == nil {
-				tags = make(map[string]string)
+			parameters.Tags = pointer.To(config.Tags)
+			if config.Tags == nil {
+				parameters.Tags = pointer.To(make(map[string]string))
 			}
 
-			deploymentStack := deploymentstacksatresourcegroup.DeploymentStack{
-				Properties: &properties,
-				Tags:       pointer.To(tags),
-			}
-
-			if err := client.DeploymentStacksCreateOrUpdateAtResourceGroupThenPoll(ctx, id, deploymentStack); err != nil {
+			if err := client.DeploymentStacksCreateOrUpdateAtResourceGroupThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -287,6 +287,7 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
+
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -308,14 +309,18 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 						state.Description = *props.Description
 					}
 
+					// Azure does not return `template` in GET responses, thus default to value in state
+					state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					if props.TemplateLink != nil && props.TemplateLink.Id != nil {
 						state.TemplateSpecVersionId = *props.TemplateLink.Id
-					} else {
-						// API doesn't return template in GET responses, preserve from current state
-						state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					}
 
-					// For parameters, preserve the config value if parameters is empty in API
+					configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
+					if configParamsContent != "" {
+						state.ParametersContent = configParamsContent
+					}
+
+					// If `parameters` is empty in API, preserve the config value
 					if props.Parameters != nil && len(*props.Parameters) > 0 {
 						// Preserve the ARM parameter format: {"paramName": {"value": "..."}}
 						params := make(map[string]interface{})
@@ -331,12 +336,6 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("flattening `parameters_content`: %+v", err)
 						}
 						state.ParametersContent = *flattenedParams
-					} else {
-						// If API returns empty parameters but config has parameters_content, preserve it
-						configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
-						if configParamsContent != "" {
-							state.ParametersContent = configParamsContent
-						}
 					}
 
 					if props.Outputs != nil {
@@ -373,36 +372,50 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model ResourceGroupDeploymentStackModel
-			if err := metadata.Decode(&model); err != nil {
+			var config ResourceGroupDeploymentStackModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := deploymentstacksatresourcegroup.DeploymentStackProperties{
-				ActionOnUnmanage: expandActionOnUnmanage(model.ActionOnUnmanage),
-				DenySettings:     expandDenySettings(model.DenySettings),
+			existing, err := client.DeploymentStacksGetAtResourceGroup(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model.Description != "" {
-				properties.Description = pointer.To(model.Description)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			if model.TemplateContent != "" {
-				template, err := expandTemplateDeploymentBody(model.TemplateContent)
+			payload := pointer.From(existing.Model)
+
+			if metadata.ResourceData.HasChange("action_on_unmanage") {
+				payload.Properties.ActionOnUnmanage = expandActionOnUnmanage(config.ActionOnUnmanage)
+			}
+
+			if metadata.ResourceData.HasChange("deny_settings") {
+				payload.Properties.DenySettings = expandDenySettings(config.DenySettings)
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				payload.Properties.Description = pointer.To(config.Description)
+			}
+
+			if metadata.ResourceData.HasChange("template_content") {
+				template, err := expandTemplateDeploymentBody(config.TemplateContent)
 				if err != nil {
 					return fmt.Errorf("expanding `template_content`: %+v", err)
 				}
-				properties.Template = template
+				payload.Properties.Template = template
 			}
 
-			if model.TemplateSpecVersionId != "" {
-				properties.TemplateLink = &deploymentstacksatresourcegroup.DeploymentStacksTemplateLink{
-					Id: pointer.To(model.TemplateSpecVersionId),
+			if metadata.ResourceData.HasChange("template_spec_version_id") {
+				payload.Properties.TemplateLink = &deploymentstacksatresourcegroup.DeploymentStacksTemplateLink{
+					Id: pointer.To(config.TemplateSpecVersionId),
 				}
 			}
 
-			if model.ParametersContent != "" {
-				params, err := expandTemplateDeploymentBody(model.ParametersContent)
+			if metadata.ResourceData.HasChange("parameters_content") {
+				params, err := expandTemplateDeploymentBody(config.ParametersContent)
 				if err != nil {
 					return fmt.Errorf("expanding `parameters_content`: %+v", err)
 				}
@@ -420,20 +433,14 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 						Value: pointer.To(paramValue),
 					}
 				}
-				properties.Parameters = pointer.To(deploymentParams)
+				payload.Properties.Parameters = pointer.To(deploymentParams)
 			}
 
-			tags := model.Tags
-			if tags == nil {
-				tags = make(map[string]string)
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			deploymentStack := deploymentstacksatresourcegroup.DeploymentStack{
-				Properties: &properties,
-				Tags:       pointer.To(tags),
-			}
-
-			if err := client.DeploymentStacksCreateOrUpdateAtResourceGroupThenPoll(ctx, *id, deploymentStack); err != nil {
+			if err := client.DeploymentStacksCreateOrUpdateAtResourceGroupThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
