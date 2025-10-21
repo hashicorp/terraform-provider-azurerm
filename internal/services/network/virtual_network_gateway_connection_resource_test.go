@@ -710,7 +710,6 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   routing_weight                 = "0"
   express_route_gateway_bypass   = true
   private_link_fast_path_enabled = true
-  shared_key                     = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
