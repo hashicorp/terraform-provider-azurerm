@@ -33,6 +33,7 @@ type LinuxWebAppSlotModel struct {
 	AppServiceId                       string                                     `tfschema:"app_service_id"`
 	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"`
@@ -209,6 +210,8 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"site_config": helpers.SiteConfigSchemaLinuxWebAppSlot(),
+
+		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchema(),
 
@@ -459,6 +462,17 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			stickySettings := helpers.ExpandStickySettings(webAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *appId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if webAppSlot.ZipDeployFile != "" {
 				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id, webAppSlot.ZipDeployFile); err != nil {
 					return err
@@ -564,6 +578,11 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, appId)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			webApp, err := client.Get(ctx, appId)
 			if err != nil {
 				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
@@ -593,6 +612,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					Kind:                             pointer.From(model.Kind),
 					Tags:                             pointer.From(model.Tags),
 					AppSettings:                      helpers.FlattenWebStringDictionary(appSettings.Model),
+					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
@@ -877,6 +897,30 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: &webapps.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.Properties.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.Properties.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, appId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 

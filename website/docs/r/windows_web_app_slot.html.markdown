@@ -98,6 +98,8 @@ The following arguments are supported:
 
 ~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Windows Web App.
 
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
@@ -807,6 +809,14 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status_code` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block supports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Web App Slot will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Web App Slot will not swap between Slots when a swap operation is triggered.
 
 ---
 
