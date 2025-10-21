@@ -27,27 +27,27 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this oracle resource anchor.
+* `name` - (Required) The name of this Oracle Resource Anchor.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the oracle resource anchor exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Oracle Resource Anchor exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the oracle resource anchor.
+* `id` - The ID of the Oracle Resource Anchor.
 
 * `linked_compartment_id` - Oracle Cloud Infrastructure compartment Id (ocid) which was created or linked by customer with resource anchor.
 
-* `location` - The Azure Region where the oracle resource anchor exists.
+* `location` - The Azure Region where the Oracle Resource Anchor exists.
 
-* `tags` - A mapping of tags assigned to the oracle resource anchor.
+* `tags` - A mapping of tags assigned to the Oracle Resource Anchor.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the oracle resource anchor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Oracle Resource Anchor.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
