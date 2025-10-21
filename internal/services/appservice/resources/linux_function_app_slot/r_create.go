@@ -241,6 +241,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			stickySettings := helpers.ExpandStickySettings(functionAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
 					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},

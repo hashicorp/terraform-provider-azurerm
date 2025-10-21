@@ -36,6 +36,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", *id, err)
 			}
 
+			appId := commonids.NewAppServiceID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.SiteName)
+
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteSlotConfig, err := client.GetConfigurationSlot(ctx, *id)
 			if err != nil {
@@ -73,6 +75,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", *id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, appId)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", *id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", *id, err)
@@ -92,8 +99,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", *id, err)
 			}
-
-			appId := commonids.NewAppServiceID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
 			webApp, err := client.Get(ctx, appId)
 			if err != nil {
@@ -125,6 +130,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				Backup:            helpers.FlattenBackupConfig(backup.Model),
 				ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
 				LogsConfig:        helpers.FlattenLogsConfig(logsConfig.Model),
+				StickySettings:    helpers.FlattenStickySettings(stickySettings.Model.Properties),
 				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
