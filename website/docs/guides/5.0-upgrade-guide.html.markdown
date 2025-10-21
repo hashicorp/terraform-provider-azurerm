@@ -784,6 +784,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_linux_virtual_machine`
 
 * The deprecated `vm_agent_platform_updates_enabled` property is now read-only and can no longer be set, as this is no longer configurable through the API.
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
 
 ### `azurerm_linux_virtual_machine_scale_set`
 
@@ -793,6 +794,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
 * The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
 * The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
 
 ### `azurerm_linux_web_app`
 
@@ -1134,6 +1136,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
 * The deprecated `vm_agent_platform_updates_enabled` property is now read-only and can no longer be set, as this is no longer configurable through the API.
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
 
 ### `azurerm_windows_virtual_machine_scale_set`
 
@@ -1144,6 +1147,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
 * The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
 * The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
 
 ### `azurerm_windows_web_app`
 
