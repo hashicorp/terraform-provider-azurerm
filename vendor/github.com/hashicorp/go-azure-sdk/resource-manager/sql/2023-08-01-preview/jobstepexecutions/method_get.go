@@ -1,8 +1,7 @@
-package jobexecutions
+package jobstepexecutions
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -12,22 +11,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *JobExecution
 }
 
-// Create ...
-func (c JobExecutionsClient) Create(ctx context.Context, id JobId) (result CreateOperationResponse, err error) {
+// Get ...
+func (c JobStepExecutionsClient) Get(ctx context.Context, id ExecutionStepId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusAccepted,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/start", id.ID()),
+		HttpMethod: http.MethodGet,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
