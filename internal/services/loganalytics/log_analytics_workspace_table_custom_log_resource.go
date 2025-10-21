@@ -302,7 +302,7 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 					}
 					state.Plan = pointer.FromEnum(props.Plan)
 
-					if props.Schema != nil {
+					if schema := props.Schema; schema != nil {
 						state.DisplayName = pointer.From(props.Schema.DisplayName)
 						state.Description = pointer.From(props.Schema.Description)
 						state.Labels = pointer.From(props.Schema.Labels)

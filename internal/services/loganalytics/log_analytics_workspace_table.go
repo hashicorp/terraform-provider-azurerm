@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var defaultRetentionInDaysSentinelValue = pointer.To(int64(-1))
+var defaultRetentionInDays = pointer.To(int64(-1))
 
 type Column struct {
 	Name             string `tfschema:"name"`
