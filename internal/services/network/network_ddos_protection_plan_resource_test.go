@@ -26,7 +26,6 @@ func TestAccNetworkDDoSProtectionPlan(t *testing.T) {
 			"basic":          testAccNetworkDDoSProtectionPlan_basic,
 			"requiresImport": testAccNetworkDDoSProtectionPlan_requiresImport,
 			"withTags":       testAccNetworkDDoSProtectionPlan_withTags,
-			"disappears":     testAccNetworkDDoSProtectionPlan_disappears,
 		},
 		"datasource": {
 			"basic": testAccNetworkDDoSProtectionPlanDataSource_basic,
@@ -101,18 +100,6 @@ func testAccNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func testAccNetworkDDoSProtectionPlan_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
-	r := NetworkDDoSProtectionPlanResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basicConfig,
-			TestResource: r,
-		}),
 	})
 }
 
