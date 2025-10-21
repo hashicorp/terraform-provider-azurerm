@@ -685,6 +685,8 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
+		// Maintain consistent ForceNew behaviour by evaluating both the legacy scalar
+		// and the structured security_profile block regardless of which interface callers used.
 		var scalarOld interface{}
 		var scalarNew interface{}
 		if !features.FivePointOh() {
@@ -1505,7 +1507,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		schema["encryption_at_host_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			Deprecated: features.DeprecatedInFivePointOh("`encryption_at_host_enabled` has been deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider"),
 			ConflictsWith: []string{
 				"security_profile",
 			},
@@ -1515,7 +1517,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			Deprecated: features.DeprecatedInFivePointOh("`secure_boot_enabled` has been deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider"),
 			ConflictsWith: []string{
 				"security_profile",
 			},
@@ -1525,7 +1527,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("Use `security_profile` block instead."),
+			Deprecated: features.DeprecatedInFivePointOh("`vtpm_enabled` has been deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider"),
 			ConflictsWith: []string{
 				"security_profile",
 			},

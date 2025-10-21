@@ -295,6 +295,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
+### `azurerm_linux_virtual_machine`
+
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
+
+### `azurerm_linux_virtual_machine_scale_set`
+
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -451,6 +459,12 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_virtual_machine`
 
 * The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
+
+### `azurerm_windows_virtual_machine_scale_set`
+
+* The deprecated `encryption_at_host_enabled`, `secure_boot_enabled`, and `vtpm_enabled` properties have been removed in favour of the `security_profile` block.
 
 ### `azurerm_windows_web_app`
 

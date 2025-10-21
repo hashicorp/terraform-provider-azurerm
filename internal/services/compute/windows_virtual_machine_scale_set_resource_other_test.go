@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
@@ -2966,6 +2967,49 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  security_profile {
+    host_encryption_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3007,6 +3051,57 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherEncryptionAtHostEnabledWithCMK(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  computer_name_prefix = "acctest"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadWrite"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  security_profile {
+    host_encryption_enabled = %t
+  }
+
+  depends_on = [
+    azurerm_role_assignment.disk-encryption-read-keyvault,
+    azurerm_key_vault_access_policy.disk-encryption,
+  ]
+}
+`, r.disksOSDisk_diskEncryptionSetResource(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3056,6 +3151,49 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter-gensecond"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  security_profile {
+    secure_boot_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3097,6 +3235,49 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData, enabled bool) string {
+	if features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS3_V2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter-gensecond"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  security_profile {
+    vtpm_enabled = %t
+  }
+}
+`, r.template(data), enabled)
+	}
+
 	return fmt.Sprintf(`
 %s
 

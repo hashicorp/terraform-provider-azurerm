@@ -738,11 +738,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
-    security_type        = "ConfidentialVM"
-    vtpm_enabled         = %[2]t
-    secure_boot_enabled  = %[3]t
+    security_type       = "ConfidentialVM"
+    vtpm_enabled        = %[2]t
+    secure_boot_enabled = %t
   }
 }
+
 
 `, r.template(data), vtpm, secureBoot)
 	}
