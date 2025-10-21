@@ -668,15 +668,6 @@ func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 	return out
 }
 
-func valuesFromVirtualMachineSecurityProfile(profile *virtualmachines.SecurityProfile) securityprofile.Values {
-	return securityprofile.Values{
-		HostEncryption: profile.EncryptionAtHost,
-		SecurityType:   (*string)(profile.SecurityType),
-		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
-		VTPM:           profile.UefiSettings.VTpmEnabled,
-	}
-}
-
 func expandVirtualMachineSecurityProfile(d *pluginsdk.ResourceData, securityEncryptionType string) (*virtualmachines.SecurityProfile, error) {
 	values := func() securityprofile.Values {
 		if v, ok := d.GetOk("security_profile"); ok {
@@ -748,6 +739,10 @@ func flattenVirtualMachineSecurityProfile(profile *virtualmachines.SecurityProfi
 		return []interface{}{}
 	}
 
-	values := valuesFromVirtualMachineSecurityProfile(profile)
-	return securityprofile.ToBlock(values)
+	return securityprofile.ToBlock(securityprofile.Values{
+		HostEncryption: profile.EncryptionAtHost,
+		SecurityType:   (*string)(profile.SecurityType),
+		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
+		VTPM:           profile.UefiSettings.VTpmEnabled,
+	})
 }
