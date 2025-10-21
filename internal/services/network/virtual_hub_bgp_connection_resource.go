@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_bgp_connection -service-package-name network -properties "connection_name:name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,hub_name:virtual_hub_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_bgp_connection -service-package-name network -properties "name:name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,hub_name:virtual_hub_id"
 
 func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
