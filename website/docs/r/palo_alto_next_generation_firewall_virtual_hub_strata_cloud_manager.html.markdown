@@ -98,7 +98,7 @@ The following arguments are supported:
 
 A `destination_nat` block supports the following:
 
-* `name` - (Required) The name which should be used for this TODO.
+* `name` - (Required) The name which should be used for this Destination NAT rule.
 
 * `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
 
@@ -110,9 +110,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of TODO.Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings.0.use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should Azure DNS servers be used?Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
 
 ---
 
@@ -160,6 +160,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `network_profile` - A `network_profile` block as defined below.
+
 ---
 
 An `identity` block exports the following:
@@ -167,6 +169,20 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+A `network_profile` block exports the following:
+
+* `egress_nat_ip_addresses` - A list of Egress NAT IP addresses.
+
+* `ip_of_trust_for_user_defined_routes` - The IP of trusted subnet for UDR.
+
+* `public_ip_addresses` - A list of public IPs associated with this Next Generation Firewall.
+
+* `trusted_subnet_id` - The ID of trusted subnet.
+
+* `untrusted_subnet_id` - The ID of untrusted subnet.
 
 ## Timeouts
 
@@ -184,3 +200,9 @@ Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Managers can be impo
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVNetStrataCloudManagerFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw` - 2025-05-23

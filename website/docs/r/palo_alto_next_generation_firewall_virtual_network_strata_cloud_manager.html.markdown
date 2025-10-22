@@ -123,17 +123,17 @@ The following arguments are supported:
 
 ---
 
+* `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
+
 * `dns_settings` - (Optional) A `dns_settings` block as defined below.
 
-* `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
 * `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.
-
-* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
@@ -209,6 +209,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `network_profile` - A `network_profile` block as defined below.
+
 ---
 
 An `identity` block exports the following:
@@ -216,6 +218,22 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+A `network_profile` block exports the following:
+
+* `egress_nat_ip_addresses` - A list of Egress NAT IP addresses.
+
+* `public_ip_addresses` - A list of public IPs associated with this Next Generation Firewall.
+
+* `vnet_configuration` - A `vnet_configuration` block as defined below.
+
+---
+
+A `vnet_configuration` block exports the following:
+
+* `ip_of_trust_for_user_defined_routes` - The IP of trusted subnet for UDR.
 
 ## Timeouts
 
