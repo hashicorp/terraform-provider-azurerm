@@ -67,7 +67,7 @@ func (r ResourceAnchorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient09.ResourceAnchors
+			client := metadata.Client.Oracle.OracleClient.ResourceAnchors
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ResourceAnchorResourceModel
@@ -104,7 +104,7 @@ func (ResourceAnchorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient09.ResourceAnchors
+			client := metadata.Client.Oracle.OracleClient.ResourceAnchors
 			id, err := resourceanchors.ParseResourceAnchorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -139,7 +139,7 @@ func (ResourceAnchorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient09.ResourceAnchors
+			client := metadata.Client.Oracle.OracleClient.ResourceAnchors
 			id, err := resourceanchors.ParseResourceAnchorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -169,7 +169,7 @@ func (ResourceAnchorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient09.ResourceAnchors
+			client := metadata.Client.Oracle.OracleClient.ResourceAnchors
 
 			id, err := resourceanchors.ParseResourceAnchorID(metadata.ResourceData.Id())
 			if err != nil {

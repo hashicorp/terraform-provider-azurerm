@@ -25,7 +25,7 @@ func (a ResourceAnchorResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.Oracle.OracleClient09.ResourceAnchors.Get(ctx, *id)
+	resp, err := client.Oracle.OracleClient.ResourceAnchors.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
