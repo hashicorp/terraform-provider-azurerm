@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/recordsets` Documentation
 
-The `recordsets` SDK allows for interaction with Azure Resource Manager `dns` (API Version `2018-05-01`).
+The `recordsets` SDK allows for interaction with Azure Resource Manager `dns` (API Version `2023-07-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/recordsets"
 ```
 
 

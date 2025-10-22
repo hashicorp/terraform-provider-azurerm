@@ -66,6 +66,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DnsZoneDataResource{},
+		DnsDSRecordDataResource{},
+		DnsTLSARecordDataResource{},
 	}
 }
 
@@ -73,5 +75,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DnsZoneResource{},
+		DnsDSRecordResource{},
+		DnsTLSARecordResource{},
 	}
 }
