@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing NAT Gateway.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

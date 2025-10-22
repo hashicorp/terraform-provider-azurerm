@@ -81,7 +81,7 @@ resource "azurerm_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created.
 

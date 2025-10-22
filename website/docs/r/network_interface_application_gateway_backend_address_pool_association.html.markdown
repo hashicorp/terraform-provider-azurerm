@@ -131,7 +131,7 @@ resource "azurerm_network_interface_application_gateway_backend_address_pool_ass
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
