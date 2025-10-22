@@ -22,13 +22,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type NextGenerationFirewallVNetStrataCloudManagerResource struct{}
+type NextGenerationFirewallVHubStrataCloudManagerResource struct{}
 
-type NextGenerationFirewallVNetStrataCloudManagerModel struct {
+type NextGenerationFirewallVHubStrataCloudManagerModel struct {
 	Name                         string                      `tfschema:"name"`
 	ResourceGroupName            string                      `tfschema:"resource_group_name"`
 	Location                     string                      `tfschema:"location"`
-	NetworkProfile               []schema.NetworkProfileVnet `tfschema:"network_profile"`
+	NetworkProfile               []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	StrataCloudManagerTenantName string                      `tfschema:"strata_cloud_manager_tenant_name"`
 	DNSSettings                  []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd                     []schema.DestinationNAT     `tfschema:"destination_nat"`
@@ -38,13 +38,13 @@ type NextGenerationFirewallVNetStrataCloudManagerModel struct {
 	Tags                         map[string]interface{}      `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetStrataCloudManagerResource{}
+var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubStrataCloudManagerResource{}
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) ModelObject() interface{} {
-	return &NextGenerationFirewallVNetStrataCloudManagerModel{}
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) ModelObject() interface{} {
+	return &NextGenerationFirewallVHubStrataCloudManagerModel{}
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[string]*pluginsdk.Schema {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Arguments() map[string]*pluginsdk.Schema {
 	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -57,7 +57,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[st
 
 		"location": commonschema.Location(),
 
-		"network_profile": schema.VnetNetworkProfileSchema(),
+		"network_profile": schema.VHubNetworkProfileSchema(),
 
 		"strata_cloud_manager_tenant_name": {
 			Type:        pluginsdk.TypeString,
@@ -92,21 +92,21 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[st
 	return args
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Attributes() map[string]*pluginsdk.Schema {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager"
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) ResourceType() string {
+	return "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager"
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.ResourceFunc {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
 
-			var model NextGenerationFirewallVNetStrataCloudManagerModel
+			var model NextGenerationFirewallVHubStrataCloudManagerModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -141,7 +141,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
-					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
+					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
 						PlanId:       model.PlanId,
@@ -163,7 +163,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 	}
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.ResourceFunc {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,7 +174,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 				return err
 			}
 
-			var state NextGenerationFirewallVNetStrataCloudManagerModel
+			var state NextGenerationFirewallVHubStrataCloudManagerModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -185,17 +185,23 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 			}
 
 			state.Name = id.FirewallName
+
 			state.ResourceGroupName = id.ResourceGroupName
+
 			if model := existing.Model; model != nil {
 				props := model.Properties
 
 				state.Location = location.Normalize(model.Location)
 
 				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
-
+				
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
-				state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
+				netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
+				if err != nil {
+					return fmt.Errorf("flattening Network Profile for %s: %+v", *id, err)
+				}
+				state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
 
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
 
@@ -219,7 +225,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 	}
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Delete() sdk.ResourceFunc {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -239,11 +245,11 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Delete() sdk.Resou
 	}
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewalls.ValidateFirewallID
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.ResourceFunc {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -254,7 +260,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 				return err
 			}
 
-			var model NextGenerationFirewallVNetStrataCloudManagerModel
+			var model NextGenerationFirewallVHubStrataCloudManagerModel
 			if err = metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding model: %+v", err)
 			}
@@ -279,7 +285,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {
-				props.NetworkProfile = schema.ExpandNetworkProfileVnet(model.NetworkProfile)
+				props.NetworkProfile = schema.ExpandNetworkProfileVHub(model.NetworkProfile)
 			}
 
 			if metadata.ResourceData.HasChange("dns_settings") {

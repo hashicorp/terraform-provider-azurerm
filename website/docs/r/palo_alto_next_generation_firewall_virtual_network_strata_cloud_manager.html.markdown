@@ -125,11 +125,15 @@ The following arguments are supported:
 
 * `dns_settings` - (Optional) A `dns_settings` block as defined below.
 
+* `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
+
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
 * `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
@@ -138,6 +142,18 @@ A `dns_settings` block supports the following:
 * `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings[0].use_azure_dns`.
 
 * `use_azure_dns` - (Optional) Should the Firewall use Azure Supplied DNS servers. Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
+
+---
+
+A `destination_nat` block supports the following:
+
+* `name` - (Required) The name which should be used for this NAT.
+
+* `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
+
+* `backend_config` - (Optional) A `backend_config` block as defined above.
+
+* `frontend_config` - (Optional) A `frontend_config` block as defined below.
 
 ---
 
@@ -161,11 +177,31 @@ A `vnet_configuration` block supports the following:
 
 * `untrusted_subnet_id` - (Optional) The ID of the UnTrust subnet.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
+
+~> **Note:** This is required when `type` is set to `UserAssigned`
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

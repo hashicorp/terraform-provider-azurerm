@@ -39,6 +39,7 @@ func (r Registration) Resources() []sdk.Resource {
 		NetworkVirtualApplianceResource{},
 		NextGenerationFirewallVHubLocalRuleStackResource{},
 		NextGenerationFirewallVHubPanoramaResource{},
+		NextGenerationFirewallVHubStrataCloudManagerResource{},
 		NextGenerationFirewallVNetLocalRulestackResource{},
 		NextGenerationFirewallVNetPanoramaResource{},
 		NextGenerationFirewallVNetStrataCloudManagerResource{},
