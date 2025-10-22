@@ -151,10 +151,6 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
     }
   }
 
-  tags = {
-    userid = "acctest-tf-%[2]d"
-  }
-
   depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
@@ -203,7 +199,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
   marketplace_offer_id             = "pan_swfw_cloud_ngfw"
-  plan_id                          = "panw-cngfw-payg"
+  plan_id                          = "cloud-ngfw-for-msft"
   strata_cloud_manager_tenant_name = "%[4]s"
 
   network_profile {

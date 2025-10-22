@@ -25,17 +25,17 @@ import (
 type NextGenerationFirewallVHubStrataCloudManagerResource struct{}
 
 type NextGenerationFirewallVHubStrataCloudManagerModel struct {
-	Name                         string                      `tfschema:"name"`
-	ResourceGroupName            string                      `tfschema:"resource_group_name"`
-	Location                     string                      `tfschema:"location"`
-	NetworkProfile               []schema.NetworkProfileVHub `tfschema:"network_profile"`
-	StrataCloudManagerTenantName string                      `tfschema:"strata_cloud_manager_tenant_name"`
-	DNSSettings                  []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd                     []schema.DestinationNAT     `tfschema:"destination_nat"`
-	MarketplaceOfferId           string                      `tfschema:"marketplace_offer_id"`
-	PlanId                       string                      `tfschema:"plan_id"`
+	Name                         string                       `tfschema:"name"`
+	ResourceGroupName            string                       `tfschema:"resource_group_name"`
+	Location                     string                       `tfschema:"location"`
+	NetworkProfile               []schema.NetworkProfileVHub  `tfschema:"network_profile"`
+	StrataCloudManagerTenantName string                       `tfschema:"strata_cloud_manager_tenant_name"`
+	DNSSettings                  []schema.DNSSettings         `tfschema:"dns_settings"`
+	FrontEnd                     []schema.DestinationNAT      `tfschema:"destination_nat"`
+	MarketplaceOfferId           string                       `tfschema:"marketplace_offer_id"`
+	PlanId                       string                       `tfschema:"plan_id"`
 	Identity                     []identity.ModelUserAssigned `tfschema:"identity"`
-	Tags                         map[string]interface{}      `tfschema:"tags"`
+	Tags                         map[string]interface{}       `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubStrataCloudManagerResource{}
@@ -149,7 +149,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
 				Identity: expandedIdentity,
-				Tags: tags.Expand(model.Tags),
+				Tags:     tags.Expand(model.Tags),
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
@@ -194,7 +194,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 				state.Location = location.Normalize(model.Location)
 
 				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
-				
+
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)

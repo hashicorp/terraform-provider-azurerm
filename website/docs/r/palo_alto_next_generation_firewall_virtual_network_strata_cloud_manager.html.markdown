@@ -151,9 +151,25 @@ A `destination_nat` block supports the following:
 
 * `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
 
-* `backend_config` - (Optional) A `backend_config` block as defined above.
+* `backend_config` - (Optional) One or more `backend_config` block as defined below.
 
-* `frontend_config` - (Optional) A `frontend_config` block as defined below.
+* `frontend_config` - (Optional) One or more `frontend_config` block as defined below.
+
+---
+
+A `frontend_config` block supports the following:
+
+* `port` - (Required) The port on which traffic will be received.
+
+* `public_ip_address_id` - (Required) The ID of the Public IP Address resource the traffic will be received on.
+
+---
+
+A `backend_config` block supports the following:
+
+* `port` - (Required) The port number to send traffic to.
+
+* `public_ip_address` - (Required) The public IP Address to send the traffic to.
 
 ---
 
@@ -183,9 +199,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
-
-~> **Note:** This is required when `type` is set to `UserAssigned`
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
 ## Attributes Reference
 

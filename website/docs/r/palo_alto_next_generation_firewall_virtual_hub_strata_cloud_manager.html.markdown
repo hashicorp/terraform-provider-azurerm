@@ -53,9 +53,9 @@ resource "azurerm_palo_alto_virtual_network_appliance" "example" {
 }
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager" "example" {
-  name = "example"
-  resource_group_name = "example"
-  location = "West Europe"
+  name                             = "example"
+  resource_group_name              = "example"
+  location                         = "West Europe"
   strata_cloud_manager_tenant_name = "example"
 
   network_profile {
@@ -96,23 +96,15 @@ The following arguments are supported:
 
 ---
 
-A `backend_config` block supports the following:
-
-* `port` - (Required) The port number to send traffic to.
-
-* `public_ip_address` - (Required) The public IP Address to send the traffic to.
-
----
-
 A `destination_nat` block supports the following:
 
 * `name` - (Required) The name which should be used for this TODO.
 
 * `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
 
-* `backend_config` - (Optional) A `backend_config` block as defined above.
+* `backend_config` - (Optional) One or more `backend_config` block as defined below.
 
-* `frontend_config` - (Optional) A `frontend_config` block as defined below.
+* `frontend_config` - (Optional) One or more `frontend_config` block as defined below.
 
 ---
 
@@ -121,6 +113,14 @@ A `dns_settings` block supports the following:
 * `dns_servers` - (Optional) Specifies a list of TODO.Conflicts with `dns_settings.0.use_azure_dns`.
 
 * `use_azure_dns` - (Optional) Should Azure DNS servers be used?Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+
+---
+
+A `backend_config` block supports the following:
+
+* `port` - (Required) The port number to send traffic to.
+
+* `public_ip_address` - (Required) The public IP Address to send the traffic to.
 
 ---
 
@@ -136,9 +136,7 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
-
-~> **Note:** This is required when `type` is set to `UserAssigned`
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
 ---
 
