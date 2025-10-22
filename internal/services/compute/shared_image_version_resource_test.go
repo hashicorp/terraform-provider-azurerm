@@ -210,9 +210,8 @@ func TestAccSharedImageVersion_endOfLifeDate(t *testing.T) {
 	})
 }
 
-func TestAccSharedImageVersion_replicationMode(t *testing.T) {
+func (r SharedImageVersionResource) TestAccSharedImageVersion_replicationMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
-	r := SharedImageVersionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -324,7 +323,6 @@ func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -347,7 +345,7 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, ImageResource{}.standaloneImageProvision(data, ""), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
@@ -376,7 +374,6 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
-	template := r.setup(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -415,7 +412,7 @@ resource "azurerm_shared_image_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template, data.RandomInteger)
+`, r.setup(data), data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {
@@ -575,7 +572,6 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) diskEncryptionSetID(data acceptance.TestData) string {
-	template := r.provision(data)
 	return fmt.Sprintf(`
 %s
 
@@ -674,7 +670,7 @@ resource "azurerm_shared_image_version" "test" {
     azurerm_key_vault_access_policy.disk-encryption,
   ]
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.provision(data), data.RandomString, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) endOfLifeDate(data acceptance.TestData, endOfLifeDate string) string {
