@@ -124,7 +124,7 @@ A `network_injection` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet which the Agent Client is injected into.
 
-~> **Note:** The agent subnet must use an address space in the 172._ or 192._ ranges.
+~> **Note:** The agent subnet must use an address space in the 172.* or 192.* ranges.
 
 ---
 
