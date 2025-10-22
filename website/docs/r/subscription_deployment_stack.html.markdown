@@ -97,10 +97,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the Subscription Deployment Stack.
+* `create` - (Defaults to 30 minutes) Used when creating the Subscription Deployment Stack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Deployment Stack.
-* `update` - (Defaults to 3 hours) Used when updating the Subscription Deployment Stack.
-* `delete` - (Defaults to 3 hours) Used when deleting the Subscription Deployment Stack.
+* `update` - (Defaults to 30 minutes) Used when updating the Subscription Deployment Stack.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Subscription Deployment Stack.
 
 ## Import
 

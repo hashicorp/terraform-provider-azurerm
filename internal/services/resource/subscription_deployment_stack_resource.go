@@ -20,25 +20,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = SubscriptionDeploymentStackResource{}
-
 type SubscriptionDeploymentStackResource struct{}
 
 type SubscriptionDeploymentStackModel struct {
-	Name                        string                  `tfschema:"name"`
-	Location                    string                  `tfschema:"location"`
-	TemplateContent             string                  `tfschema:"template_content"`
-	TemplateSpecVersionId       string                  `tfschema:"template_spec_version_id"`
-	ParametersContent           string                  `tfschema:"parameters_content"`
-	Description                 string                  `tfschema:"description"`
-	DeploymentResourceGroupName string                  `tfschema:"deployment_resource_group_name"`
-	ActionOnUnmanage            []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
-	DenySettings                []DenySettingsModel     `tfschema:"deny_settings"`
-	Tags                        map[string]string       `tfschema:"tags"`
-	OutputContent               string                  `tfschema:"output_content"`
-	DeploymentId                string                  `tfschema:"deployment_id"`
-	Duration                    string                  `tfschema:"duration"`
+	Name                  string                  `tfschema:"name"`
+	TemplateContent       string                  `tfschema:"template_content"`
+	TemplateSpecVersionId string                  `tfschema:"template_spec_version_id"`
+	ParametersContent     string                  `tfschema:"parameters_content"`
+	Description           string                  `tfschema:"description"`
+	ActionOnUnmanage      []ActionOnUnmanageModel `tfschema:"action_on_unmanage"`
+	DenySettings          []DenySettingsModel     `tfschema:"deny_settings"`
+	Tags                  map[string]string       `tfschema:"tags"`
+	OutputContent         string                  `tfschema:"output_content"`
+	DeploymentId          string                  `tfschema:"deployment_id"`
+	Duration              string                  `tfschema:"duration"`
+
+	DeploymentResourceGroupName string `tfschema:"deployment_resource_group_name"`
+	Location                    string `tfschema:"location"`
 }
+
+var _ sdk.ResourceWithUpdate = SubscriptionDeploymentStackResource{}
 
 func (r SubscriptionDeploymentStackResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -51,82 +52,30 @@ func (r SubscriptionDeploymentStackResource) Arguments() map[string]*pluginsdk.S
 
 		"location": commonschema.Location(),
 
-		"deployment_resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"template_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"template_content",
-				"template_spec_version_id",
-			},
-			StateFunc:        utils.NormalizeJson,
-			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-		},
-
-		"template_spec_version_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"template_content",
-				"template_spec_version_id",
-			},
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"parameters_content": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			StateFunc:        utils.NormalizeJson,
-			ValidateFunc:     validation.StringIsJSON,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(0, 256),
-		},
-
 		"action_on_unmanage": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"resources": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+					"management_groups": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatsubscription.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 
 					"resource_groups": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatsubscription.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 
-					"management_groups": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDelete),
-							string(deploymentstacksatsubscription.DeploymentStacksDeleteDetachEnumDetach),
-						}, false),
+					"resources": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(deploymentstacksatsubscription.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
 					},
 				},
 			},
@@ -139,13 +88,9 @@ func (r SubscriptionDeploymentStackResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deploymentstacksatsubscription.DenySettingsModeNone),
-							string(deploymentstacksatsubscription.DenySettingsModeDenyDelete),
-							string(deploymentstacksatsubscription.DenySettingsModeDenyWriteAndDelete),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(deploymentstacksatsubscription.PossibleValuesForDenySettingsMode(), false),
 					},
 
 					"apply_to_child_scopes": {
@@ -177,23 +122,66 @@ func (r SubscriptionDeploymentStackResource) Arguments() map[string]*pluginsdk.S
 			},
 		},
 
+		"deployment_resource_group_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(0, 256),
+		},
+
+		"parameters_content": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			StateFunc:        utils.NormalizeJson,
+			ValidateFunc:     validation.StringIsJSON,
+		},
+
 		"tags": commonschema.Tags(),
+
+		"template_content": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"template_content",
+				"template_spec_version_id",
+			},
+			StateFunc:        utils.NormalizeJson,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"template_spec_version_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"template_content",
+				"template_spec_version_id",
+			},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 	}
 }
 
 func (r SubscriptionDeploymentStackResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"output_content": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"deployment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"duration": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"output_content": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -210,17 +198,17 @@ func (r SubscriptionDeploymentStackResource) ResourceType() string {
 
 func (r SubscriptionDeploymentStackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.DeploymentStacksSubscriptionClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model SubscriptionDeploymentStackModel
-			if err := metadata.Decode(&model); err != nil {
+			var config SubscriptionDeploymentStackModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := deploymentstacksatsubscription.NewDeploymentStackID(subscriptionId, model.Name)
+			id := deploymentstacksatsubscription.NewDeploymentStackID(subscriptionId, config.Name)
 
 			existing, err := client.DeploymentStacksGetAtSubscription(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -230,35 +218,35 @@ func (r SubscriptionDeploymentStackResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := deploymentstacksatsubscription.DeploymentStackProperties{
-				ActionOnUnmanage: expandSubscriptionActionOnUnmanage(model.ActionOnUnmanage),
-				DenySettings:     expandSubscriptionDenySettings(model.DenySettings),
+			parameters := deploymentstacksatsubscription.DeploymentStackProperties{
+				ActionOnUnmanage: expandSubscriptionActionOnUnmanage(config.ActionOnUnmanage),
+				DenySettings:     expandSubscriptionDenySettings(config.DenySettings),
 			}
 
-			if model.Description != "" {
-				properties.Description = pointer.To(model.Description)
+			if config.Description != "" {
+				parameters.Description = pointer.To(config.Description)
 			}
 
-			if model.DeploymentResourceGroupName != "" {
-				properties.DeploymentScope = pointer.To(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionId, model.DeploymentResourceGroupName))
+			if config.DeploymentResourceGroupName != "" {
+				parameters.DeploymentScope = pointer.To(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionId, config.DeploymentResourceGroupName))
 			}
 
-			if model.TemplateContent != "" {
-				template, err := expandTemplateDeploymentBody(model.TemplateContent)
+			if config.TemplateContent != "" {
+				template, err := expandTemplateDeploymentBody(config.TemplateContent)
 				if err != nil {
 					return fmt.Errorf("expanding `template_content`: %+v", err)
 				}
-				properties.Template = template
+				parameters.Template = template
 			}
 
-			if model.TemplateSpecVersionId != "" {
-				properties.TemplateLink = &deploymentstacksatsubscription.DeploymentStacksTemplateLink{
-					Id: pointer.To(model.TemplateSpecVersionId),
+			if config.TemplateSpecVersionId != "" {
+				parameters.TemplateLink = &deploymentstacksatsubscription.DeploymentStacksTemplateLink{
+					Id: pointer.To(config.TemplateSpecVersionId),
 				}
 			}
 
-			if model.ParametersContent != "" {
-				params, err := expandTemplateDeploymentBody(model.ParametersContent)
+			if config.ParametersContent != "" {
+				params, err := expandTemplateDeploymentBody(config.ParametersContent)
 				if err != nil {
 					return fmt.Errorf("expanding `parameters_content`: %+v", err)
 				}
@@ -276,17 +264,17 @@ func (r SubscriptionDeploymentStackResource) Create() sdk.ResourceFunc {
 						Value: pointer.To(paramValue),
 					}
 				}
-				properties.Parameters = pointer.To(deploymentParams)
+				parameters.Parameters = pointer.To(deploymentParams)
 			}
 
-			tags := model.Tags
+			tags := config.Tags
 			if tags == nil {
 				tags = make(map[string]string)
 			}
 
 			payload := deploymentstacksatsubscription.DeploymentStack{
-				Location:   pointer.To(location.Normalize(model.Location)),
-				Properties: &properties,
+				Location:   pointer.To(location.Normalize(config.Location)),
+				Properties: &parameters,
 				Tags:       pointer.To(tags),
 			}
 
@@ -295,87 +283,6 @@ func (r SubscriptionDeploymentStackResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r SubscriptionDeploymentStackResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.DeploymentStacksSubscriptionClient
-
-			id, err := deploymentstacksatsubscription.ParseDeploymentStackID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model SubscriptionDeploymentStackModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			properties := deploymentstacksatsubscription.DeploymentStackProperties{
-				ActionOnUnmanage: expandSubscriptionActionOnUnmanage(model.ActionOnUnmanage),
-				DenySettings:     expandSubscriptionDenySettings(model.DenySettings),
-			}
-
-			if model.Description != "" {
-				properties.Description = pointer.To(model.Description)
-			}
-
-			if model.TemplateContent != "" {
-				template, err := expandTemplateDeploymentBody(model.TemplateContent)
-				if err != nil {
-					return fmt.Errorf("expanding `template_content`: %+v", err)
-				}
-				properties.Template = template
-			}
-
-			if model.TemplateSpecVersionId != "" {
-				properties.TemplateLink = &deploymentstacksatsubscription.DeploymentStacksTemplateLink{
-					Id: pointer.To(model.TemplateSpecVersionId),
-				}
-			}
-
-			if model.ParametersContent != "" {
-				params, err := expandTemplateDeploymentBody(model.ParametersContent)
-				if err != nil {
-					return fmt.Errorf("expanding `parameters_content`: %+v", err)
-				}
-				deploymentParams := make(map[string]deploymentstacksatsubscription.DeploymentParameter)
-				for k, v := range *params {
-					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
-					// Extract the "value" field if it exists
-					paramValue := v
-					if paramMap, ok := v.(map[string]interface{}); ok {
-						if val, exists := paramMap["value"]; exists {
-							paramValue = val
-						}
-					}
-					deploymentParams[k] = deploymentstacksatsubscription.DeploymentParameter{
-						Value: pointer.To(paramValue),
-					}
-				}
-				properties.Parameters = pointer.To(deploymentParams)
-			}
-
-			tags := model.Tags
-			if tags == nil {
-				tags = make(map[string]string)
-			}
-
-			deploymentStack := deploymentstacksatsubscription.DeploymentStack{
-				Location:   pointer.To(location.Normalize(model.Location)),
-				Properties: &properties,
-				Tags:       pointer.To(tags),
-			}
-
-			if err := client.DeploymentStacksCreateOrUpdateAtSubscriptionThenPoll(ctx, *id, deploymentStack); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
@@ -397,6 +304,7 @@ func (r SubscriptionDeploymentStackResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
+
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -429,21 +337,23 @@ func (r SubscriptionDeploymentStackResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					// Handle template fields
+					// Azure does not return `template` in GET responses, thus default to value in state
+					state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					if props.TemplateLink != nil && props.TemplateLink.Id != nil {
 						state.TemplateSpecVersionId = *props.TemplateLink.Id
-					} else {
-						// API doesn't return template in GET responses, preserve from current state
-						state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					}
 
-					// For parameters, preserve the ARM parameter wrapper format
+					configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
+					if configParamsContent != "" {
+						state.ParametersContent = configParamsContent
+					}
+
+					// If `parameters` is empty in API, preserve the config value
 					if props.Parameters != nil && len(*props.Parameters) > 0 {
 						// Preserve the ARM parameter format: {"paramName": {"value": "..."}}
 						params := make(map[string]interface{})
 						for k, v := range *props.Parameters {
 							if v.Value != nil {
-								// Keep the wrapper format to match what's in config
 								params[k] = map[string]interface{}{
 									"value": *v.Value,
 								}
@@ -454,12 +364,6 @@ func (r SubscriptionDeploymentStackResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("flattening `parameters_content`: %+v", err)
 						}
 						state.ParametersContent = *flattenedParams
-					} else {
-						// If API returns empty parameters but config has parameters_content, preserve it
-						configParamsContent := metadata.ResourceData.Get("parameters_content").(string)
-						if configParamsContent != "" {
-							state.ParametersContent = configParamsContent
-						}
 					}
 
 					if props.Outputs != nil {
@@ -485,9 +389,91 @@ func (r SubscriptionDeploymentStackResource) Read() sdk.ResourceFunc {
 	}
 }
 
+func (r SubscriptionDeploymentStackResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.DeploymentStacksSubscriptionClient
+
+			id, err := deploymentstacksatsubscription.ParseDeploymentStackID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var config SubscriptionDeploymentStackModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			payload := deploymentstacksatsubscription.DeploymentStack{
+				Location:   pointer.To(location.Normalize(config.Location)),
+				Properties: &deploymentstacksatsubscription.DeploymentStackProperties{},
+			}
+
+			if metadata.ResourceData.HasChange("action_on_unmanage") {
+				payload.Properties.ActionOnUnmanage = expandSubscriptionActionOnUnmanage(config.ActionOnUnmanage)
+			}
+
+			if metadata.ResourceData.HasChange("deny_settings") {
+				payload.Properties.DenySettings = expandSubscriptionDenySettings(config.DenySettings)
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				payload.Properties.Description = pointer.To(config.Description)
+			}
+
+			if metadata.ResourceData.HasChange("template_content") {
+				template, err := expandTemplateDeploymentBody(config.TemplateContent)
+				if err != nil {
+					return fmt.Errorf("expanding `template_content`: %+v", err)
+				}
+				payload.Properties.Template = template
+			}
+
+			if metadata.ResourceData.HasChange("template_spec_version_id") {
+				payload.Properties.TemplateLink = &deploymentstacksatsubscription.DeploymentStacksTemplateLink{
+					Id: pointer.To(config.TemplateSpecVersionId),
+				}
+			}
+
+			if metadata.ResourceData.HasChange("parameters_content") && config.ParametersContent != "" {
+				params, err := expandTemplateDeploymentBody(config.ParametersContent)
+				if err != nil {
+					return fmt.Errorf("expanding `parameters_content`: %+v", err)
+				}
+				deploymentParams := make(map[string]deploymentstacksatsubscription.DeploymentParameter)
+				for k, v := range *params {
+					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
+					// Extract the "value" field if it exists
+					paramValue := v
+					if paramMap, ok := v.(map[string]interface{}); ok {
+						if val, exists := paramMap["value"]; exists {
+							paramValue = val
+						}
+					}
+					deploymentParams[k] = deploymentstacksatsubscription.DeploymentParameter{
+						Value: pointer.To(paramValue),
+					}
+				}
+				payload.Properties.Parameters = pointer.To(deploymentParams)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(config.Tags)
+			}
+
+			if err := client.DeploymentStacksCreateOrUpdateAtSubscriptionThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r SubscriptionDeploymentStackResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.DeploymentStacksSubscriptionClient
 

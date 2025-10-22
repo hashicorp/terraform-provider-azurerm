@@ -22,7 +22,6 @@ type ResourceGroupDeploymentStackResource struct{}
 
 type ResourceGroupDeploymentStackModel struct {
 	Name                  string                  `tfschema:"name"`
-	ResourceGroupName     string                  `tfschema:"resource_group_name"`
 	TemplateContent       string                  `tfschema:"template_content"`
 	TemplateSpecVersionId string                  `tfschema:"template_spec_version_id"`
 	ParametersContent     string                  `tfschema:"parameters_content"`
@@ -33,6 +32,8 @@ type ResourceGroupDeploymentStackModel struct {
 	OutputContent         string                  `tfschema:"output_content"`
 	DeploymentId          string                  `tfschema:"deployment_id"`
 	Duration              string                  `tfschema:"duration"`
+
+	ResourceGroupName string `tfschema:"resource_group_name"`
 }
 
 var _ sdk.ResourceWithUpdate = ResourceGroupDeploymentStackResource{}
@@ -125,10 +126,11 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 		},
 
 		"parameters_content": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			StateFunc:    utils.NormalizeJson,
-			ValidateFunc: validation.StringIsJSON,
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			StateFunc:        utils.NormalizeJson,
+			ValidateFunc:     validation.StringIsJSON,
 		},
 
 		"tags": commonschema.Tags(),
@@ -211,7 +213,6 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 					ActionOnUnmanage: expandActionOnUnmanage(config.ActionOnUnmanage),
 					DenySettings:     expandDenySettings(config.DenySettings),
 				},
-				// Tags: pointer.To(tags),
 			}
 
 			properties := parameters.Properties
@@ -292,8 +293,7 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ResourceGroupDeploymentStackModel{
-				Name:              id.DeploymentStackName,
-				ResourceGroupName: id.ResourceGroupName,
+				Name: id.DeploymentStackName,
 			}
 
 			if model := resp.Model; model != nil {
@@ -377,17 +377,9 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.DeploymentStacksGetAtResourceGroup(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			payload := deploymentstacksatresourcegroup.DeploymentStack{
+				Properties: &deploymentstacksatresourcegroup.DeploymentStackProperties{},
 			}
-
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-
-			payload := pointer.From(existing.Model)
-
 			if metadata.ResourceData.HasChange("action_on_unmanage") {
 				payload.Properties.ActionOnUnmanage = expandActionOnUnmanage(config.ActionOnUnmanage)
 			}
@@ -414,7 +406,7 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("parameters_content") {
+			if metadata.ResourceData.HasChange("parameters_content") && config.ParametersContent != "" {
 				params, err := expandTemplateDeploymentBody(config.ParametersContent)
 				if err != nil {
 					return fmt.Errorf("expanding `parameters_content`: %+v", err)
@@ -451,7 +443,7 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 
 func (r ResourceGroupDeploymentStackResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.DeploymentStacksResourceGroupClient
 

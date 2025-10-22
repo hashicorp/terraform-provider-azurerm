@@ -103,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Resource Group Deployment Stack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group Deployment Stack.
 * `update` - (Defaults to 30 minutes) Used when updating the Resource Group Deployment Stack.
-* `delete` - (Defaults to 3 hours) Used when deleting the Resource Group Deployment Stack.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Resource Group Deployment Stack.
 
 ## Import
 
