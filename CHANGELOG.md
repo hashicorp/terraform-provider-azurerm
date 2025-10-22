@@ -10,6 +10,10 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* **New Data Source**: `azurerm_managed_redis` [GH-30060]
+* **New Resource**: `azurerm_managed_redis` [GH-30060]
+* **New Resource**: `azurerm_managed_redis_geo_replication` [GH-30060]
+
 BUG FIXES:
 
 ## 4.49.0 (October 16, 2025)
