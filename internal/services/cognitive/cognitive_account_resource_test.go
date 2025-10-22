@@ -329,7 +329,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupp
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
+			ExpectError: regexp.MustCompile("`network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
 		},
 	})
 }
@@ -1247,7 +1247,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "Face"
-  sku_name              = "F0"
+  sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
