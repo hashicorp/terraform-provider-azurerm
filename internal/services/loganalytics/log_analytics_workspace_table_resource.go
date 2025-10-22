@@ -41,8 +41,8 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			if string(tables.TablePlanEnumBasic) == rd.Get("plan").(string) {
-				if _, ok := rd.GetOk("retention_in_days"); ok {
-					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
+				if v, ok := rd.GetOk("retention_in_days"); ok && v.(int) == 30 {
+					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at 30 days on Basic plan")
 				}
 			}
 
