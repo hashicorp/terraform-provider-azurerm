@@ -16,6 +16,8 @@ FEATURES:
 
 BUG FIXES:
 
+`azurerm_mssql_database` - allow existing zero or null value for `auto_pause_delay_in_minutes` and `min_capacity` of non-serverless database [GH-30924]
+
 ## 4.49.0 (October 16, 2025)
 
 FEATURES:
