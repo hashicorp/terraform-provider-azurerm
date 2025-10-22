@@ -309,6 +309,8 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 						state.Description = *props.Description
 					}
 
+					state.ResourceGroupName = id.ResourceGroupName
+
 					// Azure does not return `template` in GET responses, thus default to value in state
 					state.TemplateContent = metadata.ResourceData.Get("template_content").(string)
 					if props.TemplateLink != nil && props.TemplateLink.Id != nil {

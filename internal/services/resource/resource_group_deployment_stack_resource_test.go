@@ -106,12 +106,22 @@ func (r ResourceGroupDeploymentStackResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ResourceGroupDeploymentStackResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+func (r ResourceGroupDeploymentStackResource) template() string {
+	return `
+	provider "azurerm" {
+  features {
+              resource_group {
+              prevent_deletion_if_contains_resources = false
+            }
+  }
 }
 
+			  `
+}
+
+func (r ResourceGroupDeploymentStackResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -135,7 +145,7 @@ resource "azurerm_resource_group_deployment_stack" "test" {
     mode = "none"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r ResourceGroupDeploymentStackResource) requiresImport(data acceptance.TestData) string {
@@ -161,9 +171,7 @@ resource "azurerm_resource_group_deployment_stack" "import" {
 
 func (r ResourceGroupDeploymentStackResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -218,5 +226,5 @@ resource "azurerm_resource_group_deployment_stack" "test" {
     environment = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, r.template(), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
