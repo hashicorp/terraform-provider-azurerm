@@ -12,7 +12,7 @@ import (
 
 var defaultRetentionInDays = pointer.To(int64(-1))
 
-type Column struct {
+type WorkspaceTableColumn struct {
 	Name             string `tfschema:"name"`
 	DisplayName      string `tfschema:"display_name"`
 	Description      string `tfschema:"description"`
@@ -68,7 +68,7 @@ func columnSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func expandColumns(columns *[]Column) *[]tables.Column {
+func expandColumns(columns *[]WorkspaceTableColumn) *[]tables.Column {
 	result := make([]tables.Column, 0, len(*columns))
 	for _, column := range *columns {
 		result = append(result, tables.Column{
@@ -77,20 +77,20 @@ func expandColumns(columns *[]Column) *[]tables.Column {
 			Description:      pointer.To(column.Description),
 			IsHidden:         pointer.To(column.IsHidden),
 			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
-			Type:             pointer.To(tables.ColumnTypeEnum(column.Type)),
-			DataTypeHint:     pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint)),
+			Type:             pointer.ToEnum[tables.ColumnTypeEnum](column.Type),
+			DataTypeHint:     pointer.ToEnum[tables.ColumnDataTypeHintEnum](column.TypeHint),
 		})
 	}
 	return pointer.To(result)
 }
 
-func flattenColumns(columns *[]tables.Column) []Column {
+func flattenColumns(columns *[]tables.Column) []WorkspaceTableColumn {
 	if columns == nil {
 		return nil
 	}
-	result := make([]Column, 0, len(*columns))
+	result := make([]WorkspaceTableColumn, 0, len(*columns))
 	for _, column := range *columns {
-		result = append(result, Column{
+		result = append(result, WorkspaceTableColumn{
 			Name:             pointer.From(column.Name),
 			DisplayName:      pointer.From(column.DisplayName),
 			Description:      pointer.From(column.Description),

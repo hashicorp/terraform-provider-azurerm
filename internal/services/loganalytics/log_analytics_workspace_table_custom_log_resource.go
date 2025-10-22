@@ -27,17 +27,17 @@ var (
 type WorkspaceTableCustomLogResource struct{}
 
 type WorkspaceTableCustomLogResourceModel struct {
-	Name                 string   `tfschema:"name"`
-	WorkspaceId          string   `tfschema:"workspace_id"`
-	DisplayName          string   `tfschema:"display_name"`
-	Description          string   `tfschema:"description"`
-	Plan                 string   `tfschema:"plan"`
-	Columns              []Column `tfschema:"column"`
-	Labels               []string `tfschema:"labels"`
-	Solutions            []string `tfschema:"solutions"`
-	StandardColumns      []Column `tfschema:"standard_column"`
-	RetentionInDays      int64    `tfschema:"retention_in_days"`
-	TotalRetentionInDays int64    `tfschema:"total_retention_in_days"`
+	Name                 string                 `tfschema:"name"`
+	WorkspaceId          string                 `tfschema:"workspace_id"`
+	DisplayName          string                 `tfschema:"display_name"`
+	Description          string                 `tfschema:"description"`
+	Plan                 string                 `tfschema:"plan"`
+	Columns              []WorkspaceTableColumn `tfschema:"column"`
+	Labels               []string               `tfschema:"labels"`
+	Solutions            []string               `tfschema:"solutions"`
+	StandardColumns      []WorkspaceTableColumn `tfschema:"standard_column"`
+	RetentionInDays      int64                  `tfschema:"retention_in_days"`
+	TotalRetentionInDays int64                  `tfschema:"total_retention_in_days"`
 }
 
 func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
@@ -230,8 +230,8 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 			param := tables.Table{
 				Properties: &tables.TableProperties{
 					Plan:                 pointer.To(tables.TablePlanEnum(config.Plan)),
-					RetentionInDays:      defaultRetentionInDaysSentinelValue,
-					TotalRetentionInDays: defaultRetentionInDaysSentinelValue,
+					RetentionInDays:      defaultRetentionInDays,
+					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{
 						Columns:      expandColumns(pointer.To(config.Columns)),
 						DisplayName:  pointer.To(config.DisplayName),
@@ -358,16 +358,16 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("retention_in_days") {
-				props.RetentionInDays = defaultRetentionInDaysSentinelValue
-				if config.RetentionInDays != 0 {
-					props.RetentionInDays = pointer.To(config.RetentionInDays)
+				props.RetentionInDays = pointer.To(config.RetentionInDays)
+				if config.RetentionInDays == 0 {
+					props.RetentionInDays = defaultRetentionInDays
 				}
 			}
 
 			if metadata.ResourceData.HasChange("total_retention_in_days") {
 				props.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 				if config.TotalRetentionInDays == 0 {
-					props.TotalRetentionInDays = defaultRetentionInDaysSentinelValue
+					props.TotalRetentionInDays = defaultRetentionInDays
 				}
 			}
 
