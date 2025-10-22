@@ -292,8 +292,10 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"file_system_configuration": {
-			Type:     pluginsdk.TypeList,
+			Type: pluginsdk.TypeList,
+			// O+C - the value will be different between creation and reading because the API provides an additional immutable or default elements
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mount_point": {
