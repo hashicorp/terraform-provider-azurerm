@@ -139,7 +139,7 @@ The following arguments are supported:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings[0].use_azure_dns`.
+* `dns_servers` - (Optional) A list of DNS servers to use. Conflicts with `dns_settings[0].use_azure_dns`.
 
 * `use_azure_dns` - (Optional) Should the Firewall use Azure Supplied DNS servers. Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
@@ -175,13 +175,13 @@ A `backend_config` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `public_ip_address_ids` - (Required) Specifies a list of Azure Public IP Address IDs.
+* `public_ip_address_ids` - (Required) A list of Azure Public IP Address IDs.
 
 * `vnet_configuration` - (Required) A `vnet_configuration` block as defined below.
 
-* `egress_nat_ip_address_ids` - (Optional) Specifies a list of Azure Public IP Address IDs that can be used for Egress (Source) Network Address Translation.
+* `egress_nat_ip_address_ids` - (Optional) A list of Azure Public IP Address IDs that can be used for Egress (Source) Network Address Translation.
 
-* `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
+* `trusted_address_ranges` - (Optional) A list of trusted ranges to use for the Network.
 
 ---
 
@@ -197,7 +197,7 @@ A `vnet_configuration` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 

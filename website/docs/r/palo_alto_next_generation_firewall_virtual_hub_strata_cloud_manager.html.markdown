@@ -110,7 +110,7 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) A list of DNS servers to use. Conflicts with `dns_settings.0.use_azure_dns`.
 
 * `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
 
@@ -134,7 +134,7 @@ A `frontend_config` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
@@ -144,13 +144,13 @@ A `network_profile` block supports the following:
 
 * `network_virtual_appliance_id` - (Required) The ID of the Palo Alto Network Virtual Appliance in the VHub. Changing this forces a new Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager to be created.
 
-* `public_ip_address_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
+* `public_ip_address_ids` - (Required) A list of Public IP IDs to use for this Next Generation Firewall.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub this Next Generation Firewall will be deployed in. Changing this forces a new Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager to be created.
 
-* `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
+* `egress_nat_ip_address_ids` - (Optional) A list of Public IP IDs to use for Egress NAT.
 
-* `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
+* `trusted_address_ranges` - (Optional) A list of trusted ranges to use for the Network.
 
 ## Attributes Reference
 
