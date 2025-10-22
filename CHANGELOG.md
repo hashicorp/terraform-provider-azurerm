@@ -1,6 +1,7 @@
 ## 4.50.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `oracle` - update to API version `2025-09-01` [GH-30796]
 * `azurerm_netapp_volume_resource` - support for Cross Zone Region replication through the `data_protection_replication` block [GH-30872]
 * `azurerm_search_service` - implement plan time error when `local_authentication_enabled = false` and `authentication_failure_mode` is set [GH-30882]
 * `azurerm_mssql_job_target_group` - the `job_target.job_credential_id` property is no longer required when `database_name` is not set to allow for authentication using a managed identity [GH-30898]
