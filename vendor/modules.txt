@@ -1036,6 +1036,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redispatchsc
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise
+github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances
