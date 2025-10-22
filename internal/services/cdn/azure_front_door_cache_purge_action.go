@@ -26,7 +26,7 @@ type FrontDoorCachePurgeActionModel struct {
 	AzureFrontDoorId types.String                          `tfsdk:"front_door_endpoint_id"`
 	ContentPaths     typehelpers.ListValueOf[types.String] `tfsdk:"content_paths"`
 	Domains          typehelpers.ListValueOf[types.String] `tfsdk:"domains"`
-	Timeout          types.Int64                           `tfsdk:"timeout"`
+	Timeout          types.String                          `tfsdk:"timeout"`
 }
 
 var _ sdk.Action = &FrontDoorCachePurgeAction{}
@@ -75,10 +75,10 @@ func (a *FrontDoorCachePurgeAction) Schema(ctx context.Context, _ action.SchemaR
 				},
 			},
 
-			"timeout": schema.Int64Attribute{
+			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout in seconds for the Front Door Purge action to complete. Defaults to 1800 (30m).",
-				MarkdownDescription: "Timeout in seconds for the Front Door Purge action to complete. Defaults to 1800 (30m).",
+				Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
+				MarkdownDescription: "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
 			},
 		},
 	}
@@ -97,9 +97,14 @@ func (a *FrontDoorCachePurgeAction) Invoke(ctx context.Context, request action.I
 		return
 	}
 
-	ctxTimeout := 1800 * time.Second
+	ctxTimeout := 30 * time.Minute
 	if t := model.Timeout; !t.IsNull() {
-		ctxTimeout = time.Duration(t.ValueInt64()) * time.Second
+		timeout, err := time.ParseDuration(t.ValueString())
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(response, "parsing `timeout`", err)
+			return
+		}
+		ctxTimeout = timeout
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, ctxTimeout)
