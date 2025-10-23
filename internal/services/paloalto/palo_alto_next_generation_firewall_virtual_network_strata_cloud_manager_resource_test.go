@@ -100,13 +100,13 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
+    {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+    data.ImportStep(),
 	})
 }
 
@@ -188,18 +188,12 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uaid-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "test" {
   name                             = "acctest-ngfwvnscm-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
   marketplace_offer_id             = "pan_swfw_cloud_ngfw"
-  plan_id                          = "cloud-ngfw-for-msft"
+  plan_id                          = "panw-cngfw-payg"
   strata_cloud_manager_tenant_name = "%[4]s"
 
   network_profile {
@@ -250,7 +244,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
   }
 
   tags = {
-    userid = "acctest-tf-%[2]d"
+    userid = "terraform"
   }
 
   depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
@@ -296,7 +290,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    environment = "Production"
+    environment = "Terraform Testing"
   }
 }
 
@@ -344,6 +338,12 @@ resource "azurerm_subnet" "test2" {
 resource "azurerm_subnet_network_security_group_association" "test2" {
   subnet_id                 = azurerm_subnet.test2.id
   network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uaid-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

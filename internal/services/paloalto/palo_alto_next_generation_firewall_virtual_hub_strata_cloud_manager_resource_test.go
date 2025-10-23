@@ -136,22 +136,16 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager" "test" {
-  name                             = "acctest-ngfwvnscm-%[2]d"
+  name                             = "acctest-ngfwvhscm-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
   strata_cloud_manager_tenant_name = "%[3]s"
 
   network_profile {
-    public_ip_address_ids = [azurerm_public_ip.test.id]
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_virtual_network.test.id
-      trusted_subnet_id   = azurerm_subnet.test1.id
-      untrusted_subnet_id = azurerm_subnet.test2.id
-    }
+    virtual_hub_id               = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids        = [azurerm_public_ip.test.id]
   }
-
-  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
@@ -168,13 +162,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
   strata_cloud_manager_tenant_name = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.strata_cloud_manager_tenant_name
 
   network_profile {
-    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].public_ip_address_ids
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].vnet_configuration[0].virtual_network_id
-      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].vnet_configuration[0].trusted_subnet_id
-      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].vnet_configuration[0].untrusted_subnet_id
-    }
+    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].virtual_hub_id
+    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].network_virtual_appliance_id
+    public_ip_address_ids        = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].public_ip_address_ids
   }
 }
 `, template)
@@ -188,19 +178,13 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uaid-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager" "test" {
-  name                             = "acctest-ngfwvnscm-%[2]d"
+  name                             = "acctest-ngfwvhscm-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
-  location                         = "%[3]s"
+  location                         = azurerm_resource_group.test.location
+  strata_cloud_manager_tenant_name = "%[3]s"
   marketplace_offer_id             = "pan_swfw_cloud_ngfw"
-  plan_id                          = "cloud-ngfw-for-msft"
-  strata_cloud_manager_tenant_name = "%[4]s"
+  plan_id                          = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -246,18 +230,16 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
   }
 
   tags = {
-    userid = "acctest-tf-%[2]d"
+    userid = "terraform"
   }
-
-  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
 
 func (r NextGenerationFirewallVHubStrataCloudManagerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-PANGFWVNSCM-%[1]d"
+  name     = "acctestRG-PANGFWVHSCM-%[1]d"
   location = "%[2]s"
 }
 
@@ -300,6 +282,12 @@ resource "azurerm_virtual_hub" "test" {
 resource "azurerm_palo_alto_virtual_network_appliance" "test" {
   name           = "testAcc-panva-%[1]d"
   virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uaid-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
