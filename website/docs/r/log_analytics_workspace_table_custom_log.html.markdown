@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The object ID of the Log Analytics Workspace that contains the table. Changing this forces a new resource to be created.
 
----
-
 * `column` - (Required) One or more `column` blocks as defined below.
+
+---
 
 * `description` - (Optional) The description of the table.
 

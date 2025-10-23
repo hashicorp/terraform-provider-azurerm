@@ -30,10 +30,10 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"display_name": {
+		"type": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 		},
 
 		"description": {
@@ -42,16 +42,16 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
+		"display_by_default": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
-		"type_hint": {
+		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"hidden": {
@@ -60,10 +60,10 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"display_by_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+		"type_hint": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
 		},
 	}
 }
@@ -71,15 +71,22 @@ func columnSchema() map[string]*pluginsdk.Schema {
 func expandColumns(columns *[]WorkspaceTableColumn) *[]tables.Column {
 	result := make([]tables.Column, 0, len(*columns))
 	for _, column := range *columns {
-		result = append(result, tables.Column{
+		columnToAdd := tables.Column{
 			Name:             pointer.To(column.Name),
-			DisplayName:      pointer.To(column.DisplayName),
-			Description:      pointer.To(column.Description),
 			IsHidden:         pointer.To(column.IsHidden),
 			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
 			Type:             pointer.ToEnum[tables.ColumnTypeEnum](column.Type),
-			DataTypeHint:     pointer.ToEnum[tables.ColumnDataTypeHintEnum](column.TypeHint),
-		})
+		}
+		if column.DisplayName != "" {
+			columnToAdd.DisplayName = pointer.To(column.DisplayName)
+		}
+		if column.Description != "" {
+			columnToAdd.Description = pointer.To(column.Description)
+		}
+		if column.TypeHint != "" {
+			columnToAdd.DataTypeHint = pointer.ToEnum[tables.ColumnDataTypeHintEnum](column.TypeHint)
+		}
+		result = append(result, columnToAdd)
 	}
 	return pointer.To(result)
 }

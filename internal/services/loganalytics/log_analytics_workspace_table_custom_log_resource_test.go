@@ -121,66 +121,6 @@ func (t LogAnalyticsWorkspaceTableCustomLogResource) Exists(ctx context.Context,
 	return pointer.To(resp.Model.Id != nil), nil
 }
 
-func (t LogAnalyticsWorkspaceTableCustomLogResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
-
-resource "azurerm_monitor_data_collection_endpoint" "test" {
-  name                = "acctestdce-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_monitor_data_collection_rule" "test" {
-  name                        = "acctestdcr-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.test.id
-
-  data_flow {
-    destinations  = [replace(azurerm_log_analytics_workspace.test.workspace_id, "-", "")]
-    output_stream = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
-    streams       = ["Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"]
-    transform_kql = "source"
-  }
-  stream_declaration {
-    stream_name = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
-    column {
-      name = "TimeGenerated"
-      type = "datetime"
-    }
-    column {
-      name = "Application"
-      type = "string"
-    }
-    column {
-      name = "RawData"
-      type = "string"
-    }
-  }
-  destinations {
-    log_analytics {
-      name                  = replace(azurerm_log_analytics_workspace.test.workspace_id, "-", "")
-      workspace_resource_id = azurerm_log_analytics_workspace.test.id
-    }
-  }
-}
-
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func (t LogAnalyticsWorkspaceTableCustomLogResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -273,23 +213,71 @@ func (t LogAnalyticsWorkspaceTableCustomLogResource) basicPlan(data acceptance.T
 resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
   name         = "acctestlawdcr%d_CL"
   workspace_id = azurerm_log_analytics_workspace.test.id
-  plan         = "Basic"
-
   column {
     display_by_default = false
     name               = "TimeGenerated"
     type               = "dateTime"
   }
-  column {
-    display_by_default = false
-    name               = "Application"
-    type               = "string"
-  }
-  column {
-    display_by_default = false
-    name               = "RawData"
-    type               = "string"
-  }
 }
 `, t.template(data), data.RandomInteger)
+}
+
+func (t LogAnalyticsWorkspaceTableCustomLogResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_data_collection_endpoint" "test" {
+  name                = "acctestdce-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                        = "acctestdcr-%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.test.id
+
+  data_flow {
+    destinations  = [replace(azurerm_log_analytics_workspace.test.workspace_id, "-", "")]
+    output_stream = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+    streams       = ["Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"]
+    transform_kql = "source"
+  }
+  stream_declaration {
+    stream_name = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+    column {
+      name = "TimeGenerated"
+      type = "datetime"
+    }
+    column {
+      name = "Application"
+      type = "string"
+    }
+    column {
+      name = "RawData"
+      type = "string"
+    }
+  }
+  destinations {
+    log_analytics {
+      name                  = replace(azurerm_log_analytics_workspace.test.workspace_id, "-", "")
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+    }
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary)
 }

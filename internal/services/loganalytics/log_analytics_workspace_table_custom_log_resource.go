@@ -291,14 +291,11 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					planAllowsCustomRetention := props.Plan != nil && *props.Plan == tables.TablePlanEnumAnalytics
-					if planAllowsCustomRetention {
-						if !pointer.From(props.RetentionInDaysAsDefault) {
-							state.RetentionInDays = pointer.From(props.RetentionInDays)
-						}
-						if !pointer.From(props.TotalRetentionInDaysAsDefault) {
-							state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-						}
+					if !pointer.From(props.RetentionInDaysAsDefault) {
+						state.RetentionInDays = pointer.From(props.RetentionInDays)
+					}
+					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
+						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
 					state.Plan = pointer.FromEnum(props.Plan)
 
