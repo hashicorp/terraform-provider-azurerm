@@ -5,7 +5,9 @@ package oracle
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -41,13 +43,14 @@ type CloudVmClusterResourceModel struct {
 	DbServers                    []string `tfschema:"db_servers"`
 	DisplayName                  string   `tfschema:"display_name"`
 	GiVersion                    string   `tfschema:"gi_version"`
-	Hostname                     string   `tfschema:"hostname"`
-	HostnameActual               string   `tfschema:"hostname_actual"`
-	LicenseModel                 string   `tfschema:"license_model"`
-	MemorySizeInGbs              int64    `tfschema:"memory_size_in_gbs"`
-	SshPublicKeys                []string `tfschema:"ssh_public_keys"`
-	SubnetId                     string   `tfschema:"subnet_id"`
-	VnetId                       string   `tfschema:"virtual_network_id"`
+	//GiVersionComputed            string   `tfschema:"gi_version_computed"`
+	Hostname        string   `tfschema:"hostname"`
+	HostnameActual  string   `tfschema:"hostname_actual"`
+	LicenseModel    string   `tfschema:"license_model"`
+	MemorySizeInGbs int64    `tfschema:"memory_size_in_gbs"`
+	SshPublicKeys   []string `tfschema:"ssh_public_keys"`
+	SubnetId        string   `tfschema:"subnet_id"`
+	VnetId          string   `tfschema:"virtual_network_id"`
 
 	// Optional
 	BackupSubnetCidr         string                         `tfschema:"backup_subnet_cidr"`
@@ -130,6 +133,11 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+
+		//"gi_version_computed": {
+		//	Type:     pluginsdk.TypeString,
+		//	Computed: true,
+		//},
 
 		"hostname": {
 			Type:     pluginsdk.TypeString,
@@ -305,6 +313,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 				},
+			},
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				// Suppress diff, Creating and Reading file_system_configuration are different.
+				if d.Id() != "" {
+					return true
+				}
+				return false
 			},
 		},
 	}
@@ -509,7 +524,6 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
 					state.DbServers = pointer.From(props.DbServers)
 					state.DisplayName = props.DisplayName
-					state.GiVersion = props.GiVersion
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
 					state.LicenseModel = string(pointer.From(props.LicenseModel))
@@ -539,6 +553,15 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneId = pointer.From(props.ZoneId)
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
+
+					// our downstream service started sending gi version with minor value,
+					//for this reason we need to extract the major value only to avoid state drift
+					giMajorVersionPtr, err := getMajorGiVersion(&props.GiVersion)
+					if err != nil {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					} else if giMajorVersionPtr != nil {
+						state.GiVersion = *giMajorVersionPtr
+					}
 				}
 			}
 
@@ -590,4 +613,22 @@ func removeHostnameSuffix(hostnameActual string) string {
 	} else {
 		return hostnameActual
 	}
+}
+
+func getMajorGiVersion(giVersionComputed *string) (*string, error) {
+	if giVersionComputed == nil || *giVersionComputed == "" {
+		return nil, errors.New("giVersionComputed cannot be nil or empty")
+	}
+	const MajorGiVersionPattern = `^(\d{2})\.0\.0\.0$`
+
+	giVersionMajor := strings.Split(*giVersionComputed, ".")[0]
+	giMajorVersion := giVersionMajor + ".0.0.0"
+	regxGiVersionMajor := regexp.MustCompile(MajorGiVersionPattern)
+
+	if !regxGiVersionMajor.MatchString(giMajorVersion) {
+		return nil, fmt.Errorf("GI major version %q retrieved from gi_version_computed does not match pattern %q",
+			giMajorVersion, MajorGiVersionPattern)
+	}
+
+	return &giMajorVersion, nil
 }
