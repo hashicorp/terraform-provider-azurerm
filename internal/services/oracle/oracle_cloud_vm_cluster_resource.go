@@ -43,14 +43,13 @@ type CloudVmClusterResourceModel struct {
 	DbServers                    []string `tfschema:"db_servers"`
 	DisplayName                  string   `tfschema:"display_name"`
 	GiVersion                    string   `tfschema:"gi_version"`
-	//GiVersionComputed            string   `tfschema:"gi_version_computed"`
-	Hostname        string   `tfschema:"hostname"`
-	HostnameActual  string   `tfschema:"hostname_actual"`
-	LicenseModel    string   `tfschema:"license_model"`
-	MemorySizeInGbs int64    `tfschema:"memory_size_in_gbs"`
-	SshPublicKeys   []string `tfschema:"ssh_public_keys"`
-	SubnetId        string   `tfschema:"subnet_id"`
-	VnetId          string   `tfschema:"virtual_network_id"`
+	Hostname                     string   `tfschema:"hostname"`
+	HostnameActual               string   `tfschema:"hostname_actual"`
+	LicenseModel                 string   `tfschema:"license_model"`
+	MemorySizeInGbs              int64    `tfschema:"memory_size_in_gbs"`
+	SshPublicKeys                []string `tfschema:"ssh_public_keys"`
+	SubnetId                     string   `tfschema:"subnet_id"`
+	VnetId                       string   `tfschema:"virtual_network_id"`
 
 	// Optional
 	BackupSubnetCidr         string                         `tfschema:"backup_subnet_cidr"`
