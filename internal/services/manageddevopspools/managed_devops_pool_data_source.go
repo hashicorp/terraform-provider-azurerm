@@ -404,7 +404,6 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
-
 						if stateful, ok := agentProfile.(pools.Stateful); ok {
 							state.StatefulAgentProfile = flattenStatefulAgentProfileToModel(stateful)
 						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
@@ -413,14 +412,12 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-
 						if azureDevOpsOrganizationProfile, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
 							state.AzureDevOpsOrganizationProfile = flattenAzureDevOpsOrganizationProfileToModel(azureDevOpsOrganizationProfile)
 						}
 					}
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
-
 						if vmssFabricProfile, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
 							state.VmssFabricProfile = flattenVmssFabricProfileToModel(vmssFabricProfile)
 						}

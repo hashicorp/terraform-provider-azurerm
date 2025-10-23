@@ -444,28 +444,14 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			var agentProfile pools.AgentProfile
 			if config.StatefulAgentProfile != nil {
-				agentProfile, err = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
-
-				if err != nil {
-					return fmt.Errorf("expanding `stateful_agent_profile`: %+v", err)
-				}
+				agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
 			} else {
-				agentProfile, err = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
-
-				if err != nil {
-					return fmt.Errorf("expanding `stateless_agent_profile`: %+v", err)
-				}
+				agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
 			}
 
-			azureDevOpsOrganizationProfile, err := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
-			if err != nil {
-				return fmt.Errorf("expanding `azure_devops_organization_profile`: %+v", err)
-			}
+			azureDevOpsOrganizationProfile := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
 
-			fabricProfile, err := expandVmssFabricProfileModel(config.VmssFabricProfile)
-			if err != nil {
-				return fmt.Errorf("expanding `vmss_fabric_profile`: %+v", err)
-			}
+			fabricProfile := expandVmssFabricProfileModel(config.VmssFabricProfile)
 
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
@@ -541,33 +527,21 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				var agentProfile pools.AgentProfile
 
 				if len(config.StatefulAgentProfile) > 0 {
-					agentProfile, err = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
-					if err != nil {
-						return fmt.Errorf("expanding `stateful_agent_profile`: %+v", err)
-					}
+					agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
 				} else if len(config.StatelessAgentProfile) > 0 {
-					agentProfile, err = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
-					if err != nil {
-						return fmt.Errorf("expanding `stateless_agent_profile`: %+v", err)
-					}
+					agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
 				}
 
 				payload.Properties.AgentProfile = agentProfile
 			}
 
 			if metadata.ResourceData.HasChange("azure_devops_organization_profile") {
-				organizationProfile, err := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
-				if err != nil {
-					return fmt.Errorf("expanding `azure_devops_organization_profile`: %+v", err)
-				}
+				organizationProfile := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
 				payload.Properties.OrganizationProfile = organizationProfile
 			}
 
 			if metadata.ResourceData.HasChange("vmss_fabric_profile") {
-				vmssFabricProfile, err := expandVmssFabricProfileModel(config.VmssFabricProfile)
-				if err != nil {
-					return fmt.Errorf("expanding `vmss_fabric_profile`: %+v", err)
-				}
+				vmssFabricProfile := expandVmssFabricProfileModel(config.VmssFabricProfile)
 				payload.Properties.FabricProfile = vmssFabricProfile
 			}
 
@@ -626,7 +600,6 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 					state.MaximumConcurrency = props.MaximumConcurrency
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
-
 						if stateful, ok := agentProfile.(pools.Stateful); ok {
 							state.StatefulAgentProfile = flattenStatefulAgentProfileToModel(stateful)
 						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
@@ -635,14 +608,12 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-
 						if azureDevOpsOrganizationProfile, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
 							state.AzureDevOpsOrganizationProfile = flattenAzureDevOpsOrganizationProfileToModel(azureDevOpsOrganizationProfile)
 						}
 					}
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
-
 						if vmssFabricProfile, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
 							state.VmssFabricProfile = flattenVmssFabricProfileToModel(vmssFabricProfile)
 						}

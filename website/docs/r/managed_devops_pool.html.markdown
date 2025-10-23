@@ -51,7 +51,7 @@ resource "azurerm_managed_devops_pool" "example" {
     }
 
     permission_profile_kind = "SpecificAccounts"
-    
+
     administrator_accounts {
       groups = ["group1@example.com", "group2@example.com"]
       users  = ["user1@example.com", "user2@example.com"]
@@ -148,7 +148,7 @@ A `data_disk` block supports the following:
 
 * `drive_letter` - (Optional) The drive letter for the empty data disk. If not specified, it will be the first available letter.
 
-* `storage_account_type` - (Optional) The Storage Account type to be used for the data disk. Defaults to `Standard_LRS`.
+* `storage_account_type` - (Optional) The Storage Account type to be used for the data disk. Possible values are `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
 
 ---
 
@@ -218,7 +218,7 @@ An `organization` block supports the following:
 
 An `os_profile` block supports the following:
 
-* `logon_type` - (Required) Determines how the service should be run. Possible values are: `Interactive` and `Service`.
+* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
 
 * `secrets_management` - (Optional) A `secrets_management` block as defined below.
 

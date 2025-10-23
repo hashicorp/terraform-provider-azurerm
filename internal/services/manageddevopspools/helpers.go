@@ -1,17 +1,17 @@
 package manageddevopspools
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 )
 
-func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) (pools.AgentProfile, error) {
+func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.AgentProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	agentProfile := input[0]
@@ -47,12 +47,12 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) (pools.A
 		stateful.ResourcePredictionsProfile = automaticPredictionsProfile
 	}
 
-	return stateful, nil
+	return stateful
 }
 
-func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) (pools.AgentProfile, error) {
+func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.AgentProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	agentProfile := input[0]
@@ -86,7 +86,7 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) (pools
 		stateless.ResourcePredictionsProfile = automaticPredictionsProfile
 	}
 
-	return stateless, nil
+	return stateless
 }
 
 func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourcePredictionsSdkModel {
@@ -106,9 +106,9 @@ func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourceP
 	}
 }
 
-func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) (pools.OrganizationProfile, error) {
+func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) pools.OrganizationProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	organizationProfile := input[0]
@@ -141,12 +141,12 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 		azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
 	}
 
-	return azureDevOpsOrganizationProfile, nil
+	return azureDevOpsOrganizationProfile
 }
 
-func expandVmssFabricProfileModel(input []VmssFabricProfileModel) (pools.FabricProfile, error) {
+func expandVmssFabricProfileModel(input []VmssFabricProfileModel) pools.FabricProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	fabricProfile := input[0]
@@ -158,7 +158,7 @@ func expandVmssFabricProfileModel(input []VmssFabricProfileModel) (pools.FabricP
 		StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
 	}
 
-	return vmssFabricProfile, nil
+	return vmssFabricProfile
 }
 
 func expandImageModel(input []ImageModel) []pools.PoolImage {
