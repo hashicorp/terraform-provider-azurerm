@@ -85,7 +85,7 @@ resource "azurerm_spring_cloud_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -130,7 +130,7 @@ An `secret_store` block supports the following:
 * `key_vault_id` - (Required) The key vault id to store secret.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
@@ -138,7 +138,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Connector for spring cloud.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Connector for spring cloud.
@@ -152,3 +152,9 @@ Service Connector for spring cloud can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_spring_cloud_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/springcloud/apps/springcloudapp/deployments/deployment/providers/Microsoft.ServiceLinker/linkers/serviceconnector1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceLinker` - 2024-04-01, 2022-05-01

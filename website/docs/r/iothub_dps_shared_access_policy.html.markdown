@@ -39,7 +39,7 @@ resource "azurerm_iothub_dps_shared_access_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,11 +83,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service Shared Access Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Shared Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Device Provisioning Service Shared Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Shared Access Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Device Provisioning Service Shared Access Policy.
 
 ## Import
@@ -97,3 +97,9 @@ IoTHub Device Provisioning Service Shared Access Policies can be imported using 
 ```shell
 terraform import azurerm_iothub_dps_shared_access_policy.shared_access_policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/dps1/keys/shared_access_policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Devices` - 2022-02-05

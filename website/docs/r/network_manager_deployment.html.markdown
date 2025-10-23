@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Deployment to be created.
 
-* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Deployment to be created.
+* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`. Changing this forces a new Network Manager Deployment to be created.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
 
@@ -169,12 +169,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Network Manager Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Deployment.
 * `update` - (Defaults to 24 hours) Used when updating the Network Manager Deployment.
-* `delete` - (Defaults to 24 hour) Used when deleting the Network Manager Deployment.
+* `delete` - (Defaults to 24 hours) Used when deleting the Network Manager Deployment.
 
 ## Import
 
@@ -183,3 +183,9 @@ Network Manager Deployment can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_manager_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/commit|eastus|Connectivity
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

@@ -87,12 +87,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Catalog.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Catalog.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Catalog.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Catalog.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Catalog.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Catalog.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Catalog.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Catalog.
 
 ## Import
 
@@ -106,3 +106,9 @@ terraform import azurerm_dev_center_catalog.example /subscriptions/{subscription
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center exists. For example `example-resource-group`.
 * Where `{devCenterName}` is the name of the Dev Center. For example `devCenterValue`.
 * Where `{catalogName}` is the name of the Dev Center Catalog. For example `catalogValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter` - 2025-02-01

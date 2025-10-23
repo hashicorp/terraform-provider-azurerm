@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -174,11 +174,11 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? This is only supported on resources with the `Standard` or `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether to allow anonymous (unauthenticated) pull access to this Container Registry. This is only supported on resources with the `Standard` or `Premium` SKU.
 
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
-* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 
@@ -190,7 +190,7 @@ The `georeplications` block supports the following:
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
-~> **Note:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
+~> **Note:** Changing the `zone_redundancy_enabled` forces an underlying replication to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 
@@ -204,7 +204,7 @@ The `network_rule_set` block supports the following:
 
 ~> **Note:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
-~> **Note:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
+~> **Note:** Azure automatically configures Network Rules - to remove these, you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 ---
 
@@ -248,6 +248,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled. 
+
 * `identity` - An `identity` block as defined below.
 
 ---
@@ -264,11 +266,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
-* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry.
 
 ## Import
@@ -278,3 +280,9 @@ Container Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

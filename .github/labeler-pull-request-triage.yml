@@ -474,6 +474,11 @@ service/purview:
   - any-glob-to-any-file:
     - internal/services/purview/**/*
 
+service/qumulo:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
+
 service/recovery-services:
 - changed-files:
   - any-glob-to-any-file:
@@ -487,6 +492,7 @@ service/redhatopenshift:
 service/redis:
 - changed-files:
   - any-glob-to-any-file:
+    - internal/services/managedredis/**/*
     - internal/services/redis/**/*
     - internal/services/redisenterprise/**/*
 

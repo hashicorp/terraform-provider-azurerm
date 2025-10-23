@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Data Network.
 ---
 
-# azurerm_mobile_network_data_network
+# Data Source: azurerm_mobile_network_data_network
 
 Get information about a Mobile Network Data Network.
 
@@ -47,6 +47,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Data Network.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

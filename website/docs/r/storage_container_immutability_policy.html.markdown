@@ -37,14 +37,14 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_storage_container_immutability_policy" "example" {
-  storage_container_resource_manager_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.example.id
   immutability_period_in_days           = 14
   protected_append_writes_all_enabled   = false
   protected_append_writes_enabled       = true
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -66,11 +66,11 @@ No additional attributes are exported.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the Storage Container Immutability Policy.
-* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container Immutability Policy.
+* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Storage Container Immutability Policy.
 
 ## Import
@@ -80,3 +80,9 @@ Storage Container Immutability Policies can be imported using the `resource id`,
 ```shell
 terraform import azurerm_storage_container_immutability_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer/immutabilityPolicies/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

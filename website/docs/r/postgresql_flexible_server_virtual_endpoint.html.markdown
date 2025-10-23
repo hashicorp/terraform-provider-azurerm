@@ -59,7 +59,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "example" {
 
 -> **Note:** If creating multiple replicas, an error can occur if virtual endpoints are created before all replicas have been completed. To avoid this error, use a `depends_on` property on `azurerm_postgresql_flexible_server_virtual_endpoint` that references all Postgres Flexible Server Replicas.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,11 +81,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
-* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Virtual Endpoint.
+* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
 * `delete` - (Defaults to 5 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
 
 ## Import
@@ -94,3 +94,9 @@ A PostgreSQL Flexible Virtual Endpoint can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/sourceServerName/virtualEndpoints/endpointName|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/replicaServerName/virtualEndpoints/endpointName"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

@@ -115,7 +115,7 @@ resource "azurerm_virtual_machine_packet_capture" "example" {
 
 ~> **Note:** This Resource requires that [the Network Watcher Virtual Machine Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -175,7 +175,7 @@ A `storage_location` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Packet Capture.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Packet Capture.
@@ -188,3 +188,9 @@ Virtual Machine Packet Captures can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine_packet_capture.capture1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/capture1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

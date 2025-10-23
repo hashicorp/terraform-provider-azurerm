@@ -59,7 +59,7 @@ resource "azurerm_app_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -174,6 +174,8 @@ An `azure_blob_storage` block supports the following:
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
 * `sas_url` - (Required) The URL to the storage container with a shared access signature token appended.
+
+~> **Note:** There isn't enough information to for the provider to generate the `sas_url` from `data.azurerm_storage_account_sas` and it should be built by hand (i.e. `https://${azurerm_storage_account.example.name}.blob.core.windows.net/${azurerm_storage_container.example.name}${data.azurerm_storage_account_sas.example.sas}&sr=b`).
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
@@ -506,11 +508,11 @@ A `source_control` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service.
 
 ## Import

@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag"
@@ -20,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/authorizationserver"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/cache"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
@@ -53,12 +51,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	policyfragment_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	ApiClient                          *api.ApiClient
 	ApiDiagnosticClient                *apidiagnostic.ApiDiagnosticClient
+	ApiGatewayClient                   *apigateway.ApiGatewayClient
 	ApiOperationPoliciesClient         *apioperationpolicy.ApiOperationPolicyClient
 	ApiOperationsClient                *apioperation.ApiOperationClient
 	ApiOperationTagClient              *apioperationtag.ApiOperationTagClient
@@ -91,7 +96,9 @@ type Client struct {
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
 	PolicyClient                       *policy.PolicyClient
+	WorkspacePolicyClient              *workspacepolicy.WorkspacePolicyClient
 	PolicyFragmentClient               *policyfragment.PolicyFragmentClient
+	PolicyFragmentClient_v2024_05_01   *policyfragment_v2024_05_01.PolicyFragmentClient
 	ProductApisClient                  *productapi.ProductApiClient
 	ProductGroupsClient                *productgroup.ProductGroupClient
 	ProductPoliciesClient              *productpolicy.ProductPolicyClient
@@ -104,6 +111,7 @@ type Client struct {
 	TagClient                          *tag.TagClient
 	TenantAccessClient                 *tenantaccess.TenantAccessClient
 	UsersClient                        *user.UserClient
+	WorkspaceClient                    *workspace.WorkspaceClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -118,6 +126,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Api Diagnostic client: %+v", err)
 	}
 	o.Configure(apiDiagnosticClient.Client, o.Authorizers.ResourceManager)
+
+	apiGatewayClient, err := apigateway.NewApiGatewayClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api GateWay client: %+v", err)
+	}
+	o.Configure(apiGatewayClient.Client, o.Authorizers.ResourceManager)
 
 	apiPoliciesClient, err := apipolicy.NewApiPolicyClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -311,11 +325,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(policyClient.Client, o.Authorizers.ResourceManager)
 
+	workspacePolicyClient, err := workspacepolicy.NewWorkspacePolicyClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspace Policy client: %+v", err)
+	}
+	o.Configure(workspacePolicyClient.Client, o.Authorizers.ResourceManager)
+
 	policyFragmentClient, err := policyfragment.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
 	}
 	o.Configure(policyFragmentClient.Client, o.Authorizers.ResourceManager)
+
+	policyFragmentClient_v2024_05_01, err := policyfragment_v2024_05_01.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
+	}
+	o.Configure(policyFragmentClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
 
 	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -389,9 +415,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(usersClient.Client, o.Authorizers.ResourceManager)
 
+	workspaceClient, err := workspace.NewWorkspaceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building workspace client: %+v", err)
+	}
+	o.Configure(workspaceClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ApiClient:                          apiClient,
 		ApiDiagnosticClient:                apiDiagnosticClient,
+		ApiGatewayClient:                   apiGatewayClient,
 		ApiOperationPoliciesClient:         apiOperationPoliciesClient,
 		ApiOperationsClient:                apiOperationsClient,
 		ApiOperationTagClient:              apiOperationTagClient,
@@ -424,7 +457,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
 		OpenIdConnectClient:                openIdConnectClient,
 		PolicyClient:                       policyClient,
+		WorkspacePolicyClient:              workspacePolicyClient,
 		PolicyFragmentClient:               policyFragmentClient,
+		PolicyFragmentClient_v2024_05_01:   policyFragmentClient_v2024_05_01,
 		ProductApisClient:                  productApisClient,
 		ProductGroupsClient:                productGroupsClient,
 		ProductPoliciesClient:              productPoliciesClient,
@@ -437,5 +472,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		TagClient:                          tagClient,
 		TenantAccessClient:                 tenantAccessClient,
 		UsersClient:                        usersClient,
+		WorkspaceClient:                    workspaceClient,
 	}, nil
 }

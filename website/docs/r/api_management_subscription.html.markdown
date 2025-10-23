@@ -39,7 +39,7 @@ resource "azurerm_api_management_subscription" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,11 +79,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Subscription.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Subscription.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Subscription.
 
 ## Import
@@ -93,3 +93,9 @@ API Management Subscriptions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/subscriptions/subscription-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

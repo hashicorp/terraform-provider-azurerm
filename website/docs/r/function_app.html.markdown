@@ -191,7 +191,7 @@ resource "azurerm_function_app" "example" {
 
 ~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/azure/azure-functions/functions-reference-python).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -521,11 +521,11 @@ The `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App.
-* `update` - (Defaults to 30 minutes) Used when updating the Function App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App.
+* `update` - (Defaults to 30 minutes) Used when updating the Function App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Function App.
 
 ## Import

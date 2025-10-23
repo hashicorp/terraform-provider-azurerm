@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
-* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0` and `7.0`.
+* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ## Attributes Reference
 
@@ -123,7 +123,7 @@ A `connection_strings` exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MongoDB Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MongoDB Cluster.
@@ -137,3 +137,9 @@ MongoDB Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/mongoClusters/myMongoCluster
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-07-01

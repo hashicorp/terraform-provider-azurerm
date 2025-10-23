@@ -127,7 +127,7 @@ output "console_url" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -271,11 +271,11 @@ A `ingress_profile` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
-* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Red Hat OpenShift cluster.
 
 ## Import
@@ -285,3 +285,9 @@ Red Hat OpenShift Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RedHatOpenShift` - 2023-09-04

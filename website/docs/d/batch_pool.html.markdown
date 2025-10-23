@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Data source: azurerm_batch_pool
+# Data Source: azurerm_batch_pool
 
 Use this data source to access information about an existing Batch pool
 
@@ -15,21 +15,25 @@ Use this data source to access information about an existing Batch pool
 
 ```hcl
 data "azurerm_batch_pool" "example" {
-  name                = "testbatchpool"
-  account_name        = "testbatchaccount"
-  resource_group_name = "test"
+  name                = "examplebatchpool"
+  account_name        = "examplebatchaccount"
+  resource_group_name = "example"
 }
 ```
+
+## Arguments Reference
+
+* `name` - (Required) The name of the Batch pool.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Batch pool exists.
+
+* `account_name` - (Required) The Batch Account name associated with the Batch pool.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Batch pool ID.
-
-* `name` - The name of the Batch pool.
-
-* `account_name` - The name of the Batch account.
 
 * `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 
@@ -391,6 +395,12 @@ Windows operating system settings on the virtual machine. This property must not
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Batch` - 2024-07-01

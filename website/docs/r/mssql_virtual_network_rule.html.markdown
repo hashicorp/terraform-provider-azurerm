@@ -49,7 +49,7 @@ resource "azurerm_mssql_virtual_network_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,11 +71,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Virtual Network Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the SQL Virtual Network Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Virtual Network Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Virtual Network Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the SQL Virtual Network Rule.
 
 ## Import
@@ -85,3 +85,9 @@ SQL Virtual Network Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/virtualNetworkRules/vnetrulename
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

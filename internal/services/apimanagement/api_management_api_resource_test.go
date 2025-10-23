@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -236,6 +237,44 @@ func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 	r := ApiManagementApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOpenapi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("import"),
+	})
+}
+
+func TestAccApiManagementApi_importOpenapiInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.importOpenapiInvalid(data),
+			ExpectError: regexp.MustCompile("ValidationError"),
+		},
+	})
+}
+
+func TestAccApiManagementApi_updateImportOpenapiInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOpenapi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("import"),
+		{
+			Config:      r.importOpenapiInvalid(data),
+			ExpectError: regexp.MustCompile("ValidationError"),
+		},
 		{
 			Config: r.importOpenapi(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -624,6 +663,31 @@ resource "azurerm_api_management_api" "test" {
 
   import {
     content_value  = file("testdata/api_management_api_openapi.yaml")
+    content_format = "openapi"
+  }
+
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importOpenapiInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "current"
+
+  import {
+    content_value  = file("testdata/api_management_api_openapi_invalid.yaml")
     content_format = "openapi"
   }
 }
@@ -1029,6 +1093,7 @@ resource "azurerm_api_management_api" "revision" {
   resource_group_name  = azurerm_resource_group.test.name
   api_management_name  = azurerm_api_management.test.name
   revision             = "18"
+  description          = "What is my purpose? You parse butter."
   source_api_id        = "${azurerm_api_management_api.test.id};rev=3"
   revision_description = "Creating a Revision of an existing API"
   contact {

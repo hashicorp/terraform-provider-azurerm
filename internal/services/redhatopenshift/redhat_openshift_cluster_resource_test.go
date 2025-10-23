@@ -243,7 +243,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -425,7 +425,7 @@ SECRET
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -478,7 +478,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -530,7 +530,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -583,7 +583,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -692,7 +692,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -718,6 +718,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -830,7 +831,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -886,7 +887,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -922,7 +923,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {

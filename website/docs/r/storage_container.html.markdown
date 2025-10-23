@@ -37,7 +37,7 @@ resource "azurerm_storage_container" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,11 +75,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Container.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Container.
 
 ## Import
@@ -89,3 +89,9 @@ Storage Containers can be imported using the `resource manager id`, e.g.
 ```shell
 terraform import azurerm_storage_container.container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

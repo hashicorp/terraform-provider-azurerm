@@ -569,6 +569,7 @@ type SiteConfigFunctionAppFlexConsumption struct {
 	ScmMinTlsVersion              string                      `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting               `tfschema:"cors"`
 	DetailedErrorLogging          bool                        `tfschema:"detailed_error_logging_enabled"`
+	VnetRouteAllEnabled           bool                        `tfschema:"vnet_route_all_enabled"`
 }
 
 func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
@@ -740,7 +741,14 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
+					Description: "Should the Linux Function App use a 32-bit worker.",
+				},
+
+				"vnet_route_all_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should the Linux Function App route all traffic through the virtual network.",
 				},
 
 				"websockets_enabled": {
@@ -1917,7 +1925,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
-			var dockerUrl string = dockerConfig.RegistryURL
+			dockerUrl := dockerConfig.RegistryURL
 			for _, prefix := range urlSchemes {
 				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
 					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
@@ -2162,6 +2170,10 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = pointer.To(FlexConsumptionSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = pointer.To(FlexConsumptionSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
@@ -2537,6 +2549,7 @@ func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteC
 		RemoteDebugging:               pointer.From(functionAppFlexConsumptionSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppFlexConsumptionSiteConfig.RemoteDebuggingVersion)),
 		Http2Enabled:                  pointer.From(functionAppFlexConsumptionSiteConfig.HTTP20Enabled),
+		VnetRouteAllEnabled:           pointer.From(functionAppFlexConsumptionSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppFlexConsumptionSiteConfig.ApiDefinition; v != nil && v.Url != nil {

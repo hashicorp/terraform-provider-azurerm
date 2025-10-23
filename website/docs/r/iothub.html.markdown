@@ -131,7 +131,7 @@ resource "azurerm_iothub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -218,6 +218,10 @@ An `endpoint` block supports the following:
 * `file_name_format` - (Optional) File name format for the blob. All parameters are mandatory but can be reordered. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`. Defaults to `{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}`.
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
+
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
 ---
 
@@ -373,11 +377,11 @@ A `shared_access_policy` block contains the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub.
 
 ## Import

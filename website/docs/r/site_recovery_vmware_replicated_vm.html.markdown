@@ -84,7 +84,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -189,11 +189,11 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Site Recovery HyperV Replicated VM.
-* `update` - (Defaults to 90 minutes) Used when updating the Site Recovery HyperV Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Replicated VM.
+* `update` - (Defaults to 90 minutes) Used when updating the Site Recovery HyperV Replicated VM.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Site Recovery HyperV Replicated VM.
 
 ## Import
@@ -203,3 +203,11 @@ Site Recovery VMWare Replicated VM's can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_site_recovery_vmware_replicated_vm.vmreplication /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name/replicationProtectedItems/vm-replication-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OffAzure` - 2020-01-01
+
+* `Microsoft.RecoveryServices` - 2024-04-01

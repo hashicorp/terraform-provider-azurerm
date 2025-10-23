@@ -111,7 +111,7 @@ A `servers` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Azure Cosmos DB for PostgreSQL Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Cosmos DB for PostgreSQL Cluster.
@@ -125,3 +125,9 @@ Azure Cosmos DB for PostgreSQL Clusters can be imported using the `resource id`,
 ```shell
 terraform import azurerm_cosmosdb_postgresql_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DBforPostgreSQL/serverGroupsv2/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2022-11-08

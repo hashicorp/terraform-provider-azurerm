@@ -138,11 +138,11 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if v, ok := d.GetOk("display_name"); ok {
-		exemption.ExemptionProperties.DisplayName = utils.String(v.(string))
+		exemption.DisplayName = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		exemption.ExemptionProperties.Description = utils.String(v.(string))
+		exemption.Description = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("expires_on"); ok {
@@ -150,7 +150,7 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 		if err != nil {
 			return fmt.Errorf("expanding `expires_on`: %+v", err)
 		}
-		exemption.ExemptionProperties.ExpiresOn = &date.Time{Time: t}
+		exemption.ExpiresOn = &date.Time{Time: t}
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
@@ -158,7 +158,7 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 		if err != nil {
 			return fmt.Errorf("unable to parse metadata: %+v", err)
 		}
-		exemption.ExemptionProperties.Metadata = &metaData
+		exemption.Metadata = &metaData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, subscriptionId.ID(), id.PolicyExemptionName, exemption); err != nil {

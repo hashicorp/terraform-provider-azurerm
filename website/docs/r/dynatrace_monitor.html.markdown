@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
 
+* `environment_properties` - (Optional) Properties of the Dynatrace environment. An `environment_properties` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -101,6 +103,18 @@ A `user` block supports the following:
 
 * `phone_number` - (Required) phone number of the user by Dynatrace for contacting them if needed.
 
+---
+
+An `environment_properties` block supports the following:
+
+* `environment_info` - (Required) Information about the Dynatrace environment. An `environment_info` block as defined below.
+
+---
+
+An `environment_info` block supports the following:
+
+* `environment_id` - (Required) The ID of the Dynatrace environment to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -109,12 +123,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Dynatrace monitor.
+* `create` - (Defaults to 30 minutes) Used when creating the Dynatrace monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dynatrace monitor.
-* `update` - (Defaults to 1 hour) Used when updating the Dynatrace monitor.
-* `delete` - (Defaults to 1 hour) Used when deleting the Dynatrace monitor.
+* `update` - (Defaults to 30 minutes) Used when updating the Dynatrace monitor.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dynatrace monitor.
 
 ## Import
 
@@ -123,3 +137,9 @@ Dynatrace monitor can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dynatrace_monitor.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Dynatrace.Observability/monitors/monitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Dynatrace.Observability` - 2023-04-27
