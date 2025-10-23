@@ -99,14 +99,14 @@ func (a CloudVmClusterResource) basic(data acceptance.TestData) string {
   %s
 resource "azurerm_oracle_cloud_vm_cluster" "test" {
   location                        = "%[3]s"
-  name                            = "Vmacctest%[2]d"
+  name                            = "OFakeVmacctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.test.id
   cpu_core_count                  = 4
   data_storage_size_in_tbs        = 2
   db_node_storage_size_in_gbs     = 120
   db_servers                      = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
-  display_name                    = "Vmacctest%[2]d"
+  display_name                    = "OFakeVmacctest%[2]d"
   gi_version                      = "26.0.0.0"
   license_model                   = "BringYourOwnLicense"
   memory_size_in_gbs              = 60
@@ -281,11 +281,11 @@ resource "azurerm_subnet" "virtual_network_subnet" {
 }
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
-  name                = "acctest%[1]d"
+  name                = "OFakeacctest%[1]d"
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
-  display_name        = "acctest%[1]d"
+  display_name        = "OFakeacctest%[1]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
   zones               = ["1"]
