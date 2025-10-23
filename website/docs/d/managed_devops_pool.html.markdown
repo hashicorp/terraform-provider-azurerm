@@ -219,6 +219,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
+This data source uses the following Azure API Providers:
 
 * `Microsoft.DevOpsInfrastructure` - 2025-01-21
