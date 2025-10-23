@@ -18,9 +18,10 @@ type NetworkProfileVnet struct {
 	PublicIPIDs []string `tfschema:"public_ip_address_ids"`
 
 	// Optional
-	EgressNatIPIDs    []string            `tfschema:"egress_nat_ip_address_ids"`
-	TrustedRanges     []string            `tfschema:"trusted_address_ranges"`
-	VnetConfiguration []VnetConfiguration `tfschema:"vnet_configuration"`
+	EgressNatIPIDs                   []string            `tfschema:"egress_nat_ip_address_ids"`
+	PrivateSourceNatRulesDestination []string            `tfschema:"private_source_nat_rules_destination"`
+	TrustedRanges                    []string            `tfschema:"trusted_address_ranges"`
+	VnetConfiguration                []VnetConfiguration `tfschema:"vnet_configuration"`
 
 	// Computed
 	PublicIPs   []string `tfschema:"public_ip_addresses"`
@@ -54,6 +55,16 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				"public_ip_address_ids": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
+					},
+				},
+
+				"private_source_nat_rules_destination": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
@@ -145,6 +156,10 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 		result.TrustedRanges = pointer.To(profile.TrustedRanges)
 	}
 
+	if len(profile.PrivateSourceNatRulesDestination) > 0 {
+		result.PrivateSourceNatRulesDestination = pointer.To(profile.PrivateSourceNatRulesDestination)
+	}
+
 	vnet := profile.VnetConfiguration[0]
 	result.VnetConfiguration = &firewalls.VnetConfiguration{
 		TrustSubnet: firewalls.IPAddressSpace{
@@ -197,6 +212,12 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileV
 		trustedRanges = pointer.From(v)
 	}
 	result.TrustedRanges = trustedRanges
+
+	privateSourceNatRulesDestination := make([]string, 0)
+	if v := input.PrivateSourceNatRulesDestination; v != nil {
+		privateSourceNatRulesDestination = pointer.From(v)
+	}
+	result.PrivateSourceNatRulesDestination = privateSourceNatRulesDestination
 
 	if v := input.VnetConfiguration; v != nil {
 		vNet := VnetConfiguration{}
