@@ -549,7 +549,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
 
 					// our downstream service started sending gi version with minor value,
-					//for this reason we need to extract the major value only to avoid state drift
+					// for this reason we need to extract the major value only to avoid state drift
 					giMajorVersionPtr, err := getMajorGiVersion(&props.GiVersion)
 					if err != nil {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
