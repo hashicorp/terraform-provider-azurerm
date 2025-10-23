@@ -134,11 +134,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		//"gi_version_computed": {
-		//	Type:     pluginsdk.TypeString,
-		//	Computed: true,
-		//},
-
 		"hostname": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
