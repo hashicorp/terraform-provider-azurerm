@@ -251,7 +251,7 @@ func (r ManagedRedisResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			clusterClient := metadata.Client.ManagedRedis.Client
 			dbClient := metadata.Client.ManagedRedis.DatabaseClient
