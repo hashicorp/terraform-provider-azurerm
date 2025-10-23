@@ -437,18 +437,9 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			userAssignedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
+			expandedIdentity, err := expandManagedDevopsToUserAssignedIdentity(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-
-			// Convert to LegacySystemAndUserAssignedMap for API (Azure API bug - only supports user-assigned but schema says otherwise)
-			var expandedIdentity *identity.LegacySystemAndUserAssignedMap
-			if userAssignedIdentity != nil {
-				expandedIdentity = &identity.LegacySystemAndUserAssignedMap{
-					Type:        userAssignedIdentity.Type,
-					IdentityIds: userAssignedIdentity.IdentityIds,
-				}
 			}
 
 			var agentProfile pools.AgentProfile
@@ -531,20 +522,11 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				userAssignedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
+				expandedIdentity, err := expandManagedDevopsToUserAssignedIdentity(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-
-				// Convert to LegacySystemAndUserAssignedMap for API (Azure API bug)
-				if userAssignedIdentity != nil {
-					payload.Identity = &identity.LegacySystemAndUserAssignedMap{
-						Type:        userAssignedIdentity.Type,
-						IdentityIds: userAssignedIdentity.IdentityIds,
-					}
-				} else {
-					payload.Identity = nil
-				}
+				payload.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("dev_center_project_resource_id") {
@@ -631,18 +613,12 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				// API returns LegacySystemAndUserAssignedMap, but we only support UserAssigned
-				// Convert it to UserAssignedMap format for our schema
 				if model.Identity != nil {
-					userAssignedIdentity := &identity.UserAssignedMap{
-						Type:        model.Identity.Type,
-						IdentityIds: model.Identity.IdentityIds,
-					}
-					flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(userAssignedIdentity)
+					flattenedIdentity, err := flattenManagedDevopsUserAssignedToLegacyIdentity(model.Identity)
 					if err != nil {
-						return err
+						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
-					state.Identity = *flattenedIdentity
+					state.Identity = flattenedIdentity
 				}
 
 				if props := model.Properties; props != nil {

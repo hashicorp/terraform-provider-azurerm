@@ -391,15 +391,11 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if model.Identity != nil {
-					userAssignedIdentity := &identity.UserAssignedMap{
-						Type:        model.Identity.Type,
-						IdentityIds: model.Identity.IdentityIds,
-					}
-					expandedIdentity, err := identity.FlattenUserAssignedMapToModel(userAssignedIdentity)
+					flattenedIdentity, err := flattenManagedDevopsUserAssignedToLegacyIdentity(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
-					state.Identity = pointer.From(expandedIdentity)
+					state.Identity = flattenedIdentity
 				}
 
 				if props := model.Properties; props != nil {
