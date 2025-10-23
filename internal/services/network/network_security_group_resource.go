@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -142,15 +143,21 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+							},
+							Set: pluginsdk.HashString,
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+							},
+							Set: pluginsdk.HashString,
 						},
 
 						"access": {
@@ -306,8 +313,8 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
-			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
-			if err := d.Set("security_rule", flattenedRules); err != nil {
+			flattenedRules, idErr := flattenNetworkSecurityRules(props.SecurityRules, d)
+			if err := d.Set("security_rule", flattenedRules); err != nil || idErr != nil {
 				return fmt.Errorf("setting `security_rule`: %+v", err)
 			}
 		}
@@ -429,7 +436,7 @@ func expandSecurityRules(d *pluginsdk.ResourceData) ([]networksecuritygroups.Sec
 	return rules, nil
 }
 
-func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []map[string]interface{} {
+func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 
 	// For fixing the case insensitive issue for the NSR protocol in Azure
@@ -463,9 +470,20 @@ func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []
 				}
 
 				destinationApplicationSecurityGroups := make([]string, 0)
+				// set user defined value until the api issue is fixed: https://github.com/Azure/azure-rest-api-specs/issues/38377
+				desAsgIdList := d.Get("security_rule.0.destination_application_security_group_ids").(*pluginsdk.Set).List()
 				if props.DestinationApplicationSecurityGroups != nil {
 					for _, g := range *props.DestinationApplicationSecurityGroups {
-						destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, *g.Id)
+						for _, item := range desAsgIdList {
+							if strings.EqualFold(item.(string), *g.Id) {
+								*g.Id = item.(string)
+							}
+						}
+						desAsgId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(*g.Id)
+						if err != nil {
+							return nil, err
+						}
+						destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, desAsgId.ID())
 					}
 				}
 				sgRule["destination_application_security_group_ids"] = set.FromStringSlice(destinationApplicationSecurityGroups)
@@ -480,7 +498,11 @@ func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []
 				sourceApplicationSecurityGroups := make([]string, 0)
 				if props.SourceApplicationSecurityGroups != nil {
 					for _, g := range *props.SourceApplicationSecurityGroups {
-						sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, *g.Id)
+						sourceAsgId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(*g.Id)
+						if err != nil {
+							return nil, err
+						}
+						sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sourceAsgId.ID())
 					}
 				}
 				sgRule["source_application_security_group_ids"] = set.FromStringSlice(sourceApplicationSecurityGroups)
@@ -502,7 +524,7 @@ func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 func validateSecurityRule(sgRule map[string]interface{}) error {
