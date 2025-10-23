@@ -107,7 +107,7 @@ func (a ResourceAnchorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
-  name                = "ra1-%[2]d"
+  name                = "ra1%[2]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
 
@@ -118,7 +118,7 @@ func (a ResourceAnchorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
-  name                = "ra1-%[2]d"
+  name                = "ra1%[2]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   tags = {
@@ -132,7 +132,7 @@ func (a ResourceAnchorResource) update(data acceptance.TestData) string {
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
   location            = "global"
-  name                = "ra1-%[2]d"
+  name                = "ra1%[2]d"
   resource_group_name = azurerm_resource_group.test.name
 
   # Updated Tags
