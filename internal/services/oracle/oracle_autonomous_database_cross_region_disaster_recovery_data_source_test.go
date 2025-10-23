@@ -1,4 +1,5 @@
-// Copyright © 2025, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -22,9 +23,7 @@ func TestAdbsCrossRegionDisasterRecoveryDataSource_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).Key("remote_disaster_recovery_type").Exists(),
-				check.That(data.ResourceName).Key("database_type").Exists(),
-				check.That(data.ResourceName).Key("source").Exists(),
-				check.That(data.ResourceName).Key("source_id").Exists(),
+				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 			),

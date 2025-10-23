@@ -1,4 +1,5 @@
-// Copyright © 2025, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,36 +25,31 @@ var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
 type AutonomousDatabaseCrossRegionDisasterRecoveryResource struct{}
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
-	Location                         string            `tfschema:"location"`
-	Name                             string            `tfschema:"name"`
-	ResourceGroupName                string            `tfschema:"resource_group_name"`
-	Tags                             map[string]string `tfschema:"tags"`
-	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
-	Source                           string            `tfschema:"source"`
-	SourceId                         string            `tfschema:"source_id"`
-	DatabaseType                     string            `tfschema:"database_type"`
-	ReplicateAutomaticBackupsEnabled bool              `tfschema:"replicate_automatic_backups_enabled"`
-	AdminPassword                    string            `tfschema:"admin_password"`
-	AutoScalingEnabled               bool              `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled     bool              `tfschema:"auto_scaling_for_storage_enabled"`
-	BackupRetentionPeriodInDays      int64             `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                     string            `tfschema:"character_set"`
-	ComputeCount                     float64           `tfschema:"compute_count"`
-	ComputeModel                     string            `tfschema:"compute_model"`
-	DataStorageSizeInTbs             int64             `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                        string            `tfschema:"db_version"`
-	DbWorkload                       string            `tfschema:"db_workload"`
-	DisplayName                      string            `tfschema:"display_name"`
-	LicenseModel                     string            `tfschema:"license_model"`
-	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
-	NationalCharacterSet             string            `tfschema:"national_character_set"`
-	SourceOcid                       string            `tfschema:"source_ocid"`
-	SourceLocation                   string            `tfschema:"source_location"`
-	SubnetId                         string            `tfschema:"subnet_id"`
-	VnetId                           string            `tfschema:"virtual_network_id"`
+	Location                     string            `tfschema:"location"`
+	Name                         string            `tfschema:"name"`
+	ResourceGroupName            string            `tfschema:"resource_group_name"`
+	Tags                         map[string]string `tfschema:"tags"`
+	RemoteDisasterRecoveryType   string            `tfschema:"remote_disaster_recovery_type"`
+	SourceAutonomousDatabaseId   string            `tfschema:"source_autonomous_database_id"`
+	AutoScalingEnabled           bool              `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled bool              `tfschema:"auto_scaling_for_storage_enabled"`
+	BackupRetentionPeriodInDays  int64             `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                 string            `tfschema:"character_set"`
+	ComputeCount                 float64           `tfschema:"compute_count"`
+	ComputeModel                 string            `tfschema:"compute_model"`
+	DataStorageSizeInTb          int64             `tfschema:"data_storage_size_in_tb"`
+	DatabaseVersion              string            `tfschema:"database_version"`
+	DatabaseWorkload             string            `tfschema:"database_workload"`
+	DisplayName                  string            `tfschema:"display_name"`
+	LicenseModel                 string            `tfschema:"license_model"`
+	MtlsConnectionRequired       bool              `tfschema:"mtls_connection_required"`
+	NationalCharacterSet         string            `tfschema:"national_character_set"`
+	SubnetId                     string            `tfschema:"subnet_id"`
+	VnetId                       string            `tfschema:"virtual_network_id"`
 
 	// Optional
-	CustomerContacts []string `tfschema:"customer_contacts"`
+	CustomerContacts                 []string `tfschema:"customer_contacts"`
+	ReplicateAutomaticBackupsEnabled bool     `tfschema:"replicate_automatic_backups_enabled"`
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -69,108 +65,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		// Cross Region Disaster Recovery
-		// Required
-		"database_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDataBaseType(), false),
-		},
-		"remote_disaster_recovery_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDisasterRecoveryType(), false),
-		},
-		"source": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForSource(), false),
-		},
-		"source_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		// Optional
-		"replicate_automatic_backups_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"source_ocid": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"source_location": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		// Required
-		"admin_password": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ForceNew:     true,
-			ValidateFunc: validate.AutonomousDatabasePassword,
-		},
-
-		"backup_retention_period_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntBetween(1, 60),
-		},
-
-		"character_set": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"compute_count": {
-			Type:         pluginsdk.TypeFloat,
-			Required:     true,
-			ValidateFunc: validation.FloatBetween(2.0, 512.0),
-		},
-
-		"compute_model": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForComputeModel(), false),
-		},
-
-		"data_storage_size_in_tbs": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(1, 384),
-		},
-
-		"db_version": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"db_workload": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForWorkloadType(), false),
-		},
-
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -178,30 +72,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
-		"auto_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-		},
+		// Cross Region Disaster Recovery
+		// Required
 
-		"auto_scaling_for_storage_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-		},
-
-		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-			ForceNew: true,
-		},
-
-		"license_model": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
-		},
-
-		"national_character_set": {
+		"source_autonomous_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -223,18 +97,87 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		},
 
 		// Optional
-		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
+		"replicate_automatic_backups_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
-			},
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": commonschema.TagsForceNew(),
+
+		//computed
+		"remote_disaster_recovery_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+
+		"auto_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+			Optional: true,
+		},
+		"auto_scaling_for_storage_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+			Optional: true,
+		},
+		"backup_retention_period_in_days": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"character_set": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"compute_count": {
+			Type:     pluginsdk.TypeFloat,
+			Computed: true,
+			Optional: true,
+		},
+		"compute_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"data_storage_size_in_tb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"database_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"database_workload": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"license_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"mtls_connection_required": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+			Optional: true,
+		},
+		"national_character_set": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"customer_contacts": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+		},
 	}
 }
 
@@ -262,16 +205,25 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId,
-				model.ResourceGroupName,
-				model.Name)
-
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			sourceId, err := autonomousdatabases.ParseAutonomousDatabaseID(model.SourceAutonomousDatabaseId)
+			if err != nil {
+				return err
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			sourceDb, err := client.Get(ctx, *sourceId)
+			if err != nil {
+				return fmt.Errorf("fetching source DB: %+v", err)
+			}
+			if sourceDb.Model == nil {
+				return fmt.Errorf("source DB %s not found", model.SourceAutonomousDatabaseId)
+			}
+			sourceLocation := sourceDb.Model.Location
+			if location.Normalize(model.Location) == location.Normalize(sourceLocation) {
+				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
+			}
+
+			sourceProps, ok := sourceDb.Model.Properties.(autonomousdatabases.AutonomousDatabaseProperties)
+			if !ok {
+				return fmt.Errorf("unexpected source DB properties type")
 			}
 
 			param := autonomousdatabases.AutonomousDatabase{
@@ -279,87 +231,41 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseCrossRegionDisasterRecoveryProperties{
+					Source:                         autonomousdatabases.SourceCrossRegionDisasterRecovery,
+					SourceId:                       model.SourceAutonomousDatabaseId,
+					SourceOcid:                     sourceProps.Ocid,
+					SourceLocation:                 pointer.To(sourceLocation),
+					RemoteDisasterRecoveryType:     autonomousdatabases.DisasterRecoveryTypeAdg,
 					IsReplicateAutomaticBackups:    pointer.To(model.ReplicateAutomaticBackupsEnabled),
-					RemoteDisasterRecoveryType:     autonomousdatabases.DisasterRecoveryType(model.RemoteDisasterRecoveryType),
-					Source:                         autonomousdatabases.Source(model.Source),
-					SourceId:                       model.SourceId,
-					SourceOcid:                     pointer.To(model.SourceOcid),
-					SourceLocation:                 pointer.To(model.SourceLocation),
-					AdminPassword:                  pointer.To(model.AdminPassword),
-					BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-					CharacterSet:                   pointer.To(model.CharacterSet),
-					ComputeCount:                   pointer.To(model.ComputeCount),
-					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-					CustomerContacts:               pointer.To(expandAdbsCustomerContacts25(model.CustomerContacts)),
+					AdminPassword:                  sourceProps.AdminPassword,
+					BackupRetentionPeriodInDays:    sourceProps.BackupRetentionPeriodInDays,
+					CharacterSet:                   sourceProps.CharacterSet,
+					ComputeCount:                   sourceProps.ComputeCount,
+					ComputeModel:                   sourceProps.ComputeModel,
+					CustomerContacts:               sourceProps.CustomerContacts,
 					DataBaseType:                   autonomousdatabases.DataBaseTypeCrossRegionDisasterRecovery,
-					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-					DbVersion:                      pointer.To(model.DbVersion),
+					DataStorageSizeInTbs:           sourceProps.DataStorageSizeInTbs,
+					DbWorkload:                     sourceProps.DbWorkload,
+					DbVersion:                      sourceProps.DbVersion,
 					DisplayName:                    pointer.To(model.DisplayName),
-					IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-					IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-					IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					NcharacterSet:                  pointer.To(model.NationalCharacterSet),
+					IsAutoScalingEnabled:           sourceProps.IsAutoScalingEnabled,
+					IsAutoScalingForStorageEnabled: sourceProps.IsAutoScalingForStorageEnabled,
+					IsMtlsConnectionRequired:       sourceProps.IsMtlsConnectionRequired,
+					LicenseModel:                   sourceProps.LicenseModel,
+					NcharacterSet:                  sourceProps.NcharacterSet,
 					SubnetId:                       pointer.To(model.SubnetId),
 					VnetId:                         pointer.To(model.VnetId),
 				},
 			}
 
+			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId,
+				model.ResourceGroupName,
+				model.Name)
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
-			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
-			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
-			}
-
-			var model AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel
-			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			_, err = client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			update := &autonomousdatabases.AutonomousDatabaseUpdate{
-				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
-			}
-			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(model.Tags)
-			}
-			if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-				update.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
-			}
-			if metadata.ResourceData.HasChange("compute_count") {
-				update.Properties.ComputeCount = pointer.To(model.ComputeCount)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_enabled") {
-				update.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
-				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
-			}
-
-			err = client.UpdateThenPoll(ctx, *id, *update)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
@@ -371,7 +277,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
@@ -395,22 +301,17 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 
 				state.ReplicateAutomaticBackupsEnabled = pointer.From(props.IsReplicateAutomaticBackups)
 				state.RemoteDisasterRecoveryType = string(props.RemoteDisasterRecoveryType)
-				state.Source = string(props.Source)
-				state.SourceId = props.SourceId
-				state.DatabaseType = string(props.DataBaseType)
-				state.SourceLocation = pointer.From(props.SourceLocation)
-				state.SourceOcid = pointer.From(props.SourceOcid)
-				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
+				state.SourceAutonomousDatabaseId = props.SourceId
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.CustomerContacts = flattenAdbsCustomerContacts25(props.CustomerContacts)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				state.DbWorkload = pointer.FromEnum(props.DbWorkload)
-				state.DbVersion = pointer.From(props.DbVersion)
+				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
+				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.Location = result.Model.Location
@@ -432,11 +333,11 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
@@ -446,24 +347,4 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
-}
-
-func expandAdbsCustomerContacts25(customerContactsList []string) []autonomousdatabases.CustomerContact {
-	customerContacts := make([]autonomousdatabases.CustomerContact, 0, len(customerContactsList))
-	for _, customerContact := range customerContactsList {
-		customerContacts = append(customerContacts, autonomousdatabases.CustomerContact{
-			Email: customerContact,
-		})
-	}
-	return customerContacts
-}
-
-func flattenAdbsCustomerContacts25(customerContactsList *[]autonomousdatabases.CustomerContact) []string {
-	var customerContacts []string
-	if customerContactsList != nil {
-		for _, customerContact := range *customerContactsList {
-			customerContacts = append(customerContacts, customerContact.Email)
-		}
-	}
-	return customerContacts
 }
