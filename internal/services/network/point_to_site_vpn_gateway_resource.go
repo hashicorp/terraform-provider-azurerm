@@ -151,6 +151,16 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"configuration_policy_group_associations": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: virtualwans.ValidateConfigurationPolicyGroupID,
+							},
+						},
+
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -393,8 +403,9 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 				VpnClientAddressPool: &virtualwans.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
-				EnableInternetSecurity: pointer.To(raw["internet_security_enabled"].(bool)),
+				RoutingConfiguration:                 expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				EnableInternetSecurity:               pointer.To(raw["internet_security_enabled"].(bool)),
+				ConfigurationPolicyGroupAssociations: expandPointToSiteVPNGatewayConnectionConfigurationPolicyGroupAssociations(raw["configuration_policy_group_associations"].([]interface{})),
 			},
 		})
 	}
@@ -449,6 +460,22 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 	}
 }
 
+func expandPointToSiteVPNGatewayConnectionConfigurationPolicyGroupAssociations(input []interface{}) *[]virtualwans.SubResource {
+	if len(input) == 0 {
+		return nil
+	}
+
+	groups := make([]virtualwans.SubResource, len(input))
+	for i, v := range input {
+		groupId := v.(string)
+		groups[i] = virtualwans.SubResource{
+			Id: pointer.To(groupId),
+		}
+	}
+
+	return &groups
+}
+
 func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2SConnectionConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -465,6 +492,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
 		enableInternetSecurity := false
+		configurationPolicyGroupAssociations := make([]interface{}, 0)
 		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
@@ -483,6 +511,10 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 			if props.RoutingConfiguration != nil {
 				route = flattenPointToSiteVPNGatewayConnectionRouteConfiguration(props.RoutingConfiguration)
 			}
+
+			if props.ConfigurationPolicyGroupAssociations != nil {
+				configurationPolicyGroupAssociations = flattenPointToSiteVPNGatewayConnectionConfigurationPolicyGroupAssociations(props.ConfigurationPolicyGroupAssociations)
+			}
 		}
 
 		output = append(output, map[string]interface{}{
@@ -494,6 +526,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 			},
 			"route":                     route,
 			"internet_security_enabled": enableInternetSecurity,
+			"configuration_policy_group_associations": configurationPolicyGroupAssociations,
 		})
 	}
 
@@ -548,4 +581,19 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 			"labels": utils.FlattenStringSlice(input.Labels),
 		},
 	}
+}
+
+func flattenPointToSiteVPNGatewayConnectionConfigurationPolicyGroupAssociations(input *[]virtualwans.SubResource) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	groups := make([]interface{}, 0)
+	for _, v := range *input {
+		if v.Id != nil {
+			groups = append(groups, *v.Id)
+		}
+	}
+
+	return groups
 }
