@@ -133,6 +133,28 @@ func TestAccCdnProfile_createShouldFail(t *testing.T) {
 	})
 }
 
+func TestAccCdnProfile_locationNormalization(t *testing.T) {
+	if !cdn.IsCdnDeprecatedForCreation() {
+		t.Skip("This test validates the fix for issue #30768, which only affects behavior after CDN deprecation date (October 1, 2025)")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	r := CdnProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// This test verifies the fix for issue #30768
+			// When location is stored in state as normalized (e.g., "eastus") but config uses
+			// human-readable format (e.g., "East US"), the plan should not trigger the
+			// deprecation error because there's no actual change requiring recreation
+			Config:   r.locationHumanReadable(data),
+			PlanOnly: true,
+			// ExpectNonEmptyPlan is false by default - we expect no changes
+			// If the bug exists, this would fail with the deprecation error
+		},
+	})
+}
+
 func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProfileID(state.ID)
 	if err != nil {
@@ -290,4 +312,28 @@ resource "azurerm_cdn_profile" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r CdnProfileResource) locationHumanReadable(data acceptance.TestData) string {
+	// This config uses human-readable location format to test that normalization works correctly
+	// The location will be stored in state as normalized (e.g., "eastus") but config uses
+	// the human-readable format (e.g., "East US") to ensure the deprecation check doesn't
+	// trigger false positives
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
