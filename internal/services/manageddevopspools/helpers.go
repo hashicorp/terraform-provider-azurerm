@@ -154,7 +154,7 @@ func expandVmssFabricProfileModel(input []VmssFabricProfileModel) pools.FabricPr
 		Images:         expandImageModel(fabricProfile.Images),
 		NetworkProfile: expandNetworkProfileModel(fabricProfile.NetworkProfile),
 		OsProfile:      expandOsProfileModel(fabricProfile.OsProfile),
-		Sku:            expandDevOpsAzureSkuModel(fabricProfile.Sku),
+		Sku:            pools.DevOpsAzureSku{Name: fabricProfile.SkuName},
 		StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
 	}
 
@@ -166,8 +166,8 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 
 	for _, image := range input {
 		poolImage := pools.PoolImage{
-			Aliases:            image.Aliases,
-			Buffer:             image.Buffer,
+			Aliases: image.Aliases,
+			Buffer:  image.Buffer,
 		}
 
 		// Only apply well_known_image_name or resource_id if they are set, otherwise SDK may throw error
@@ -206,12 +206,6 @@ func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
 	return &pools.OsProfile{
 		LogonType:                 &logonType,
 		SecretsManagementSettings: expandSecretsManagementSettingsModel(osProfile.SecretsManagementSettings),
-	}
-}
-
-func expandDevOpsAzureSkuModel(input []DevOpsAzureSkuModel) pools.DevOpsAzureSku {
-	return pools.DevOpsAzureSku{
-		Name: input[0].Name,
 	}
 }
 
@@ -395,7 +389,7 @@ func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabric
 		Images:         flattenImagesToModel(input.Images),
 		NetworkProfile: flattenNetworkProfileToModel(input.NetworkProfile),
 		OsProfile:      flattenOsProfileToModel(input.OsProfile),
-		Sku:            flattenDevOpsAzureSkuToModel(input.Sku),
+		SkuName:        input.Sku.Name,
 		StorageProfile: flattenStorageProfileToModel(input.StorageProfile),
 	}
 
@@ -463,14 +457,6 @@ func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
 	}
 
 	return output
-}
-
-func flattenDevOpsAzureSkuToModel(input pools.DevOpsAzureSku) []DevOpsAzureSkuModel {
-	return []DevOpsAzureSkuModel{
-		{
-			Name: input.Name,
-		},
-	}
 }
 
 func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileModel {

@@ -44,7 +44,7 @@ type VmssFabricProfileModel struct {
 	Images         []ImageModel          `tfschema:"image"`
 	NetworkProfile []NetworkProfileModel `tfschema:"network_profile"`
 	OsProfile      []OsProfileModel      `tfschema:"os_profile"`
-	Sku            []DevOpsAzureSkuModel `tfschema:"sku"`
+	SkuName        string                `tfschema:"sku_name"`
 	StorageProfile []StorageProfileModel `tfschema:"storage_profile"`
 }
 
@@ -69,10 +69,6 @@ type SecretsManagementSettingsModel struct {
 
 type NetworkProfileModel struct {
 	SubnetId string `tfschema:"subnet_id"`
-}
-
-type DevOpsAzureSkuModel struct {
-	Name string `tfschema:"name"`
 }
 
 type StorageProfileModel struct {

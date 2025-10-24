@@ -271,19 +271,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"sku": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
+					"sku_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"storage_profile": {
 						Type:     pluginsdk.TypeList,

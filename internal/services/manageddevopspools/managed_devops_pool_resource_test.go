@@ -150,9 +150,7 @@ resource "azurerm_managed_devops_pool" "test" {
       resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
-    sku {
-      name = "Standard_D2ads_v5"
-    }
+    sku_name = "Standard_D2ads_v5"
   }
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
@@ -185,9 +183,7 @@ resource "azurerm_managed_devops_pool" "import" {
       resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
-    sku {
-      name = "Standard_D2ads_v5"
-    }
+    sku_name = "Standard_D2ads_v5"
   }
 }
 `, r.basic(data), os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
@@ -321,13 +317,11 @@ resource "azurerm_managed_devops_pool" "test" {
       buffer      = "0"
     }
     image {
-      alias       = "well known image"
-      well_known_image_name = "ubuntu-20.04"
-      buffer      = "100"
+      alias                 = "well known image"
+      well_known_image_name = "ubuntu-24.04"
+      buffer                = "100"
     }
-    sku {
-      name = "Standard_D2ads_v5"
-    }
+    sku_name = "Standard_D2ads_v5"
     os_profile {
       secrets_management {
         key_export_enabled = false

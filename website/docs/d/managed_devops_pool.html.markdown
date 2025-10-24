@@ -103,7 +103,7 @@ A `vmss_fabric_profile` block exports the following:
 
 * `image` - One or more `image` blocks as defined below.
 
-* `sku` - A `sku` block as defined below.
+* `sku_name` - The Azure SKU of the machines in the pool.
 
 * `network_profile` - A `network_profile` block as defined below.
 
@@ -122,12 +122,6 @@ An `image` block exports the following:
 * `resource_id` - The resource id of the image.
 
 * `well_known_image_name` - The image name from a well-known set of images made available to customers.
-
----
-
-A `sku` block exports the following:
-
-* `name` - The Azure SKU of the machines in the pool.
 
 ---
 

@@ -87,9 +87,7 @@ resource "azurerm_managed_devops_pool" "example" {
   }
 
   vmss_fabric_profile {
-    sku {
-      name = "Standard_D2ads_v5"
-    }
+    sku_name = "Standard_D2ads_v5"
 
     image {
       resource_id = data.azurerm_platform_image.test.id
@@ -97,9 +95,9 @@ resource "azurerm_managed_devops_pool" "example" {
     }
 
     image {
-      well_known_image_name = "ubuntu-20.0"
-      buffer     = "*"
-      alias      = "well known image"
+      well_known_image_name = "ubuntu-24.0"
+      buffer                = "*"
+      alias                 = "well known image"
     }
 
     storage_profile {
@@ -190,7 +188,7 @@ A `vmss_fabric_profile` block supports the following:
 
 * `image` - (Required) One or more `image` blocks as defined below.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku_name` - (Required) The Azure SKU name of the machines in the pool.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -303,12 +301,6 @@ A `secrets_management` block supports the following:
 * `key_export_enabled` - (Required) Defines if the key of the certificates should be exportable.
 
 * `observed_certificates` - (Required) Specifies the list of certificates from Azure Key vault to install on all machines in the pool.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The Azure SKU of the machines in the pool.
 
 ---
 
