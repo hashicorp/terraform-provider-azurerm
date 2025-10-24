@@ -1,0 +1,107 @@
+# Example values for the IoT Operations Dataflow deployment
+# Copy this file to terraform.tfvars and modify the values as needed
+
+resource_group_name = "rg-iotoperations-dataflow"
+location           = "East US 2"
+instance_name      = "my-iotops-instance"
+dataflow_profile_name = "my-dataflow-profile"
+
+# Dataflow Profile Configuration
+dataflow_profile_instance_count    = 2
+dataflow_profile_log_level        = "info"
+dataflow_profile_prometheus_port  = 9090
+
+# Dataflow Configuration
+dataflow_name = "temperature-processing-flow"
+dataflow_mode = "Enabled"
+
+# Dataflow Sources
+dataflow_sources = [
+  {
+    name         = "mqtt-temperature-source"
+    endpoint_ref = "mqtt-broker-endpoint"
+    asset_ref    = "temperature-sensor-asset"
+    schema_ref   = "temperature-schema"
+    serialization = {
+      format = "Json"
+    }
+  },
+  {
+    name         = "mqtt-humidity-source"
+    endpoint_ref = "mqtt-broker-endpoint"
+    asset_ref    = "humidity-sensor-asset"
+    schema_ref   = "humidity-schema"
+    serialization = {
+      format = "Json"
+    }
+  }
+]
+
+# Dataflow Destinations
+dataflow_destinations = [
+  {
+    name         = "adx-processed-data"
+    endpoint_ref = "azure-data-explorer-endpoint"
+    schema_ref   = "processed-telemetry-schema"
+    serialization = {
+      format = "Json"
+    }
+  },
+  {
+    name         = "storage-raw-data"
+    endpoint_ref = "blob-storage-endpoint"
+    serialization = {
+      format = "Parquet"
+    }
+  }
+]
+
+# Dataflow Transformations
+dataflow_transformations = [
+  {
+    type = "filter"
+    filter = {
+      expression = "temperature > 15 && humidity < 80"
+      type      = "condition"
+    }
+  },
+  {
+    type = "map"
+    map = {
+      expression = "{ temperature_celsius: temperature, humidity_percent: humidity, processed_at: $metadata.timestamp, device_id: $metadata.deviceId }"
+      type      = "newProperties"
+    }
+  }
+]
+
+# Dataflow Operations
+dataflow_operations = [
+  {
+    name             = "process-temperature-data"
+    operation_type   = "source"
+    source_name      = "mqtt-temperature-source"
+    destination_name = "adx-processed-data"
+    built_in_transformation = {
+      serialize_type = "Json"
+      schema_ref     = "processed-telemetry-schema"
+    }
+  },
+  {
+    name             = "archive-raw-data"
+    operation_type   = "source"
+    source_name      = "mqtt-humidity-source"
+    destination_name = "storage-raw-data"
+    built_in_transformation = {
+      serialize_type = "Parquet"
+      schema_ref     = "raw-telemetry-schema"
+    }
+  }
+]
+
+# Tags
+tags = {
+  Environment = "Production"
+  Project     = "IoT Operations"
+  Owner       = "Data Engineering Team"
+  Purpose     = "Temperature and Humidity Data Processing"
+}
