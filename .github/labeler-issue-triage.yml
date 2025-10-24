@@ -45,13 +45,13 @@ service/authorization:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|stack_hci_cluster_automanage_configuration_assignment|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
 
 service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
 
 service/azure-stack-hci:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(stack_hci_cluster\W+|stack_hci_cluster\W+|stack_hci_deployment_setting\W+|stack_hci_extension\W+|stack_hci_logical_network\W+|stack_hci_marketplace_gallery_image\W+|stack_hci_network_interface\W+|stack_hci_storage_path\W+|stack_hci_virtual_hard_disk\W+)((.|\n)*)###'
 
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
