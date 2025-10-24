@@ -37,6 +37,28 @@ resource "azurerm_dev_center_project" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                            = "example-subnet"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+}
+
+data "azurerm_platform_image" "test" {
+  location  = azurerm_resource_group.test.location
+  publisher = "Canonical"
+  offer     = "0001-com-ubuntu-server-focal"
+  sku       = "20_04-lts-gen2"
+}
+
 resource "azurerm_managed_devops_pool" "example" {
   name                           = "example"
   resource_group_name            = azurerm_resource_group.example.name
@@ -70,8 +92,14 @@ resource "azurerm_managed_devops_pool" "example" {
     }
 
     image {
-      resource_id = "/Subscriptions/00000000-0000-0000-0000-000000000000/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
+    }
+
+    image {
+      well_known_image_name = "ubuntu-20.0"
+      buffer     = "*"
+      alias      = "well known image"
     }
 
     storage_profile {
@@ -84,7 +112,7 @@ resource "azurerm_managed_devops_pool" "example" {
     }
 
     network_profile {
-      subnet_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/subnet1"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -94,23 +122,25 @@ resource "azurerm_managed_devops_pool" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name which should be used for this Managed DevOps Pool. Changing this forces a new Managed DevOps Pool to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
+
+* `location` - (Required) The Azure Region where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
+
 * `dev_center_project_resource_id` - (Required) The ID of the Dev Center project.
 
 * `vmss_fabric_profile` - (Required) A `vmss_fabric_profile` block as defined below.
 
-* `location` - (Required) The Azure Region where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
-
 * `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time.
-
-* `name` - (Required) The name which should be used for this Managed DevOps Pool. Changing this forces a new Managed DevOps Pool to be created.
 
 * `azure_devops_organization_profile` - (Required) An `azure_devops_organization_profile` block as defined below.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
+* `stateful_agent_profile` - (Optional) A `stateful_agent_profile` block as defined below.
 
-* `stateful_agent_profile` - (Optional) A `stateful_agent_profile` block as defined below. Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
+* `stateless_agent_profile` - (Optional) A `stateless_agent_profile` block as defined below.
 
-* `stateless_agent_profile` - (Optional) A `stateless_agent_profile` block as defined below. Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
+~> **NOTE:** Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
 
 ---
 
@@ -126,9 +156,11 @@ A `stateful_agent_profile` block supports the following:
 
 * `max_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. Defaults to `7.00:00:00`.
 
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below. Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
 
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below. Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+
+~> **NOTE:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
 
 ---
 
@@ -184,9 +216,9 @@ An `image` block supports the following:
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
--> **Note:** More information about supported images can be found in [Microsoft Learn documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#images)
+~> **Note:** More information about supported images can be found in [Microsoft Learn documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#images)
 
--> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
+~> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
 
 ---
 
@@ -308,7 +340,7 @@ terraform import azurerm_managed_devops_pool.example /subscriptions/00000000-000
 ```
 
 ## API Providers
-<!-- This section is generated, changes will be overwritten -->
+<!-- This section is generated, changes will be overwritten -~>
 This resource uses the following Azure API Providers:
 
 * `Microsoft.DevOpsInfrastructure` - 2025-01-21
