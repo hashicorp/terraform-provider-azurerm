@@ -351,6 +351,7 @@ A `record_sets` block exports:
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
 * How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)
 * How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks)
+* How to connect a `Private Endpoint` to a [Managed Redis](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/managed-redis)
 
 ## Timeouts
 
@@ -373,4 +374,4 @@ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

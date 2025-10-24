@@ -487,6 +487,7 @@ service/redhatopenshift:
 service/redis:
 - changed-files:
   - any-glob-to-any-file:
+    - internal/services/managedredis/**/*
     - internal/services/redis/**/*
     - internal/services/redisenterprise/**/*
 

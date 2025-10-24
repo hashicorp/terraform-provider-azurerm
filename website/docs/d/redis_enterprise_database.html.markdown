@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about an existing Redis Enterprise Database
 
+~> **Note:** This data source has been deprecated in favor of [azurerm_managed_redis](managed_redis.html).
+
 ## Example Usage
 
 ```hcl
