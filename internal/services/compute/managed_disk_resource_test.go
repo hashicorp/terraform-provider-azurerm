@@ -434,20 +434,20 @@ func TestAccManagedDisk_attachedUltraDiskUpdateWithoutDowntime(t *testing.T) {
 	})
 }
 
-func TestAccManagedDisk_attachedNvmeDiskUpdateWithDowntime(t *testing.T) {
+func TestAccManagedDisk_attachedNvmeDiskUpdateWithoutDowntime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nvmeDiskUpdateWithDowntime(data, 10),
+			Config: r.nvmeDiskUpdateWithoutDowntime(data, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.nvmeDiskUpdateWithDowntime(data, 20),
+			Config: r.nvmeDiskUpdateWithoutDowntime(data, 20),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("20"),
@@ -2092,7 +2092,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 `, data.RandomInteger, data.Locations.Primary, diskSize)
 }
 
-func (r ManagedDiskResource) nvmeDiskUpdateWithDowntime(data acceptance.TestData, diskSize int) string {
+func (r ManagedDiskResource) nvmeDiskUpdateWithoutDowntime(data acceptance.TestData, diskSize int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
