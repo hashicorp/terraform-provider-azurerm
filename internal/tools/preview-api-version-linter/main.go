@@ -7,13 +7,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/api-version-lint/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/api-version-lint/version"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/preview-api-version-linter/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/preview-api-version-linter/version"
 )
 
 const (
-	EXCEPTIONS_FILE            = "internal/tools/api-version-lint/exceptions.yml"
-	HISTORICAL_EXCEPTIONS_FILE = "internal/tools/api-version-lint/historical-exceptions.yml"
+	EXCEPTIONS_FILE            = "internal/tools/preview-api-version-linter/exceptions.yml"
+	HISTORICAL_EXCEPTIONS_FILE = "internal/tools/preview-api-version-linter/historical-exceptions.yml"
 	VENDOR_DIR                 = "vendor"
 )
 
@@ -100,7 +100,7 @@ func populatePreviewVersions(sdkType sdk.SdkType, previewServiceVersions map[ver
 func printErrorFooterAndExit() {
 	fmt.Fprintf(os.Stderr, `More information: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-api-version.md
 
-To rerun this check locally, use: go run internal/tools/api-version-lint/main.go
+To rerun this check locally, use: go run internal/tools/preview-api-version-linter/main.go
 `)
 	os.Exit(1)
 }

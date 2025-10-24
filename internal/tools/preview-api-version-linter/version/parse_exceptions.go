@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/api-version-lint/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/preview-api-version-linter/sdk"
 	"gopkg.in/yaml.v3"
 )
 

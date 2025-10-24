@@ -6,14 +6,14 @@ Breaking API changes often materialise into [azurerm breaking change](guide-brea
 
 Day-0 Terraform support for preview API should be done via [azapi provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) where users have full control of API version choice.
 
-In September 2025 we implemented an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/api-version-lint` for the implementation details.
+In October 2025 we implemented an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
 
 ## Rerunning checks locally
 
 If you came to this page through a build failure, once you have removed the preview API dependency, rerun this check locally using the command:
 
 ```
-go run internal/tools/api-version-lint/main.go
+go run internal/tools/preview-api-version-linter/main.go
 ```
 
 ## Obtaining exception to use preview API
@@ -32,7 +32,7 @@ To add an exception to use preview API version, following criteria must be met:
 > [!NOTE]
 > Feature being in preview phase is not a sufficient reason to add this exception. The concept of preview should be decoupled between feature and ARM API. It is okay to leave the feature in preview phase while having the API promoted to stable. This will safeguard the API against breaking changes and ensure azurerm support for the feature can be shipped sooner to customers. Otherwise Terraform support for the feature should be provided via azapi.
 
-To add an exception, insert an entry to `internal/toos/api-version-lint/exceptions.yml` as per below example:
+To add an exception, insert an entry to `internal/toos/preview-api-version-linter/exceptions.yml` as per below example:
 
 ```yml
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
@@ -42,7 +42,7 @@ To add an exception, insert an entry to `internal/toos/api-version-lint/exceptio
   responsibleIndividual: github.com/gerrytan
 ```
 
-- `module`: go module name as per go.mod, see internal/tools/api-version-lint/sdk/sdk_types.go for supported modules
+- `module`: go module name as per go.mod, see internal/tools/preview-api-version-linter/sdk/sdk_types.go for supported modules
 - `service`: service name as per the vendor path, for `vendor/github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-01-06-preview` the service name is `compute`
 - `version`: preview version as per the vendor path
 - `stableVersionTargetDate`: estimated stable API version release date, does not have to be the actual stable version string
@@ -50,4 +50,4 @@ To add an exception, insert an entry to `internal/toos/api-version-lint/exceptio
 
 Entries have to be sorted alphabetically by `module`, `service` and `version`.
 
-Once added, check the linter is passing by running `go run internal/tools/api-version-lint/main.go`.
+Once added, check the linter is passing by running `go run internal/tools/preview-api-version-linter/main.go`.
