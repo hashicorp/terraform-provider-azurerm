@@ -430,6 +430,25 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"virtual_machine_nodes_status": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"size": {
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Description: "The size of the virtual machine nodes.",
+					},
+					"count": {
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
+						Description: "The count of virtual machine nodes.",
+					},
+				},
+			},
+		},
 	}
 
 	return s
@@ -1231,6 +1250,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
+
+		if err := d.Set("virtual_machine_nodes_status", flattenAgentPoolVirtualMachineNodesStatusList(props.VirtualMachineNodesStatus)); err != nil {
+			return fmt.Errorf("setting `virtual_machine_nodes_status`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
@@ -1850,4 +1873,30 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func flattenAgentPoolVirtualMachineNodesStatusList(input *[]agentpools.VirtualMachineNodes) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, item := range *input {
+		size := ""
+		if item.Size != nil {
+			size = *item.Size
+		}
+
+		count := 0
+		if item.Count != nil {
+			count = int(*item.Count)
+		}
+
+		output = append(output, map[string]interface{}{
+			"size":  size,
+			"count": count,
+		})
+	}
+
+	return output
 }
