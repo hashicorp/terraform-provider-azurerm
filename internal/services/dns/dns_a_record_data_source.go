@@ -4,106 +4,125 @@
 package dns
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceDnsARecord() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceDnsARecordRead,
+var _ sdk.DataSource = DnsARecordDataResource{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+type DnsARecordDataResource struct{}
+
+func (DnsARecordDataResource) ModelObject() interface{} {
+	return &DnsARecordDataSourceModel{}
+}
+
+func (d DnsARecordDataResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ValidateRecordTypeID(recordsets.RecordTypeA)
+}
+
+func (DnsARecordDataResource) ResourceType() string {
+	return "azurerm_dns_a_record"
+}
+
+type DnsARecordDataSourceModel struct {
+	Name              string            `tfschema:"name"`
+	ZoneName          string            `tfschema:"zone_name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Ttl               int64             `tfschema:"ttl"`
+	Records           []string          `tfschema:"records"`
+	Tags              map[string]string `tfschema:"tags"`
+	Fqdn              string            `tfschema:"fqdn"`
+	TargetResourceId  string            `tfschema:"target_resource_id"`
+}
+
+func (DnsARecordDataResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"records": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-			},
-
-			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"target_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": commonschema.TagsDataSource(),
+		"zone_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 	}
 }
 
-func dataSourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func (DnsARecordDataResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"records": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:      pluginsdk.HashString,
+		},
 
-	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeA, d.Get("name").(string))
+		"ttl": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
 
-	resp, err := recordSetsClient.Get(ctx, id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
-		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		"fqdn": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"target_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": commonschema.TagsDataSource(),
 	}
+}
 
-	d.SetId(id.ID())
+func (DnsARecordDataResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Dns.RecordSets
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	d.Set("name", id.RelativeRecordSetName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("zone_name", id.DnsZoneName)
+			var state DnsARecordDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			id := recordsets.NewRecordTypeID(subscriptionId, state.ResourceGroupName, state.ZoneName, recordsets.RecordTypeA, state.Name)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("ttl", props.TTL)
-			d.Set("fqdn", props.Fqdn)
-
-			if err := d.Set("records", flattenAzureRmDnsARecords(props.ARecords)); err != nil {
-				return fmt.Errorf("setting `records`: %+v", err)
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			targetResourceId := ""
-			if props.TargetResource != nil && props.TargetResource.Id != nil {
-				targetResourceId = *props.TargetResource.Id
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Ttl = pointer.From(props.TTL)
+					state.Fqdn = pointer.From(props.Fqdn)
+
+					state.Records = flattenAzureRmDnsARecords(props.ARecords)
+					state.TargetResourceId = pointer.From(props.TargetResource.Id)
+
+					state.Tags = pointer.From(props.Metadata)
+				}
 			}
-			d.Set("target_resource_id", targetResourceId)
+			metadata.SetID(id)
 
-			return tags.FlattenAndSet(d, props.Metadata)
-		}
+			return metadata.Encode(&state)
+		},
 	}
-
-	return nil
 }
