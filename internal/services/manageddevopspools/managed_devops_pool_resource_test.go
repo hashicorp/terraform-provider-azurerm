@@ -317,7 +317,13 @@ resource "azurerm_managed_devops_pool" "test" {
   vmss_fabric_profile {
     image {
       resource_id = data.azurerm_platform_image.test.id
-      buffer      = "*"
+      alias       = "marketplace image"
+      buffer      = "0"
+    }
+    image {
+      alias       = "well known image"
+      well_known_image_name = "ubuntu-20.04"
+      buffer      = "100"
     }
     sku {
       name = "Standard_D2ads_v5"

@@ -168,10 +168,14 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 		poolImage := pools.PoolImage{
 			Aliases:            image.Aliases,
 			Buffer:             image.Buffer,
-			WellKnownImageName: image.WellKnownImageName,
 		}
 
-		if image.ResourceId != nil {
+		// Only apply well_known_image_name or resource_id if they are set, otherwise SDK may throw error
+		if image.WellKnownImageName != nil && *image.WellKnownImageName != "" {
+			poolImage.WellKnownImageName = image.WellKnownImageName
+		}
+
+		if image.ResourceId != nil && *image.ResourceId != "" {
 			poolImage.ResourceId = image.ResourceId
 		}
 

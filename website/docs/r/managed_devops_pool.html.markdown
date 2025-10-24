@@ -178,7 +178,7 @@ An `image` block supports the following:
 
 * `aliases` - (Optional) List of aliases to reference the image by.
 
-* `buffer` - (Optional) The percentage of the buffer to be allocated to this image.
+* `buffer` - (Optional) The percentage of the buffer to be allocated to this image. Possible values are `*` or between `0` and `100`.
 
 * `resource_id` - (Optional) The resource id of the image.
 
@@ -186,7 +186,7 @@ An `image` block supports the following:
 
 -> **Note:** More information about supported images can be found in [Microsoft Learn documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#images)
 
--> **Note:** Exactly one of `resource_id` and `well_known_image_name` are required per `image`
+-> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
 
 ---
 

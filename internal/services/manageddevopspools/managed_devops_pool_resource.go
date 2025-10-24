@@ -196,8 +196,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^(?:\*|[1-9][0-9]?|100)$`),
-										`Buffer must be "*" or value between 1 and 100.`,
+										regexp.MustCompile(`^(?:\*|[0-9][0-9]?|100)$`),
+										`Buffer must be "*" or value between 0 and 100.`,
 									),
 								},
 								// Exactly one of resource_id and well_known_image_name can be specified
