@@ -1,3 +1,12 @@
+## 4.51.0 (Unreleased)
+
+ENHANCEMENTS:
+* dependencies: `network` - update to API version `2025-01-01` [GH-30904]
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.50.0 (October 23, 2025)
 
 FEATURES:
