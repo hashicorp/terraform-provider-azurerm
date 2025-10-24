@@ -325,10 +325,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		properties.AddressPrefixes = &addressPrefixes
 	}
-	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
-		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
-		properties.AddressPrefixes = nil
-	}
 
 	properties.IPamPoolPrefixAllocations = expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
 
@@ -438,13 +434,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// this is the case IPAddressPool is used, so we shall clear the `AddressPrefix` and `AddressPrefixes`.
 			props.AddressPrefix = nil
 			props.AddressPrefixes = nil
-		case 1:
-			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
-			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
-			props.AddressPrefixes = nil
 		default:
-			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
-			// return the `AddressPrefix` in response.
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
