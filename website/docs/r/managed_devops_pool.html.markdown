@@ -166,9 +166,11 @@ A `stateful_agent_profile` block supports the following:
 
 A `stateless_agent_profile` block supports the following:
 
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below. Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
 
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below. Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+
+~> **NOTE:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
 
 ---
 
