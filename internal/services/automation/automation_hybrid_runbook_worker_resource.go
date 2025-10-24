@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -129,7 +129,9 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{}
+			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{
+				Properties: &hybridrunbookworker.HybridRunbookWorkerCreateOrUpdateParameters{},
+			}
 			if model.VmResourceId != "" {
 				req.Properties.VMResourceId = utils.String(model.VmResourceId)
 			}
