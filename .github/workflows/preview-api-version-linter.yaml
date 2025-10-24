@@ -1,5 +1,5 @@
 ---
-name: ARM API Version Linting
+name: Preview ARM API Version Linter
 
 permissions:
   contents: read
