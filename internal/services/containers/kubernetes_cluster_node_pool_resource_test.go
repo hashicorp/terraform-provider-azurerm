@@ -547,20 +547,78 @@ func TestAccKubernetesClusterNodePool_spot(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
+func TestAccKubernetesClusterNodePool_upgradeSettingsMaxSurge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettings(data, 35, 18),
+			Config: r.upgradeSettingsMaxSurge(data, `10%`, 10, 5, "Cordon"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 5, 0),
+			Config: r.upgradeSettingsMaxSurge(data, `33%`, 15, 8, "Schedule"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_upgradeSettingsMaxUnavailable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_upgradeSettingsMaxSurgeToMaxUnavailable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeSettingsMaxSurge(data, `10%`, 10, 5, "Cordon"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxSurge(data, `33%`, 15, 8, "Schedule"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2245,9 +2303,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxSurge(data acceptance.TestData, maxSurge string, drainTimeout int, nodeSoakDuration int, undrainableBehavior string) string {
 	template := r.templateConfig(data)
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2261,12 +2318,38 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
   upgrade_settings {
-    max_surge                     = "10%%"
+    max_surge                     = "%s"
     drain_timeout_in_minutes      = %d
     node_soak_duration_in_minutes = %d
+    undrainable_node_behavior     = %q
   }
 }
-`, template, drainTimeout, nodeSoakDuration)
+`, template, maxSurge, drainTimeout, nodeSoakDuration, undrainableBehavior)
+}
+
+func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxUnavailable(data acceptance.TestData, maxUnavailable string, drainTimeout int, nodeSoakDuration int) string {
+	template := r.templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  upgrade_settings {
+    max_surge                     = "0"
+    max_unavailable               = %q
+    drain_timeout_in_minutes      = %d
+    node_soak_duration_in_minutes = %d
+    undrainable_node_behavior     = "Schedule"
+  }
+}
+`, template, maxUnavailable, drainTimeout, nodeSoakDuration)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
