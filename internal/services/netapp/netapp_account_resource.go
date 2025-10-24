@@ -60,6 +60,14 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"nfsv4_id_domain": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "defaultv4iddomain.com",
+				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "The NFSv4 ID domain for this NetApp Account.",
+			},
+
 			"active_directory": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -194,6 +202,8 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	accountParameters.Properties.NfsV4IDDomain = utils.String(d.Get("nfsv4_id_domain").(string))
+
 	activeDirectoryRaw := d.Get("active_directory")
 	if activeDirectoryRaw != nil {
 		activeDirectories := activeDirectoryRaw.([]interface{})
@@ -241,6 +251,10 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	update := netappaccounts.NetAppAccountPatch{
 		Properties: &netappaccounts.AccountProperties{},
+	}
+
+	if d.HasChange("nfsv4_id_domain") {
+		update.Properties.NfsV4IDDomain = utils.String(d.Get("nfsv4_id_domain").(string))
 	}
 
 	if d.HasChange("active_directory") {
@@ -295,6 +309,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("nfsv4_id_domain", pointer.To(model.Properties.NfsV4IDDomain))
 
 		if model.Identity != nil {
 			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

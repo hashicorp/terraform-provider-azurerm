@@ -40,6 +40,12 @@ func dataSourceNetAppAccount() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"nfsv4_id_domain": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The NFSv4 ID domain for this NetApp Account.",
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -67,6 +73,10 @@ func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
+
+		if properties := model.Properties; properties != nil {
+			d.Set("nfsv4_id_domain", properties.NfsV4IDDomain)
+		}
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {
