@@ -26,6 +26,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Database client: %+v", err)
 	}
+
 	return &Client{
 		OracleClient: oracleClient,
 	}, nil
