@@ -60,7 +60,7 @@ resource "azurerm_storage_account_queue_properties" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -125,10 +125,15 @@ A `minute_metrics` block supports the following:
 
 * `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Storage Account Queue Properties resource.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Queue Properties.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Queue Properties.

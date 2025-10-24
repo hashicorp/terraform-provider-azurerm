@@ -2,8 +2,9 @@
 
 This module enables parsing, comparison and canonical representation of
 [Terraform Registry](https://registry.terraform.io/) **provider** addresses
-(such as `registry.terraform.io/grafana/grafana` or `hashicorp/aws`)
-and **module** addresses (such as `hashicorp/subnets/cidr`).
+(such as `registry.terraform.io/grafana/grafana` or `hashicorp/aws`),
+**module** addresses (such as `hashicorp/subnets/cidr`),
+and **component** addresses (such as `hashicorp/aws` or `example.com/myorg/mycomponent`).
 
 **Provider** addresses can be found in
 
@@ -16,6 +17,10 @@ and **module** addresses (such as `hashicorp/subnets/cidr`).
 
 **Module** addresses can be found within `source` argument
 of `module` block in Terraform configuration (`*.tf`)
+and parts of the address (namespace and name) in the Registry API.
+
+**Component** addresses can be found within the `source` argument
+of the `component` block in Terraform Stack configuration (`*.tfcomponent.hcl`)
 and parts of the address (namespace and name) in the Registry API.
 
 ## Compatibility
@@ -68,6 +73,24 @@ if err != nil {
 //   },
 //   Subdir: "modules/consul-cluster",
 // },
+```
+
+### Component
+
+```go
+cAddr, err := ParseComponentSource("hashicorp/aws//modules/vpc")
+if err != nil {
+	// deal with error
+}
+
+// cAddr == Component{
+//   Package: ComponentPackage{
+//     Host:      DefaultModuleRegistryHost,
+//     Namespace: "hashicorp",
+//     Name:      "aws",
+//   },
+//   Subdir: "modules/vpc",
+// }
 ```
 
 ## Other Module Address Formats

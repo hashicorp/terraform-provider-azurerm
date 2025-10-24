@@ -46,7 +46,7 @@ The following arguments are supported:
 * `type` - (Optional) The type of backup to create.Currently, only `LongTerm` backup operations are supported through the Oracle database At azure service.
 
 ## Attributes Reference
-In addition to the Arguments listed above—the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database Backup.
 
@@ -70,4 +70,4 @@ terraform import azurerm_oracle_autonomous_database_backup.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Oracle.Database` - 2025-03-01
+* `Oracle.Database` - 2025-09-01

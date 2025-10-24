@@ -184,6 +184,14 @@ func FromModule(source string) *FromModuleOption {
 	return &FromModuleOption{source}
 }
 
+type GenerateConfigOutOption struct {
+	path string
+}
+
+func GenerateConfigOut(path string) *GenerateConfigOutOption {
+	return &GenerateConfigOutOption{path}
+}
+
 type GetOption struct {
 	get bool
 }
