@@ -4,6 +4,7 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -146,6 +147,37 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// JSON Dataset Specific Field
+			"compression": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"level": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_level_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_type_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"parameters": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -222,6 +254,40 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, hasCompression := d.GetOk("compression"); hasCompression {
+				supportedCompressionTypes := []string{
+					TypeBasicDatasetCompressionTypeBZip2,
+					TypeBasicDatasetCompressionTypeDeflate,
+					TypeBasicDatasetCompressionTypeGZip,
+					TypeBasicDatasetCompressionTypeTar,
+					TypeBasicDatasetCompressionTypeTarGZip,
+					TypeBasicDatasetCompressionTypeZipDeflate,
+					TypeBasicDatasetCompressionTypeSnappy,
+					TypeBasicDatasetCompressionTypeLZ4,
+				}
+
+				supportedCompressionLevels := []string{
+					"Fastest",
+					"Optimal",
+				}
+
+				dynamicLevelEnabled := d.Get("compression.0.dynamic_level_enabled")
+				dynamicTypeEnabled := d.Get("compression.0.dynamic_type_enabled")
+				compressionLevel, hasCompressionLevel := d.GetOk("compression.0.level")
+				compressionType, hasCompressionType := d.GetOk("compression.0.type")
+
+				if hasCompressionType && !dynamicTypeEnabled.(bool) && !utils.SliceContainsValue(supportedCompressionTypes, compressionType.(string)) {
+					return fmt.Errorf("compression type must be a supported type when `dynamic_type_enabled` is false, supported types are: %v", supportedCompressionTypes)
+				}
+
+				if hasCompressionLevel && !dynamicLevelEnabled.(bool) && !utils.SliceContainsValue(supportedCompressionLevels, compressionLevel.(string)) {
+					return fmt.Errorf("compression level must be a supported level when `dynamic_level_enabled` is false, supported levels are: %v", supportedCompressionLevels)
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -259,6 +325,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	jsonDatasetProperties := datafactory.JSONDatasetTypeProperties{
 		Location:     location,
 		EncodingName: d.Get("encoding").(string),
+		Compression:  expandDataFactoryDatasetCompression(d),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -383,6 +450,11 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 			log.Printf("[DEBUG] Skipping `encoding` since it's not a string")
 		} else {
 			d.Set("encoding", encodingName)
+		}
+
+		compression := flattenDataFactoryDatasetCompression(properties.Compression)
+		if err := d.Set("compression", compression); err != nil {
+			return fmt.Errorf("setting `compression`: %+v", err)
 		}
 	}
 
