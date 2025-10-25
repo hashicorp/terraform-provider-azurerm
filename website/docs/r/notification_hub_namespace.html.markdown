@@ -28,7 +28,7 @@ resource "azurerm_notification_hub_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -43,6 +43,10 @@ The following arguments are supported:
 * `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. 
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
+
+* `zone_redundancy_enabled` - (Optional) Is Zone Redundancy Enabled for the Notification Hub Namespace. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `replication_region` - (Optional) The allowed Replication Region for the Notification Hub Namespace. Possible values are `Default`, `None`, `AustraliaEast`, `BrazilSouth`, `NorthEurope`, `SouthAfricaNorth`, `SouthEastAsia`, `WestUs2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

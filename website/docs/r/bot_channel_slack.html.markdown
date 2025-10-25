@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_slack" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

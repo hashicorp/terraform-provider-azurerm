@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -88,7 +89,6 @@ func resourceStorageQueue() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -97,7 +97,6 @@ func resourceStorageQueue() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
@@ -106,6 +105,30 @@ func resourceStorageQueue() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 			Deprecated: "the `resource_manager_id` property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
+		}
+
+		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate
+			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
+				return diff.ForceNew("storage_account_id")
+			}
+
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
+			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
+				// converting from storage_account_id to the deprecated storage_account_name is not supported
+				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldName, newName := diff.GetChange("storage_account_name")
+
+				if oldAccountId.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+			}
+
+			return nil
 		}
 	}
 
@@ -277,51 +300,65 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
-		storageClient := meta.(*clients.Client).Storage
+	if !features.FivePointOh() {
+		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
+			if said := d.Get("storage_account_id").(string); said == "" {
+				storageClient := meta.(*clients.Client).Storage
 
-		id, err := queues.ParseQueueID(d.Id(), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
+				id, err := queues.ParseQueueID(d.Id(), storageClient.StorageDomainSuffix)
+				if err != nil {
+					return err
+				}
+
+				account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+				}
+				if account == nil {
+					log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
+					d.SetId("")
+					return nil
+				}
+
+				client, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %v", err)
+				}
+
+				queue, err := client.Get(ctx, id.QueueName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", id, err)
+				}
+				if queue == nil {
+					log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.QueueName)
+					d.SetId("")
+					return nil
+				}
+
+				d.Set("name", id.QueueName)
+				d.Set("storage_account_name", id.AccountId.AccountName)
+
+				if err := d.Set("metadata", FlattenMetaData(queue.MetaData)); err != nil {
+					return fmt.Errorf("setting `metadata`: %s", err)
+				}
+
+				resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.QueueName)
+				d.Set("resource_manager_id", resourceManagerId.ID())
+				d.Set("url", id.ID())
+
+				return nil
+			} else {
+				// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
+				accountId, err := commonids.ParseStorageAccountID(said)
+				if err != nil {
+					return err
+				}
+
+				id := queueservice.NewQueueID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+				d.SetId(id.ID())
+				// Continue the code flow outside this block
+			}
 		}
-
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
-		}
-		if account == nil {
-			log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
-			d.SetId("")
-			return nil
-		}
-
-		client, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %v", err)
-		}
-
-		queue, err := client.Get(ctx, id.QueueName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %v", id, err)
-		}
-		if queue == nil {
-			log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.QueueName)
-			d.SetId("")
-			return nil
-		}
-
-		d.Set("name", id.QueueName)
-		d.Set("storage_account_name", id.AccountId.AccountName)
-
-		if err := d.Set("metadata", FlattenMetaData(queue.MetaData)); err != nil {
-			return fmt.Errorf("setting `metadata`: %s", err)
-		}
-
-		resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.QueueName)
-		d.Set("resource_manager_id", resourceManagerId.ID())
-		d.Set("url", id.ID())
-
-		return nil
 	}
 
 	id, err := queueservice.ParseQueueID(d.Id())
@@ -370,6 +407,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
+		d.Set("storage_account_name", "")
 	}
 
 	return nil

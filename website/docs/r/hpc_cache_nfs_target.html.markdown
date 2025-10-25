@@ -129,7 +129,7 @@ resource "azurerm_hpc_cache_nfs_target" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

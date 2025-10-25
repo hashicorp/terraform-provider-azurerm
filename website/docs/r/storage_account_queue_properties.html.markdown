@@ -60,7 +60,7 @@ resource "azurerm_storage_account_queue_properties" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -125,6 +125,11 @@ A `minute_metrics` block supports the following:
 
 * `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Storage Account Queue Properties resource.
 
 ## Timeouts
 
