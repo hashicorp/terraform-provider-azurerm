@@ -36,7 +36,7 @@ resource "azurerm_cognitive_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -211,4 +211,4 @@ This resource uses the following Azure API Providers:
 
 * `Microsoft.CognitiveServices` - 2025-06-01
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

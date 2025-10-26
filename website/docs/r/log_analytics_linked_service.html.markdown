@@ -44,7 +44,7 @@ resource "azurerm_log_analytics_linked_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

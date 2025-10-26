@@ -45,7 +45,7 @@ resource "azurerm_bot_channel_direct_line_speech" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
