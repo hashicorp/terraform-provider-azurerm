@@ -892,7 +892,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 
 	// AAD/Entra support
 	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
+	v, valExists := d.GetOk("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
 		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
@@ -900,7 +900,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 
 	// RDB Backup
 	// nolint : staticcheck
-	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	v, valExists = d.GetOk("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
 
@@ -935,7 +935,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 
 	// AOF Backup
 	// nolint : staticcheck
-	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
+	v, valExists = d.GetOk("redis_configuration.0.aof_backup_enabled")
 	if valExists {
 		// aof_backup_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redisresources.SkuNamePremium)) {
