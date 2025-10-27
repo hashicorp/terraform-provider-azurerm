@@ -22,7 +22,6 @@ func TestAccCloudHardwareSecurityModuleCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cloud_hardware_security_module_cluster", "test")
 	r := CloudHardwareSecurityModuleClusterResource{}
 
-	// t.Skip(r.basic(data))
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -71,7 +70,6 @@ func TestAccCloudHardwareSecurityModuleCluster_complete(t *testing.T) {
 func TestAccCloudHardwareSecurityModuleCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cloud_hardware_security_module_cluster", "test")
 	r := CloudHardwareSecurityModuleClusterResource{}
-	t.Skip(r.update(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
