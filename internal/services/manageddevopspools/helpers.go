@@ -25,9 +25,9 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.Ag
 	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
 		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
 
-		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile.ResourcePredictions)
+		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile)
 		if resourcePredictions != nil {
-			stateful.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
+			stateful.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
 		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
@@ -64,9 +64,9 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
 		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
 
-		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile.ResourcePredictions)
+		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile)
 		if resourcePredictions != nil {
-			stateless.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
+			stateless.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
 		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
@@ -89,21 +89,18 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 	return stateless
 }
 
-func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourcePredictionsSdkModel {
-	if len(input) == 0 {
-		return nil
-	}
-
-	resourcePredictions := input[0]
+func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel) *ResourcePredictionsSdkModel {
 	var parsedDaysData []map[string]interface{}
-	if err := json.Unmarshal([]byte(resourcePredictions.DaysData), &parsedDaysData); err != nil {
+	if err := json.Unmarshal([]byte(input.DaysData), &parsedDaysData); err != nil {
 		return nil
 	}
 
-	return &ResourcePredictionsSdkModel{
+	result := &ResourcePredictionsSdkModel{
 		DaysData: parsedDaysData,
-		TimeZone: resourcePredictions.TimeZone,
+		TimeZone: input.TimeZone,
 	}
+
+	return result
 }
 
 func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) pools.OrganizationProfile {
@@ -274,19 +271,16 @@ func flattenStatefulAgentProfileToModel(input pools.Stateful) []StatefulAgentPro
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
-			statefulAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{
-				{
-					ResourcePredictions: []ResourcePredictionsModel{},
-				},
-			}
+			manualProfile := ManualResourcePredictionsProfileModel{}
 
 			if input.ResourcePredictions != nil {
-				if predModel := flattenResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
-					if len(statefulAgentProfileModel.ManualResourcePredictionsProfile) > 0 {
-						statefulAgentProfileModel.ManualResourcePredictionsProfile[0].ResourcePredictions = []ResourcePredictionsModel{*predModel}
-					}
+				if predModel := flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
+					manualProfile.TimeZone = predModel.TimeZone
+					manualProfile.DaysData = predModel.DaysData
 				}
 			}
+
+			statefulAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
 		}
 	}
 
@@ -304,25 +298,19 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []St
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
-			statelessAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{
-				{
-					ResourcePredictions: []ResourcePredictionsModel{}, // Will be populated below if ResourcePredictions exists
-				},
-			}
+			manualProfile := ManualResourcePredictionsProfileModel{}
 
 			if input.ResourcePredictions != nil {
-				if predModel := flattenResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
-					if len(statelessAgentProfileModel.ManualResourcePredictionsProfile) > 0 {
-						statelessAgentProfileModel.ManualResourcePredictionsProfile[0].ResourcePredictions = []ResourcePredictionsModel{*predModel}
-					}
-				}
+				manualProfile = *flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
 			}
+
+			statelessAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
 		}
 	}
 	return []StatelessAgentProfileModel{statelessAgentProfileModel}
 }
 
-func flattenResourcePredictionsModel(input interface{}) *ResourcePredictionsModel {
+func flattenManualResourcePredictionsModel(input interface{}) *ManualResourcePredictionsProfileModel {
 	if input == nil {
 		return nil
 	}
@@ -342,7 +330,7 @@ func flattenResourcePredictionsModel(input interface{}) *ResourcePredictionsMode
 		return nil
 	}
 
-	return &ResourcePredictionsModel{
+	return &ManualResourcePredictionsProfileModel{
 		TimeZone: sdkModel.TimeZone,
 		DaysData: string(daysDataBytes),
 	}

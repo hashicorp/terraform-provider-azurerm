@@ -65,21 +65,13 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"resource_predictions": {
-									Type:     pluginsdk.TypeList,
+								"time_zone": {
+									Type:     pluginsdk.TypeString,
 									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"time_zone": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"days_data": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
+								},
+								"days_data": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
 								},
 							},
 						},
@@ -109,21 +101,13 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"resource_predictions": {
-									Type:     pluginsdk.TypeList,
+								"time_zone": {
+									Type:     pluginsdk.TypeString,
 									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"time_zone": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"days_data": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
+								},
+								"days_data": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
 								},
 							},
 						},

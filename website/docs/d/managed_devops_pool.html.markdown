@@ -79,17 +79,11 @@ A `stateless_agent_profile` block exports the following:
 
 ---
 
-A `resource_predictions` block exports the following:
-
-* `days_data` - A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times.
+A `manual_resource_predictions_profile` block exports the following:
 
 * `time_zone` - The time zone for the predictions data to be provisioned at.
 
----
-
-A `manual_resource_predictions_profile` block exports the following:
-
-* `resource_predictions` - A `resource_predictions` block as defined below.
+* `days_data` - A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times.
 
 ---
 

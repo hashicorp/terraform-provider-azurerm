@@ -264,14 +264,6 @@ An `administrator_accounts` block supports the following:
 
 ---
 
-A `resource_predictions` block supports the following:
-
-* `days_data` - (Required) A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times. For example, jsonencode([{},{"09:00:00": 1, "17:00:00": 0},{},{},{},{},{}]) specifies 1 standby agent available every Monday from 9:00 AM to 5:00 PM.
-
-* `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
-
----
-
 A `resource_predictions_profile` block supports the following:
 
 * `kind` - (Required) Determines how the stand-by scheme should be provided. Possible values are: `Manual` and `Automatic`.
@@ -282,7 +274,9 @@ A `resource_predictions_profile` block supports the following:
 
 A `manual_resource_predictions_profile` block supports the following:
 
-* `resource_predictions` - (Required) A `resource_predictions` block as defined below.
+* `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
+
+* `days_data` - (Required) A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times. For example, jsonencode([{},{"09:00:00": 1, "17:00:00": 0},{},{},{},{},{}]) specifies 1 standby agent available every Monday from 9:00 AM to 5:00 PM.
 
 ---
 

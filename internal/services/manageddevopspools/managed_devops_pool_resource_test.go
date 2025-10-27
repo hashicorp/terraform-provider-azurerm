@@ -138,10 +138,8 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateless_agent_profile {
     manual_resource_predictions_profile {
-      resource_predictions {
-        time_zone = "UTC"
-        days_data = "[{},{\"09:00:00\":1,\"17:00:00\":0},{},{},{},{},{}]"
-      }
+      time_zone = "UTC"
+      days_data = "[{},{\"09:00:00\":1,\"17:00:00\":0},{},{},{},{},{}]"
     }
   }
 

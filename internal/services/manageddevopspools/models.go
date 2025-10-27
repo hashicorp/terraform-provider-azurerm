@@ -17,11 +17,6 @@ type StatelessAgentProfileModel struct {
 	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
 }
 
-type ResourcePredictionsModel struct {
-	TimeZone string `tfschema:"time_zone"`
-	DaysData string `tfschema:"days_data"`
-}
-
 type ResourcePredictionsSdkModel struct {
 	TimeZone string                   `tfschema:"time_zone"`
 	DaysData []map[string]interface{} `tfschema:"days_data"`
@@ -33,7 +28,8 @@ type ResourcePredictionsProfileModel struct {
 }
 
 type ManualResourcePredictionsProfileModel struct {
-	ResourcePredictions []ResourcePredictionsModel `tfschema:"resource_predictions"`
+	TimeZone string `tfschema:"time_zone"`
+	DaysData string `tfschema:"days_data"`
 }
 
 type AutomaticResourcePredictionsProfileModel struct {

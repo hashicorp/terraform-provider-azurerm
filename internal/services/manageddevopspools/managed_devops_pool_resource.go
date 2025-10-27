@@ -75,25 +75,16 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"stateful_agent_profile.0.automatic_resource_predictions_profile"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"resource_predictions": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"time_zone": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												Default:  "UTC",
-											},
-											"days_data": {
-												Type:             pluginsdk.TypeString,
-												Required:         true,
-												ValidateFunc:     validation.StringIsJSON,
-												DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-											},
-										},
-									},
+								"time_zone": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "UTC",
+								},
+								"days_data": {
+									Type:             pluginsdk.TypeString,
+									Required:         true,
+									ValidateFunc:     validation.StringIsJSON,
+									DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 								},
 							},
 						},
@@ -131,24 +122,15 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"stateless_agent_profile.0.automatic_resource_predictions_profile"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"resource_predictions": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"time_zone": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												Default:  "UTC",
-											},
-											"days_data": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringIsJSON,
-											},
-										},
-									},
+								"time_zone": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "UTC",
+								},
+								"days_data": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsJSON,
 								},
 							},
 						},
