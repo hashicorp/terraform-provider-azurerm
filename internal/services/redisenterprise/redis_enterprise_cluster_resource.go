@@ -63,7 +63,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
