@@ -68,7 +68,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s\n", v)
 		}
 		fmt.Fprintf(os.Stderr, `
-Preview versions are prone to breaking changes resulting in very bad user experience, 
+Preview versions are prone to sudden breaking changes which can result in a less then ideal user experience,
 please use stable version instead.
 
 `)
