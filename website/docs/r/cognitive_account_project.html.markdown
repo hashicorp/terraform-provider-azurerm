@@ -38,6 +38,8 @@ resource "azurerm_cognitive_account_project" "example" {
   name                 = "example-project"
   cognitive_account_id = azurerm_cognitive_account.example.id
   location             = azurerm_resource_group.example.location
+  description          = "Example cognitive services project"
+  display_name         = "Example Project"
 
   identity {
     type = "SystemAssigned"
@@ -59,6 +61,10 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Cognitive Account Project should exist. Changing this forces a new resource to be created.
 
+* `description` - (Optional) A description of the Cognitive Account Project.
+
+* `display_name` - (Optional) The display name of the Cognitive Account Project.
+
 * `identity` - (Required) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -79,9 +85,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoints` - A mapping of endpoint names to endpoint URLs for the project.
 
-* `is_default` - Whether this project is the default project for the Cognitive Account.
-
 * `identity` - An `identity` block as defined below.
+
+* `is_default` - Whether this project is the default project for the Cognitive Account.
 
 ---
 

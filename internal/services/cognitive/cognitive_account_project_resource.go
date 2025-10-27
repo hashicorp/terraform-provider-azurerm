@@ -24,6 +24,8 @@ type CognitiveAccountProjectModel struct {
 	Name               string                                     `tfschema:"name"`
 	CognitiveAccountId string                                     `tfschema:"cognitive_account_id"`
 	Location           string                                     `tfschema:"location"`
+	Description        string                                     `tfschema:"description"`
+	DisplayName        string                                     `tfschema:"display_name"`
 	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Tags               map[string]string                          `tfschema:"tags"`
 
@@ -47,6 +49,26 @@ func (r CognitiveAccountProjectResource) IDValidationFunc() pluginsdk.SchemaVali
 	return cognitiveservicesprojects.ValidateProjectID
 }
 
+func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+			// Azure API issue: description and display_name cannot be updated to empty values, see: https://github.com/Azure/azure-rest-api-specs/issues/38422
+			if oldDesc, newDesc := metadata.ResourceDiff.GetChange("description"); oldDesc.(string) != "" && newDesc.(string) == "" {
+				return fmt.Errorf("`description` cannot be updated to an empty value due to Azure API limitations")
+			}
+
+			if oldDisplay, newDisplay := metadata.ResourceDiff.GetChange("display_name"); oldDisplay.(string) != "" && newDisplay.(string) == "" {
+				return fmt.Errorf("`display_name` cannot be updated to an empty value due to Azure API limitations")
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
@@ -54,14 +76,26 @@ func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_-]{2,32}$"),
-				"name must be between 3 and 33 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes or underscores.",
+				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_.-]{1,63}$"),
+				"name must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes, periods or underscores.",
 			),
 		},
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),
 
 		"location": commonschema.Location(),
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
@@ -122,10 +156,13 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := cognitiveservicesprojects.Project{
-				Identity:   expandedIdentity,
-				Location:   pointer.To(location.Normalize(model.Location)),
-				Tags:       pointer.To(model.Tags),
-				Properties: &cognitiveservicesprojects.ProjectProperties{},
+				Identity: expandedIdentity,
+				Location: pointer.To(location.Normalize(model.Location)),
+				Tags:     pointer.To(model.Tags),
+				Properties: &cognitiveservicesprojects.ProjectProperties{
+					Description: pointer.To(model.Description),
+					DisplayName: pointer.To(model.DisplayName),
+				},
 			}
 
 			if err := client.ProjectsCreateThenPoll(ctx, id, payload); err != nil {
@@ -133,6 +170,7 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -182,6 +220,20 @@ func (r CognitiveAccountProjectResource) Update() sdk.ResourceFunc {
 				payload.Tags = pointer.To(model.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("description") {
+				if payload.Properties == nil {
+					payload.Properties = &cognitiveservicesprojects.ProjectProperties{}
+				}
+				payload.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("display_name") {
+				if payload.Properties == nil {
+					payload.Properties = &cognitiveservicesprojects.ProjectProperties{}
+				}
+				payload.Properties.DisplayName = pointer.To(model.DisplayName)
+			}
+
 			if err := client.ProjectsCreateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -226,8 +278,10 @@ func (r CognitiveAccountProjectResource) Read() sdk.ResourceFunc {
 				state.Identity = *flattenedIdentity
 
 				if props := model.Properties; props != nil {
-					state.IsDefault = pointer.From(props.IsDefault)
+					state.Description = pointer.From(props.Description)
+					state.DisplayName = pointer.From(props.DisplayName)
 					state.Endpoints = pointer.From(props.Endpoints)
+					state.IsDefault = pointer.From(props.IsDefault)
 				}
 			}
 

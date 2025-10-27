@@ -3,6 +3,7 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -89,12 +90,9 @@ func TestAccCognitiveAccountProject_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:      r.basic(data),
+			ExpectError: regexp.MustCompile(`cannot be updated to an empty value`),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -186,6 +184,8 @@ resource "azurerm_cognitive_account_project" "test" {
   name                 = "acctest-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   location             = azurerm_resource_group.test.location
+  description          = "Test description"
+  display_name         = "Test Display Name"
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -218,6 +218,8 @@ resource "azurerm_cognitive_account_project" "test" {
   name                 = "acctest-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   location             = azurerm_resource_group.test.location
+  description          = "Test description updated"
+  display_name         = "Test Display Name Updated"
 
   identity {
     type         = "UserAssigned"
