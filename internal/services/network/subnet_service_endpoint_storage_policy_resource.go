@@ -84,6 +84,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 									validation.StringInSlice([]string{
 										"/services/Azure",
 										"/services/Azure/Batch",
+										"/services/Azure/Databricks",
 										"/services/Azure/DataFactory",
 										"/services/Azure/MachineLearning",
 										"/services/Azure/ManagedInstance",
