@@ -42,7 +42,7 @@ func TestAccNatGateway_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("StandardV2"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 			),
@@ -66,7 +66,7 @@ func TestAccNatGateway_update(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("StandardV2"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("20"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 			),
@@ -124,7 +124,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "StandardV2"
   zones               = ["1"]
 }
 
@@ -140,7 +140,7 @@ resource "azurerm_nat_gateway" "test" {
   name                    = "acctestnatGateway-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  sku_name                = "Standard"
+  sku_name                = "StandardV2"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
 }
@@ -173,7 +173,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "StandardV2"
   zones               = ["1"]
 }
 
@@ -189,7 +189,7 @@ resource "azurerm_nat_gateway" "test" {
   name                    = "acctestnatGateway-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  sku_name                = "Standard"
+  sku_name                = "StandardV2"
   idle_timeout_in_minutes = 20
   zones                   = ["1"]
   tags = {

@@ -79,6 +79,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			Default:  string(natgateways.NatGatewaySkuNameStandard),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(natgateways.NatGatewaySkuNameStandard),
+				string(natgateways.NatGatewaySkuNameStandardVTwo),
 			}, false),
 		},
 

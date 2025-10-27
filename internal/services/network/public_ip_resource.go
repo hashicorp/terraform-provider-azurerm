@@ -110,6 +110,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(publicipaddresses.PublicIPAddressSkuNameBasic),
 					string(publicipaddresses.PublicIPAddressSkuNameStandard),
+					string(publicipaddresses.NatGatewaySkuNameStandardVTwo),
 				}, false),
 			},
 
