@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * dependencies: `network` - update to API version `2025-01-01` [GH-30904]
+* `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property [GH-30762]
 
 FEATURES:
 
