@@ -72,7 +72,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -347,6 +346,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			// Check what needs to be updated
 			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
 			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+			needsPasswordUpdate := metadata.ResourceData.HasChange("admin_password")
 
 			// Step 1: Handle general updates (everything except backup schedule)
 			if needsGeneralUpdate {
@@ -391,6 +391,19 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if err := client.UpdateThenPoll(ctx, *id, backupUpdate); err != nil {
 					return fmt.Errorf("updating backup schedule for %s: %+v", *id, err)
+				}
+			}
+
+			//update password
+			if needsPasswordUpdate {
+				passwordUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						AdminPassword: pointer.To(model.AdminPassword),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, passwordUpdate); err != nil {
+					return fmt.Errorf("updating Admin password for %s: %+v", *id, err)
 				}
 			}
 
