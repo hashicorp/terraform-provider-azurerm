@@ -24,13 +24,13 @@ type MachineLearningRegistryDataSourceModel struct {
 	Name                          string                                     `tfschema:"name"`
 	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
 	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
+	PrimaryRegion                    []ReplicationRegion                        `tfschema:"primary_region"`
 	ReplicationRegion             []ReplicationRegion                        `tfschema:"replication_region"`
 	Location                      string                                     `tfschema:"location"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
 	IntellectualPropertyPublisher string                                     `tfschema:"intellectual_property_publisher"`
-	MlFlowRegistryUri             string                                     `tfschema:"ml_flow_registry_uri"`
+	MlFlowRegistryUri             string                                     `tfschema:"machine_learning_flow_registry_uri"`
 	ManagedResourceGroup          string                                     `tfschema:"managed_resource_group"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 }
@@ -169,7 +169,7 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 
 			var model MachineLearningRegistryDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding Machine Learning Registry data source model: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := registrymanagement.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -179,7 +179,7 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if resp.Model == nil {
