@@ -282,23 +282,23 @@ A `manual_resource_predictions_profile` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
 
-* `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are integers greater than `0`.
+* `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
-* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday.
+* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday. Agent counts must not exceed `maximum_concurrency`.
 
-* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday.
+* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday. Agent counts must not exceed `maximum_concurrency`.
 
-* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday.
+* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday. Agent counts must not exceed `maximum_concurrency`.
 
-* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday.
+* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday. Agent counts must not exceed `maximum_concurrency`.
 
-* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday.
+* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday. Agent counts must not exceed `maximum_concurrency`.
 
-* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday.
+* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday. Agent counts must not exceed `maximum_concurrency`.
 
-* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday.
+* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday. Agent counts must not exceed `maximum_concurrency`.
 
-~> **NOTE:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **NOTE:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 

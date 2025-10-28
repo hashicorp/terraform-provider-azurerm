@@ -773,6 +773,7 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("DecodeDiff: %+v", err)
 			}
 
+			// Validate vmss_fabric_profile images
 			for _, vmssFabricProfile := range model.VmssFabricProfile {
 				for i, image := range vmssFabricProfile.Images {
 					resourceIdSet := image.ResourceId != nil && *image.ResourceId != ""
@@ -784,8 +785,87 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			// Validate agent counts don't exceed maximum_concurrency
+			maxConcurrency := model.MaximumConcurrency
+
+			// Validate stateful agent profile schedules
+			for _, statefulProfile := range model.StatefulAgentProfile {
+				for _, manualProfile := range statefulProfile.ManualResourcePredictionsProfile {
+					if err := validateManualProfileAgentCounts("stateful_agent_profile", manualProfile, maxConcurrency); err != nil {
+						return err
+					}
+				}
+			}
+
+			// Validate stateless agent profile schedules
+			for _, statelessProfile := range model.StatelessAgentProfile {
+				for _, manualProfile := range statelessProfile.ManualResourcePredictionsProfile {
+					if err := validateManualProfileAgentCounts("stateless_agent_profile", manualProfile, maxConcurrency); err != nil {
+						return err
+					}
+				}
+			}
+
 			return nil
 		},
 		Timeout: 5 * time.Minute,
 	}
+}
+
+func validateManualProfileAgentCounts(profileType string, manualProfile ManualResourcePredictionsProfileModel, maxConcurrency int64) error {
+	// Check all_week_schedule
+	if manualProfile.AllWeekSchedule > 0 && manualProfile.AllWeekSchedule > maxConcurrency {
+		return fmt.Errorf("%s all_week_schedule agent count (%d) cannot exceed maximum_concurrency (%d)",
+			profileType, manualProfile.AllWeekSchedule, maxConcurrency)
+	}
+
+	// Check daily schedules
+	schedules := []struct {
+		name     string
+		schedule map[string]interface{}
+	}{
+		{"sunday_schedule", manualProfile.SundaySchedule},
+		{"monday_schedule", manualProfile.MondaySchedule},
+		{"tuesday_schedule", manualProfile.TuesdaySchedule},
+		{"wednesday_schedule", manualProfile.WednesdaySchedule},
+		{"thursday_schedule", manualProfile.ThursdaySchedule},
+		{"friday_schedule", manualProfile.FridaySchedule},
+		{"saturday_schedule", manualProfile.SaturdaySchedule},
+	}
+
+	for _, sched := range schedules {
+		if err := validateScheduleAgentCounts(profileType, sched.name, sched.schedule, maxConcurrency); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateScheduleAgentCounts(profileType, scheduleName string, schedule map[string]interface{}, maxConcurrency int64) error {
+	if len(schedule) == 0 {
+		return nil
+	}
+
+	for timeSlot, countInterface := range schedule {
+		var agentCount int64
+
+		switch count := countInterface.(type) {
+		case int:
+			agentCount = int64(count)
+		case int64:
+			agentCount = count
+		case float64:
+			agentCount = int64(count)
+		default:
+			continue
+		}
+
+		if agentCount > maxConcurrency {
+			return fmt.Errorf("%s %s time slot %s has agent count (%d) that exceeds maximum_concurrency (%d)",
+				profileType, scheduleName, timeSlot, agentCount, maxConcurrency)
+		}
+	}
+
+	return nil
 }
