@@ -34,6 +34,7 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_group_name").HasValue(fmt.Sprintf("acctest-geo-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_linked_database_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_database.0.module.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_database.0.persistence").IsEmpty(),
 				check.That(data.ResourceName).Key("default_database.0.port").HasValue("10000"),
 				check.That(data.ResourceName).Key("default_database.0.primary_access_key").IsNotEmpty(),
 				check.That(data.ResourceName).Key("default_database.0.secondary_access_key").IsNotEmpty(),
@@ -46,6 +47,21 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue(string(redisenterprise.SkuNameBalancedBThree)),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("testing"),
+			),
+		},
+	})
+}
+
+func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis", "test")
+	r := ManagedRedisDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.dataSourceDbPersistence(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_database.0.persistence.0.method").HasValue("RDB"),
+				check.That(data.ResourceName).Key("default_database.0.persistence.0.backup_frequency").HasValue("1h"),
 			),
 		},
 	})
@@ -149,6 +165,39 @@ resource "azurerm_managed_redis" "test" {
 
   tags = {
     env = "testing"
+  }
+}
+
+data "azurerm_managed_redis" "test" {
+  name                = azurerm_managed_redis.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (ManagedRedisDataSource) dataSourceDbPersistence(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    persistence {
+      method           = "RDB"
+      backup_frequency = "1h"
+    }
   }
 }
 

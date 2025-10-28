@@ -40,16 +40,17 @@ type ManagedRedisDataSourceModel struct {
 }
 
 type DefaultDatabaseDataSourceModel struct {
-	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string        `tfschema:"client_protocol"`
-	ClusteringPolicy                string        `tfschema:"clustering_policy"`
-	EvictionPolicy                  string        `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
-	GeoReplicationLinkedDatabaseIds []string      `tfschema:"geo_replication_linked_database_ids"`
-	Module                          []ModuleModel `tfschema:"module"`
-	Port                            int64         `tfschema:"port"`
-	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
-	SecondaryAccessKey              string        `tfschema:"secondary_access_key"`
+	AccessKeysAuthenticationEnabled bool               `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                  string             `tfschema:"client_protocol"`
+	ClusteringPolicy                string             `tfschema:"clustering_policy"`
+	EvictionPolicy                  string             `tfschema:"eviction_policy"`
+	GeoReplicationGroupName         string             `tfschema:"geo_replication_group_name"`
+	GeoReplicationLinkedDatabaseIds []string           `tfschema:"geo_replication_linked_database_ids"`
+	Module                          []ModuleModel      `tfschema:"module"`
+	Persistence                     []PersistenceModel `tfschema:"persistence"`
+	Port                            int64              `tfschema:"port"`
+	PrimaryAccessKey                string             `tfschema:"primary_access_key"`
+	SecondaryAccessKey              string             `tfschema:"secondary_access_key"`
 }
 
 func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -138,6 +139,24 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 								},
 
 								"version": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"persistence": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"method": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"backup_frequency": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -257,6 +276,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
 						GeoReplicationLinkedDatabaseIds: flattenLinkedDatabases(props.GeoReplication.LinkedDatabases),
 						Module:                          flattenModules(props.Modules),
+						Persistence:                     flattenPersistence(props.Persistence),
 						Port:                            pointer.From(props.Port),
 					}
 

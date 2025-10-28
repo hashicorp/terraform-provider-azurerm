@@ -158,6 +158,8 @@ A `default_database` block supports the following:
 
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
+* `persistence` - (Optional) A `persistence` block as defined below. Persistence cannot be enabled on geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-how-to-premium-persistence?tabs=enterprise) to learn more.
+
 ---
 
 A `customer_managed_key` block supports the following:
@@ -185,6 +187,14 @@ A `module` block supports the following:
 * `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
+
+---
+
+A `persistence` block supports the following:
+
+* `method` - (Required) The persistence method to use. Possible values are `RDB` (Redis Database Backup) and `AOF` (Append Only File).
+
+* `backup_frequency` - (Required) The frequency of backups. Possible values for `RDB` are `1h`, `6h` and `12h`. Possible values for `AOF` are `always` and `1s`.
 
 ## Attributes Reference
 
