@@ -394,7 +394,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			//update password
+			// update password
 			if needsPasswordUpdate {
 				passwordUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
 					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
