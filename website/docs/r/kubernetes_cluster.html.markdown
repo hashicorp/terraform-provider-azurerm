@@ -668,6 +668,8 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_policy` is set to `cilium`, the `network_data_plane` field must be set to `cilium`.
 
+-> **Note:** Upgrading `network_policy` from `azure` to `cilium` is supported and will perform an in-place upgrade. Changing from other values will force a new resource to be created.
+
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
 * `network_data_plane` - (Optional) Specifies the data plane used for building the Kubernetes network. Possible values are `azure` and `cilium`. Defaults to `azure`. Disabling this forces a new resource to be created.
@@ -675,6 +677,8 @@ A `network_profile` block supports the following:
 ~> **Note:** When `network_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
 ~> **Note:** When `network_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
+
+-> **Note:** Upgrading `network_data_plane` from `azure` to `cilium` is supported and will perform an in-place upgrade by reimaging all nodes in the cluster. Changing from other values will force a new resource to be created. For more information on upgrading to Azure CNI Powered by Cilium see the [product documentation](https://learn.microsoft.com/azure/aks/upgrade-azure-cni).
 
 * `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`.
 
