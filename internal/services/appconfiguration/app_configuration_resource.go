@@ -19,10 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/operations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppConfiguration() *pluginsdk.Resource {
@@ -54,10 +53,21 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// sku cannot be downgraded
+			// sku cannot be downgraded from a production tier (`premium` or `standard`) to a non-production tier (`developer` or `free`), or downgraded from `developer` to `free`
 			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
 			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old == "premium" || new == "free"
+				return ((old == "premium" || old == "standard") && new == "developer") || new == "free"
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				authMode := d.Get("data_plane_proxy_authentication_mode").(string)
+				privLinkDelegation := d.Get("data_plane_proxy_private_link_delegation_enabled").(bool)
+
+				if authMode == string(configurationstores.AuthenticationModeLocal) && privLinkDelegation {
+					return errors.New("`data_plane_proxy_private_link_delegation_enabled` cannot be set to `true` when `data_plane_proxy_authentication_mode` is `Local`")
+				}
+
+				return nil
 			}),
 		),
 
@@ -69,9 +79,22 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
+			"resource_group_name": commonschema.ResourceGroupName(),
+
 			"location": commonschema.Location(),
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+			"data_plane_proxy_authentication_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(configurationstores.AuthenticationModeLocal),
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForAuthenticationMode(), false),
+			},
+
+			"data_plane_proxy_private_link_delegation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"encryption": {
 				Type:     pluginsdk.TypeList,
@@ -79,15 +102,15 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_key_identifier": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						},
 						"identity_client_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
+						},
+						"key_vault_key_identifier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 					},
 				},
@@ -101,10 +124,42 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
+			},
+
 			"purge_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"replica": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Set:      resourceConfigurationStoreReplicaHash,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ConfigurationStoreReplicaName,
+						},
+						"location": commonschema.LocationWithoutForceNew(),
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"endpoint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
@@ -114,6 +169,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  "free",
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
+					"developer",
 					"standard",
 					"premium",
 				}, false),
@@ -130,41 +186,11 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				},
 			},
 
+			"tags": commonschema.Tags(),
+
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"public_network_access": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      nil,
-				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
-			},
-
-			"replica": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
-				Set:      resourceConfigurationStoreReplicaHash,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.ConfigurationStoreReplicaName,
-						},
-						"location": commonschema.LocationWithoutForceNew(),
-						"endpoint": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"primary_read_key": {
@@ -177,36 +203,12 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
-						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
 						"connection_string": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
-					},
-				},
-			},
-
-			"secondary_read_key": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
 						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"connection_string": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
@@ -225,12 +227,36 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
+						"connection_string": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
 						"secret": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
+					},
+				},
+			},
+
+			"secondary_read_key": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
 						"connection_string": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
@@ -249,12 +275,12 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
-						"secret": {
+						"connection_string": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
-						"connection_string": {
+						"secret": {
 							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
@@ -262,8 +288,6 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -311,21 +335,30 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	privLinkDelegation := configurationstores.PrivateLinkDelegationDisabled
+	if d.Get("data_plane_proxy_private_link_delegation_enabled").(bool) {
+		privLinkDelegation = configurationstores.PrivateLinkDelegationEnabled
+	}
+
 	parameters := configurationstores.ConfigurationStore{
 		Location: location,
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
 		Properties: &configurationstores.ConfigurationStoreProperties{
-			EnablePurgeProtection: utils.Bool(d.Get("purge_protection_enabled").(bool)),
-			DisableLocalAuth:      utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DataPlaneProxy: &configurationstores.DataPlaneProxyProperties{
+				AuthenticationMode:    pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string))),
+				PrivateLinkDelegation: &privLinkDelegation,
+			},
+			EnablePurgeProtection: pointer.To(d.Get("purge_protection_enabled").(bool)),
+			DisableLocalAuth:      pointer.To(!d.Get("local_auth_enabled").(bool)),
 			Encryption:            expandAppConfigurationEncryption(d.Get("encryption").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.Get("soft_delete_retention_days").(int); ok && v != 7 {
-		parameters.Properties.SoftDeleteRetentionInDays = utils.Int64(int64(v))
+		parameters.Properties.SoftDeleteRetentionInDays = pointer.To(int64(v))
 	}
 
 	if recoverSoftDeleted {
@@ -420,6 +453,35 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		update.Identity = identity
 	}
 
+	if d.HasChange("data_plane_proxy_authentication_mode") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		props := update.Properties
+		if props.DataPlaneProxy == nil {
+			props.DataPlaneProxy = &configurationstores.DataPlaneProxyProperties{}
+		}
+		props.DataPlaneProxy.AuthenticationMode = pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string)))
+	}
+
+	if d.HasChange("data_plane_proxy_private_link_delegation_enabled") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		props := update.Properties
+		if props.DataPlaneProxy == nil {
+			props.DataPlaneProxy = &configurationstores.DataPlaneProxyProperties{}
+		}
+
+		privLinkDelegation := configurationstores.PrivateLinkDelegationDisabled
+		if d.Get("data_plane_proxy_private_link_delegation_enabled").(bool) {
+			privLinkDelegation = configurationstores.PrivateLinkDelegationEnabled
+		}
+		props.DataPlaneProxy.PrivateLinkDelegation = &privLinkDelegation
+	}
+
 	if d.HasChange("encryption") {
 		if update.Properties == nil {
 			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
@@ -431,7 +493,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if update.Properties == nil {
 			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
 		}
-		update.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
+		update.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
 	}
 
 	if d.HasChange("public_network_access") {
@@ -459,24 +521,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if oldValue && !newValue {
 			return fmt.Errorf("updating %s: once Purge Protection has been Enabled it's not possible to disable it", *id)
 		}
-		update.Properties.EnablePurgeProtection = utils.Bool(d.Get("purge_protection_enabled").(bool))
-	}
-
-	if d.HasChange("public_network_enabled") {
-		v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
-		if v.IsNull() && existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			return fmt.Errorf("updating %s: once Public Network Access has been explicitly Enabled or Disabled it's not possible to unset it to which means Automatic", *id)
-		}
-
-		if update.Properties == nil {
-			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
-		}
-
-		publicNetworkAccess := configurationstores.PublicNetworkAccessEnabled
-		if v.False() {
-			publicNetworkAccess = configurationstores.PublicNetworkAccessDisabled
-		}
-		update.Properties.PublicNetworkAccess = &publicNetworkAccess
+		update.Properties.EnablePurgeProtection = pointer.To(d.Get("purge_protection_enabled").(bool))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
@@ -580,6 +625,11 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sku", model.Sku.Name)
 
 		if props := model.Properties; props != nil {
+			if dataPlaneProxy := props.DataPlaneProxy; dataPlaneProxy != nil {
+				d.Set("data_plane_proxy_authentication_mode", string(pointer.From(dataPlaneProxy.AuthenticationMode)))
+				d.Set("data_plane_proxy_private_link_delegation_enabled", pointer.From(dataPlaneProxy.PrivateLinkDelegation) == configurationstores.PrivateLinkDelegationEnabled)
+			}
+
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
 			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
@@ -769,15 +819,15 @@ type flattenedAccessKeys struct {
 }
 
 func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	encryptionParam := input[0].(map[string]interface{})
-
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
+
+	if len(input) == 0 || input[0] == nil {
+		return result
+	}
+
+	encryptionParam := input[0].(map[string]interface{})
 
 	if v, ok := encryptionParam["identity_client_id"].(string); ok && v != "" {
 		result.KeyVaultProperties.IdentityClientId = &v

@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -60,7 +61,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Arguments() map[stri
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
-			ValidateFunc: validation.IntBetween(0, 2147483647),
+			ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 		},
 
 		"tag": {

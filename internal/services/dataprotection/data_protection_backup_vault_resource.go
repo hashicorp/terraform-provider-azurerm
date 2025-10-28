@@ -22,11 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupVaultCreateUpdate,
 		Read:   resourceDataProtectionBackupVaultRead,
 		Update: resourceDataProtectionBackupVaultCreateUpdate,
@@ -86,8 +85,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
-
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -102,17 +99,32 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
 			},
 
-			"tags": tags.Schema(),
+			"immutability": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.ImmutabilityStateDisabled,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
-			}),
 
 			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && new.(bool) != old.(bool)
+			}),
+
+			// Once `immutability` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.ImmutabilityStateLocked) && new.(string) != string(backupvaults.ImmutabilityStateLocked)
+			}),
+
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -120,14 +132,12 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
 				if !crossRegionRestore.IsNull() && redundancy != string(backupvaults.StorageSettingTypesGeoRedundant) {
 					// Cross region restore is only allowed on `GeoRedundant` vault.
-					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`.")
+					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`")
 				}
 				return nil
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -158,21 +168,21 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	datastoreType := backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))
-	storageSettingType := backupvaults.StorageSettingTypes(d.Get("redundancy").(string))
-
 	parameters := backupvaults.BackupVaultResource{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: backupvaults.BackupVault{
 			StorageSettings: []backupvaults.StorageSetting{
 				{
-					DatastoreType: &datastoreType,
-					Type:          &storageSettingType,
+					DatastoreType: pointer.To(backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
+					Type:          pointer.To(backupvaults.StorageSettingTypes(d.Get("redundancy").(string))),
 				},
 			},
 			SecuritySettings: &backupvaults.SecuritySettings{
 				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
 					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
+				},
+				ImmutabilitySettings: &backupvaults.ImmutabilitySettings{
+					State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
 				},
 			},
 		},
@@ -229,16 +239,26 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
+
 		if len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
+
+		immutability := backupvaults.ImmutabilityStateDisabled
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
+			if immutabilitySettings := securitySetting.ImmutabilitySettings; immutabilitySettings != nil {
+				if immutabilitySettings.State != nil {
+					immutability = *immutabilitySettings.State
+				}
+			}
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
+		d.Set("immutability", string(immutability))
+
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
@@ -247,12 +267,14 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				}
 			}
 		}
-
 		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
 
-		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		identity, err := flattenBackupVaultDppIdentityDetails(model.Identity)
+		if err != nil {
+			return err
 		}
+		d.Set("identity", identity)
+
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
@@ -281,33 +303,46 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaults.DppIdentityDetails, error) {
-	config, err := identity.ExpandSystemAssigned(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &backupvaults.DppIdentityDetails{
-		Type: utils.String(string(config.Type)),
-	}, nil
+	identity := backupvaults.DppIdentityDetails{
+		Type: pointer.To(string(config.Type)),
+	}
+
+	if len(config.IdentityIds) > 0 {
+		identityIds := make(map[string]backupvaults.UserAssignedIdentity, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = backupvaults.UserAssignedIdentity{}
+		}
+		identity.UserAssignedIdentities = pointer.To(identityIds)
+	}
+
+	return &identity, nil
 }
 
-func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) []interface{} {
-	var config *identity.SystemAssigned
+func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		principalId := ""
-		if input.PrincipalId != nil {
-			principalId = *input.PrincipalId
+		config = &identity.SystemAndUserAssignedMap{
+			Type: identity.Type(*input.Type),
 		}
 
-		tenantId := ""
-		if input.TenantId != nil {
-			tenantId = *input.TenantId
-		}
-		config = &identity.SystemAssigned{
-			Type:        identity.Type(*input.Type),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+		config.PrincipalId = pointer.From(input.PrincipalId)
+		config.TenantId = pointer.From(input.TenantId)
+
+		if len(pointer.From(input.UserAssignedIdentities)) > 0 {
+			config.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails, len(pointer.From(input.UserAssignedIdentities)))
+			for k, v := range *input.UserAssignedIdentities {
+				config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
 		}
 	}
-	return identity.FlattenSystemAssigned(config)
+
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

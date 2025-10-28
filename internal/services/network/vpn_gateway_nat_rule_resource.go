@@ -10,19 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceVPNGatewayNatRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVPNGatewayNatRuleCreate,
 		Read:   resourceVPNGatewayNatRuleRead,
 		Update: resourceVPNGatewayNatRuleUpdate,
@@ -58,16 +55,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			"external_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ExactlyOneOf: func() []string {
-					out := []string{
-						"external_mapping",
-					}
-					if !features.FourPointOhBeta() {
-						out = append(out, "external_address_space_mappings")
-					}
-					return out
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
@@ -88,16 +75,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			"internal_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ExactlyOneOf: func() []string {
-					out := []string{
-						"internal_mapping",
-					}
-					if !features.FourPointOhBeta() {
-						out = append(out, "internal_address_space_mappings")
-					}
-					return out
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
@@ -147,57 +124,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["external_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`external_address_space_mappings` will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: func() []string {
-				out := []string{
-					"external_mapping",
-				}
-				if !features.FourPointOhBeta() {
-					out = append(out, "external_address_space_mappings")
-				}
-				return out
-			}(),
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsCIDR,
-			},
-		}
-
-		resource.Schema["internal_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`internal_address_space_mappings` will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: func() []string {
-				out := []string{
-					"internal_mapping",
-				}
-				if !features.FourPointOhBeta() {
-					out = append(out, "internal_address_space_mappings")
-				}
-				return out
-			}(),
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsCIDR,
-			},
-		}
-		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-			Deprecated:   "The property `resource_group_name` has been superseded by `vpn_gateway_id` and will be removed in v4.0 of the AzureRM provider",
-		}
-	}
-
-	return resource
 }
 
 func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -229,16 +155,6 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 			Mode: pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
 			Type: pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("external_address_space_mappings"); ok {
-			props.Properties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
-		}
-
-		if v, ok := d.GetOk("internal_address_space_mappings"); ok {
-			props.Properties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
-		}
 	}
 
 	if v, ok := d.GetOk("external_mapping"); ok {
@@ -284,10 +200,6 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.NatRuleName)
 
-	if !features.FourPointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
-
 	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.VpnGatewayName)
 	d.Set("vpn_gateway_id", gatewayId.ID())
 
@@ -296,16 +208,6 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("ip_configuration_id", props.IPConfigurationId)
 			d.Set("mode", pointer.From(props.Mode))
 			d.Set("type", pointer.From(props.Type))
-
-			if !features.FourPointOhBeta() {
-				if err := d.Set("external_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.ExternalMappings)); err != nil {
-					return fmt.Errorf("setting `external_address_space_mappings`: %+v", err)
-				}
-
-				if err := d.Set("internal_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.InternalMappings)); err != nil {
-					return fmt.Errorf("setting `internal_address_space_mappings`: %+v", err)
-				}
-			}
 
 			if err := d.Set("external_mapping", flattenVpnGatewayNatRuleMappings(props.ExternalMappings)); err != nil {
 				return fmt.Errorf("setting `external_mapping`: %+v", err)
@@ -352,17 +254,6 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	// d.GetOk always returns true and the value that is set in the previous apply when the property has the attribute `Computed: true`. Hence, at this time d.GetOk cannot identify whether user sets the property in tf config so that it has to identify it via splitting create and update method and using d.HasChange
-	if !features.FourPointOhBeta() {
-		if ok := d.HasChange("external_address_space_mappings"); ok {
-			props.Properties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").([]interface{}))
-		}
-
-		if ok := d.HasChange("internal_address_space_mappings"); ok {
-			props.Properties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").([]interface{}))
-		}
-	}
-
 	if ok := d.HasChange("external_mapping"); ok {
 		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]interface{}))
 	}
@@ -397,18 +288,6 @@ func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
-}
-
-func expandVpnGatewayNatRuleAddressSpaceMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
-	results := make([]virtualwans.VpnNatRuleMapping, 0)
-
-	for _, v := range input {
-		results = append(results, virtualwans.VpnNatRuleMapping{
-			AddressSpace: pointer.To(v.(string)),
-		})
-	}
-
-	return &results
 }
 
 func expandVpnGatewayNatRuleMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
@@ -452,21 +331,6 @@ func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []
 			"address_space": addressSpace,
 			"port_range":    portRange,
 		})
-	}
-
-	return results
-}
-
-func flattenVpnGatewayNatRuleAddressSpaceMappings(input *[]virtualwans.VpnNatRuleMapping) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if item.AddressSpace != nil {
-			results = append(results, *item.AddressSpace)
-		}
 	}
 
 	return results

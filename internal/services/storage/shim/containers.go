@@ -6,7 +6,7 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type StorageContainerWrapper interface {

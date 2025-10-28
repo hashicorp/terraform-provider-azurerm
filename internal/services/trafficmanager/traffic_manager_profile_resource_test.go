@@ -6,6 +6,7 @@ package trafficmanager_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"regexp"
 	"testing"
 
@@ -234,7 +235,7 @@ func TestAccTrafficManagerProfile_updateTTL(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withTTL(data, "Geographic", 2147483647),
+			Config: r.withTTL(data, "Geographic", math.MaxInt32),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

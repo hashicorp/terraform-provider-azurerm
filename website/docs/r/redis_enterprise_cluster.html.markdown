@@ -10,6 +10,8 @@ description: |-
 
 Manages a Redis Enterprise Cluster.
 
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis](managed_redis.html).
+
 ## Example Usage
 
 ```hcl
@@ -41,6 +43,8 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum TLS version. Possible values are `1.0`, `1.1` and `1.2`. Defaults to `1.2`. Changing this forces a new Redis Enterprise Cluster to be created.
 
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Enterprise Cluster should be located. Changing this forces a new Redis Enterprise Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster.
@@ -55,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Redis Enterprise Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Enterprise Cluster.
@@ -69,3 +73,9 @@ Redis Enterprise Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redis_enterprise_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-10-01

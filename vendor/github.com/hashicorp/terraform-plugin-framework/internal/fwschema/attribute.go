@@ -4,8 +4,9 @@
 package fwschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 // Attribute is the core interface required for implementing Terraform
@@ -63,6 +64,23 @@ type Attribute interface {
 	// sensitive. This is named differently than Sensitive to prevent a
 	// conflict with the tfsdk.Attribute field name.
 	IsSensitive() bool
+
+	// IsWriteOnly should return true if the attribute configuration value is
+	// write-only. This is named differently than WriteOnly to prevent a
+	// conflict with the tfsdk.Attribute field name.
+	//
+	// Write-only attributes are a managed-resource schema concept only.
+	IsWriteOnly() bool
+
+	// IsOptionalForImport should return true if the identity attribute is optional to be set by
+	// the practitioner when importing by identity. This is named differently than OptionalForImport
+	// to prevent a conflict with the relevant field name.
+	IsOptionalForImport() bool
+
+	// IsRequiredForImport should return true if the identity attribute must be set by
+	// the practitioner when importing by identity. This is named differently than RequiredForImport
+	// to prevent a conflict with the relevant field name.
+	IsRequiredForImport() bool
 }
 
 // AttributesEqual is a helper function to perform equality testing on two
@@ -98,6 +116,18 @@ func AttributesEqual(a, b Attribute) bool {
 	}
 
 	if a.IsSensitive() != b.IsSensitive() {
+		return false
+	}
+
+	if a.IsWriteOnly() != b.IsWriteOnly() {
+		return false
+	}
+
+	if a.IsOptionalForImport() != b.IsOptionalForImport() {
+		return false
+	}
+
+	if a.IsRequiredForImport() != b.IsRequiredForImport() {
 		return false
 	}
 

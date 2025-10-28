@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -337,32 +336,6 @@ resource "azurerm_route_table" "test" {
 }
 
 func (RouteTableResource) complete(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_route_table" "test" {
-  name                = "acctestrt%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  route {
-    name           = "acctestRoute"
-    address_prefix = "10.1.0.0/16"
-    next_hop_type  = "VnetLocal"
-  }
-
-  disable_bgp_route_propagation = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

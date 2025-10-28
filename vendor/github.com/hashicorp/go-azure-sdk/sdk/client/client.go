@@ -622,7 +622,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 			return resp, err
 		}
 	}
-	if nextLink == nil {
+	if nextLink == nil || string(*nextLink) == "" {
 		// This is the last page
 		return resp, nil
 	}
@@ -720,7 +720,7 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	// In case the context has deadline defined, adjust the retry count to a value
 	// that the total time spent for retrying is right before the deadline exceeded.
 	if deadline, ok := ctx.Deadline(); ok {
-		r.RetryMax = safeRetryNumber(deadline.Sub(time.Now()))
+		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
 	tlsConfig := tls.Config{

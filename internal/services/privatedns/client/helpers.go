@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 )
 
@@ -47,5 +47,5 @@ func (c *Client) FindPrivateDnsZoneId(ctx context.Context, resourceGroupsClient 
 		return parsed, nil
 	}
 
-	return nil, fmt.Errorf("No Private DNS Zones found with name: %q", name)
+	return nil, fmt.Errorf("no Private DNS Zones found with name: %q", name)
 }

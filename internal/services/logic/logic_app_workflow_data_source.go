@@ -105,10 +105,10 @@ func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Logic App Workflow %s was not found", id)
+			return fmt.Errorf("the Logic App Workflow %s was not found", id)
 		}
 
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
+		return fmt.Errorf("making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

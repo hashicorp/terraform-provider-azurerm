@@ -69,6 +69,21 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccRoleManagementPolicy_resourceGroup_activationRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyResource{}
+
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupMinimalActivationRules(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRoleManagementPolicy_resourceGroup_activationRulesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
@@ -181,7 +196,9 @@ func (RoleManagementPolicyResource) Exists(ctx context.Context, clients *clients
 
 func (RoleManagementPolicyResource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 provider "azuread" {}
 
@@ -245,7 +262,9 @@ resource "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyResource) resourceGroupTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"
@@ -345,7 +364,9 @@ resource "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyResource) subscriptionTemplate(data acceptance.TestData) string {
 	return `
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_subscription" "test" {}
 
@@ -482,9 +503,26 @@ resource "azurerm_role_management_policy" "test" {
 `, r.resourceGroupTemplate(data), data.RandomString, requireApproval)
 }
 
+func (r RoleManagementPolicyResource) resourceGroupMinimalActivationRules(data acceptance.TestData, requireApproval bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  activation_rules {
+    maximum_duration = "PT1H"
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString, requireApproval)
+}
+
 func (RoleManagementPolicyResource) resourceTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"

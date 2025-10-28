@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkprofiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,18 +25,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_profile -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
 func resourceNetworkProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkProfileCreate,
-		Read:   resourceNetworkProfileRead,
-		Update: resourceNetworkProfileUpdate,
-		Delete: resourceNetworkProfileDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := networkprofiles.ParseNetworkProfileID(id)
-			return err
-		}),
+		Create:   resourceNetworkProfileCreate,
+		Read:     resourceNetworkProfileRead,
+		Update:   resourceNetworkProfileUpdate,
+		Delete:   resourceNetworkProfileDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networkprofiles.NetworkProfileId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -253,7 +257,7 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -10,7 +10,7 @@ description: |-
 
 Manages a PostgreSQL Flexible Server Database.
 
-!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+!> **Note:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ## Example Usage
 
@@ -35,7 +35,7 @@ resource "azurerm_postgresql_flexible_server_database" "example" {
   name      = "exampledb"
   server_id = azurerm_postgresql_flexible_server.example.id
   collation = "en_US.utf8"
-  charset   = "utf8"
+  charset   = "UTF8"
 
   # prevent the possibility of accidental data loss
   lifecycle {
@@ -64,7 +64,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure PostgreSQL Flexible Server Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure PostgreSQL Flexible Server Database.
@@ -77,3 +77,9 @@ Azure PostgreSQL Flexible Server Database can be imported using the `resource id
 ```shell
 terraform import azurerm_postgresql_flexible_server_database.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/flexibleServer1/databases/database1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

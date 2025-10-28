@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -22,8 +23,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -35,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -1840,7 +1841,9 @@ func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		if v, ok := m["disable_password_authentication"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -1927,7 +1930,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	}
 
 	if networkInterface == nil {
-		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
+		return "", errors.New("a Network Interface wasn't found on the Virtual Machine")
 	}
 
 	if props := networkInterface.Properties; props != nil {

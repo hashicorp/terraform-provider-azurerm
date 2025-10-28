@@ -9,15 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func dataSourceStorageShare() *pluginsdk.Resource {
@@ -82,7 +82,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -120,7 +120,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	shareName := d.Get("name").(string)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -201,7 +201,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
 	}
 

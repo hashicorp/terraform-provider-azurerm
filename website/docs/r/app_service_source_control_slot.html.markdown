@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `slot_id` - (Required) The ID of the Linux or Windows Web App Slot. Changing this forces a new resource to be created.
 
-~> **NOTE:** Function App Slots are not supported at this time.
+~> **Note:** Function App Slots are not supported at this time.
 
 ---
 
@@ -122,7 +122,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Slot.
@@ -135,3 +135,9 @@ an App Service Source Control Slot can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

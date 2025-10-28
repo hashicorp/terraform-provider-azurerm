@@ -11,16 +11,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceNetworkInterface() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceNetworkInterfaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -176,20 +175,6 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		dataSource.Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-		dataSource.Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "The property `enable_accelerated_networking` has been superseded by `accelerated_networking_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-	}
-	return dataSource
 }
 
 func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -202,7 +187,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: %s was not found", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -280,10 +265,6 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
-		if !features.FourPointOhBeta() {
-			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
-		}
 		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
 		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}

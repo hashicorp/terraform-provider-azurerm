@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/linkedserver"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -28,7 +28,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 		Read:   resourceRedisLinkedServerRead,
 		Delete: resourceRedisLinkedServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redis.ParseLinkedServerID(id)
+			_, err := linkedserver.ParseLinkedServerID(id)
 			return err
 		}),
 
@@ -55,7 +55,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: redis.ValidateRediID,
+				ValidateFunc: linkedserver.ValidateRediID,
 			},
 
 			"linked_redis_cache_location": commonschema.Location(),
@@ -67,8 +67,8 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.ReplicationRolePrimary),
-					string(redis.ReplicationRoleSecondary),
+					string(linkedserver.ReplicationRolePrimary),
+					string(linkedserver.ReplicationRoleSecondary),
 				}, false),
 			},
 
@@ -86,24 +86,24 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 }
 
 func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	linkedRedisCacheId := d.Get("linked_redis_cache_id").(string)
 	linkedRedisCacheLocation := d.Get("linked_redis_cache_location").(string)
-	serverRole := redis.ReplicationRole(d.Get("server_role").(string))
+	serverRole := linkedserver.ReplicationRole(d.Get("server_role").(string))
 
 	// The name needs to match the linked_redis_cache_id
-	cacheId, err := redis.ParseRediID(linkedRedisCacheId)
+	cacheId, err := linkedserver.ParseRediID(linkedRedisCacheId)
 	if err != nil {
 		return err
 	}
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := redis.NewLinkedServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("target_redis_cache_name").(string), cacheId.RedisName)
+	id := linkedserver.NewLinkedServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("target_redis_cache_name").(string), cacheId.RedisName)
 	if d.IsNewResource() {
-		existing, err := client.LinkedServerGet(ctx, id)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -114,15 +114,15 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	payload := redis.RedisLinkedServerCreateParameters{
-		Properties: redis.RedisLinkedServerCreateProperties{
+	payload := linkedserver.RedisLinkedServerCreateParameters{
+		Properties: linkedserver.RedisLinkedServerCreateProperties{
 			LinkedRedisCacheId:       linkedRedisCacheId,
 			LinkedRedisCacheLocation: location.Normalize(linkedRedisCacheLocation),
 			ServerRole:               serverRole,
 		},
 	}
 
-	if err := client.LinkedServerCreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -147,16 +147,16 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := redis.ParseLinkedServerID(d.Id())
+	id, err := linkedserver.ParseLinkedServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.LinkedServerGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -173,7 +173,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			cacheId, err := redis.ParseRediIDInsensitively(props.LinkedRedisCacheId)
+			cacheId, err := linkedserver.ParseRediIDInsensitively(props.LinkedRedisCacheId)
 			if err != nil {
 				return fmt.Errorf("parsing `linkedRedisCacheId` %q: %+v", props.LinkedRedisCacheId, err)
 			}
@@ -189,16 +189,16 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := redis.ParseLinkedServerID(d.Id())
+	id, err := linkedserver.ParseLinkedServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.LinkedServerDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -225,9 +225,9 @@ func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.RedisClient, id redis.LinkedServerId) pluginsdk.StateRefreshFunc {
+func redisLinkedServerStateRefreshFunc(ctx context.Context, client *linkedserver.LinkedServerClient, id linkedserver.LinkedServerId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.LinkedServerGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
 		}
@@ -242,9 +242,9 @@ func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.RedisC
 	}
 }
 
-func redisLinkedServerDeleteStateRefreshFunc(ctx context.Context, client *redis.RedisClient, id redis.LinkedServerId) pluginsdk.StateRefreshFunc {
+func redisLinkedServerDeleteStateRefreshFunc(ctx context.Context, client *linkedserver.LinkedServerClient, id linkedserver.LinkedServerId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.LinkedServerGet(ctx, id)
+		res, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
 				return "NotFound", "NotFound", nil

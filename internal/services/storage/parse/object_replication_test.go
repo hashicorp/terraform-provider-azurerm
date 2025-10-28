@@ -8,7 +8,7 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/objectreplicationpolicies"
 )
 
 func TestObjectReplicationIDFormatter(t *testing.T) {

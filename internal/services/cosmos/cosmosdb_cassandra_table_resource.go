@@ -6,6 +6,7 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
@@ -66,7 +67,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.IntBetween(-1, 2147483647),
+					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
 				),
 			},
@@ -121,24 +122,24 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
+	table.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		table.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
 	if analyticalTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL.(int)))
+		table.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			table.CassandraTableCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
+			table.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		table.CassandraTableCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
+		table.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
 	}
 
 	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, table)
@@ -179,10 +180,10 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
+	table.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		table.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
 	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, table)

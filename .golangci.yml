@@ -1,100 +1,85 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+version: "2"
 run:
-  timeout: 60m
-  go: 1.22
   modules-download-mode: vendor
-  skip-dirs:
-    - /sdk/ # Excluding sdk folders as these are externally generated
-  skip-files:
-    - "internal/services/.*/.*_gen.go$"
-
-issues:
-  max-per-linter: 0
-  max-same-issues: 0
-
 linters:
-  disable-all: true
+  default: none
   enable:
-    - asasalint # check for pass []any as any in variadic func(...any)
-    - asciicheck # ensure code does not contain non-ASCII identifiers
-    - bidichk # checks for dangerous unicode character sequences
-    - decorder # check declaration order and count of types, constants, variables and functions.
-    - durationcheck # check for common mistakes when working with time.Duration
-    - dupword # check for duplicated words in comments
-    - errcheck # checking for unchecked errors
-    - gocritic # linter for Go source code that specializes in simplifying code
-    - gofmt # checks whether code was gofmt-ed
-    - gofumpt # checks whether code was gofumpt-ed, a stricter gofmt
-    - goimports # check import statements are formatted according to the 'goimport' command
-    - gosimple # linter for Go source code that specializes in simplifying code.
-    - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
-    - ineffassign # detects when assignments to existing variables are not used
-    - misspell # finds commonly misspelled English words.
-    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
-    #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
-    - prealloc # finds slice declarations that could potentially be pre-allocated.
-    - predeclared # find code that shadows one of Go's predeclared identifiers.
-    - reassign # checks that package variables are not reassigned.
-    #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-    - tagalign #  checks struct tags that do not align with the specified column in struct definitions.
-    - staticcheck # checks rules from staticcheck. It's not the same thing as the staticcheck binary.
-    - unused # checks Go code for unused constants, variables, functions and types.
-    - unconvert # checks for unnecessary type conversions.
-    - unparam # reports unused function parameters.
-    - wastedassign # finds wasted assignment statements
-    - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
-    #- wsl # add or remove empty lines.
-
-    ##### need to confirm these are valid and not false positives #####
-    #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
-    #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
-
-    ###### DISABLED because : integer overflow conversion int -> int32
-    # - gosec # Gosec is a security linter for Go source code
-
-    ##### DISABLED as i was fixing them with other linters, and not realizing how many there are - disabling for now even thou it is valid
-    #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
-
-    #### VALID but DISABLED as we have a lot of these in the codebase to switch over
-    #- nakedret # Checks that functions with naked returns are not longer than a maximum size
-
-    #### DISABLED TO DO IN ITS OWN PR - should be enabled and done #####
-    #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
-
-    #### bunch of hits, need to confirm if errors or not #####
-    #- copyloopvar #Detects range loop variables that are overwritten in the loop body
-
-    #### DISABLED till %+v -> %w #####
-    #- err113 #Go linter to check the errors handling expressions. - disabled as it suggests (correctly?) to use %w in fmt.Errorf instead of %+v (1000s of usages in the codebase)
-    #- errorlint #### DISABLED till %+v -> %w ##### #Errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme used in the github.com/pkg/errors package.
-
-    # disabled as it may be useful but there are a lot of switch statements in the codebase with unhandled inputs
-    #- exhaustive #Check for missing cases in select statements
-
-    ###### DISABLED because golang will put the space back into `//nolint: linter` -> `// nolint: linter` ######
-    #- nolintlint  #Reports ill-formed or insufficient nolint directives.
-
-linters-settings:
-  errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
-  misspell:
-    ignore-words:
-      - hdinsight
-      - exportfs
-  nakedret:
-    max-func-lines: 30
-  tagalign:
-    sort: true
-    order:
-      - json
-      - tfschema
-      - computed
-  predeclared:
-    ignore: new,min,max # should we use newer, minimum, and maximum instead?
-  revive:
-    rules:
-      - name: var-naming
-        disabled: true
-
+    - asasalint
+    - asciicheck
+    - bidichk
+    - decorder
+    - dupword
+    - durationcheck
+    - errcheck
+    - gocritic
+    - govet
+    - ineffassign
+    - misspell
+    - nilerr
+    - prealloc
+    - predeclared
+    - reassign
+    - staticcheck
+    - tagalign
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).ForceNew
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNew
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
+        - io.Close
+    misspell:
+      ignore-rules:
+        - hdinsight
+        - exportfs
+    nakedret:
+      max-func-lines: 30
+    predeclared:
+      ignore:
+        - new
+        - min
+        - max
+    tagalign:
+      sort: true
+      order:
+        - json
+        - tfschema
+        - computed
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - internal/services/.*/.*_gen.go$
+      - /sdk/
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - internal/services/.*/.*_gen.go$
+      - /sdk/
+      - third_party$
+      - builtin$
+      - examples$

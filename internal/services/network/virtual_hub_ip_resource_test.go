@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualHubIPResource struct{}
+type VirtualHubIpResource struct{}
 
 func TestAccVirtualHubIP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
-	r := VirtualHubIPResource{}
+	r := VirtualHubIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccVirtualHubIP_basic(t *testing.T) {
 
 func TestAccVirtualHubIP_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
-	r := VirtualHubIPResource{}
+	r := VirtualHubIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccVirtualHubIP_requiresImport(t *testing.T) {
 
 func TestAccVirtualHubIP_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
-	r := VirtualHubIPResource{}
+	r := VirtualHubIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccVirtualHubIP_complete(t *testing.T) {
 
 func TestAccVirtualHubIP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
-	r := VirtualHubIPResource{}
+	r := VirtualHubIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccVirtualHubIP_update(t *testing.T) {
 	})
 }
 
-func (t VirtualHubIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualHubIpResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseVirtualHubIPConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (t VirtualHubIPResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r VirtualHubIPResource) basic(data acceptance.TestData) string {
+func (r VirtualHubIpResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -115,7 +115,7 @@ resource "azurerm_virtual_hub_ip" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubIPResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualHubIpResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -128,7 +128,7 @@ resource "azurerm_virtual_hub_ip" "import" {
 `, r.basic(data))
 }
 
-func (r VirtualHubIPResource) complete(data acceptance.TestData) string {
+func (r VirtualHubIpResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -143,7 +143,7 @@ resource "azurerm_virtual_hub_ip" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (VirtualHubIPResource) template(data acceptance.TestData) string {
+func (VirtualHubIpResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

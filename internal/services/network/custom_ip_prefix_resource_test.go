@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -131,7 +131,7 @@ func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 
-	resp, err := client.Network.Client.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
+	resp, err := client.Network.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

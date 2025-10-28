@@ -27,7 +27,7 @@ output "string_vars" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,10 +61,16 @@ A `variable` block exports the following attributes:
 
 - `value` - The value of the Automation Variable.
 
-~> **NOTE:** There is no `value` property returned for `encrypted` or `null` variable types.
+~> **Note:** There is no `value` property returned for `encrypted` or `null` variable types.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-- `read` - (Defaults to 5 minutes) Used when retrieving the Automation String Variable.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation String Variable.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Automation` - 2023-11-01

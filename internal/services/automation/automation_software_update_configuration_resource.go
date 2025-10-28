@@ -61,8 +61,6 @@ type Linux struct {
 	Classifications  []string `tfschema:"classifications_included"`
 	ExcludedPackages []string `tfschema:"excluded_packages"`
 	IncludedPackages []string `tfschema:"included_packages"`
-
-	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type MonthlyOccurrence struct {
@@ -109,17 +107,13 @@ type Windows struct {
 	ExcludedKbs     []string `tfschema:"excluded_knowledge_base_numbers"`
 	IncludedKbs     []string `tfschema:"included_knowledge_base_numbers"`
 	RebootSetting   string   `tfschema:"reboot"`
-
-	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type SoftwareUpdateConfigurationModel struct {
 	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
-	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -134,6 +128,15 @@ type SoftwareUpdateConfigurationModel struct {
 type SoftwareUpdateConfigurationResource struct{}
 
 var _ sdk.ResourceWithUpdate = SoftwareUpdateConfigurationResource{}
+
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SoftwareUpdateConfigurationResource{}
+
+func (m SoftwareUpdateConfigurationResource) DeprecationMessage() string {
+	return "The `azurerm_automation_software_update_configuration` resource is deprecated and will be removed in version 5.0 of the AzureRM Provider. " +
+		"Azure Automation Update Management was deprecated on 2024-08-31 and has been shut down on 2025-02-28. " +
+		"Please migrate to Azure Update Manager, and use the `azurerm_maintenance_configuration` resource combined with the appropriate assignment resources instead. " +
+		"For more details, see: https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/log-analytics-agent-based-azure-management-services-shut-down-starting-28-februa/4381853"
+}
 
 func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	linux := pluginsdk.Resource{
@@ -674,7 +677,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Linux = []Linux{l}
-					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeLinux)
 				}
 				if windows := updateConfiguration.Windows; windows != nil {
 					w := Windows{
@@ -685,7 +687,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Windows = []Windows{w}
-					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeWindows)
 				}
 				if targets := updateConfiguration.Targets; targets != nil {
 					t := Target{}
@@ -806,7 +807,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if errorMessage := props.Error; errorMessage != nil {
-					state.ErrorMeesage = pointer.From(errorMessage.Message)
+					state.ErrorMessage = pointer.From(errorMessage.Message)
 				}
 			}
 

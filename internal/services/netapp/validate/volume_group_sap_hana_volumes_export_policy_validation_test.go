@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
+func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Protocol string
@@ -94,7 +94,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			errors := ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(tc.Rule, tc.Protocol)
+			errors := ValidateNetAppVolumeGroupExportPolicyRule(tc.Rule, tc.Protocol)
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("expected ValidateNetAppVolumeGroupSAPHanaVolumes to return %d error(s) not %d", tc.Errors, len(errors))

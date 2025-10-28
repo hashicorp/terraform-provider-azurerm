@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RedisCacheResource struct{}
@@ -49,6 +49,36 @@ func TestAccRedisCache_managedIdentityAuth(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("redis_configuration.0.data_persistence_authentication_method").HasValue("ManagedIdentity"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRedisCache_managedIdentityAuthDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedIdentityAuth(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("redis_configuration.0.data_persistence_authentication_method").HasValue("ManagedIdentity"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedIdentityAuthDisable(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("redis_configuration.0.data_persistence_authentication_method").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -546,17 +576,17 @@ func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 }
 
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := redis.ParseRediID(state.ID)
+	id, err := redisresources.ParseRediID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Redis.Get(ctx, *id)
+	resp, err := clients.Redis.RedisResourcesClient.RedisGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
@@ -610,6 +640,32 @@ resource "azurerm_redis_cache" "test" {
   redis_configuration {
     data_persistence_authentication_method = "ManagedIdentity"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)
+}
+
+func (RedisCacheResource) managedIdentityAuthDisable(data acceptance.TestData, requireSSL bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                 = "acctestRedis-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = %t
+  minimum_tls_version  = "1.2"
+
+  redis_configuration {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)
 }

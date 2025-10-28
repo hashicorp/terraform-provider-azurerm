@@ -121,13 +121,6 @@ func TestAccDataProtectionBackupVault_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -136,20 +129,37 @@ func TestAccDataProtectionBackupVault_updateIdentity(t *testing.T) {
 	r := DataProtectionBackupVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateIdentity(data),
+			Config: r.updateIdentityToSystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").DoesNotExist(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentityToSystemAndUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentityToUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -241,11 +251,15 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
     type = "SystemAssigned"
   }
+
+  immutability               = "Disabled"
   soft_delete                = "Off"
   retention_duration_in_days = 14
+
   tags = {
     ENV = "Test"
   }
@@ -258,25 +272,36 @@ func (r DataProtectionBackupVaultResource) completeUpdate(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestBV-%d"
+}
+
 resource "azurerm_data_protection_backup_vault" "test" {
   name                = "acctest-bv-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  immutability               = "Locked"
   soft_delete                = "On"
   retention_duration_in_days = 15
+
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DataProtectionBackupVaultResource) updateIdentity(data acceptance.TestData) string {
+func (r DataProtectionBackupVaultResource) updateIdentityToSystemAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -287,11 +312,64 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
-  tags = {
-    ENV = "Test"
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupVaultResource) updateIdentityToSystemAndUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestBV-%d"
+}
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r DataProtectionBackupVaultResource) updateIdentityToUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestBV-%d"
+}
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DataProtectionBackupVaultResource) zoneRedundant(data acceptance.TestData) string {

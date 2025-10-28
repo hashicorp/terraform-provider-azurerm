@@ -146,7 +146,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -197,13 +197,13 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v := d.Get("app_service_environment_id").(string); v != "" {
-		appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+		appServicePlan.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
 			ID: utils.String(v),
 		}
 	}
 
 	if v := d.Get("per_site_scaling").(bool); v {
-		appServicePlan.AppServicePlanProperties.PerSiteScaling = utils.Bool(v)
+		appServicePlan.PerSiteScaling = utils.Bool(v)
 	}
 
 	reserved := d.Get("reserved").(bool)
@@ -216,15 +216,15 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
-		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
+		appServicePlan.MaximumElasticWorkerCount = utils.Int32(int32(v))
 	}
 
 	if v := d.Get("zone_redundant").(bool); v {
-		appServicePlan.AppServicePlanProperties.ZoneRedundant = utils.Bool(v)
+		appServicePlan.ZoneRedundant = utils.Bool(v)
 	}
 
 	if reserved {
-		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved)
+		appServicePlan.Reserved = utils.Bool(reserved)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerFarmName, appServicePlan)

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,7 +40,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: redis.ValidateRediID,
+			ValidateFunc: rediscacheaccesspolicyassignments.ValidateRediID,
 		},
 		"access_policy_name": {
 			Type:     pluginsdk.TypeString,
@@ -74,7 +74,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) ResourceType() string {
 }
 
 func (r RedisCacheAccessPolicyAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return redis.ValidateAccessPolicyAssignmentID
+	return rediscacheaccesspolicyassignments.ValidateAccessPolicyAssignmentID
 }
 
 func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
@@ -85,14 +85,14 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.Redis.Redis
+			client := metadata.Client.Redis.CacheAccessPolicyAssignmentsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			redisId, err := redis.ParseRediID(model.RedisCacheID)
+			redisId, err := rediscacheaccesspolicyassignments.ParseRediID(model.RedisCacheID)
 			if err != nil {
 				return err
 			}
-			id := redis.NewAccessPolicyAssignmentID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
+			id := rediscacheaccesspolicyassignments.NewAccessPolicyAssignmentID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
 			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -103,9 +103,9 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			createInput := redis.RedisCacheAccessPolicyAssignment{
+			createInput := rediscacheaccesspolicyassignments.RedisCacheAccessPolicyAssignment{
 				Name: &model.Name,
-				Properties: &redis.RedisCacheAccessPolicyAssignmentProperties{
+				Properties: &rediscacheaccesspolicyassignments.RedisCacheAccessPolicyAssignmentProperties{
 					AccessPolicyName: model.AccessPolicyName,
 					ObjectId:         model.ObjectID,
 					ObjectIdAlias:    model.ObjectIDAlias,
@@ -129,12 +129,12 @@ func (r RedisCacheAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := redis.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := rediscacheaccesspolicyassignments.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Redis.Redis
+			client := metadata.Client.Redis.CacheAccessPolicyAssignmentsClient
 
 			resp, err := client.AccessPolicyAssignmentGet(ctx, *id)
 			if err != nil {
@@ -150,7 +150,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 				if model.Name != nil {
 					state.Name = *model.Name
 				}
-				state.RedisCacheID = redis.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName).ID()
+				state.RedisCacheID = rediscacheaccesspolicyassignments.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName).ID()
 				if model.Properties != nil {
 					state.AccessPolicyName = model.Properties.AccessPolicyName
 					state.ObjectID = model.Properties.ObjectId
@@ -171,8 +171,8 @@ func (r RedisCacheAccessPolicyAssignmentResource) Delete() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.Redis.Redis
-			id, err := redis.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
+			client := metadata.Client.Redis.CacheAccessPolicyAssignmentsClient
+			id, err := rediscacheaccesspolicyassignments.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

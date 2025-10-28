@@ -12,6 +12,8 @@ type NetAppAccountEncryption struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
@@ -19,9 +21,11 @@ type NetAppAccountEncryptionDataSourceModel struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
-type NetAppVolumeGroupVolume struct {
+type NetAppVolumeGroupSAPHanaVolume struct {
 	Id                           string                         `tfschema:"id"`
 	Name                         string                         `tfschema:"name"`
 	VolumePath                   string                         `tfschema:"volume_path"`
@@ -42,24 +46,69 @@ type NetAppVolumeGroupVolume struct {
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
 }
 
-type NetAppVolumeGroupSapHanaModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+type NetAppVolumeGroupSAPHanaModel struct {
+	Name                  string                           `tfschema:"name"`
+	ResourceGroupName     string                           `tfschema:"resource_group_name"`
+	Location              string                           `tfschema:"location"`
+	AccountName           string                           `tfschema:"account_name"`
+	GroupDescription      string                           `tfschema:"group_description"`
+	ApplicationIdentifier string                           `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupSAPHanaVolume `tfschema:"volume"`
 }
 
-type NetAppVolumeGroupSapHanaDataSourceModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+type NetAppVolumeGroupSAPHanaDataSourceModel struct {
+	Name                  string                           `tfschema:"name"`
+	ResourceGroupName     string                           `tfschema:"resource_group_name"`
+	Location              string                           `tfschema:"location"`
+	AccountName           string                           `tfschema:"account_name"`
+	GroupDescription      string                           `tfschema:"group_description"`
+	ApplicationIdentifier string                           `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupSAPHanaVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleVolume struct {
+	Id                           string                         `tfschema:"id"`
+	Name                         string                         `tfschema:"name"`
+	VolumePath                   string                         `tfschema:"volume_path"`
+	ServiceLevel                 string                         `tfschema:"service_level"`
+	SubnetId                     string                         `tfschema:"subnet_id"`
+	Protocols                    []string                       `tfschema:"protocols"`
+	SecurityStyle                string                         `tfschema:"security_style"`
+	StorageQuotaInGB             int64                          `tfschema:"storage_quota_in_gb"`
+	ThroughputInMibps            float64                        `tfschema:"throughput_in_mibps"`
+	Tags                         map[string]string              `tfschema:"tags"`
+	SnapshotDirectoryVisible     bool                           `tfschema:"snapshot_directory_visible"`
+	CapacityPoolId               string                         `tfschema:"capacity_pool_id"`
+	ProximityPlacementGroupId    string                         `tfschema:"proximity_placement_group_id"`
+	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
+	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
+	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
+	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
+	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
+}
+
+type NetAppVolumeGroupOracleModel struct {
+	Name                  string                          `tfschema:"name"`
+	ResourceGroupName     string                          `tfschema:"resource_group_name"`
+	Location              string                          `tfschema:"location"`
+	AccountName           string                          `tfschema:"account_name"`
+	GroupDescription      string                          `tfschema:"group_description"`
+	ApplicationIdentifier string                          `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupOracleVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleDataSourceModel struct {
+	Name                  string                          `tfschema:"name"`
+	ResourceGroupName     string                          `tfschema:"resource_group_name"`
+	Location              string                          `tfschema:"location"`
+	AccountName           string                          `tfschema:"account_name"`
+	GroupDescription      string                          `tfschema:"group_description"`
+	ApplicationIdentifier string                          `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupOracleVolume `tfschema:"volume"`
 }
 
 type ExportPolicyRule struct {

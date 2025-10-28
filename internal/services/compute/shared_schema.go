@@ -4,11 +4,13 @@
 package compute
 
 import (
+	"slices"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,6 +26,40 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
 		//   Target="windowsConfiguration.additionalUnattendContent
 		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"content": {
+					Type:      pluginsdk.TypeString,
+					Required:  true,
+					ForceNew:  true,
+					Sensitive: true,
+				},
+				"setting": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(virtualmachines.SettingNamesAutoLogon),
+						string(virtualmachines.SettingNamesFirstLogonCommands),
+					}, false),
+				},
+			},
+		},
+	}
+}
+
+func additionalUnattendContentSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// whilst the SDK supports updating, the API doesn't:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
+		//   Target="windowsConfiguration.additionalUnattendContent
+		ForceNew: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"content": {
@@ -76,8 +112,8 @@ func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachines
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
@@ -545,6 +581,48 @@ func flattenPlanVMSS(input *virtualmachinescalesets.Plan) []interface{} {
 	}
 }
 
+func sourceImageReferenceSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		ExactlyOneOf: []string{
+			"os_managed_disk_id",
+			"source_image_id",
+			"source_image_reference",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
 	// like this as a value for the 'id' field:
@@ -641,7 +719,18 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	offer := raw["offer"].(string)
 	sku := raw["sku"].(string)
 
-	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && (sku == "2022-datacenter-azure-edition-core" || sku == "2022-datacenter-azure-edition-core-smalldisk" || sku == "2022-datacenter-azure-edition-hotpatch" || sku == "2022-datacenter-azure-edition-hotpatch-smalldisk") {
+	supportedSkus := []string{
+		"2022-datacenter-azure-edition-core",
+		"2022-datacenter-azure-edition-core-smalldisk",
+		"2022-datacenter-azure-edition-hotpatch",
+		"2022-datacenter-azure-edition-hotpatch-smalldisk",
+		"2025-datacenter-azure-edition",
+		"2025-datacenter-azure-edition-smalldisk",
+		"2025-datacenter-azure-edition-core",
+		"2025-datacenter-azure-edition-core-smalldisk",
+	}
+
+	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && slices.Contains(supportedSkus, sku) {
 		return true
 	}
 
@@ -806,6 +895,41 @@ func winRmListenerSchema() *pluginsdk.Schema {
 	}
 }
 
+func winRmListenerSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		// Whilst the SDK allows you to modify this, the API does not:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
+		//   Target="windowsConfiguration.winRM.listeners"
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"protocol": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(virtualmachines.ProtocolTypesHTTP),
+						string(virtualmachines.ProtocolTypesHTTPS),
+					}, false),
+				},
+
+				"certificate_url": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: keyVaultValidate.NestedItemId,
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+	}
+}
+
 func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
 	listeners := make([]virtualmachines.WinRMListener, 0)
 
@@ -924,6 +1048,41 @@ func windowsSecretSchema() *pluginsdk.Schema {
 					},
 				},
 			},
+		},
+	}
+}
+
+func windowsSecretSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				// whilst this isn't present in the nested object it's required when this is specified
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+
+				"certificate": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"store": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+							},
+							"url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: keyVaultValidate.NestedItemId,
+							},
+						},
+					},
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
 		},
 	}
 }

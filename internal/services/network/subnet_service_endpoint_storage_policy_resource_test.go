@@ -9,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/serviceendpointpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SubnetServiceEndpointPolicyStorageResource struct{}
+type SubnetServiceEndpointStoragePolicyResource struct{}
 
 func TestAccSubnetServiceEndpointStoragePolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_basic(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_complete(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_alias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_alias(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_storage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_storage(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_update_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_update_complete(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_update_alias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -138,7 +138,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_update_alias(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_update_storage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -167,7 +167,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_update_storage(t *testing.T) {
 
 func TestAccSubnetServiceEndpointStoragePolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
-	r := SubnetServiceEndpointPolicyStorageResource{}
+	r := SubnetServiceEndpointStoragePolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -180,7 +180,7 @@ func TestAccSubnetServiceEndpointStoragePolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func (t SubnetServiceEndpointPolicyStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SubnetServiceEndpointStoragePolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (t SubnetServiceEndpointPolicyStorageResource) Exists(ctx context.Context, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r SubnetServiceEndpointPolicyStorageResource) basic(data acceptance.TestData) string {
+func (r SubnetServiceEndpointStoragePolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -206,7 +206,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SubnetServiceEndpointPolicyStorageResource) complete(data acceptance.TestData) string {
+func (r SubnetServiceEndpointStoragePolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,6 +240,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
     service_resources = [
       "/services/Azure",
       "/services/Azure/Batch",
+      "/services/Azure/Databricks",
       "/services/Azure/DataFactory",
       "/services/Azure/MachineLearning",
       "/services/Azure/ManagedInstance",
@@ -255,7 +256,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
 }
 
-func (r SubnetServiceEndpointPolicyStorageResource) alias(data acceptance.TestData) string {
+func (r SubnetServiceEndpointStoragePolicyResource) alias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,6 +279,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
     service_resources = [
       "/services/Azure",
       "/services/Azure/Batch",
+      "/services/Azure/Databricks",
       "/services/Azure/DataFactory",
       "/services/Azure/MachineLearning",
       "/services/Azure/ManagedInstance",
@@ -293,7 +295,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r SubnetServiceEndpointPolicyStorageResource) storage(data acceptance.TestData) string {
+func (r SubnetServiceEndpointStoragePolicyResource) storage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,7 +330,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
 }
 
-func (r SubnetServiceEndpointPolicyStorageResource) requiresImport(data acceptance.TestData) string {
+func (r SubnetServiceEndpointStoragePolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -340,7 +342,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "import" {
 `, r.basic(data))
 }
 
-func (SubnetServiceEndpointPolicyStorageResource) template(data acceptance.TestData) string {
+func (SubnetServiceEndpointStoragePolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

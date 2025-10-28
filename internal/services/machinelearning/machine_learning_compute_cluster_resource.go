@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,24 +76,20 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"max_node_count": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"min_node_count": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
-							ForceNew: true,
 						},
 						"scale_down_nodes_after_idle_duration": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -155,12 +151,14 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type:     pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
-			"tags": commonschema.TagsForceNew(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -210,28 +208,6 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-	}
-	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `node_public_ip_enabled`")
-	}
-
-	subnetResourceID, ok := d.Get("subnet_resource_id").(string)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `subnet_resource_id`")
-	}
-
-	workspaceInManagedVnet := false
-
-	if workspaceModel.Properties != nil &&
-		workspaceModel.Properties.ManagedNetwork != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status.Status != nil {
-		workspaceInManagedVnet = *workspaceModel.Properties.ManagedNetwork.Status.Status == workspaces.ManagedNetworkStatusActive
-	}
-
-	if !nodePublicIPEnabled && subnetResourceID == "" && !workspaceInManagedVnet {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` or the workspace is not in a managed network")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
@@ -375,11 +351,26 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if payload == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	if d.HasChange("identity") {
+		identity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = identity
 	}
-	payload.Identity = identity
+
+	if d.HasChange("scale_settings") {
+		computeClusterProperties, ok := payload.Properties.(machinelearningcomputes.AmlCompute)
+		if !ok {
+			return fmt.Errorf("retrieving %s: `properties` was not of type AmlCompute", *id)
+		}
+		computeClusterProperties.Properties.ScaleSettings = expandScaleSettings(d.Get("scale_settings").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
 	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}

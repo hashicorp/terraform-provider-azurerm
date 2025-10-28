@@ -7,14 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
@@ -34,6 +36,8 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -42,6 +46,19 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"log_scrubbing_rule": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"match_variable": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -55,40 +72,50 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 }
 
 func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.ProfileName)
-	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.ProfileProperties; props != nil {
-		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
+	if model := resp.Model; model != nil {
+		d.Set("name", id.ProfileName)
+		d.Set("resource_group_name", id.ResourceGroupName)
 
-		// whilst this is returned in the API as FrontDoorID other resources refer to
-		// this as the Resource GUID, so we will for consistency
-		d.Set("resource_guid", props.FrontDoorID)
-	}
+		if skuName := model.Sku.Name; skuName != nil {
+			d.Set("sku_name", string(pointer.From(skuName)))
+		}
 
-	skuName := ""
-	if resp.Sku != nil {
-		skuName = string(resp.Sku.Name)
-	}
-	d.Set("sku_name", skuName)
+		if identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity); err == nil {
+			d.Set("identity", identity)
+		}
 
-	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
-		return err
+		if props := model.Properties; props != nil {
+			d.Set("response_timeout_seconds", int(pointer.From(props.OriginResponseTimeoutSeconds)))
+
+			// whilst this is returned in the API as FrontDoorID other resources refer to
+			// this as the Resource GUID, so we will for consistency
+			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if err := d.Set("log_scrubbing_rule", flattenCdnFrontDoorProfileLogScrubbingRules(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing_rule`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -6,14 +6,14 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databaseprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databaseprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/scripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

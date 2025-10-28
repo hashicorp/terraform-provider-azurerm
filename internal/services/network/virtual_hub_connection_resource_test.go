@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -137,7 +137,7 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 		data.Subscriptions.Primary,
 		fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger),
 		fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger),
-		fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger),
+		fmt.Sprintf("acctestvhubconn-%d", data.RandomInteger),
 	)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -279,6 +279,30 @@ func TestAccVirtualHubConnection_routeMapAndStaticVnetLocalRouteOverrideCriteria
 	})
 }
 
+func TestAccVirtualHubConnection_routeMapAndStaticVnetPropagateStaticRoutes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Apply the non-default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Apply the default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualwans.ParseHubVirtualNetworkConnectionID(state.ID)
 	if err != nil {
@@ -312,7 +336,7 @@ func (r VirtualHubConnectionResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -381,7 +405,7 @@ func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.Tes
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = %t
@@ -501,7 +525,7 @@ resource "azurerm_virtual_hub" "test" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[1]d"
+  name                      = "acctestvhubconn-%[1]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -672,4 +696,26 @@ resource "azurerm_virtual_hub_connection" "test" {
   }
 }
 `, r.template(data), nameSuffix, data.RandomInteger)
+}
+
+func (r VirtualHubConnectionResource) routeMapAndStaticVnetPropagateStaticRoutes(data acceptance.TestData, isPropagateStaticRoutesEnabled bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%[3]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing {
+    static_vnet_propagate_static_routes_enabled = %[2]t
+
+    static_vnet_route {
+      name                = "testvnetroute6"
+      address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
+      next_hop_ip_address = "10.0.6.5"
+    }
+  }
+}
+`, r.template(data), isPropagateStaticRoutesEnabled, data.RandomInteger)
 }

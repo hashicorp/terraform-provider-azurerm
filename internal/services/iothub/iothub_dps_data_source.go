@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -58,7 +57,7 @@ func dataSourceIotHubDPS() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -74,7 +73,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id)
+			return fmt.Errorf("the IoT Device Provisioning Service %s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id, err)

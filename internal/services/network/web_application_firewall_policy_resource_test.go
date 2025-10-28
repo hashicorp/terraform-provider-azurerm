@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,7 +86,7 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.#").HasValue("2"),
 				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
 				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.1").HasValue("10.0.0.0/24"),
-				check.That(data.ResourceName).Key("custom_rules.2.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("custom_rules.2.action").HasValue("JSChallenge"),
 				check.That(data.ResourceName).Key("managed_rules.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.#").HasValue("2"),
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.match_variable").HasValue("RequestHeaderNames"),
@@ -565,7 +565,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
 
-    action = "Block"
+    action = "JSChallenge"
   }
 
   managed_rules {

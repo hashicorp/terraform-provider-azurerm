@@ -71,9 +71,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
   zone                          = "1"
 
   storage_mb   = 32768
-  storage_tier = "P30"
+  storage_tier = "P4"
 
-  sku_name   = "GP_Standard_D4s_v3"
+  sku_name   = "B_Standard_B1ms"
   depends_on = [azurerm_private_dns_zone_virtual_network_link.example]
 
 }
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-~> **Note** This must be unique across the entire Azure service, not just within the resource group.
+~> **Note:** This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -97,7 +97,13 @@ The following arguments are supported:
 
 -> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
 
-* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+
+* `administrator_password_wo` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+
+~> **Note:** Either `administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+
+* `administrator_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
 
@@ -107,11 +113,7 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
-
--> **Note:** `create_mode` cannot be changed once it's set since it's a parameter at creation.
-
--> **Note:** While creating the resource, `create_mode` cannot be set to `Update`.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica`, `ReviveDropped` and `Update`.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -145,7 +147,7 @@ The following arguments are supported:
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 
-~> **Note:** The `storage_mb` can only be scaled up, for example, you can scale the `storage_mb` from `32768` to `65536`, but not from `65536` to `32768`.
+~> **Note:** The `storage_mb` can only be scaled up, for example, you can scale the `storage_mb` from `32768` to `65536`, but not from `65536` to `32768`. Scaling down `storage_mb` forces a new PostgreSQL Flexible Server to be created.
 
 * `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependant on the `storage_mb` value. Please see the `storage_tier` defaults based on `storage_mb` table below.
 
@@ -153,9 +155,11 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15`, `16` and `17`. Required when `create_mode` is `Default`.
 
--> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
+-> **Note:** Downgrading `version` isn't supported and will force a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** In-place version updates are irreversible and may cause downtime for the PostgreSQL Flexible Server, determined by the size of the instance.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
@@ -167,9 +171,9 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `active_directory_auth_enabled` - (Optional) Whether or not Active Directory authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `false`.
+* `active_directory_auth_enabled` - (Optional) Whether Active Directory authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `false`.
 
-* `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `true`.
+* `password_auth_enabled` - (Optional) Whether password authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `true`.
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 
@@ -181,13 +185,17 @@ An `authentication` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+* `key_vault_key_id` - (Required) The versioned/versionless ID of the Key Vault Key.
 
-* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
 
-* `geo_backup_key_vault_key_id` - (Optional) The ID of the geo backup Key Vault Key. It can't cross region and need Customer Managed Key in same region as geo backup.
+* `geo_backup_key_vault_key_id` - (Optional) The versioned/versionless ID of the geo backup Key Vault Key.
 
-* `geo_backup_user_assigned_identity_id` - (Optional) The geo backup user managed identity id for a Customer Managed Key. Should be added with `identity_ids`. It can't cross region and need identity in same region as geo backup.
+~> **Note:** The key vault in which this key exists must be in the same region as the geo-redundant backup.
+
+* `geo_backup_user_assigned_identity_id` - (Optional) The geo backup user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
+
+~> **Note:** This managed identity cannot be the same as `primary_user_assigned_identity_id`, additionally this identity must be created in the same region as the geo-redundant backup.
 
 ~> **Note:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned`.
 
@@ -195,9 +203,13 @@ A `customer_managed_key` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. The only possible value is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
+~> **Note:** Once `UserAssigned` has been added, removing it forces a new resource to be created.
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
+
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -209,7 +221,7 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
--> **NOTE** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
+-> **Note:** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
 
 ---
 
@@ -254,9 +266,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the PostgreSQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server.
@@ -270,3 +292,9 @@ PostgreSQL Flexible Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_postgresql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

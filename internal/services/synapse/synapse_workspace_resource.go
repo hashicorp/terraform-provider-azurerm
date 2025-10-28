@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -39,7 +38,7 @@ const (
 )
 
 func resourceSynapseWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceCreate,
 		Read:   resourceSynapseWorkspaceRead,
 		Update: resourceSynapseWorkspaceUpdate,
@@ -269,11 +268,9 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -327,13 +324,13 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	workspaceInfo.Identity = expandedIdentity
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
-		workspaceInfo.WorkspaceProperties.PurviewConfiguration = &synapse.PurviewConfiguration{
+		workspaceInfo.PurviewConfiguration = &synapse.PurviewConfiguration{
 			PurviewResourceID: utils.String(purviewId.(string)),
 		}
 	}
 
 	if computeSubnetId, ok := d.GetOk("compute_subnet_id"); ok {
-		workspaceInfo.WorkspaceProperties.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
+		workspaceInfo.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
 			ComputeSubnetID: utils.String(computeSubnetId.(string)),
 		}
 	}
@@ -446,11 +443,12 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
-		if repoType == workspaceVSTSConfiguration {
+		switch repoType {
+		case workspaceVSTSConfiguration:
 			if err := d.Set("azure_devops_repo", repo); err != nil {
 				return fmt.Errorf("setting `azure_devops_repo`: %+v", err)
 			}
-		} else if repoType == workspaceGitHubConfiguration {
+		case workspaceGitHubConfiguration:
 			if err := d.Set("github_repo", repo); err != nil {
 				return fmt.Errorf("setting `github_repo`: %+v", err)
 			}
@@ -473,8 +471,6 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
-	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -543,66 +539,6 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for azuread_authentication_only to finish updating for %s: %+v", id, err)
-		}
-	}
-
-	if !features.FourPointOh() {
-		if d.HasChange("aad_admin") {
-			aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
-			if aadAdmin != nil {
-				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-				}
-				workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
-				if err != nil {
-					return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			} else {
-				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-				}
-				workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			}
-		}
-
-		if d.HasChange("sql_aad_admin") {
-			sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
-			if sqlAdmin != nil {
-				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-				}
-				workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
-				if err != nil {
-					return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			} else {
-				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-				}
-				workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			}
 		}
 	}
 
@@ -734,21 +670,6 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 	}
 }
 
-func expandArmWorkspaceAadAdminInfo(input []interface{}) *synapse.WorkspaceAadAdminInfo {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &synapse.WorkspaceAadAdminInfo{
-		AadAdminProperties: &synapse.AadAdminProperties{
-			TenantID:          utils.String(v["tenant_id"].(string)),
-			Login:             utils.String(v["login"].(string)),
-			AdministratorType: utils.String("ActiveDirectory"),
-			Sid:               utils.String(v["object_id"].(string)),
-		},
-	}
-}
-
 func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
 	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
 		azdo := azdoList.([]interface{})[0].(map[string]interface{})
@@ -842,14 +763,15 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 	if repoType := config.Type; repoType != nil {
 		repo := map[string]interface{}{}
 
-		if *repoType == workspaceVSTSConfiguration {
+		switch *repoType {
+		case workspaceVSTSConfiguration:
 			if config.ProjectName != nil {
 				repo["project_name"] = *config.ProjectName
 			}
 			if config.TenantID != nil {
 				repo["tenant_id"] = config.TenantID.String()
 			}
-		} else if *repoType == workspaceGitHubConfiguration {
+		case workspaceGitHubConfiguration:
 			if config.HostName != nil {
 				repo["git_url"] = *config.HostName
 			}

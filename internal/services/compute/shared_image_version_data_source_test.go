@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type SharedImageVersionDataSource struct{}
@@ -68,10 +67,6 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 	r := SharedImageVersionDataSource{}
 
 	expectedVersion := "0.0.1"
-	if !features.FourPointOhBeta() {
-		// `ExcludeFromLatest` is not considered in 3.0 so `0.0.2` will still be the latest image
-		expectedVersion = "0.0.2"
-	}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
