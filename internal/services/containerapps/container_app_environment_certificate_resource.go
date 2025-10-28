@@ -104,7 +104,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Optional:     true,
 			ForceNew:     true,
 			MaxItems:     1,
-			Description:  "Import Certificate from Key Vault",
 			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -112,7 +111,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ForceNew:    true,
-						Description: "The Resource ID of a managed identity to authenticate with Azure Key Vault, or 'System' to use a system-assigned identity.",
 						ValidateFunc: validation.Any(
 							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
@@ -122,7 +120,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						Description:  "The Base ID of the Key Vault Secret containing the certificate.",
 						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 					},
 				},
