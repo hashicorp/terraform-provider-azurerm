@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -21,6 +22,7 @@ type Client struct {
 	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
 	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
+	FrontDoorCustomDomainsClientNew *afdcustomdomains.AFDCustomDomainsClient
 	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
 	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient            *rules.RulesClient
@@ -45,6 +47,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorCustomDomainsClientNew, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AFDCustomDomainsClient: %+v", err)
+	}
+	o.Configure(frontDoorCustomDomainsClientNew.Client, o.Authorizers.ResourceManager)
 
 	frontDoorSecurityPoliciesClient, err := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -93,6 +101,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          &frontDoorOriginsClient,
 		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
+		FrontDoorCustomDomainsClientNew: frontDoorCustomDomainsClientNew,
 		FrontDoorSecurityPoliciesClient: frontDoorSecurityPoliciesClient,
 		FrontDoorRoutesClient:           &frontDoorRoutesClient,
 		FrontDoorRulesClient:            frontDoorRulesClient,
