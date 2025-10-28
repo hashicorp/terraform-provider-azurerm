@@ -71,7 +71,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				Default:  string(publicipprefixes.PublicIPPrefixSkuNameStandard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(publicipprefixes.PublicIPPrefixSkuNameStandard),
-					string(publicipprefixes.PublicIPPrefixSkuNameStandardV2),
+					string(publicipprefixes.PublicIPPrefixSkuNameStandardVTwo),
 				}, false),
 			},
 
