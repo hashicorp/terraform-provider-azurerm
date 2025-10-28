@@ -104,44 +104,45 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
-		pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-			// Following scenarios are not supported as in-place update:
-			// * Updating from Cilium, Azure or Calico
-			// * Removing network policy if it has been set
-			//
-			// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
-			// And an uninstallation of network policy engine is not GA yet.
-			// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
-			return old.(string) != ""
-		}),
-		pluginsdk.ForceNewIfChange("network_profile.0.pod_cidr", func(ctx context.Context, old, new, meta interface{}) bool {
-			return old.(string) != ""
-		}),
-		pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta interface{}) bool {
-			return len(old.([]interface{})) > 0
-		}),
-		func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			outboundType := d.Get("network_profile.0.outbound_type").(string)
-			artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
+			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
+				// Following scenarios are not supported as in-place update:
+				// * Updating from Cilium, Azure or Calico
+				// * Removing network policy if it has been set
+				//
+				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
+				// And an uninstallation of network policy engine is not GA yet.
+				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
+				return old.(string) != ""
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidr", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != ""
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0
+			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				outboundType := d.Get("network_profile.0.outbound_type").(string)
+				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
 
-			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
-				return fmt.Errorf("when `network_profile.0.outbound_type` is set to `none`, `bootstrap_profile.0.artifact_source` must be set to `Cache`")
-			}
+				if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
+					return fmt.Errorf("when `network_profile.0.outbound_type` is set to `none`, `bootstrap_profile.0.artifact_source` must be set to `Cache`")
+				}
 
-			return nil
-		},
-		func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
-				if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
-					return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+				return nil
+			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
+					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+					}
+					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					}
 				}
-				if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
-					return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
-				}
-			}
-			return nil
-		},
-	),		Timeouts: &pluginsdk.ResourceTimeout{
+				return nil
+			},
+		),
+		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
