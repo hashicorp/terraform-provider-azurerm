@@ -135,9 +135,11 @@ resource "azurerm_machine_learning_registry" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   name                = "accmlreg-%[2]d"
+
   identity {
     type = "SystemAssigned"
   }
+
   main_region {
     location = azurerm_resource_group.test.location
   }
@@ -153,9 +155,11 @@ resource "azurerm_machine_learning_registry" "import" {
   name                = azurerm_machine_learning_registry.test.name
   location            = azurerm_machine_learning_registry.test.location
   resource_group_name = azurerm_machine_learning_registry.test.resource_group_name
-  identity {
+
+    identity {
     type = azurerm_machine_learning_registry.test.identity.0.type
   }
+
   main_region {
     location = azurerm_machine_learning_registry.test.main_region.0.location
   }
@@ -172,21 +176,25 @@ resource "azurerm_machine_learning_registry" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   name                          = "accmlreg-%[2]d"
   public_network_access_enabled = false
+
   main_region {
     location             = azurerm_resource_group.test.location
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   replication_region {
     location             = "%[3]s"
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   replication_region {
     location             = "%[4]s"
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   identity {
     type = "SystemAssigned"
   }
@@ -208,16 +216,19 @@ resource "azurerm_machine_learning_registry" "test" {
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   replication_region {
     location             = "%[3]s"
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   replication_region {
     location             = "%[4]s"
     storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
+
   identity {
     type = "SystemAssigned"
   }

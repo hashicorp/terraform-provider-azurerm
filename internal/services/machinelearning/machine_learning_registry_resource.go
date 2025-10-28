@@ -111,7 +111,7 @@ func regionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationWithoutForceNew(),
 
-		"storage_account_type": {
+		"system_created_storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "Standard_LRS",
@@ -162,7 +162,7 @@ func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"managed_resource_group": {
+		"managed_resource_group_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -188,18 +188,19 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
+			
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_machine_learning_registry", id.ID())
 			}
 
 			param := registrymanagement.RegistryTrackedResource{
-				Name:     pointer.To(model.Name),
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: registrymanagement.Registry{
 					PublicNetworkAccess: pointer.To("Disabled"),
 				},
 			}
+			
 			if model.PublicNetworkAccessEnabled {
 				param.Properties.PublicNetworkAccess = pointer.To("Enabled")
 			}
@@ -208,6 +209,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding identity: %+v", err)
 			}
+			
 			param.Identity = expandedIdentity
 
 			regions := []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
@@ -216,7 +218,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 			param.Properties.RegionDetails = &regions
 
-			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
+			resp, err := client.RegistriesCreateOrUpdate(ctx, id, param)
 			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -267,6 +269,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("flatten identity %s: %+v", *id, err)
 			}
+			
 			prop := resp.Model.Properties
 			model := MachineLearningRegistryModel{
 				Name:                          id.RegistryName,
@@ -319,7 +322,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing model for %s", id)
 			}
 
-			param := existing.Model
+			param := *existing.Model
 
 			if metadata.ResourceData.HasChange("tags") {
 				param.Tags = pointer.To(model.Tags)
@@ -330,6 +333,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding identity: %+v", err)
 				}
+
 				param.Identity = expandedIdentity
 			}
 
