@@ -812,13 +812,14 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_elasticpool" "test" {
-  name                = "acctest-pool-dtu-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  server_name         = azurerm_mssql_server.test.name
-  max_size_gb         = 50
-  zone_redundant      = false
-  license_type        = "%[3]s"
+  name                            = "acctest-pool-dtu-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  server_name                     = azurerm_mssql_server.test.name
+  max_size_gb                     = 50
+  zone_redundant                  = false
+  license_type                    = "%[3]s"
+  high_availability_replica_count = 0
   %[4]s
 
   sku {

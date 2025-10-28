@@ -202,6 +202,13 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"high_availability_replica_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      0,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -262,11 +269,12 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &elasticpools.ElasticPoolProperties{
-			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
-			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
-			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
-			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
-			PreferredEnclaveType:       nil,
+			LicenseType:                  pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
+			PerDatabaseSettings:          expandMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:                pointer.To(d.Get("zone_redundant").(bool)),
+			MaintenanceConfigurationId:   pointer.To(maintenanceConfigId.ID()),
+			PreferredEnclaveType:         nil,
+			HighAvailabilityReplicaCount: pointer.To(int64(d.Get("high_availability_replica_count").(int))),
 		},
 	}
 
@@ -346,6 +354,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 				licenseType = string(*props.LicenseType)
 			}
 			d.Set("license_type", licenseType)
+			d.Set("high_availability_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 
 			if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(props.PerDatabaseSettings)); err != nil {
 				return fmt.Errorf("setting `per_database_settings`: %+v", err)
