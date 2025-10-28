@@ -224,7 +224,7 @@ An `image` block supports the following:
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
-~> **Note:** More information about supported images can be found in [Microsoft Learn documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#images)
+~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=azure-cli#azure-pipelines-image-predefined-aliases)
 
 ~> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
 
@@ -358,7 +358,7 @@ terraform import azurerm_managed_devops_pool.example /subscriptions/00000000-000
 ```
 
 ## API Providers
-<!-- This section is generated, changes will be overwritten -~>
+<!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
 * `Microsoft.DevOpsInfrastructure` - 2025-01-21

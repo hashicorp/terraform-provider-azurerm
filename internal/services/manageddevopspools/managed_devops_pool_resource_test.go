@@ -89,7 +89,7 @@ func TestAccManagedDevOpsPool_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdate(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,7 +130,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   azure_devops_organization_profile {
     organization {
-      url         = "%s"
+      url = "%s"
     }
   }
 
@@ -138,8 +138,8 @@ resource "azurerm_managed_devops_pool" "test" {
 
   vmss_fabric_profile {
     image {
-      resource_id = data.azurerm_platform_image.test.id
-      buffer      = "*"
+      well_known_image_name = "ubuntu-24.04"
+      buffer                = "*"
     }
     sku_name = "Standard_D2ads_v5"
   }
@@ -161,7 +161,7 @@ resource "azurerm_managed_devops_pool" "import" {
 
   azure_devops_organization_profile {
     organization {
-      url         = "%s"
+      url = "%s"
     }
   }
 
@@ -169,8 +169,8 @@ resource "azurerm_managed_devops_pool" "import" {
 
   vmss_fabric_profile {
     image {
-      resource_id = data.azurerm_platform_image.test.id
-      buffer      = "*"
+      well_known_image_name = "ubuntu-24.04"
+      buffer                = "*"
     }
     sku_name = "Standard_D2ads_v5"
   }
@@ -185,6 +185,8 @@ func (r ManagedDevOpsPoolResource) complete(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkeyvault${var.random_string}"
@@ -309,7 +311,10 @@ resource "azurerm_managed_devops_pool" "test" {
       url         = "%s"
     }
     permission_profile {
-      kind = "CreatorOnly"
+      kind = "SpecificAccounts"
+      administrator_accounts {
+        users = [data.azurerm_client_config.current.tenant_id]
+      }
     }
   }
 
@@ -326,11 +331,11 @@ resource "azurerm_managed_devops_pool" "test" {
   vmss_fabric_profile {
     image {
       resource_id = data.azurerm_platform_image.test.id
-      alias       = "marketplace image"
+      aliases     = "marketplace image"
       buffer      = "0"
     }
     image {
-      alias                 = "well known image"
+      aliases               = ["well known image"]
       well_known_image_name = "ubuntu-24.04"
       buffer                = "100"
     }
@@ -341,8 +346,8 @@ resource "azurerm_managed_devops_pool" "test" {
     os_profile {
       logon_type = "Interactive"
       secrets_management {
-        certificate_store_location = "My"
-        certificate_store_name = ""
+        certificate_store_location = "/"
+        certificate_store_name     = "My"
 
         key_export_enabled = false
         observed_certificates = [
@@ -351,13 +356,13 @@ resource "azurerm_managed_devops_pool" "test" {
       }
     }
     storage_profile {
-      data_disks {
-        caching = "None"
-        disk_size_gb = 10 
-        drive_letter = "F"
+      data_disk {
+        caching              = "None"
+        disk_size_gb         = 10
+        drive_letter         = "F"
         storage_account_type = "Standard_LRS"
       }
-      os_disk_storage_account_type = "Standard_LRS"
+      os_disk_storage_account_type = "Standard"
     }
   }
 
@@ -365,172 +370,15 @@ resource "azurerm_managed_devops_pool" "test" {
     Environment = "ppe"
     Project     = "Terraform"
   }
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
-}
 
-func (r ManagedDevOpsPoolResource) completeUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "acctestkeyvault${var.random_string}"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-
-    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge", "Recover", "Update", "List"]
-    secret_permissions = [
-      "Get",
-      "Set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "Create",
-      "Delete",
-      "Get",
-      "Import",
-      "Purge",
-      "Recover",
-      "Update",
-      "List",
-    ]
-
-    key_permissions = [
-      "Create",
-    ]
-
-    secret_permissions = [
-      "Get",
-      "Set",
-    ]
-
-    storage_permissions = [
-      "Set",
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
     ]
   }
 }
-
-resource "azurerm_key_vault_certificate" "test" {
-  name         = "acctestcert${var.random_string}"
-  key_vault_id = azurerm_key_vault.test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyEncipherment",
-        "keyCertSign",
-      ]
-
-      subject            = "CN=hello-world"
-      validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_managed_devops_pool" "test" {
-  name                = "acctest-pool-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  maximum_concurrency            = 1
-  dev_center_project_resource_id = azurerm_dev_center_project.test.id
-
-  azure_devops_organization_profile {
-    organization {
-      parallelism = 1
-      url         = "%s"
-    }
-    permission_profile {
-      kind = "SpecificAccounts"
-      administrator_accounts {
-        users = [
-          data.azurerm_client_config.current.tenant_id
-        ]
-      }
-    }
-  }
-
-  stateful_agent_profile {
-    grace_period_time_span = "00:10:00"
-    max_agent_lifetime     = "08:00:00"
-    automatic_resource_predictions_profile {
-      prediction_preference = "MoreCostEffective"
-    }
-  }
-
-  vmss_fabric_profile {
-    image {
-      resource_id = data.azurerm_platform_image.test.id
-      alias       = "marketplace image"
-      buffer      = "0"
-    }
-    image {
-      alias                 = "well known image"
-      well_known_image_name = "ubuntu-24.04"
-      buffer                = "100"
-    }
-    sku_name = "Standard_D2ads_v5"
-    os_profile {
-      secrets_management {
-        key_export_enabled = false
-        observed_certificates = [
-          azurerm_key_vault_certificate.test.versionless_secret_id
-        ]
-      }
-    }
-  }
-
-  tags = {
-    Environment = "ppe"
-    Project     = "Terraform"
-  }
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {
@@ -572,8 +420,8 @@ resource "azurerm_dev_center_project" "test" {
 data "azurerm_platform_image" "test" {
   location  = azurerm_resource_group.test.location
   publisher = "Canonical"
-  offer     = "0001-com-ubuntu-server-focal"
-  sku       = "20_04-lts-gen2"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

@@ -7,20 +7,220 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		ConflictsWith: []string{parentPath + ".automatic_resource_predictions_profile"},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"time_zone": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "UTC",
+				},
+				"all_week_schedule": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ConflictsWith: []string{
+						parentPath + ".manual_resource_predictions_profile.0.sunday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.monday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.tuesday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.wednesday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.thursday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.friday_schedule",
+						parentPath + ".manual_resource_predictions_profile.0.saturday_schedule",
+					},
+					ValidateFunc: validation.IntAtLeast(1),
+				},
+				"sunday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"monday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"tuesday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"wednesday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"thursday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"friday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+				"saturday_schedule": {
+					Type:          pluginsdk.TypeMap,
+					Optional:      true,
+					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeInt,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		},
+	}
+}
+
+func automaticResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile"},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"prediction_preference": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(pools.PredictionPreferenceBalanced),
+					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForPredictionPreference(), false),
+				},
+			},
+		},
+	}
+}
+
+func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"time_zone": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"all_week_schedule": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"sunday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"monday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"tuesday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"wednesday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"thursday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"friday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+				"saturday_schedule": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
+					},
+				},
+			},
+		},
+	}
+}
+
+func automaticResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"prediction_preference": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.AgentProfile {
+	stateful := &pools.Stateful{
+		Kind: "Stateful",
+	}
+
 	if len(input) == 0 {
-		return nil
+		return stateful
 	}
 
 	agentProfile := input[0]
 
-	stateful := &pools.Stateful{
-		Kind:                "Stateful",
-		GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
-		MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
-	}
+	stateful.GracePeriodTimeSpan = agentProfile.GracePeriodTimeSpan
+	stateful.MaxAgentLifetime = agentProfile.MaxAgentLifetime
 
 	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
 		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
@@ -51,15 +251,15 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.Ag
 }
 
 func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.AgentProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	agentProfile := input[0]
-
 	stateless := &pools.StatelessAgentProfile{
 		Kind: "Stateless",
 	}
+
+	if len(input) == 0 {
+		return stateless
+	}
+
+	agentProfile := input[0]
 
 	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
 		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
