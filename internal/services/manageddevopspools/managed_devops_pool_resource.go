@@ -20,6 +20,7 @@ import (
 )
 
 var _ sdk.Resource = ManagedDevOpsPoolResource{}
+var _ sdk.ResourceWithCustomizeDiff = ManagedDevOpsPoolResource{}
 
 type ManagedDevOpsPoolResource struct{}
 
@@ -47,7 +48,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
 				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
 			),
-		}, 
+		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"stateful_agent_profile": {
@@ -762,4 +763,29 @@ func (ManagedDevOpsPoolResource) Delete() sdk.ResourceFunc {
 
 func (ManagedDevOpsPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return pools.ValidatePoolID
+}
+
+func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ManagedDevOpsPoolModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("DecodeDiff: %+v", err)
+			}
+
+			for _, vmssFabricProfile := range model.VmssFabricProfile {
+				for i, image := range vmssFabricProfile.Images {
+					resourceIdSet := image.ResourceId != nil && *image.ResourceId != ""
+					wellKnownImageNameSet := image.WellKnownImageName != nil && *image.WellKnownImageName != ""
+
+					if resourceIdSet && wellKnownImageNameSet {
+						return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in vmss_fabric_profile", i)
+					}
+				}
+			}
+
+			return nil
+		},
+		Timeout: 5 * time.Minute,
+	}
 }
