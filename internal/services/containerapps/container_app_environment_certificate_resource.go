@@ -108,9 +108,9 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
-						Type:        pluginsdk.TypeString,
-						Required:    true,
-						ForceNew:    true,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.Any(
 							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
