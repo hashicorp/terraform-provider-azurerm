@@ -65,12 +65,13 @@ type CustomerManagedKeyModel struct {
 }
 
 type DefaultDatabaseModel struct {
-	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string        `tfschema:"client_protocol"`
-	ClusteringPolicy                string        `tfschema:"clustering_policy"`
-	EvictionPolicy                  string        `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
-	Module                          []ModuleModel `tfschema:"module"`
+	AccessKeysAuthenticationEnabled bool               `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                  string             `tfschema:"client_protocol"`
+	ClusteringPolicy                string             `tfschema:"clustering_policy"`
+	EvictionPolicy                  string             `tfschema:"eviction_policy"`
+	GeoReplicationGroupName         string             `tfschema:"geo_replication_group_name"`
+	Module                          []ModuleModel      `tfschema:"module"`
+	Persistence                     []PersistenceModel `tfschema:"persistence"`
 
 	Port               int64  `tfschema:"port"`
 	PrimaryAccessKey   string `tfschema:"primary_access_key"`
@@ -81,6 +82,11 @@ type ModuleModel struct {
 	Name    string `tfschema:"name"`
 	Args    string `tfschema:"args"`
 	Version string `tfschema:"version"`
+}
+
+type PersistenceModel struct {
+	Method          string `tfschema:"method"`
+	BackupFrequency string `tfschema:"backup_frequency"`
 }
 
 const defaultDatabaseName = "default"
@@ -190,6 +196,27 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 								"version": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
+								},
+							},
+						},
+					},
+
+					"persistence": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"method": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForPersistenceMethod(), false),
+								},
+
+								"backup_frequency": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForPersistenceBackupFrequency(), false),
 								},
 							},
 						},
@@ -384,6 +411,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
 						Module:                          flattenModules(props.Modules),
+						Persistence:                     flattenPersistence(props.Persistence),
 						Port:                            pointer.From(props.Port),
 					}
 
@@ -502,6 +530,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						"default_database.0.access_keys_authentication_enabled",
 						"default_database.0.client_protocol",
 						"default_database.0.eviction_policy",
+						"default_database.0.persistence",
 					) {
 						existingDb, err := dbClient.Get(ctx, dbId)
 						if err != nil {
@@ -525,6 +554,9 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						}
 						if metadata.ResourceData.HasChange("default_database.0.eviction_policy") {
 							dbParams.Properties.EvictionPolicy = pointer.ToEnum[databases.EvictionPolicy](state.DefaultDatabase[0].EvictionPolicy)
+						}
+						if metadata.ResourceData.HasChange("default_database.0.persistence") {
+							dbParams.Properties.Persistence = expandPersistence(state.DefaultDatabase[0].Persistence)
 						}
 
 						// Despite the method name, Create uses PUT (create-or-update behaviour), which is preferred to Update (PATCH)
@@ -615,6 +647,22 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
+
+				if len(dbModel.Persistence) > 0 {
+					dbP11Model := dbModel.Persistence[0]
+					if dbP11Model.Method != "" && dbP11Model.BackupFrequency != "" {
+						switch dbP11Model.Method {
+						case validate.DbPersistenceMethodAOF:
+							if !slices.Contains(redisenterprise.PossibleValuesForAofFrequency(), dbP11Model.BackupFrequency) {
+								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(redisenterprise.PossibleValuesForAofFrequency(), ", "))
+							}
+						case validate.DbPersistenceMethodRDB:
+							if !slices.Contains(redisenterprise.PossibleValuesForRdbFrequency(), dbP11Model.BackupFrequency) {
+								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(redisenterprise.PossibleValuesForRdbFrequency(), ", "))
+							}
+						}
+					}
+				}
 			}
 
 			return nil
@@ -631,6 +679,7 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
+			Persistence:              expandPersistence(dbModel.Persistence),
 		},
 	}
 
@@ -753,4 +802,45 @@ func dbLen(v interface{}) int {
 		return len(s)
 	}
 	return 0
+}
+
+func expandPersistence(input []PersistenceModel) *databases.Persistence {
+	res := databases.Persistence{}
+	if len(input) == 0 {
+		return &res
+	}
+
+	p11Model := input[0]
+
+	switch p11Model.Method {
+	case validate.DbPersistenceMethodRDB:
+		res.RdbEnabled = pointer.To(true)
+		res.RdbFrequency = pointer.ToEnum[databases.RdbFrequency](p11Model.BackupFrequency)
+	case validate.DbPersistenceMethodAOF:
+		res.AofEnabled = pointer.To(true)
+		res.AofFrequency = pointer.ToEnum[databases.AofFrequency](p11Model.BackupFrequency)
+	}
+
+	return &res
+}
+
+func flattenPersistence(input *databases.Persistence) []PersistenceModel {
+	if input == nil {
+		return []PersistenceModel{}
+	}
+
+	p11Model := PersistenceModel{}
+
+	switch {
+	case pointer.From(input.RdbEnabled):
+		p11Model.Method = validate.DbPersistenceMethodRDB
+		p11Model.BackupFrequency = pointer.FromEnum(input.RdbFrequency)
+	case pointer.From(input.AofEnabled):
+		p11Model.Method = validate.DbPersistenceMethodAOF
+		p11Model.BackupFrequency = pointer.FromEnum(input.AofFrequency)
+	default:
+		return []PersistenceModel{}
+	}
+
+	return []PersistenceModel{p11Model}
 }

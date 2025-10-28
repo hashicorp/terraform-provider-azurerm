@@ -79,6 +79,13 @@ func TestAccManagedRedis_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.persistenceRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -301,6 +308,11 @@ resource "azurerm_managed_redis" "test" {
     module {
       name = "RedisJSON"
     }
+
+    persistence {
+      method           = "RDB"
+      backup_frequency = "1h"
+    }
   }
 
   high_availability_enabled = true
@@ -318,6 +330,56 @@ resource "azurerm_managed_redis" "test" {
 }
 
 func (r ManagedRedisResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B3"
+
+  default_database {
+    access_keys_authentication_enabled = false
+    client_protocol                    = "Plaintext"
+    clustering_policy                  = "EnterpriseCluster"
+    eviction_policy                    = "NoEviction"
+    geo_replication_group_name         = "acctest-amr-georep-%[1]d"
+
+    module {
+      name = "RediSearch"
+      args = ""
+    }
+
+    module {
+      name = "RedisJSON"
+      args = ""
+    }
+
+    persistence {
+      method           = "AOF"
+      backup_frequency = "1s"
+    }
+  }
+
+  high_availability_enabled = true
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r ManagedRedisResource) persistenceRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
