@@ -202,9 +202,10 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"persistence": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"default_database.0.geo_replication_group_name"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"method": {
