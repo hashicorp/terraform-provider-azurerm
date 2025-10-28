@@ -16,15 +16,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DbSystemDataSource struct{}
+type DatabaseSystemDataSource struct{}
 
-type DbSystemDataModel struct {
+type DatabaseSystemDataModel struct {
 	Location          string       `tfschema:"location"`
 	Name              string       `tfschema:"name"`
 	ResourceGroupName string       `tfschema:"resource_group_name"`
 	Zones             zones.Schema `tfschema:"zones"`
 
-	// DbSystemProperties
+	// DatabaseSystemProperties
 	ClusterName                  string                       `tfschema:"cluster_name"`
 	ComputeCount                 int64                        `tfschema:"compute_count"`
 	ComputeModel                 string                       `tfschema:"compute_model"`
@@ -61,23 +61,23 @@ type DatabaseSystemOptionsModel struct {
 	StorageManagement string `tfschema:"storage_management"`
 }
 
-func (d DbSystemDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d DatabaseSystemDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.DbSystemName,
+			ValidateFunc: validate.DatabaseSystemName,
 		},
 	}
 }
 
-func (d DbSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// DbSystemProperties
+		// DatabaseSystemProperties
 		"compute_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -246,26 +246,26 @@ func (d DbSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DbSystemDataSource) ModelObject() interface{} {
-	return &DbSystemDataModel{}
+func (d DatabaseSystemDataSource) ModelObject() interface{} {
+	return &DatabaseSystemDataModel{}
 }
 
-func (d DbSystemDataSource) ResourceType() string {
-	return "azurerm_oracle_db_system"
+func (d DatabaseSystemDataSource) ResourceType() string {
+	return "azurerm_oracle_database_system"
 }
 
-func (d DbSystemDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d DatabaseSystemDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dbsystems.ValidateDbSystemID
 }
 
-func (d DbSystemDataSource) Read() sdk.ResourceFunc {
+func (d DatabaseSystemDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.DbSystems
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state DbSystemDataModel
+			var state DatabaseSystemDataModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -287,36 +287,36 @@ func (d DbSystemDataSource) Read() sdk.ResourceFunc {
 					state.DatabaseEdition = string(props.DatabaseEdition)
 					state.DatabaseVersion = props.DbVersion
 
-					dbSystemProps := props.DbSystemBaseProperties()
+					databaseSystemProps := props.DbSystemBaseProperties()
 
-					state.ComputeCount = pointer.From(dbSystemProps.ComputeCount)
-					state.ComputeModel = pointer.FromEnum(dbSystemProps.ComputeModel)
-					state.ClusterName = pointer.From(dbSystemProps.ClusterName)
-					state.DataStorageSizeInGbs = pointer.From(dbSystemProps.DataStorageSizeInGbs)
-					state.DatabaseSystemOptions = FlattenDbSystemOptions(dbSystemProps.DbSystemOptions)
+					state.ComputeCount = pointer.From(databaseSystemProps.ComputeCount)
+					state.ComputeModel = pointer.FromEnum(databaseSystemProps.ComputeModel)
+					state.ClusterName = pointer.From(databaseSystemProps.ClusterName)
+					state.DataStorageSizeInGbs = pointer.From(databaseSystemProps.DataStorageSizeInGbs)
+					state.DatabaseSystemOptions = FlattenDbSystemOptions(databaseSystemProps.DbSystemOptions)
 					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
-					state.DisplayName = pointer.From(dbSystemProps.DisplayName)
-					state.Domain = pointer.From(dbSystemProps.Domain)
-					state.GridImageOcid = pointer.From(dbSystemProps.GridImageOcid)
-					state.Hostname = dbSystemProps.Hostname
-					state.LicenseModel = string(pointer.From(dbSystemProps.LicenseModel))
-					state.LifecycleDetails = pointer.From(dbSystemProps.LifecycleDetails)
-					state.LifecycleState = string(*dbSystemProps.LifecycleState)
-					state.ListenerPort = pointer.From(dbSystemProps.ListenerPort)
-					state.MemorySizeInGbs = pointer.From(dbSystemProps.MemorySizeInGbs)
-					state.NetworkAnchorId = dbSystemProps.NetworkAnchorId
-					state.NodeCount = pointer.From(dbSystemProps.NodeCount)
-					state.OciUrl = pointer.From(dbSystemProps.OciURL)
-					state.Ocid = pointer.From(dbSystemProps.Ocid)
-					state.ResourceAnchorId = dbSystemProps.ResourceAnchorId
-					state.ScanDnsName = pointer.From(dbSystemProps.ScanDnsName)
-					state.ScanIPs = pointer.From(dbSystemProps.ScanIPs)
-					state.Shape = dbSystemProps.Shape
-					state.Source = string(dbSystemProps.Source)
-					state.SshPublicKeys = dbSystemProps.SshPublicKeys
-					state.StorageVolumePerformanceMode = string(pointer.From(dbSystemProps.StorageVolumePerformanceMode))
-					state.TimeZone = pointer.From(dbSystemProps.TimeZone)
-					state.Version = pointer.From(dbSystemProps.Version)
+					state.DisplayName = pointer.From(databaseSystemProps.DisplayName)
+					state.Domain = pointer.From(databaseSystemProps.Domain)
+					state.GridImageOcid = pointer.From(databaseSystemProps.GridImageOcid)
+					state.Hostname = databaseSystemProps.Hostname
+					state.LicenseModel = string(pointer.From(databaseSystemProps.LicenseModel))
+					state.LifecycleDetails = pointer.From(databaseSystemProps.LifecycleDetails)
+					state.LifecycleState = string(*databaseSystemProps.LifecycleState)
+					state.ListenerPort = pointer.From(databaseSystemProps.ListenerPort)
+					state.MemorySizeInGbs = pointer.From(databaseSystemProps.MemorySizeInGbs)
+					state.NetworkAnchorId = databaseSystemProps.NetworkAnchorId
+					state.NodeCount = pointer.From(databaseSystemProps.NodeCount)
+					state.OciUrl = pointer.From(databaseSystemProps.OciURL)
+					state.Ocid = pointer.From(databaseSystemProps.Ocid)
+					state.ResourceAnchorId = databaseSystemProps.ResourceAnchorId
+					state.ScanDnsName = pointer.From(databaseSystemProps.ScanDnsName)
+					state.ScanIPs = pointer.From(databaseSystemProps.ScanIPs)
+					state.Shape = databaseSystemProps.Shape
+					state.Source = string(databaseSystemProps.Source)
+					state.SshPublicKeys = databaseSystemProps.SshPublicKeys
+					state.StorageVolumePerformanceMode = string(pointer.From(databaseSystemProps.StorageVolumePerformanceMode))
+					state.TimeZone = pointer.From(databaseSystemProps.TimeZone)
+					state.Version = pointer.From(databaseSystemProps.Version)
 				}
 			}
 

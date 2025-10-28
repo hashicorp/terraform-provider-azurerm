@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 )
 
-type DbSystemDataSource struct{}
+type DatabaseSystemDataSource struct{}
 
-func TestDbSystemDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.DbSystemDataSource{}.ResourceType(), "test")
-	r := DbSystemDataSource{}
+func TestDatabaseSystemDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.DatabaseSystemDataSource{}.ResourceType(), "test")
+	r := DatabaseSystemDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -29,13 +29,13 @@ func TestDbSystemDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d DbSystemDataSource) basic(data acceptance.TestData) string {
+func (d DatabaseSystemDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracle_db_system" "test" {
-  name                = azurerm_oracle_db_system.test.name
-  resource_group_name = azurerm_oracle_db_system.test.resource_group_name
+data "azurerm_oracle_database_system" "test" {
+  name                = azurerm_oracle_database_system.test.name
+  resource_group_name = azurerm_oracle_database_system.test.resource_group_name
 }
-`, DbSystemResource{}.basic(data))
+`, DatabaseSystemResource{}.basic(data))
 }

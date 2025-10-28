@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/networkanchors"
@@ -19,11 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = DbSystemResource{}
+var _ sdk.ResourceWithUpdate = DatabaseSystemResource{}
 
-type DbSystemResource struct{}
+type DatabaseSystemResource struct{}
 
-type DbSystemResourceModel struct {
+type DatabaseSystemResourceModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -57,25 +58,16 @@ type DbSystemResourceModel struct {
 	TimeZone                     string                       `tfschema:"time_zone"`
 }
 
-func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
+func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
 
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.DbSystemName,
-			ForceNew:     true,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
+		// Required
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
 			ForceNew:     true,
-			ValidateFunc: validate.DbSystemPassword,
+			ValidateFunc: validate.DatabaseSystemPassword,
 		},
 
 		"compute_count": {
@@ -91,34 +83,11 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForComputeModel(), false),
 		},
 
-		"cluster_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ClusterName,
-		},
-
 		"database_edition": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDbSystemDatabaseEditionType(), false),
-		},
-
-		"database_system_options": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"storage_management": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageManagementType(), false),
-					},
-				},
-			},
 		},
 
 		"database_version": {
@@ -128,40 +97,10 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"disk_redundancy": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDiskRedundancyType(), false),
-		},
-
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.DbSystemName,
-		},
-
-		"domain": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-		},
-
 		"hostname": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-		},
-
-		"initial_data_storage_size_in_gb": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(2),
 		},
 
 		"license_model": {
@@ -171,34 +110,20 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForLicenseModel(), false),
 		},
 
-		"network_anchor_id": {
+		"location": commonschema.Location(),
+
+		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ValidateFunc: validate.DatabaseSystemName,
 			ForceNew:     true,
-			ValidateFunc: networkanchors.ValidateNetworkAnchorID,
 		},
 
-		"node_count": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
+		"network_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkanchors.NetworkAnchorId{}),
 
-		"pluggable_database_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.PluggableDatabaseName,
-		},
+		"resource_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceanchors.ResourceAnchorId{}),
 
-		"resource_anchor_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
-		},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"shape": {
 			Type:     pluginsdk.TypeString,
@@ -222,6 +147,80 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+
+		// Optional
+		"database_system_options": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_management": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageManagementType(), false),
+					},
+				},
+			},
+		},
+
+		"initial_data_storage_size_in_gb": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(2),
+		},
+
+		"pluggable_database_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.PluggableDatabaseName,
+		},
+
+		"tags": commonschema.Tags(),
+
+		// Computed
+		"cluster_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ClusterName,
+		},
+
+		"disk_redundancy": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDiskRedundancyType(), false),
+		},
+
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseSystemName,
+		},
+
+		"domain": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
+		"node_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
 		"storage_volume_performance_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -236,35 +235,31 @@ func (DbSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 			ForceNew: true,
 		},
-
-		"tags": commonschema.Tags(),
-
-		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
-func (DbSystemResource) Attributes() map[string]*pluginsdk.Schema {
+func (DatabaseSystemResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DbSystemResource) ModelObject() interface{} {
-	return &DbSystemResource{}
+func (DatabaseSystemResource) ModelObject() interface{} {
+	return &DatabaseSystemResource{}
 }
 
-func (DbSystemResource) ResourceType() string {
-	return "azurerm_oracle_db_system"
+func (DatabaseSystemResource) ResourceType() string {
+	return "azurerm_oracle_database_system"
 }
 
-func (r DbSystemResource) Create() sdk.ResourceFunc {
+func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.DbSystems
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model DbSystemResourceModel
+			var model DatabaseSystemResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := dbsystems.NewDbSystemID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -280,7 +275,7 @@ func (r DbSystemResource) Create() sdk.ResourceFunc {
 			param := dbsystems.DbSystem{
 				// Azure
 				Name:     pointer.To(model.Name),
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Zones:    pointer.To(model.Zones),
 				Properties: &dbsystems.DbSystemProperties{
@@ -344,7 +339,7 @@ func (r DbSystemResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r DbSystemResource) Update() sdk.ResourceFunc {
+func (r DatabaseSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -354,9 +349,9 @@ func (r DbSystemResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model DbSystemResourceModel
+			var model DatabaseSystemResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			_, err = client.Get(ctx, *id)
@@ -378,7 +373,7 @@ func (r DbSystemResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (DbSystemResource) Read() sdk.ResourceFunc {
+func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -396,14 +391,14 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := DbSystemResourceModel{
+			state := DatabaseSystemResourceModel{
 				Name:              id.DbSystemName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			// Azure
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 
@@ -449,7 +444,7 @@ func (DbSystemResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (DbSystemResource) Delete() sdk.ResourceFunc {
+func (DatabaseSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -469,7 +464,7 @@ func (DbSystemResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (DbSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (DatabaseSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dbsystems.ValidateDbSystemID
 }
 

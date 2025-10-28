@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -10,34 +11,36 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
 )
 
-func DbSystemName(i interface{}, k string) (warnings []string, errors []error) {
+func DatabaseSystemName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
-	if len(v) < 1 || len(v) > 255 {
-		errors = append(errors, fmt.Errorf("name must be %d to %d characters", 1, 255))
+	minLength := 1
+	maxLength := 255
+	if len(v) < minLength || len(v) > maxLength {
+		errors = append(errors, fmt.Errorf("`name` must be %d to %d characters", minLength, maxLength))
 		return
 	}
 
 	firstChar, _ := utf8.DecodeRuneInString(v)
 	if !unicode.IsLetter(firstChar) && firstChar != '_' {
-		errors = append(errors, fmt.Errorf("name must start with a letter or underscore (_)"))
+		errors = append(errors, fmt.Errorf("`name` must start with a letter or underscore (_)"))
 		return
 	}
 
 	re := regexp.MustCompile("--")
 	if re.MatchString(v) {
-		errors = append(errors, fmt.Errorf("name must not contain any consecutive hyphens (--)"))
+		errors = append(errors, fmt.Errorf("`name` must not contain any consecutive hyphens (--)"))
 		return
 	}
 
 	return
 }
 
-func DbSystemLicenseModel(i interface{}, k string) (warnings []string, errors []error) {
+func DatabaseSystemLicenseModel(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -53,7 +56,7 @@ func DbSystemLicenseModel(i interface{}, k string) (warnings []string, errors []
 	return
 }
 
-func DbSystemPassword(i interface{}, k string) (warnings []string, errors []error) {
+func DatabaseSystemPassword(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -130,54 +133,56 @@ func DbSystemPassword(i interface{}, k string) (warnings []string, errors []erro
 	return []string{}, []error{}
 }
 
-func PluggableDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
+func PluggableDatabaseName(i interface{}, k string) (warnings []string, errorsList []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		errorsList = append(errorsList, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
-	if len(v) > 30 {
-		errors = append(errors, fmt.Errorf("name must be no more than %d characters", 30))
+	maxLength := 30
+	if len(v) > maxLength {
+		errorsList = append(errorsList, fmt.Errorf("`name` must be no more than %d characters", maxLength))
 		return
 	}
 
 	firstChar, _ := utf8.DecodeRuneInString(v)
 	if !unicode.IsLetter(firstChar) {
-		errors = append(errors, fmt.Errorf("name must start with a letter"))
+		errorsList = append(errorsList, errors.New("`name` must start with a letter"))
 		return
 	}
 
 	re := regexp.MustCompile(`^[A-Za-z0-9]+$`)
 	if !re.MatchString(v) {
-		errors = append(errors, fmt.Errorf("name must not contain any special characters"))
+		errorsList = append(errorsList, errors.New("`name` must not contain any special characters"))
 		return
 	}
 
 	return
 }
 
-func ClusterName(i interface{}, k string) (warnings []string, errors []error) {
+func ClusterName(i interface{}, k string) (warnings []string, errorsList []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		errorsList = append(errorsList, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
-	if len(v) > 11 {
-		errors = append(errors, fmt.Errorf("name must be no more than %d characters", 11))
+	maxLength := 11
+	if len(v) > maxLength {
+		errorsList = append(errorsList, fmt.Errorf("`name` must be no more than %d characters", maxLength))
 		return
 	}
 
 	firstChar, _ := utf8.DecodeRuneInString(v)
 	if !unicode.IsLetter(firstChar) && firstChar != '-' {
-		errors = append(errors, fmt.Errorf("name must start with a letter or hyphen (-)"))
+		errorsList = append(errorsList, errors.New("`name` must start with a letter or hyphen (-)"))
 		return
 	}
 
 	re := regexp.MustCompile("_")
 	if re.MatchString(v) {
-		errors = append(errors, fmt.Errorf("name must not contain any underscores (_)"))
+		errorsList = append(errorsList, errors.New("`name` must not contain any underscores (_)"))
 		return
 	}
 
