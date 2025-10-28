@@ -162,17 +162,9 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"sku": {
-						Type:     pluginsdk.TypeList,
+					"sku_name": {
+						Type:     pluginsdk.TypeString,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
 					},
 					"storage_profile": {
 						Type:     pluginsdk.TypeList,
