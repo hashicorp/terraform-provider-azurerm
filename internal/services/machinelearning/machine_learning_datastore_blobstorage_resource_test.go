@@ -119,6 +119,13 @@ func TestAccMachineLearningDataStoreBlobStorage_servicePrincipal(t *testing.T) {
 			),
 		},
 		data.ImportStep("client_secret"),
+		{
+			Config: r.blobStorageServicePrincipalUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
 	})
 }
 
@@ -326,6 +333,28 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   client_id            = data.azurerm_client_config.current.client_id
   client_secret        = "test-secret"
   tenant_id            = data.azurerm_client_config.current.tenant_id
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) blobStorageServicePrincipalUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                 = "accdatastore%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  client_id            = "00000000-0000-0000-0000-000000000000"
+  client_secret        = "aadsecretNew"
+  tenant_id            = "00000000-0000-0000-0000-000000000000"
 }
 `, template, data.RandomInteger)
 }
