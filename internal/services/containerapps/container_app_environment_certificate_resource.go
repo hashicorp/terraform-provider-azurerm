@@ -69,7 +69,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.CertificateName,
-			Description:  "The name of the Container Apps Environment Certificate.",
 		},
 
 		"container_app_environment_id": {
@@ -77,7 +76,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: certificates.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
 		},
 
 		"certificate_blob_base64": {
@@ -85,7 +83,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsBase64,
-			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			RequiredWith: []string{"certificate_password"},
 		},
@@ -95,7 +92,6 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Optional:     true,
 			ForceNew:     true,
 			Sensitive:    true,
-			Description:  "The password for the Certificate.",
 			RequiredWith: []string{"certificate_blob_base64"},
 		},
 
