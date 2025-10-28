@@ -37,27 +37,27 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Exadata VM Cluster.
 
-* `backup_subnet_cidr` - Client OCI backup subnet CIDR, default is `192.168.252.0/22`.
+* `backup_subnet_cidr` - Client OCI backup subnet CIDR.
 
 * `cluster_name` - The cluster name for Exadata VM Cluster.
 
-* `data_collection_option` - A `data_collection_option` block as defined below.
+* `data_collection` - A `data_collection` block as defined below.
 
-* `display_name` - The user-friendly name for the Exadata VM Cluster. The name does not need to be unique.
+* `display_name` - The user-friendly name for the Exadata VM Cluster.
 
 * `domain` - The domain name for the Exadata VM Cluster.
 
-* `enabled_ecpu_count` - The number of ECPUs to enable for an Exadata VM cluster on Exascale Infrastructure.
+* `enabled_ecpu_count` - The number of ECPUs enable for an Exadata VM cluster on Exascale Infrastructure.
 
 * `exascale_database_storage_vault_id` - The OCID of the Exadata Database Storage Vault.
 
-* `grid_infrastructure_version` - A valid Oracle Grid Infrastructure (GI) software version.
+* `grid_infrastructure_version` - The Oracle Grid Infrastructure (GI) software version.
 
-* `grid_image_ocid` - Grid Setup will be done using this grid image id.
+* `grid_image_ocid` - Grid Setup will be done using this Grid Image [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm).
 
 * `grid_image_type` - The type of Grid Image
 
-* `hostname` - The hostname for the Exadata VM Cluster without suffix.
+* `hostname` - The hostname for the Exadata VM Cluster.
 
 * `hostname_actual` - The hostname for the Exadata VM Cluster with suffix.
 
@@ -73,11 +73,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Exadata VM Cluster exists.
 
-* `memory_size_in_gbs` - The memory to be allocated in GBs.
+* `memory_size_in_gb` - The memory capacity allocated for the Exadata VM Cluster in GB.
 
 * `node_count` - The number of nodes in the Exadata VM Cluster.
 
-* `network_security_group_cidrs` - A `network_security_group_cidr` block as defined below.
+* `network_security_group_cidr` - A `network_security_group_cidr` block as defined below.
 
 * `network_security_group_url` - The link to OCI Network Security Group exposed to Azure Customer via the Azure Interface.
 
@@ -85,17 +85,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Exadata VM Cluster.
 
-* `private_zone_ocid` - The private zone ID in which you want DNS records to be created.
+* `private_zone_ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the zone the Exadata VM cluster on Exascale Infrastructure is associated with.
 
 * `scan_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
 
-* `scan_dns_record_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
+* `single_client_access_name_dns_record_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
 
-* `scan_ip_ids` - A `scan_ip_ids` block as defined below.
+* `single_client_access_name_ip_ids` - The Single Client Access Name (SCAN) IP addresses associated with the Exadata VM cluster on Exascale Infrastructure.
 
-* `single_client_access_name_listener_port_tcp` -  The TCP Single Client Access Name (SCAN) port. The default port is 1521.
+* `single_client_access_name_listener_port_tcp` -  The TCP Single Client Access Name (SCAN) port.
 
-* `single_client_access_name_listener_port_tcp_ssl` - The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
+* `single_client_access_name_listener_port_tcp_ssl` - The TCPS Single Client Access Name (SCAN) port.
 
 * `shape` - The model name of the Exadata hardware running the Exadata VM Cluster.
 
@@ -127,13 +127,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `data_collection_option` block exports the following:
+A `data_collection` block exports the following:
 
-* `diagnostics_events_enabled` - Indicates whether diagnostic collection is enabled for the VM cluster/Cloud VM cluster/VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `diagnostics_events_enabled` - Indicates whether diagnostic collection is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
-* `health_monitoring_enabled` -  Indicates whether health monitoring is enabled for the VM cluster / Cloud VM cluster / VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `health_monitoring_enabled` -  Indicates whether health monitoring is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
-* `incident_logs_enabled` - Indicates whether incident logs and trace collection are enabled for the VM cluster / Cloud VM cluster / VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `incident_logs_enabled` - Indicates whether incident logs and trace collection are enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
 ---
 
@@ -147,15 +147,15 @@ A `network_security_group_cidr` block exports the following:
 
 A `destination_port_range` block exports the following:
 
-* `max` - The maximum port number, which must not be less than the minimum port number.
+* `max` - The maximum port number.
 
-* `min` - The minimum port number, which must not be greater than the maximum port number.
+* `min` - The minimum port number.
 
 ---
 
-A `db_plans` block exports the following:
+A `database_plans` block exports the following:
 
-* `db_name` - The database name. For the default `DbPlan`, the `dbName` is `default`.
+* `database_name` - The database name.
 
 * `flash_cache_limit` - The flash cache limit for this database. This value is internally configured based on the share value assigned to the database.
 
@@ -165,19 +165,19 @@ A `db_plans` block exports the following:
 
 A `iorm_config_cache` block exports the following:
 
-* `db_plans` - A `db_plans` block as defined above.
+* `database_plans` - A `database_plans` block as defined above.
 
 * `lifecycle_details` - Additional information about the current `lifecycleState`.
 
 * `lifecycle_state` - The current state of IORM configuration for the Exadata DB system.
 
-* `objective` - The current value for the IORM objective. The default is `AUTO`.
+* `objective` - The current value for the IORM objective.
 
 ---
 
 A `file_system_storage_details` block exports the following:
 
-* `total_size_in_gb` - Total Capacity 
+* `total_size_in_gb` - Total Capacity in GB.
 
 ## Timeouts
 

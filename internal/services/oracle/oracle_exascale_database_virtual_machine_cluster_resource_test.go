@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ExadbVmClusterResource struct{}
+type ExascaleDatabaseVirtualMachineClusterResource struct{}
 
-func (a ExadbVmClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exadbvmclusters.ParseExadbVMClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (a ExadbVmClusterResource) Exists(ctx context.Context, client *clients.Clie
 
 func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExadbVmClusterResource{}
+	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,7 +47,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 
 func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExadbVmClusterResource{}
+	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -55,13 +55,13 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection_option", "system_version"),
+		data.ImportStep("data_collection", "system_version"),
 	})
 }
 
 func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExadbVmClusterResource{}
+	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -75,7 +75,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing
 
 func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExadbVmClusterResource{}
+	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -83,33 +83,33 @@ func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("data_collection", "system_version", "enabled_ecpu_count", "total_ecpu_count", "virtual_machine_file_system_storage"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection_option"),
+		data.ImportStep("data_collection", "system_version", "enabled_ecpu_count", "total_ecpu_count", "virtual_machine_file_system_storage"),
 	})
 }
 
-func (a ExadbVmClusterResource) basic(data acceptance.TestData) string {
+func (a ExascaleDatabaseVirtualMachineClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["1"]
+  zones                              = ["2"]
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
   display_name                       = "OFakeVmacctest%[2]d"
   enabled_ecpu_count                 = 16
-  grid_image_ocid                    = "ocid1.dbpatch.oc1.eu-frankfurt-1.antheljtt5t4sqqajusotjtxzmvix34qgj7xtqoy5y34ayxohsqtknprso3q"
+  grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
   node_count                         = 2
   shape                              = "EXADBXS"
-  ssh_public_keys                    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
@@ -119,13 +119,13 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExadbVmClusterResource) complete(data acceptance.TestData) string {
+func (a ExascaleDatabaseVirtualMachineClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["1"]
+  zones                              = ["2"]
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
   display_name                       = "OFakeVmacctest%[2]d"
@@ -133,7 +133,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   hostname                           = "host"
   node_count                         = 2
   shape                              = "EXADBXS"
-  ssh_public_keys                    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
@@ -142,48 +142,51 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   virtual_network_id = azurerm_virtual_network.virtual_network.id
   backup_subnet_cidr = "10.1.0.0/16"
   cluster_name       = "clustername"
-  data_collection_option {
+  data_collection {
     diagnostics_events_enabled = true
     health_monitoring_enabled  = true
     incident_logs_enabled      = true
   }
   domain                                          = "ociactsubnet.ociactvnet.oraclevcn.com"
-  grid_image_ocid                                 = "ocid1.dbpatch.oc1.eu-frankfurt-1.antheljtt5t4sqqajusotjtxzmvix34qgj7xtqoy5y34ayxohsqtknprso3q"
+  grid_image_ocid                                 = local.grid_image_ocid
   license_model                                   = "BringYourOwnLicense"
   private_zone_ocid                               = "private_zoneocid"
   single_client_access_name_listener_port_tcp     = 1521
   single_client_access_name_listener_port_tcp_ssl = 2484
-  system_version                                  = "23.9.0.25.07"
+  system_version                                  = "19.2.12.0.0.200317"
   time_zone                                       = "UTC"
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExadbVmClusterResource) update(data acceptance.TestData) string {
+func (a ExascaleDatabaseVirtualMachineClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["1"]
+  zones                              = ["2"]
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
   display_name                       = "OFakeVmacctest%[2]d"
   enabled_ecpu_count                 = 16
-  grid_image_ocid                    = "ocid1.dbpatch.oc1.eu-frankfurt-1.antheljtt5t4sqqajusotjtxzmvix34qgj7xtqoy5y34ayxohsqtknprso3q"
+  grid_image_ocid                    = local.grid_image_ocid
   hostname                           = "host"
-  node_count                         = 2
+  node_count                         = 8
   shape                              = "EXADBXS"
-  ssh_public_keys                    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  ssh_public_keys                    = [local.ssh_public_key]
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
   virtual_network_id = azurerm_virtual_network.virtual_network.id
+  tags = {
+    ENV = "Test2"
+  }
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExadbVmClusterResource) requiresImport(data acceptance.TestData) string {
+func (a ExascaleDatabaseVirtualMachineClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +213,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "import" {
 `, a.basic(data))
 }
 
-func (a ExadbVmClusterResource) template(data acceptance.TestData) string {
+func (a ExascaleDatabaseVirtualMachineClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,10 +262,13 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
     total_size_in_gb = 300
   }
   additional_flash_cache_percentage = 100
-  zones                             = ["1"]
+  zones                             = ["2"]
 }
 
-
+locals {
+  ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  grid_image_ocid = "ocid1.dbpatch.oc1.iad.anuwcljtt5t4sqqao7hbqabj3nucci6afpbslvhtc2vh276hesoagns66rdq"
+}
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

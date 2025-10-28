@@ -17,7 +17,7 @@ func ExascaleDatabaseStorageVaultName(i interface{}, k string) (warnings []strin
 	// The value must start with a letter or an underscore (_).
 	// The value can only include letters, numbers, underscores (_), and hyphens (-).
 	// The value cannot contain consecutive hyphens (--).
-	if !regexp.MustCompile(`^[a-zA-Z_](?:[a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*-?)?$`).MatchString(v) {
+	if !regexp.MustCompile(`^[a-zA-Z_]([a-zA-Z0-9_]*(-[a-zA-Z0-9_]+)*-?)?$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must begin with a letter or underscore (_), contain only letters, numbers, underscores (_) and cannot contain any consecutive hyphens (--)", k))
 	}
 
@@ -33,7 +33,7 @@ func ExascaleDatabaseVirtualMachineClusterName(i interface{}, k string) (warning
 	// The value must start with a letter or an underscore (_).
 	// The value can only include letters, numbers, underscores (_), and hyphens (-).
 	// The value cannot contain consecutive hyphens (--).
-	if !regexp.MustCompile(`^[a-zA-Z_](?:[a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*-?)?$`).MatchString(v) {
+	if !regexp.MustCompile(`^[a-zA-Z_]([a-zA-Z0-9_]*(-[a-zA-Z0-9_]+)*-?)?$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must begin with a letter or underscore (_), contain only letters, numbers, underscores (_) and cannot contain any consecutive hyphens (--)", k))
 	}
 

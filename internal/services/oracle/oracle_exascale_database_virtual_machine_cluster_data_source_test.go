@@ -44,5 +44,5 @@ data "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   name                = azurerm_oracle_exascale_database_virtual_machine_cluster.test.name
   resource_group_name = azurerm_oracle_exascale_database_virtual_machine_cluster.test.resource_group_name
 }
-`, ExadbVmClusterResource{}.basic(data))
+`, ExascaleDatabaseVirtualMachineClusterResource{}.basic(data))
 }
