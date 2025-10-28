@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
 
-* `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing. Changing this forces a new Autonomous Database to be created.
+* `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing. 
 
 * `backup_retention_period_in_days` - (Optional) Retention period, in days, for backups. 
 
