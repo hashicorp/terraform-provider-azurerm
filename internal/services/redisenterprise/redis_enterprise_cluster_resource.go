@@ -6,6 +6,7 @@ package redisenterprise
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"strconv"
 	"strings"
@@ -240,6 +241,10 @@ func resourceRedisEnterpriseClusterUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := redisenterprise.ClusterUpdate{
 		Tags: expandedTags,
+	}
+
+	if d.HasChange("sku_name") {
+		parameters.Sku = pointer.To(expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
