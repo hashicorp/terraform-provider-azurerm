@@ -121,6 +121,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"ssh_public_keys": {
@@ -152,11 +153,13 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"virtual_machine_file_system_storage": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -310,6 +313,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			// O+C if not specified, the default value will be provided by API
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^(19|22|23|24|25)\.[0-9]+(\.[0-9]+)*|[0-9]+(\.[0-9]+)$`),
 				"The system_version must match following patterns: (19|22|23|24|25).x(.x(.x)).",
 			),

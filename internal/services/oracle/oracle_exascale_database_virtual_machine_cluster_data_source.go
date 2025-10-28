@@ -46,7 +46,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	LifecycleState                           string                                              `tfschema:"lifecycle_state"`
 	ListenerPort                             int64                                               `tfschema:"listener_port"`
 	Location                                 string                                              `tfschema:"location"`
-	MemorySizeInGbs                          int64                                               `tfschema:"memory_size_in_gbs"`
+	MemorySizeInGb                           int64                                               `tfschema:"memory_size_in_gb"`
 	NodeCount                                int64                                               `tfschema:"node_count"`
 	NetworkSecurityGroupCidrs                []NetworkSecurityGroupCidrModel                     `tfschema:"network_security_group_cidrs"`
 	NetworkSecurityGroupUrl                  string                                              `tfschema:"network_security_group_url"`
@@ -80,14 +80,14 @@ type ExascaleDatabaseDataCollectionOptionModel struct {
 }
 
 type IormConfigModel struct {
-	DbPlans          []ExascaleDatabaseIormConfigModel `tfschema:"db_plans"`
+	DatabasePlans    []ExascaleDatabaseIormConfigModel `tfschema:"database_plans"`
 	LifecycleDetails string                            `tfschema:"lifecycle_details"`
 	LifecycleState   string                            `tfschema:"lifecycle_state"`
 	Objective        string                            `tfschema:"objective"`
 }
 
 type ExascaleDatabaseIormConfigModel struct {
-	DbName          string `tfschema:"db_name"`
+	DatabaseName    string `tfschema:"database_name"`
 	FlashCacheLimit string `tfschema:"flash_cache_limit"`
 	Share           int64  `tfschema:"share"`
 }
@@ -210,12 +210,12 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"db_plans": {
+					"database_plans": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"db_name": {
+								"database_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -271,7 +271,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"memory_size_in_gbs": {
+		"memory_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -515,7 +515,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 					state.LifecycleState = string(*props.LifecycleState)
 					state.ListenerPort = pointer.From(props.ListenerPort)
-					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
 					state.NodeCount = props.NodeCount
 					state.NetworkSecurityGroupCidrs = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.NetworkSecurityGroupUrl = pointer.From(props.NsgURL)
@@ -559,14 +559,14 @@ func flattenIormConfig(input *exadbvmclusters.ExadataIormConfig) []IormConfigMod
 			dbPlans := *input.DbPlans
 			for _, dbPlan := range dbPlans {
 				dbIormConfigModel = append(dbIormConfigModel, ExascaleDatabaseIormConfigModel{
-					DbName:          pointer.From(dbPlan.DbName),
+					DatabaseName:    pointer.From(dbPlan.DbName),
 					FlashCacheLimit: pointer.From(dbPlan.FlashCacheLimit),
 					Share:           pointer.From(dbPlan.Share),
 				})
 			}
 		}
 		return append(output, IormConfigModel{
-			DbPlans:          dbIormConfigModel,
+			DatabasePlans:    dbIormConfigModel,
 			LifecycleDetails: pointer.From(input.LifecycleDetails),
 			LifecycleState:   string(pointer.From(input.LifecycleState)),
 			Objective:        string(pointer.From(input.Objective)),
