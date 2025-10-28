@@ -134,6 +134,7 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 30
   zones               = ["1"]
+  sku                 = "StandardV2"
 }
 
 resource "azurerm_nat_gateway" "test" {
@@ -183,6 +184,7 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 30
   zones               = ["1"]
+  sku				  = "StandardV2"
 }
 
 resource "azurerm_nat_gateway" "test" {
