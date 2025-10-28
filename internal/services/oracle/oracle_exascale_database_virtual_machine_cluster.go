@@ -8,13 +8,29 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
 )
 
-func FlattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionOptionModel {
-	output := make([]ExascaleDatabaseDataCollectionOptionModel, 0)
+type ExascaleDatabaseDataCollectionModel struct {
+	DiagnosticsEventsEnabled bool `tfschema:"diagnostics_events_enabled"`
+	HealthMonitoringEnabled  bool `tfschema:"health_monitoring_enabled"`
+	IncidentLogsEnabled      bool `tfschema:"incident_logs_enabled"`
+}
+
+type NetworkSecurityGroupCidrModel struct {
+	DestinationPortRange []PortRangeModel `tfschema:"destination_port_range"`
+	Source               string           `tfschema:"source"`
+}
+
+type PortRangeModel struct {
+	Max int64 `tfschema:"max"`
+	Min int64 `tfschema:"min"`
+}
+
+func FlattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
+	output := make([]ExascaleDatabaseDataCollectionModel, 0)
 	if dataCollectionOptions != nil {
-		return append(output, ExascaleDatabaseDataCollectionOptionModel{
-			IsDiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
-			IsHealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
-			IsIncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
+		return append(output, ExascaleDatabaseDataCollectionModel{
+			DiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
+			HealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
+			IncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
 		})
 	}
 	return output

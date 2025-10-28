@@ -30,7 +30,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 
 	BackupSubnetCidr                         string                                              `tfschema:"backup_subnet_cidr"`
 	ClusterName                              string                                              `tfschema:"cluster_name"`
-	DataCollectionOption                     []ExascaleDatabaseDataCollectionOptionModel         `tfschema:"data_collection_option"`
+	DataCollection                           []ExascaleDatabaseDataCollectionModel               `tfschema:"data_collection"`
 	DisplayName                              string                                              `tfschema:"display_name"`
 	Domain                                   string                                              `tfschema:"domain"`
 	EnabledEcpuCount                         int64                                               `tfschema:"enabled_ecpu_count"`
@@ -46,9 +46,9 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	LifecycleState                           string                                              `tfschema:"lifecycle_state"`
 	ListenerPort                             int64                                               `tfschema:"listener_port"`
 	Location                                 string                                              `tfschema:"location"`
-	MemorySizeInGbs                          int64                                               `tfschema:"memory_size_in_gbs"`
+	MemorySizeInGb                           int64                                               `tfschema:"memory_size_in_gb"`
 	NodeCount                                int64                                               `tfschema:"node_count"`
-	NetworkSecurityGroupCidrs                []NetworkSecurityGroupCidrModel                     `tfschema:"network_security_group_cidrs"`
+	NetworkSecurityGroupCidr                 []NetworkSecurityGroupCidrModel                     `tfschema:"network_security_group_cidr"`
 	NetworkSecurityGroupUrl                  string                                              `tfschema:"network_security_group_url"`
 	OciUrl                                   string                                              `tfschema:"oci_url"`
 	Ocid                                     string                                              `tfschema:"ocid"`
@@ -73,37 +73,21 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	ZoneOcid                                 string                                              `tfschema:"zone_ocid"`
 }
 
-type ExascaleDatabaseDataCollectionOptionModel struct {
-	IsDiagnosticsEventsEnabled bool `tfschema:"diagnostics_events_enabled"`
-	IsHealthMonitoringEnabled  bool `tfschema:"health_monitoring_enabled"`
-	IsIncidentLogsEnabled      bool `tfschema:"incident_logs_enabled"`
-}
-
 type IormConfigModel struct {
-	DbPlans          []ExascaleDatabaseIormConfigModel `tfschema:"db_plans"`
+	DatabasePlans    []ExascaleDatabaseIormConfigModel `tfschema:"database_plans"`
 	LifecycleDetails string                            `tfschema:"lifecycle_details"`
 	LifecycleState   string                            `tfschema:"lifecycle_state"`
 	Objective        string                            `tfschema:"objective"`
 }
 
 type ExascaleDatabaseIormConfigModel struct {
-	DbName          string `tfschema:"db_name"`
+	DatabaseName    string `tfschema:"database_name"`
 	FlashCacheLimit string `tfschema:"flash_cache_limit"`
 	Share           int64  `tfschema:"share"`
 }
 
 type ExascaleDatabaseVirtualMachineClusterStorageModel struct {
 	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
-}
-
-type NetworkSecurityGroupCidrModel struct {
-	DestinationPortRange []PortRangeModel `tfschema:"destination_port_range"`
-	Source               string           `tfschema:"source"`
-}
-
-type PortRangeModel struct {
-	Max int64 `tfschema:"max"`
-	Min int64 `tfschema:"min"`
 }
 
 func (d ExascaleDatabaseVirtualMachineClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -137,7 +121,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"data_collection_option": {
+		"data_collection": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -210,12 +194,12 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"db_plans": {
+					"database_plans": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"db_name": {
+								"database_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -271,7 +255,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"memory_size_in_gbs": {
+		"memory_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -281,7 +265,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"network_security_group_cidrs": {
+		"network_security_group_cidr": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -500,7 +484,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 				if props := model.Properties; props != nil {
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.ClusterName = pointer.From(props.ClusterName)
-					state.DataCollectionOption = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
+					state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
 					state.DisplayName = props.DisplayName
 					state.Domain = pointer.From(props.Domain)
 					state.EnabledEcpuCount = props.EnabledEcpuCount
@@ -515,9 +499,9 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 					state.LifecycleState = string(*props.LifecycleState)
 					state.ListenerPort = pointer.From(props.ListenerPort)
-					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
 					state.NodeCount = props.NodeCount
-					state.NetworkSecurityGroupCidrs = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.NetworkSecurityGroupUrl = pointer.From(props.NsgURL)
 					state.OciUrl = pointer.From(props.OciURL)
 					state.Ocid = pointer.From(props.Ocid)
@@ -559,14 +543,14 @@ func flattenIormConfig(input *exadbvmclusters.ExadataIormConfig) []IormConfigMod
 			dbPlans := *input.DbPlans
 			for _, dbPlan := range dbPlans {
 				dbIormConfigModel = append(dbIormConfigModel, ExascaleDatabaseIormConfigModel{
-					DbName:          pointer.From(dbPlan.DbName),
+					DatabaseName:    pointer.From(dbPlan.DbName),
 					FlashCacheLimit: pointer.From(dbPlan.FlashCacheLimit),
 					Share:           pointer.From(dbPlan.Share),
 				})
 			}
 		}
 		return append(output, IormConfigModel{
-			DbPlans:          dbIormConfigModel,
+			DatabasePlans:    dbIormConfigModel,
 			LifecycleDetails: pointer.From(input.LifecycleDetails),
 			LifecycleState:   string(pointer.From(input.LifecycleState)),
 			Objective:        string(pointer.From(input.Objective)),

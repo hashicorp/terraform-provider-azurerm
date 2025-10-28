@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
@@ -47,19 +48,19 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 	VirtualMachineFileSystemStorage []ExascaleDatabaseVirtualMachineClusterStorageModel `tfschema:"virtual_machine_file_system_storage"`
 	VnetId                          string                                              `tfschema:"virtual_network_id"`
 
-	BackupSubnetCidr                         string                                      `tfschema:"backup_subnet_cidr"`
-	ClusterName                              string                                      `tfschema:"cluster_name"`
-	DataCollectionOption                     []ExascaleDatabaseDataCollectionOptionModel `tfschema:"data_collection_option"`
-	Domain                                   string                                      `tfschema:"domain"`
-	LicenseModel                             string                                      `tfschema:"license_model"`
-	NetworkSecurityGroupCidrs                []NetworkSecurityGroupCidrModel             `tfschema:"network_security_group_cidrs"`
-	Ocid                                     string                                      `tfschema:"ocid"`
-	PrivateZoneOcid                          string                                      `tfschema:"private_zone_ocid"`
-	SingleClientAccessNameListenerPortTcp    int64                                       `tfschema:"single_client_access_name_listener_port_tcp"`
-	SingleClientAccessNameListenerPortTcpSsl int64                                       `tfschema:"single_client_access_name_listener_port_tcp_ssl"`
-	SystemVersion                            string                                      `tfschema:"system_version"`
-	TimeZone                                 string                                      `tfschema:"time_zone"`
-	ZoneOcid                                 string                                      `tfschema:"zone_ocid"`
+	BackupSubnetCidr                         string                                `tfschema:"backup_subnet_cidr"`
+	ClusterName                              string                                `tfschema:"cluster_name"`
+	DataCollection                           []ExascaleDatabaseDataCollectionModel `tfschema:"data_collection"`
+	Domain                                   string                                `tfschema:"domain"`
+	LicenseModel                             string                                `tfschema:"license_model"`
+	NetworkSecurityGroupCidr                 []NetworkSecurityGroupCidrModel       `tfschema:"network_security_group_cidr"`
+	Ocid                                     string                                `tfschema:"ocid"`
+	PrivateZoneOcid                          string                                `tfschema:"private_zone_ocid"`
+	SingleClientAccessNameListenerPortTcp    int64                                 `tfschema:"single_client_access_name_listener_port_tcp"`
+	SingleClientAccessNameListenerPortTcpSsl int64                                 `tfschema:"single_client_access_name_listener_port_tcp_ssl"`
+	SystemVersion                            string                                `tfschema:"system_version"`
+	TimeZone                                 string                                `tfschema:"time_zone"`
+	ZoneOcid                                 string                                `tfschema:"zone_ocid"`
 }
 
 func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -92,6 +93,13 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ForceNew: true,
+			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+				// The service may automatically adjust this value based on the new node_count.
+				if d.Id() != "" {
+					return true
+				}
+				return false
+			},
 			ValidateFunc: validation.All(
 				validation.IntBetween(8, 200),
 				validation.IntDivisibleBy(4),
@@ -109,18 +117,21 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{0,12}$`),
+				"The hostname must be no longer than 12 characters, and may contain alphabets, numbers, and hyphens (-).",
+			),
 		},
 
 		"node_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(2, 10),
 		},
 
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"ssh_public_keys": {
@@ -143,6 +154,13 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ForceNew: true,
+			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+				// The service may automatically adjust this value based on the new node_count.
+				if d.Id() != "" {
+					return true
+				}
+				return false
+			},
 			ValidateFunc: validation.All(
 				validation.IntBetween(8, 200),
 				validation.IntDivisibleBy(4),
@@ -152,11 +170,20 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"virtual_machine_file_system_storage": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
+			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+				// The service may automatically adjust this value based on the new node_count.
+				if d.Id() != "" {
+					return true
+				}
+				return false
+			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -178,7 +205,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 
 		"cluster_name": {
 			Type: pluginsdk.TypeString,
-			// O+C if not specified, this gets set to the name of the virtual machine
+			// The O+C is specified here because the service will set the virtual machine's name as the default value if not specified.
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
@@ -187,9 +214,11 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			),
 		},
 
-		"data_collection_option": {
-			Type:     pluginsdk.TypeList,
+		"data_collection": {
+			Type: pluginsdk.TypeList,
+			// The O+C is specified here because the service will set a default value to the data_collection if not specified.
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
 			MinItems: 1,
@@ -221,31 +250,29 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 
 		"domain": {
 			Type: pluginsdk.TypeString,
-			// O+C if not specified, this gets set to the name of the virtual machine
+			// The O+C is specified here because the service will set a default value to the hostname if not specified.
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
 
 		"grid_image_ocid": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(exadbvmclusters.LicenseModelBringYourOwnLicense),
-				string(exadbvmclusters.LicenseModelLicenseIncluded),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForLicenseModel(), false),
 		},
 
-		"network_security_group_cidrs": {
+		"network_security_group_cidr": {
 			Type: pluginsdk.TypeList,
-			// O+C if not specified, this gets set to the name of the virtual machine
+			// The O+C is specified here because the service will set a default value to the network_security_group_cidr if not specified.
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
@@ -284,9 +311,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"private_zone_ocid": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"single_client_access_name_listener_port_tcp": {
@@ -308,16 +336,15 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"system_version": {
 			Type: pluginsdk.TypeString,
 			// O+C if not specified, the default value will be provided by API
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^(19|22|23|24|25)\.[0-9]+(\.[0-9]+)*|[0-9]+(\.[0-9]+)$`),
-				"The system_version must match following patterns: (19|22|23|24|25).x(.x(.x)).",
-			),
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SystemVersion,
 		},
 
 		"time_zone": {
 			Type: pluginsdk.TypeString,
-			// O+C if not specified, the default value will be provided by API
+			// The O+C is specified here because, if not provided, the service defaults the time_zone to UTC.
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
@@ -359,7 +386,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 
 			var model ExascaleDatabaseVirtualMachineClusterResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := exadbvmclusters.NewExadbVMClusterID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -389,6 +416,8 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 					SubnetId:                 model.SubnetId,
 					TotalEcpuCount:           model.TotalEcpuCount,
 					VnetId:                   model.VnetId,
+					ScanListenerPortTcp:      pointer.To(model.SingleClientAccessNameListenerPortTcp),
+					ScanListenerPortTcpSsl:   pointer.To(model.SingleClientAccessNameListenerPortTcpSsl),
 				},
 			}
 
@@ -404,11 +433,11 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 			if model.ClusterName != "" {
 				param.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
-			if len(model.DataCollectionOption) > 0 {
+			if len(model.DataCollection) > 0 {
 				param.Properties.DataCollectionOptions = &exadbvmclusters.DataCollectionOptions{
-					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOption[0].IsDiagnosticsEventsEnabled),
-					IsHealthMonitoringEnabled:  pointer.To(model.DataCollectionOption[0].IsHealthMonitoringEnabled),
-					IsIncidentLogsEnabled:      pointer.To(model.DataCollectionOption[0].IsIncidentLogsEnabled),
+					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollection[0].DiagnosticsEventsEnabled),
+					IsHealthMonitoringEnabled:  pointer.To(model.DataCollection[0].HealthMonitoringEnabled),
+					IsIncidentLogsEnabled:      pointer.To(model.DataCollection[0].IncidentLogsEnabled),
 				}
 			}
 			if model.Domain != "" {
@@ -417,17 +446,11 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 			if model.LicenseModel != "" {
 				param.Properties.LicenseModel = pointer.To(exadbvmclusters.LicenseModel(model.LicenseModel))
 			}
-			if len(model.NetworkSecurityGroupCidrs) > 0 {
-				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.NetworkSecurityGroupCidrs))
+			if len(model.NetworkSecurityGroupCidr) > 0 {
+				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.NetworkSecurityGroupCidr))
 			}
 			if model.PrivateZoneOcid != "" {
 				param.Properties.PrivateZoneOcid = pointer.To(model.PrivateZoneOcid)
-			}
-			if model.SingleClientAccessNameListenerPortTcp >= 1024 && model.SingleClientAccessNameListenerPortTcp <= 8999 {
-				param.Properties.ScanListenerPortTcp = pointer.To(model.SingleClientAccessNameListenerPortTcp)
-			}
-			if model.SingleClientAccessNameListenerPortTcpSsl >= 1024 && model.SingleClientAccessNameListenerPortTcpSsl <= 8999 {
-				param.Properties.ScanListenerPortTcpSsl = pointer.To(model.SingleClientAccessNameListenerPortTcpSsl)
 			}
 			if model.SystemVersion != "" {
 				param.Properties.SystemVersion = pointer.To(model.SystemVersion)
@@ -458,7 +481,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Update() sdk.ResourceFunc
 
 			var model ExascaleDatabaseVirtualMachineClusterResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			_, err = client.Get(ctx, *id)
@@ -512,7 +535,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 
@@ -525,32 +548,21 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.NodeCount = props.NodeCount
 					state.Shape = props.Shape
 					state.SshPublicKeys = props.SshPublicKeys
-					tmp := make([]string, 0)
-					for _, key := range props.SshPublicKeys {
-						if key != "" {
-							tmp = append(tmp, key)
-						}
-					}
-					state.SshPublicKeys = tmp
 					state.SubnetId = props.SubnetId
 					state.TotalEcpuCount = props.TotalEcpuCount
 					state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
 					state.VnetId = props.VnetId
-					state.Location = model.Location
-					state.Tags = pointer.From(model.Tags)
-					state.Zones = pointer.From(model.Zones)
-
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.ClusterName = pointer.From(props.ClusterName)
-					state.DataCollectionOption = flattenExadbDataCollectionOptionInterface(metadata.ResourceData.Get("data_collection_option").([]interface{}))
+					state.DataCollection = flattenExadbDataCollectionOptionInterface(props.DataCollectionOptions)
 					state.Domain = pointer.From(props.Domain)
 					state.LicenseModel = string(pointer.From(props.LicenseModel))
-					state.NetworkSecurityGroupCidrs = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.Ocid = pointer.From(props.Ocid)
 					state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
 					state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.SingleClientAccessNameListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
-					state.SystemVersion = metadata.ResourceData.Get("system_version").(string)
+					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneOcid = pointer.From(props.ZoneOcid)
 				}
@@ -585,18 +597,14 @@ func (ExascaleDatabaseVirtualMachineClusterResource) IDValidationFunc() pluginsd
 	return exadbvmclusters.ValidateExadbVMClusterID
 }
 
-func flattenExadbDataCollectionOptionInterface(input []interface{}) []ExascaleDatabaseDataCollectionOptionModel {
-	output := make([]ExascaleDatabaseDataCollectionOptionModel, 0)
-	if len(input) == 0 || input[0] == nil {
-		return output
-	}
-	if m, ok := input[0].(map[string]interface{}); ok {
-		dataCollection := ExascaleDatabaseDataCollectionOptionModel{
-			IsDiagnosticsEventsEnabled: m["diagnostics_events_enabled"].(bool),
-			IsHealthMonitoringEnabled:  m["health_monitoring_enabled"].(bool),
-			IsIncidentLogsEnabled:      m["incident_logs_enabled"].(bool),
-		}
-		output = append(output, dataCollection)
+func flattenExadbDataCollectionOptionInterface(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
+	output := make([]ExascaleDatabaseDataCollectionModel, 0)
+	if dataCollectionOptions != nil {
+		return append(output, ExascaleDatabaseDataCollectionModel{
+			DiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
+			HealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
+			IncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
+		})
 	}
 	return output
 }
