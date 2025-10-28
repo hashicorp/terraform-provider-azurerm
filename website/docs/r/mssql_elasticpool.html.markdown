@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
+* `high_availability_replica_count` - (Optional) Specifies the number of high availability replicas for the elastic pool. Defaults to `0`.
+
 ---
 
 The `sku` block supports the following:
