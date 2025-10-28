@@ -47,7 +47,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
 				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
 			),
-		},
+		}, 
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"stateful_agent_profile": {
@@ -80,11 +80,82 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Default:  "UTC",
 								},
-								"days_data": {
-									Type:             pluginsdk.TypeString,
-									Required:         true,
-									ValidateFunc:     validation.StringIsJSON,
-									DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+								"all_week_schedule": {
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+									ConflictsWith: []string{
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.sunday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.monday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.tuesday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.wednesday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.thursday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.friday_schedule",
+										"stateful_agent_profile.0.manual_resource_predictions_profile.0.saturday_schedule",
+									},
+									ValidateFunc: validation.IntAtLeast(1),
+								},
+								"sunday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"monday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"tuesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"wednesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"thursday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"friday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"saturday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateful_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
 								},
 							},
 						},
@@ -127,10 +198,82 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Default:  "UTC",
 								},
-								"days_data": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsJSON,
+								"all_week_schedule": {
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+									ConflictsWith: []string{
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.sunday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.monday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.tuesday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.wednesday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.thursday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.friday_schedule",
+										"stateless_agent_profile.0.manual_resource_predictions_profile.0.saturday_schedule",
+									},
+									ValidateFunc: validation.IntAtLeast(1),
+								},
+								"sunday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"monday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"tuesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"wednesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"thursday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"friday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+								"saturday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Optional:      true,
+									ConflictsWith: []string{"stateless_agent_profile.0.manual_resource_predictions_profile.0.all_week_schedule"},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeInt,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
 								},
 							},
 						},
@@ -182,8 +325,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										`Buffer must be "*" or value between 0 and 100.`,
 									),
 								},
-								// Exactly one of resource_id and well_known_image_name can be specified
-								// However ExactlyOneOf cannot be used in TypeList with more than 1 item, we'll rely on API to validate
 								"resource_id": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,

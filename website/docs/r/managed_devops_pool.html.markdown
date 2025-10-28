@@ -80,9 +80,15 @@ resource "azurerm_managed_devops_pool" "example" {
     }
   }
 
-  stateless_agent_profile {
-    automatic_resource_predictions_profile {
-      prediction_preference = "Balanced"
+  stateful_agent_profile {
+    manual_resource_predictions_profile {
+      time_zone = "Eastern Standard Time"
+      
+      monday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
+      tuesday_schedule   = { "09:00:00" = 1, "17:00:00" = 0 }
+      wednesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
+      thursday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
+      friday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
     }
   }
 
@@ -276,7 +282,23 @@ A `manual_resource_predictions_profile` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
 
-* `days_data` - (Required) A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times. For example, jsonencode([{},{"09:00:00": 1, "17:00:00": 0},{},{},{},{},{}]) specifies 1 standby agent available every Monday from 9:00 AM to 5:00 PM.
+* `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are integers greater than `0`.
+
+* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday.
+
+* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday.
+
+* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday.
+
+* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday.
+
+* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday.
+
+* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday.
+
+* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday.
+
+~> **NOTE:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 

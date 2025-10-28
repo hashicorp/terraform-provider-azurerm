@@ -89,7 +89,7 @@ func TestAccManagedDevOpsPool_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,12 +136,7 @@ resource "azurerm_managed_devops_pool" "test" {
     permission_profile_kind = "CreatorOnly"
   }
 
-  stateless_agent_profile {
-    manual_resource_predictions_profile {
-      time_zone = "UTC"
-      days_data = "[{},{\"09:00:00\":1,\"17:00:00\":0},{},{},{},{},{}]"
-    }
-  }
+  stateless_agent_profile {}
 
   vmss_fabric_profile {
     image {
@@ -306,7 +301,172 @@ resource "azurerm_managed_devops_pool" "test" {
     permission_profile_kind = "CreatorOnly"
   }
 
-  stateful_agent_profile {}
+  stateful_agent_profile {
+    grace_period_time_span = "00:10:00"
+    max_agent_lifetime      = "08:00:00"
+    manual_resource_predictions_profile {
+      time_zone = "UTC"
+      monday_schedule   = {"09:00:00" = 1, "17:00:00" = 0}
+      tuesday_schedule  = {"09:00:00" = 1, "17:00:00" = 0}
+    }
+  }
+
+  vmss_fabric_profile {
+    image {
+      resource_id = data.azurerm_platform_image.test.id
+      alias       = "marketplace image"
+      buffer      = "0"
+    }
+    image {
+      alias                 = "well known image"
+      well_known_image_name = "ubuntu-24.04"
+      buffer                = "100"
+    }
+    sku_name = "Standard_D2ads_v5"
+    os_profile {
+      secrets_management {
+        key_export_enabled = false
+        observed_certificates = [
+          azurerm_key_vault_certificate.test.versionless_secret_id
+        ]
+      }
+    }
+  }
+
+  tags = {
+    Environment = "ppe"
+    Project     = "Terraform"
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
+}
+
+func (r ManagedDevOpsPoolResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkeyvault${var.random_string}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge", "Recover", "Update", "List"]
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
+      "List",
+    ]
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+
+    storage_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert${var.random_string}"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_managed_devops_pool" "test" {
+  name                = "acctest-pool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  maximum_concurrency            = 1
+  dev_center_project_resource_id = azurerm_dev_center_project.test.id
+
+  azure_devops_organization_profile {
+    organization {
+      parallelism = 1
+      url         = "%s"
+    }
+    permission_profile_kind = "CreatorOnly"
+  }
+
+  stateful_agent_profile {
+    grace_period_time_span = "00:10:00"
+    max_agent_lifetime      = "08:00:00"
+    automatic_resource_predictions_profile {
+      prediction_preference = "MoreCostEffective"
+    }
+  }
 
   vmss_fabric_profile {
     image {

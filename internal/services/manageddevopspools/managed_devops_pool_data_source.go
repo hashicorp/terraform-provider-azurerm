@@ -69,8 +69,36 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
-								"days_data": {
-									Type:     pluginsdk.TypeString,
+								"all_week_schedule": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+								"sunday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"monday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"tuesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"wednesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"thursday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"friday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"saturday_schedule": {
+									Type:          pluginsdk.TypeMap,
 									Computed: true,
 								},
 							},
@@ -105,8 +133,36 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
-								"days_data": {
-									Type:     pluginsdk.TypeString,
+								"all_week_schedule": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+								"sunday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"monday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"tuesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"wednesday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"thursday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"friday_schedule": {
+									Type:          pluginsdk.TypeMap,
+									Computed: true,
+								},
+								"saturday_schedule": {
+									Type:          pluginsdk.TypeMap,
 									Computed: true,
 								},
 							},

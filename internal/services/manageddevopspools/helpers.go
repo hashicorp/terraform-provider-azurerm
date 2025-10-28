@@ -90,17 +90,38 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 }
 
 func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel) *ResourcePredictionsSdkModel {
-	var parsedDaysData []map[string]interface{}
-	if err := json.Unmarshal([]byte(input.DaysData), &parsedDaysData); err != nil {
-		return nil
+	var daysData []map[string]interface{}
+
+	if input.AllWeekSchedule > 0 {
+		allWeekMap := map[string]interface{}{
+			"00:00:00": input.AllWeekSchedule,
+		}
+		daysData = append(daysData, allWeekMap)
+	} else {
+		// Per-day schedule - create 7 map entries (one per day)
+		dayMaps := []map[string]interface{}{
+			input.SundaySchedule,    // 0 = Sunday
+			input.MondaySchedule,    // 1 = Monday
+			input.TuesdaySchedule,   // 2 = Tuesday
+			input.WednesdaySchedule, // 3 = Wednesday
+			input.ThursdaySchedule,  // 4 = Thursday
+			input.FridaySchedule,    // 5 = Friday
+			input.SaturdaySchedule,  // 6 = Saturday
+		}
+
+		for i := range dayMaps {
+			if dayMaps[i] == nil {
+				dayMaps[i] = make(map[string]interface{})
+			}
+		}
+
+		daysData = dayMaps
 	}
 
-	result := &ResourcePredictionsSdkModel{
-		DaysData: parsedDaysData,
+	return &ResourcePredictionsSdkModel{
+		DaysData: daysData,
 		TimeZone: input.TimeZone,
 	}
-
-	return result
 }
 
 func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) pools.OrganizationProfile {
@@ -274,10 +295,7 @@ func flattenStatefulAgentProfileToModel(input pools.Stateful) []StatefulAgentPro
 			manualProfile := ManualResourcePredictionsProfileModel{}
 
 			if input.ResourcePredictions != nil {
-				if predModel := flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions)); predModel != nil {
-					manualProfile.TimeZone = predModel.TimeZone
-					manualProfile.DaysData = predModel.DaysData
-				}
+				manualProfile = flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
 			}
 
 			statefulAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
@@ -301,7 +319,7 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []St
 			manualProfile := ManualResourcePredictionsProfileModel{}
 
 			if input.ResourcePredictions != nil {
-				manualProfile = *flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
+				manualProfile = flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
 			}
 
 			statelessAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
@@ -310,30 +328,60 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []St
 	return []StatelessAgentProfileModel{statelessAgentProfileModel}
 }
 
-func flattenManualResourcePredictionsModel(input interface{}) *ManualResourcePredictionsProfileModel {
+func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePredictionsProfileModel {
+	manualProfile := ManualResourcePredictionsProfileModel{}
+
 	if input == nil {
-		return nil
+		return manualProfile
 	}
 
 	jsonBytes, err := json.Marshal(input)
 	if err != nil {
-		return nil
+		return manualProfile
 	}
 
 	var sdkModel ResourcePredictionsSdkModel
 	if err := json.Unmarshal(jsonBytes, &sdkModel); err != nil {
-		return nil
+		return manualProfile
 	}
 
-	daysDataBytes, err := json.Marshal(sdkModel.DaysData)
-	if err != nil {
-		return nil
+	manualProfile.TimeZone = sdkModel.TimeZone
+
+	if len(sdkModel.DaysData) == 1 {
+		if agentCount, exists := sdkModel.DaysData[0]["00:00:00"]; exists {
+			if count, ok := agentCount.(float64); ok {
+				manualProfile.AllWeekSchedule = int64(count)
+			} else if count, ok := agentCount.(int); ok {
+				manualProfile.AllWeekSchedule = int64(count)
+			} else if count, ok := agentCount.(int64); ok {
+				manualProfile.AllWeekSchedule = count
+			}
+		}
+	} else if len(sdkModel.DaysData) == 7 {
+		if len(sdkModel.DaysData[0]) > 0 {
+			manualProfile.SundaySchedule = sdkModel.DaysData[0]
+		}
+		if len(sdkModel.DaysData[1]) > 0 {
+			manualProfile.MondaySchedule = sdkModel.DaysData[1]
+		}
+		if len(sdkModel.DaysData[2]) > 0 {
+			manualProfile.TuesdaySchedule = sdkModel.DaysData[2]
+		}
+		if len(sdkModel.DaysData[3]) > 0 {
+			manualProfile.WednesdaySchedule = sdkModel.DaysData[3]
+		}
+		if len(sdkModel.DaysData[4]) > 0 {
+			manualProfile.ThursdaySchedule = sdkModel.DaysData[4]
+		}
+		if len(sdkModel.DaysData[5]) > 0 {
+			manualProfile.FridaySchedule = sdkModel.DaysData[5]
+		}
+		if len(sdkModel.DaysData[6]) > 0 {
+			manualProfile.SaturdaySchedule = sdkModel.DaysData[6]
+		}
 	}
 
-	return &ManualResourcePredictionsProfileModel{
-		TimeZone: sdkModel.TimeZone,
-		DaysData: string(daysDataBytes),
-	}
+	return manualProfile
 }
 
 func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationProfileModel {

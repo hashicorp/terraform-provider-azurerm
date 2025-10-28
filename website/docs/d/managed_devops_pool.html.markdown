@@ -83,7 +83,21 @@ A `manual_resource_predictions_profile` block exports the following:
 
 * `time_zone` - The time zone for the predictions data to be provisioned at.
 
-* `days_data` - A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times.
+* `all_week_schedule` - A number of agents available 24/7 all week.
+
+* `sunday_schedule` - A map of time-to-agent-count pairs for Sunday.
+
+* `monday_schedule` - A map of time-to-agent-count pairs for Monday.
+
+* `tuesday_schedule` - A map of time-to-agent-count pairs for Tuesday.
+
+* `wednesday_schedule` - A map of time-to-agent-count pairs for Wednesday.
+
+* `thursday_schedule` - A map of time-to-agent-count pairs for Thursday.
+
+* `friday_schedule` - A map of time-to-agent-count pairs for Friday.
+
+* `saturday_schedule` - A map of time-to-agent-count pairs for Saturday.
 
 ---
 

@@ -28,8 +28,15 @@ type ResourcePredictionsProfileModel struct {
 }
 
 type ManualResourcePredictionsProfileModel struct {
-	TimeZone string `tfschema:"time_zone"`
-	DaysData string `tfschema:"days_data"`
+	TimeZone          string                 `tfschema:"time_zone"`
+	AllWeekSchedule   int64                  `tfschema:"all_week_schedule"`
+	SundaySchedule    map[string]interface{} `tfschema:"sunday_schedule"`
+	MondaySchedule    map[string]interface{} `tfschema:"monday_schedule"`
+	TuesdaySchedule   map[string]interface{} `tfschema:"tuesday_schedule"`
+	WednesdaySchedule map[string]interface{} `tfschema:"wednesday_schedule"`
+	ThursdaySchedule  map[string]interface{} `tfschema:"thursday_schedule"`
+	FridaySchedule    map[string]interface{} `tfschema:"friday_schedule"`
+	SaturdaySchedule  map[string]interface{} `tfschema:"saturday_schedule"`
 }
 
 type AutomaticResourcePredictionsProfileModel struct {
