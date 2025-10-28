@@ -34,7 +34,7 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_group_name").HasValue(fmt.Sprintf("acctest-geo-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_linked_database_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_database.0.module.#").HasValue("0"),
-				check.That(data.ResourceName).Key("default_database.0.persistence").IsEmpty(),
+				check.That(data.ResourceName).Key("default_database.0.persistence.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_database.0.port").HasValue("10000"),
 				check.That(data.ResourceName).Key("default_database.0.primary_access_key").IsNotEmpty(),
 				check.That(data.ResourceName).Key("default_database.0.secondary_access_key").IsNotEmpty(),
