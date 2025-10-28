@@ -93,7 +93,7 @@ A `column` block supports the following:
 
 * `hidden` - (Optional) Specifies whether the column is hidden in the query results. Defaults to `false`.
 
-* `type_hint` - (Optional) The type hint for the column data type. Can only be set for columns of type `string`. Possible values are `armPath`, `guid`, `ip`, and `uri`.
+* `type_hint` - (Optional) The type hint for the column data type. Possible values are `armPath`, `guid`, `ip`, and `uri`.
 
 ~> **Note:** `type_hint` can only be set for columns of type `string`.
 
@@ -113,15 +113,15 @@ A `standard_column` block exports the following:
 
 * `description` - The description of the standard column.
 
-* `display_by_default` - Whether the standard column is displayed by default. Defaults to `true`.
+* `display_by_default` - Whether the standard column is displayed by default.
 
 * `display_name` - The display name of the standard column.
 
 * `hidden` - Whether the standard column is hidden.
 
-* `name` - (Required) The name of the standard column.
+* `name` - The name of the standard column.
 
-* `type` - (Required) The data type of the standard column.
+* `type` - The data type of the standard column.
 
 * `type_hint` - The type hint of the standard column.
 

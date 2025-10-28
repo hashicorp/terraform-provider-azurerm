@@ -68,9 +68,9 @@ func columnSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func expandColumns(columns *[]WorkspaceTableColumn) *[]tables.Column {
-	result := make([]tables.Column, 0, len(*columns))
-	for _, column := range *columns {
+func expandColumns(columns []WorkspaceTableColumn) *[]tables.Column {
+	result := make([]tables.Column, 0, len(columns))
+	for _, column := range columns {
 		columnToAdd := tables.Column{
 			Name:             pointer.To(column.Name),
 			IsHidden:         pointer.To(column.IsHidden),

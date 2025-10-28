@@ -115,10 +115,10 @@ func (t LogAnalyticsWorkspaceTableCustomLogResource) Exists(ctx context.Context,
 
 	resp, err := clients.LogAnalytics.TablesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Log Analytics Workspace Table (%s): %+v", id.ID(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (t LogAnalyticsWorkspaceTableCustomLogResource) basic(data acceptance.TestData) string {
@@ -138,7 +138,6 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
 }
 
 func (r LogAnalyticsWorkspaceTableCustomLogResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -163,7 +162,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "import" {
     type               = "string"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
 func (t LogAnalyticsWorkspaceTableCustomLogResource) complete(data acceptance.TestData) string {

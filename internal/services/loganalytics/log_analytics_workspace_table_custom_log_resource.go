@@ -215,7 +215,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("invalid workspace object ID for table %s: %s", config.Name, err)
+				return err
 			}
 
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, config.Name)
@@ -233,7 +233,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 					RetentionInDays:      defaultRetentionInDays,
 					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{
-						Columns:      expandColumns(pointer.To(config.Columns)),
+						Columns:      expandColumns(config.Columns),
 						DisplayName:  pointer.To(config.DisplayName),
 						Description:  pointer.To(config.Description),
 						Labels:       pointer.To(config.Labels),
@@ -300,12 +300,12 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 					state.Plan = pointer.FromEnum(props.Plan)
 
 					if schema := props.Schema; schema != nil {
-						state.DisplayName = pointer.From(props.Schema.DisplayName)
-						state.Description = pointer.From(props.Schema.Description)
-						state.Labels = pointer.From(props.Schema.Labels)
-						state.Solutions = pointer.From(props.Schema.Solutions)
-						state.Columns = flattenColumns(props.Schema.Columns)
-						state.StandardColumns = flattenColumns(props.Schema.StandardColumns)
+						state.DisplayName = pointer.From(schema.DisplayName)
+						state.Description = pointer.From(schema.Description)
+						state.Labels = pointer.From(schema.Labels)
+						state.Solutions = pointer.From(schema.Solutions)
+						state.Columns = flattenColumns(schema.Columns)
+						state.StandardColumns = flattenColumns(schema.StandardColumns)
 					}
 				}
 			}
@@ -332,7 +332,7 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Log Analytics Workspace Table %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
 			if model := existing.Model; model == nil {
