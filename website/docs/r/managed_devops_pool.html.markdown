@@ -74,7 +74,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
     permission_profile {
       kind = "SpecificAccounts"
-      
+
       administrator_accounts {
         groups = ["group1@example.com", "group2@example.com"]
         users  = ["user1@example.com", "user2@example.com"]
@@ -85,7 +85,7 @@ resource "azurerm_managed_devops_pool" "example" {
   stateful_agent_profile {
     manual_resource_predictions_profile {
       time_zone = "Eastern Standard Time"
-      
+
       monday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
       tuesday_schedule   = { "09:00:00" = 1, "17:00:00" = 0 }
       wednesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `stateless_agent_profile` - (Optional) A `stateless_agent_profile` block as defined below.
 
-~> **NOTE:** Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
+~> **Note:** Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
 
 ---
 
@@ -166,7 +166,7 @@ A `stateful_agent_profile` block supports the following:
 
 * `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
 
-~> **NOTE:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
 
 ---
 
@@ -176,7 +176,7 @@ A `stateless_agent_profile` block supports the following:
 
 * `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
 
-~> **NOTE:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
 
 ---
 
@@ -306,7 +306,7 @@ A `manual_resource_predictions_profile` block supports the following:
 
 * `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday. Agent counts must not exceed `maximum_concurrency`.
 
-~> **NOTE:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **Note:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 

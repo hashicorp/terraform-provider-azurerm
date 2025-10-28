@@ -130,7 +130,6 @@ resource "azurerm_managed_devops_pool" "test" {
 
   azure_devops_organization_profile {
     organization {
-      parallelism = 1
       url         = "%s"
     }
   }
@@ -162,7 +161,6 @@ resource "azurerm_managed_devops_pool" "import" {
 
   azure_devops_organization_profile {
     organization {
-      parallelism = 1
       url         = "%s"
     }
   }
@@ -283,6 +281,20 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.1.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
 resource "azurerm_managed_devops_pool" "test" {
   name                = "acctest-pool-%d"
   location            = azurerm_resource_group.test.location
@@ -303,11 +315,11 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateful_agent_profile {
     grace_period_time_span = "00:10:00"
-    max_agent_lifetime      = "08:00:00"
+    max_agent_lifetime     = "08:00:00"
     manual_resource_predictions_profile {
-      time_zone = "UTC"
-      monday_schedule   = {"09:00:00" = 1, "17:00:00" = 0}
-      tuesday_schedule  = {"09:00:00" = 1, "17:00:00" = 0}
+      time_zone        = "UTC"
+      monday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
+      tuesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
     }
   }
 
@@ -323,13 +335,29 @@ resource "azurerm_managed_devops_pool" "test" {
       buffer                = "100"
     }
     sku_name = "Standard_D2ads_v5"
+    network_profile {
+      subnet_id = azurerm_subnet.test.id
+    }
     os_profile {
+      logon_type = "Interactive"
       secrets_management {
+        certificate_store_location = "My"
+        certificate_store_name = ""
+
         key_export_enabled = false
         observed_certificates = [
           azurerm_key_vault_certificate.test.versionless_secret_id
         ]
       }
+    }
+    storage_profile {
+      data_disks {
+        caching = "None"
+        disk_size_gb = 10 
+        drive_letter = "F"
+        storage_account_type = "Standard_LRS"
+      }
+      os_disk_storage_account_type = "Standard_LRS"
     }
   }
 
@@ -469,7 +497,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateful_agent_profile {
     grace_period_time_span = "00:10:00"
-    max_agent_lifetime      = "08:00:00"
+    max_agent_lifetime     = "08:00:00"
     automatic_resource_predictions_profile {
       prediction_preference = "MoreCostEffective"
     }
