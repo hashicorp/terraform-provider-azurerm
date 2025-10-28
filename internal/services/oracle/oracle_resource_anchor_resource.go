@@ -31,7 +31,6 @@ type ResourceAnchorResourceModel struct {
 
 func (ResourceAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
