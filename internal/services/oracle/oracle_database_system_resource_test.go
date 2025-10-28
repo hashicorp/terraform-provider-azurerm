@@ -72,6 +72,8 @@ func TestDatabaseSystemResource_requiresImport(t *testing.T) {
 
 func (a DatabaseSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
+
 provider "azurerm" {
   features {}
 }
@@ -101,10 +103,12 @@ resource "azurerm_oracle_database_system" "test" {
 
 func (a DatabaseSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
+
 provider "azurerm" {
   features {}
 }
-  
+
 resource "azurerm_oracle_database_system" "test" {
   location                        = "%[3]s"
   zones              			        = ["2"]
