@@ -72,11 +72,13 @@ resource "azurerm_managed_devops_pool" "example" {
       url         = "https://dev.azure.com/example"
     }
 
-    permission_profile_kind = "SpecificAccounts"
-
-    administrator_accounts {
-      groups = ["group1@example.com", "group2@example.com"]
-      users  = ["user1@example.com", "user2@example.com"]
+    permission_profile {
+      kind = "SpecificAccounts"
+      
+      administrator_accounts {
+        groups = ["group1@example.com", "group2@example.com"]
+        users  = ["user1@example.com", "user2@example.com"]
+      }
     }
   }
 
@@ -238,9 +240,15 @@ An `azure_devops_organization_profile` block supports the following:
 
 * `organization` - (Required) One or more `organization` blocks as defined below.
 
-* `permission_profile_kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+* `permission_profile` - (Optional) A `permission_profile` block as defined below.
 
-* `administrator_accounts` - (Optional) One or more `administrator_accounts` block as defined below. This block is only valid when `permission_profile_kind` is set to `SpecificAccounts`.
+---
+
+A `permission_profile` block supports the following:
+
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+
+* `administrator_accounts` - (Optional) One or more `administrator_accounts` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
 ---
 
@@ -254,19 +262,19 @@ An `organization` block supports the following:
 
 ---
 
-An `os_profile` block supports the following:
-
-* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
-
-* `secrets_management` - (Optional) A `secrets_management` block as defined below.
-
----
-
 An `administrator_accounts` block supports the following:
 
 * `groups` - (Optional) Specifies a list of group email addresses.
 
 * `users` - (Optional) Specifies a list of user email addresses.
+
+---
+
+An `os_profile` block supports the following:
+
+* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
+
+* `secrets_management` - (Optional) A `secrets_management` block as defined below.
 
 ---
 

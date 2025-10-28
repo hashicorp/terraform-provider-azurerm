@@ -144,16 +144,17 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 		Organizations: poolOrganizations,
 	}
 
-	poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{}
-	if organizationProfile.PermissionProfileKind != nil {
-		poolPermissionProfile.Kind = pools.AzureDevOpsPermissionType(*organizationProfile.PermissionProfileKind)
+	if len(organizationProfile.PermissionProfile) > 0 {
+		permissionProfile := organizationProfile.PermissionProfile[0]
+		poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{
+			Kind: pools.AzureDevOpsPermissionType(permissionProfile.Kind),
+		}
 
-		// Only set groups and users if the kind is SpecificAccounts
-		if *organizationProfile.PermissionProfileKind == string(pools.AzureDevOpsPermissionTypeSpecificAccounts) &&
-			len(organizationProfile.AdministratorAccounts) > 0 {
-			specificAccounts := organizationProfile.AdministratorAccounts[0]
-			poolPermissionProfile.Groups = specificAccounts.Groups
-			poolPermissionProfile.Users = specificAccounts.Users
+		if poolPermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts &&
+			len(permissionProfile.AdministratorAccounts) > 0 {
+			adminAccounts := permissionProfile.AdministratorAccounts[0]
+			poolPermissionProfile.Groups = adminAccounts.Groups
+			poolPermissionProfile.Users = adminAccounts.Users
 		}
 
 		azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
@@ -390,16 +391,19 @@ func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganiz
 	}
 
 	if input.PermissionProfile != nil {
-		organizationProfileModel.PermissionProfileKind = (*string)(&input.PermissionProfile.Kind)
+		permissionProfile := AzureDevOpsPermissionProfileModel{
+			Kind: string(input.PermissionProfile.Kind),
+		}
 
-		// Only populate specific accounts if it's SpecificAccounts type and has groups/users
 		if input.PermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts {
-			specificAccounts := AzureDevOpsAdministratorAccountsModel{
+			adminAccounts := AzureDevOpsAdministratorAccountsModel{
 				Groups: input.PermissionProfile.Groups,
 				Users:  input.PermissionProfile.Users,
 			}
-			organizationProfileModel.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{specificAccounts}
+			permissionProfile.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
 		}
+
+		organizationProfileModel.PermissionProfile = []AzureDevOpsPermissionProfileModel{permissionProfile}
 	}
 
 	return []AzureDevOpsOrganizationProfileModel{organizationProfileModel}

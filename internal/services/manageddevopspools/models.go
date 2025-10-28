@@ -87,15 +87,19 @@ type DataDiskModel struct {
 }
 
 type AzureDevOpsOrganizationProfileModel struct {
-	Organizations         []OrganizationModel                     `tfschema:"organization"`
-	PermissionProfileKind *string                                 `tfschema:"permission_profile_kind"`
-	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_accounts"`
+	Organizations     []OrganizationModel                 `tfschema:"organization"`
+	PermissionProfile []AzureDevOpsPermissionProfileModel `tfschema:"permission_profile"`
 }
 
 type OrganizationModel struct {
 	Parallelism *int64    `tfschema:"parallelism"`
 	Projects    *[]string `tfschema:"projects"`
 	Url         string    `tfschema:"url"`
+}
+
+type AzureDevOpsPermissionProfileModel struct {
+	Kind                  string                                  `tfschema:"kind"`
+	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_accounts"`
 }
 
 type AzureDevOpsAdministratorAccountsModel struct {

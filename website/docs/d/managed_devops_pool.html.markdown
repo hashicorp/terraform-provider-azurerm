@@ -191,7 +191,13 @@ An `azure_devops_organization_profile` block exports the following:
 
 * `organization` - One or more `organization` blocks as defined below.
 
-* `permission_profile_kind` - The type of Azure DevOps pool permission.
+* `permission_profile` - A `permission_profile` block as defined below.
+
+---
+
+A `permission_profile` block exports the following:
+
+* `kind` - The type of Azure DevOps pool permission.
 
 * `administrator_accounts` - One or more `administrator_accounts` block as defined below.
 

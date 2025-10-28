@@ -133,7 +133,6 @@ resource "azurerm_managed_devops_pool" "test" {
       parallelism = 1
       url         = "%s"
     }
-    permission_profile_kind = "CreatorOnly"
   }
 
   stateless_agent_profile {}
@@ -166,7 +165,6 @@ resource "azurerm_managed_devops_pool" "import" {
       parallelism = 1
       url         = "%s"
     }
-    permission_profile_kind = "CreatorOnly"
   }
 
   stateful_agent_profile {}
@@ -298,7 +296,9 @@ resource "azurerm_managed_devops_pool" "test" {
       parallelism = 1
       url         = "%s"
     }
-    permission_profile_kind = "CreatorOnly"
+    permission_profile {
+      kind = "CreatorOnly"
+    }
   }
 
   stateful_agent_profile {
@@ -457,7 +457,14 @@ resource "azurerm_managed_devops_pool" "test" {
       parallelism = 1
       url         = "%s"
     }
-    permission_profile_kind = "CreatorOnly"
+    permission_profile {
+      kind = "SpecificAccounts"
+      administrator_accounts {
+        users = [
+          data.azurerm_client_config.current.tenant_id
+        ]
+      }
+    }
   }
 
   stateful_agent_profile {

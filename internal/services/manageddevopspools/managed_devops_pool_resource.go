@@ -480,31 +480,39 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					// In the Azure Rest API, kind is nested within permission profile as a required property
-					// Make it as required as API will set a default value for this if omitted
-					"permission_profile_kind": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
-					},
-					"administrator_accounts": {
+					"permission_profile": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"groups": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
+								"kind": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
-								"users": {
-									Type:     pluginsdk.TypeSet,
+								"administrator_accounts": {
+									Type:     pluginsdk.TypeList,
 									Optional: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"groups": {
+												Type:     pluginsdk.TypeSet,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+											"users": {
+												Type:     pluginsdk.TypeSet,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -781,6 +789,16 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 
 					if resourceIdSet && wellKnownImageNameSet {
 						return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in vmss_fabric_profile", i)
+					}
+				}
+			}
+
+			for _, orgProfile := range model.AzureDevOpsOrganizationProfile {
+				for _, permProfile := range orgProfile.PermissionProfile {
+					if permProfile.Kind != "SpecificAccounts" {
+						if len(permProfile.AdministratorAccounts) > 0 {
+							return fmt.Errorf("administrator_accounts block is not required when permission_profile kind is '%s'", permProfile.Kind)
+						}
 					}
 				}
 			}
