@@ -221,9 +221,6 @@ service/management-groups:
 service/maps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
 
-service/mixed-reality:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_spatial_anchors_account((.|\n)*)###'
-
 service/mobile-network:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mobile_network((.|\n)*)###'
 
