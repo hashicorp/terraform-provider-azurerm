@@ -95,17 +95,17 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
 
-* `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Changing this forces a new resource to be created.
+* `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure.
 
-* `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource.
+* `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource Changing this forces a new resource to be created.
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
 * `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
-* `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure.  Changing this forces a new resource to be created.
+* `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure. Changing this forces a new resource to be created.
 
-* `virtual_machine_file_system_storage` - (Required) A `virtual_machine_file_system_storage` block as defined below.
+* `virtual_machine_file_system_storage` - (Required) A `virtual_machine_file_system_storage` block as defined below. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
@@ -117,23 +117,23 @@ The following arguments are supported:
 
 * `cluster_name` - (Optional) The cluster name for Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
-* `data_collection_option` - (Optional) A `data_collection_option` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
+* `data_collection` - (Optional) A `data_collection` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
 
 * `domain` - (Optional) The name of the OCI Private DNS Zone to be associated with the Exadata VM Cluster. This is required for specifying your own private domain name. Changing this forces a new Exadata VM Cluster to be created.
 
-* `grid_image_ocid` - (Required) Grid Setup will be done using this grid image ocid. Changing this forces a new resource to be created.
+* `grid_image_ocid` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created.
 
-* `license_model` - (Optional) The Oracle license model that applies to the Exadata VM Cluster, either `BringYourOwnLicense` or `LicenseIncluded`. Changing this forces a new Exadata VM Cluster to be created.
+* `license_model` - (Optional) The Oracle license model that applies to the Exadata VM Cluster. Possible values are `BringYourOwnLicense` and `LicenseIncluded`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `network_security_group_cidrs` - (Optional) A `network_security_group_cidr` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
+* `network_security_group_cidr` - (Optional) A `network_security_group_cidr` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
 
-* `private_zone_ocid` - (Optional) The private zone ID in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
+* `private_zone_ocid` - (Optional) The The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
 
-* `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port to 1521. Changing this forces a new Exadata VM Cluster to be created.
+* `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. Defaults to `1521`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port to 2484. Changing this forces a new Exadata VM Cluster to be created.
+* `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. Defaults to `2484`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX).
+* `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX). Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata VM Cluster.
 
@@ -143,33 +143,33 @@ The following arguments are supported:
 
 A `virtual_machine_file_system_storage` block supports the following:
 
-* `total_size_in_gb` - (Required) Total Capacity.
+* `total_size_in_gb` - (Required) Total Capacity. Changing this forces a new resource to be created.
 
 ---
 
-A `data_collection_option` block supports the following:
+A `data_collection` block supports the following:
 
-* `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM cluster/Cloud VM cluster/VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
 
-* `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM cluster / Cloud VM cluster / VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
 
-* `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM cluster / Cloud VM cluster / VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
 
 ---
 
 A `network_security_group_cidr` block exports the following:
 
-* `destination_port_range` - (Optional) A `destination_port_range` block as defined below.
+* `destination_port_range` - (Required) A `destination_port_range` block as defined below.
 
-* `source` - (Optional) It is a range of IP addresses that a packet coming into the instance can come from. Changing this forces a new resource to be created.
+* `source` - (Required) It is a range of IP addresses that a packet coming into the instance can come from. Changing this forces a new resource to be created.
 
 ---
 
 A `destination_port_range` block exports the following:
 
-* `max` - (Optional) The maximum port number, which must not be less than the minimum port number. Changing this forces a new resource to be created.
+* `max` - (Required) The maximum port number, which must not be less than the minimum port number. Changing this forces a new resource to be created.
 
-* `min` - (Optional) The minimum port number, which must not be greater than the maximum port number. Changing this forces a new resource to be created.
+* `min` - (Required) The minimum port number, which must not be greater than the maximum port number. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
