@@ -6,6 +6,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -35,7 +36,7 @@ func (ResourceAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
@@ -69,7 +70,7 @@ func (ResourceAnchorDataSource) Read() sdk.ResourceFunc {
 
 			var model ResourceAnchorDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := resourceanchors.NewResourceAnchorID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -77,7 +78,7 @@ func (ResourceAnchorDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("resource Anchor %s was not found", id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -88,7 +89,7 @@ func (ResourceAnchorDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {

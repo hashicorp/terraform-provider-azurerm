@@ -31,7 +31,6 @@ type ResourceAnchorResourceModel struct {
 
 func (ResourceAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
 
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -48,6 +47,8 @@ func (ResourceAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ResourceAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
 		"linked_compartment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -72,7 +73,7 @@ func (r ResourceAnchorResource) Create() sdk.ResourceFunc {
 
 			var model ResourceAnchorResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := resourceanchors.NewResourceAnchorID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -86,9 +87,8 @@ func (r ResourceAnchorResource) Create() sdk.ResourceFunc {
 			}
 
 			param := resourceanchors.ResourceAnchor{
-				Location:   model.Location,
-				Tags:       pointer.To(model.Tags),
-				Properties: &resourceanchors.ResourceAnchorProperties{},
+				Location: "global",
+				Tags:     pointer.To(model.Tags),
 			}
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -147,7 +147,7 @@ func (ResourceAnchorResource) Update() sdk.ResourceFunc {
 
 			var model ResourceAnchorResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			update := resourceanchors.ResourceAnchorUpdate{}

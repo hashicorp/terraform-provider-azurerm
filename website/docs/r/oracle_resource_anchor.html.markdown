@@ -21,7 +21,6 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_oracle_resource_anchor" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "eastus"
 }
 ```
 
@@ -33,8 +32,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Oracle Resource Anchor should exist. Changing this forces a new Oracle Resource Anchor to be created.
 
-* `location` - (Required) The Azure Region where the Oracle Resource Anchor should exist. Changing this forces a new Oracle Resource Anchor to be created.
-
 ---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Oracle Resource Anchor.
@@ -44,6 +41,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Oracle Resource Anchor.
+
+* `location` - The Azure Region where the Oracle Resource Anchor  exists. 
 
 * `linked_compartment_id` - Oracle Cloud Infrastructure compartment [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) which was created or linked by customer with Resource Anchor.
 

@@ -108,10 +108,9 @@ func (a ResourceAnchorResource) basic(data acceptance.TestData) string {
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
   name                = "ra1%[2]d"
-  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
 
-}`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}`, a.template(data), data.RandomInteger)
 }
 
 func (a ResourceAnchorResource) complete(data acceptance.TestData) string {
@@ -119,19 +118,17 @@ func (a ResourceAnchorResource) complete(data acceptance.TestData) string {
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
   name                = "ra1%[2]d"
-  location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   tags = {
     key236 = "wbucrnidikivbujndfk"
   }
-}`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}`, a.template(data), data.RandomInteger)
 }
 
 func (a ResourceAnchorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_resource_anchor" "test" {
-  location            = "global"
   name                = "ra1%[2]d"
   resource_group_name = azurerm_resource_group.test.name
 
@@ -139,7 +136,7 @@ resource "azurerm_oracle_resource_anchor" "test" {
   tags = {
     newtag = "newvalue"
   }
-}`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}`, a.template(data), data.RandomInteger)
 }
 
 func (a ResourceAnchorResource) requiresImport(data acceptance.TestData) string {
@@ -147,7 +144,6 @@ func (a ResourceAnchorResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_oracle_resource_anchor" "import" {
-  location            = azurerm_oracle_resource_anchor.test.location
   name                = azurerm_oracle_resource_anchor.test.name
   resource_group_name = azurerm_oracle_resource_anchor.test.resource_group_name
 }
