@@ -23,8 +23,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -427,20 +427,28 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceVirtualNetworkFlatten(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.VirtualNetworkId, vnet *virtualnetworks.VirtualNetwork) error {
 	d.Set("name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	if vnet != nil {
+		d.Set("location", location.NormalizeNilable(vnet.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(vnet.ExtendedLocation))
 
-		if props := model.Properties; props != nil {
+		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
 
 			if space := props.AddressSpace; space != nil {
-				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_space`: %+v", err)
 				}
 
@@ -478,16 +486,12 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, vnet.Tags); err != nil {
 			return fmt.Errorf("flattening `tags`: %+v", err)
 		}
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
-		return err
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, pointer.To(id))
 }
 
 func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

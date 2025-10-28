@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -134,11 +134,19 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerRoutingRuleCollection_update,
 			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
 		},
-		"RoutingRule": {
-			"basic":          testAccNetworkManagerRoutingRule_basic,
-			"complete":       testAccNetworkManagerRoutingRule_complete,
-			"update":         testAccNetworkManagerRoutingRule_update,
-			"requiresImport": testAccNetworkManagerRoutingRule_requiresImport,
+		"SubnetIPAMPool": {
+			"ipAddressPool":              testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+		},
+		"VNETIPANPool": {
+			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
 		},
 	}
 

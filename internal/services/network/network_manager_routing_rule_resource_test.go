@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routingrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,11 +15,11 @@ import (
 
 type ManagerRoutingRuleResource struct{}
 
-func testAccNetworkManagerRoutingRule_basic(t *testing.T) {
+func TestAccNetworkManagerRoutingRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
 	r := ManagerRoutingRuleResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +30,11 @@ func testAccNetworkManagerRoutingRule_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerRoutingRule_update(t *testing.T) {
+func TestAccNetworkManagerRoutingRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
 	r := ManagerRoutingRuleResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -66,11 +66,11 @@ func testAccNetworkManagerRoutingRule_update(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerRoutingRule_requiresImport(t *testing.T) {
+func TestAccNetworkManagerRoutingRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
 	r := ManagerRoutingRuleResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -81,11 +81,11 @@ func testAccNetworkManagerRoutingRule_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerRoutingRule_complete(t *testing.T) {
+func TestAccNetworkManagerRoutingRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
 	r := ManagerRoutingRuleResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(

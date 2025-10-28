@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &PowerShell72ModuleId{}
 
-// PowerShell72ModuleId is a struct representing the Resource ID for a Power Shell 7 2 Module
+// PowerShell72ModuleId is a struct representing the Resource ID for a Power Shell 72 Module
 type PowerShell72ModuleId struct {
 	SubscriptionId         string
 	ResourceGroupName      string
@@ -90,7 +90,7 @@ func (id *PowerShell72ModuleId) FromParseResult(input resourceids.ParseResult) e
 	return nil
 }
 
-// ValidatePowerShell72ModuleID checks that 'input' can be parsed as a Power Shell 7 2 Module ID
+// ValidatePowerShell72ModuleID checks that 'input' can be parsed as a Power Shell 72 Module ID
 func ValidatePowerShell72ModuleID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -105,13 +105,13 @@ func ValidatePowerShell72ModuleID(input interface{}, key string) (warnings []str
 	return
 }
 
-// ID returns the formatted Power Shell 7 2 Module ID
+// ID returns the formatted Power Shell 72 Module ID
 func (id PowerShell72ModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/automationAccounts/%s/powerShell72Modules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.PowerShell72ModuleName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Power Shell 7 2 Module ID
+// Segments returns a slice of Resource ID Segments which comprise this Power Shell 72 Module ID
 func (id PowerShell72ModuleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -127,13 +127,13 @@ func (id PowerShell72ModuleId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Power Shell 7 2 Module ID
+// String returns a human-readable description of this Power Shell 72 Module ID
 func (id PowerShell72ModuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Automation Account Name: %q", id.AutomationAccountName),
-		fmt.Sprintf("Power Shell 7 2 Module Name: %q", id.PowerShell72ModuleName),
+		fmt.Sprintf("Power Shell 72 Module Name: %q", id.PowerShell72ModuleName),
 	}
-	return fmt.Sprintf("Power Shell 7 2 Module (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Power Shell 72 Module (%s)", strings.Join(components, "\n"))
 }

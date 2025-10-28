@@ -113,7 +113,7 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if parameters.Properties == nil {
-		return errors.New("Either `xml_content` or `xml_link` must be set")
+		return errors.New("either `xml_content` or `xml_link` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperationpolicy.CreateOrUpdateOperationOptions{}); err != nil {

@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
@@ -192,6 +193,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
+		managedredis.Registration{},
 		mobilenetwork.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
@@ -341,12 +343,15 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	}()
 }
 
-func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
-	services := []sdk.FrameworkTypedServiceRegistration{
+func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
+	services := []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		compute.Registration{},
 		keyvault.Registration{},
+		network.Registration{},
+		storage.Registration{},
 	}
 
 	return services

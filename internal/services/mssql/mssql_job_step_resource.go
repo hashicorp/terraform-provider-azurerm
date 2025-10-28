@@ -101,11 +101,6 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"job_credential_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: jobcredentials.ValidateCredentialID,
-					},
 					"mssql_database_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -115,6 +110,11 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"job_credential_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"schema_name": {
 						Type:         pluginsdk.TypeString,
@@ -281,21 +281,23 @@ func (r MsSqlJobStepResource) Read() sdk.ResourceFunc {
 						state.JobCredentialID = credentialID.ID()
 					}
 
-					state.JobStepIndex = pointer.From(props.StepId)
-					state.JobTargetGroupID = props.TargetGroup
-					state.SqlScript = props.Action.Value
-					state.InitialRetryIntervalSeconds = pointer.From(props.ExecutionOptions.InitialRetryIntervalSeconds)
-					state.MaximumRetryIntervalSeconds = pointer.From(props.ExecutionOptions.MaximumRetryIntervalSeconds)
-
 					target, err := flattenOutputTarget(props.Output)
 					if err != nil {
 						return fmt.Errorf("flattening `output_target`: %+v", err)
 					}
 					state.OutputTarget = target
 
-					state.RetryAttempts = pointer.From(props.ExecutionOptions.RetryAttempts)
-					state.RetryIntervalBackoffMultiplier = pointer.From(props.ExecutionOptions.RetryIntervalBackoffMultiplier)
-					state.TimeoutSeconds = pointer.From(props.ExecutionOptions.TimeoutSeconds)
+					state.JobStepIndex = pointer.From(props.StepId)
+					state.JobTargetGroupID = props.TargetGroup
+					state.SqlScript = props.Action.Value
+
+					if exec := props.ExecutionOptions; exec != nil {
+						state.InitialRetryIntervalSeconds = pointer.From(exec.InitialRetryIntervalSeconds)
+						state.MaximumRetryIntervalSeconds = pointer.From(exec.MaximumRetryIntervalSeconds)
+						state.RetryAttempts = pointer.From(exec.RetryAttempts)
+						state.RetryIntervalBackoffMultiplier = pointer.From(exec.RetryIntervalBackoffMultiplier)
+						state.TimeoutSeconds = pointer.From(exec.TimeoutSeconds)
+					}
 				}
 			}
 
