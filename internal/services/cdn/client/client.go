@@ -12,12 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	FrontDoorEndpointsClient        *cdnFrontDoorSdk.AFDEndpointsClient
+	FrontDoorEndpointsClient        *afdendpoints.AFDEndpointsClient
 	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
 	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
@@ -34,8 +35,11 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	frontDoorEndpointsClient := cdnFrontDoorSdk.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&frontDoorEndpointsClient.Client, o.ResourceManagerAuthorizer)
+	frontDoorEndpointsClient, err := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building EndpointsClient: %+v", err)
+	}
+	o.Configure(frontDoorEndpointsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorOriginGroupsClient := cdnFrontDoorSdk.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
@@ -89,7 +93,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	client := Client{
-		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
+		FrontDoorEndpointsClient:        frontDoorEndpointsClient,
 		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          &frontDoorOriginsClient,
 		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,

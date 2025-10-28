@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorEndpointResource struct{}
@@ -82,20 +83,20 @@ func TestAccCdnFrontDoorEndpoint_update(t *testing.T) {
 }
 
 func (r CdnFrontDoorEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorEndpointID(state.ID)
+	id, err := afdendpoints.ParseAfdEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorEndpointsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorEndpointResource) basic(data acceptance.TestData) string {
@@ -136,9 +137,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-cdnfdendpoint-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  enabled                  = true
+  name                          = "acctest-cdnfdendpoint-%d"
+  cdn_frontdoor_profile_id      = azurerm_cdn_frontdoor_profile.test.id
+  enabled                       = true
+  domain_name_label_reuse_scope = "SubscriptionReuse"
 
   tags = {
     ENV = "Test"
@@ -157,9 +159,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-cdnfdendpoint-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  enabled                  = false
+  name                          = "acctest-cdnfdendpoint-%d"
+  cdn_frontdoor_profile_id      = azurerm_cdn_frontdoor_profile.test.id
+  enabled                       = false
+  domain_name_label_reuse_scope = "SubscriptionReuse"
 
   tags = {
     ENV      = "Test"
