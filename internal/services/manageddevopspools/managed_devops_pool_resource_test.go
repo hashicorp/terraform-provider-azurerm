@@ -306,7 +306,9 @@ resource "azurerm_subnet" "test" {
     name = "devops-infrastructure-delegation"
     service_delegation {
       name    = "Microsoft.DevOpsInfrastructure/pools"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
     }
   }
 }
@@ -403,6 +405,11 @@ resource "azurerm_managed_devops_pool" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
+
+  depends_on = [
+    azurerm_role_assignment.devops_infrastructure_vnet_reader,
+    azurerm_role_assignment.devops_infrastructure_vnet_network_contributor,
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }

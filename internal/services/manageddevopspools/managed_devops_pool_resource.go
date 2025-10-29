@@ -638,14 +638,14 @@ func validateManualProfileAgentCounts(profileType string, manualProfile ManualRe
 	// Validate that either all_week_schedule or at least one day schedule is specified
 	hasAllWeekSchedule := manualProfile.AllWeekSchedule > 0
 	hasDaySchedule := false
-	
+
 	for _, sched := range schedules {
 		if len(sched.schedule) > 0 {
 			hasDaySchedule = true
 			break
 		}
 	}
-	
+
 	if !hasAllWeekSchedule && !hasDaySchedule {
 		return fmt.Errorf("%s manual_resource_predictions_profile must specify either all_week_schedule or at least one day schedule (sunday_schedule, monday_schedule, tuesday_schedule, wednesday_schedule, thursday_schedule, friday_schedule, saturday_schedule)", profileType)
 	}
