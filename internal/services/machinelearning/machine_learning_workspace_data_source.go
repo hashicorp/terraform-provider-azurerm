@@ -78,7 +78,7 @@ func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if resp.Model.Properties != nil {
-		d.Set("system_datastores_auth_mode", resp.Model.Properties.SystemDatastoresAuthMode)
+		d.Set("system_datastores_auth_mode", pointer.From(resp.Model.Properties.SystemDatastoresAuthMode))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
