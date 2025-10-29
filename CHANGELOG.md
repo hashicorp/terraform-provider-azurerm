@@ -1,6 +1,7 @@
 ## 4.51.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `dashboard` - update to API version `2025-08-01` [GH-30972]
 * dependencies: `go-azure-sdk` - update to `v0.20251024.1223440` [GH-30952]
 * dependencies: `network` - update to API version `2025-01-01` [GH-30904]
 * `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property [GH-30762]
