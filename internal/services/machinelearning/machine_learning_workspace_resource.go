@@ -223,6 +223,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
+			"service_side_encryption_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"encryption"},
+			},
+
 			"v1_legacy_mode_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -315,14 +323,15 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
-			Encryption:          expandedEncryption,
-			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			ManagedNetwork:      managedNetwork,
-			ProvisionNetworkNow: pointer.To(provisionNetworkNow),
-			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
+			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:                     expandedEncryption,
+			KeyVault:                       pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:                 managedNetwork,
+			ProvisionNetworkNow:            pointer.To(provisionNetworkNow),
+			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
+			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
+			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
@@ -571,6 +580,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("discovery_url", props.DiscoveryURL)
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
+			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 			d.Set("system_datastores_auth_mode", pointer.From(props.SystemDatastoresAuthMode))
 			d.Set("workspace_id", props.WorkspaceId)
