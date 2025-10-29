@@ -62,8 +62,9 @@ func (EventGridPartnerConfigurationResource) Arguments() map[string]*pluginsdk.S
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 					"partner_name": &schema.Schema{
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},

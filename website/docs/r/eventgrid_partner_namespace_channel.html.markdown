@@ -57,11 +57,13 @@ The following arguments are supported:
 
 * `channel_type` - (Optional) The type of the channel which represents the direction flow of events. The only possible value is `PartnerTopic`. Defaults to `PartnerTopic`. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
-* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`). Once `readiness_state` is `Activated`, this field can longer be updated. 
+* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`).
+
+~> **Note:** Once `readiness_state` is `Activated`, this field can longer be updated.
 
 ~> **Note:** If this timer expires while the corresponding partner topic is never activated, the channel and corresponding partner topic are deleted.
 
-* `partner_topic` - (Optional) A `partner_topic` block as defined below. Required when `channel_type` is `PartnerTopic`.
+* `partner_topic` - (Required) A `partner_topic` block as defined below.
 
 ---
 
@@ -109,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Event Grid Partner Namespace Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid Partner Namespace Channel.

@@ -20,7 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EventGridPartnerNamespaceChannelResource{}
+var (
+	_ sdk.ResourceWithUpdate        = EventGridPartnerNamespaceChannelResource{}
+	_ sdk.ResourceWithCustomizeDiff = EventGridPartnerNamespaceChannelResource{}
+)
 
 type EventGridPartnerNamespaceChannelResource struct{}
 
@@ -54,9 +57,6 @@ type InlineEventTypeModel struct {
 	DocumentationURL string `tfschema:"documentation_url"`
 }
 
-// MessageForActivation is a problematic field as the API generates a custom default message that can be longer than the allowed length if not included.
-// As such it has been excluded and left to the server to set the default.
-// https://github.com/Azure/azure-rest-api-specs/issues/37280
 func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -131,7 +131,7 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 											"description": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(0, 256),
+												ValidateFunc: validation.StringLenBetween(1, 256),
 											},
 											"documentation_url": {
 												Type:         pluginsdk.TypeString,
@@ -172,6 +172,25 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.All(validation.IsRFC3339Time,
 				validate.ExpirationTimeIfNotActivated(),
 			),
+		},
+	}
+}
+
+func (EventGridPartnerNamespaceChannelResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if rd.HasChange("expiration_time_if_not_activated_in_utc") && rd.Get("readiness_state") == string(channels.ReadinessStateActivated) {
+				return rd.ForceNew("expiration_time_if_not_activated_in_utc")
+			}
+
+			if v := rd.Get("partner_topic.0.event_type_definitions.0.inline_event_type"); v != nil {
+				inlineEventTypes := v.(*pluginsdk.Set).List()
+				if err := validate.ValidateUniqueInlineEventTypeNames(inlineEventTypes); err != nil {
+					return err
+				}
+			}
+			return nil
 		},
 	}
 }
@@ -270,13 +289,12 @@ func (r EventGridPartnerNamespaceChannelResource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			// API generated default message can be longer than the allowed length so we have to clear it from update payload
+			// MessageForActivation is a problematic field as the API generates a custom default message that can be longer than the allowed length.
+			// As such it is not managed in this resource and left to the server to set the default.
+			// https://github.com/Azure/azure-rest-api-specs/issues/37280
 			payload.Properties.MessageForActivation = nil
 
 			if metadata.ResourceData.HasChange("expiration_time_if_not_activated_in_utc") {
-				if config.ReadinessState == string(channels.ReadinessStateActivated) {
-					return fmt.Errorf("`expiration_time_if_not_activated_in_utc` can not be updated if the channel has been activated")
-				}
 				payload.Properties.ExpirationTimeIfNotActivatedUtc = pointer.To(config.ExpirationTimeIfNotActivatedInUtc)
 			}
 
@@ -342,7 +360,7 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 			var state EventGridPartnerNamespaceChannelResourceModel
 			err = metadata.Decode(&state)
 			if err != nil {
-				return fmt.Errorf("decoding existing state: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			state.PartnerNamespaceId = partnerNamespaceId.ID()
