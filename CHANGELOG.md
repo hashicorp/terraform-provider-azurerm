@@ -8,6 +8,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* Data Source: `azurerm_managed_redis` - fix a panic due to nil pointer dereference [GH-30978]
 
 ## 4.50.0 (October 23, 2025)
 
