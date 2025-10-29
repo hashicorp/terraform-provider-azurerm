@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property [GH-30762]
 
 FEATURES:
+* **New Resource**: `azurerm_oracle_resource_anchor` [GH-30823]
 
 BUG FIXES:
 * Data Source: `azurerm_managed_redis` - fix a panic caused by a nested field access on a pointer without nil checking [GH-30978]
