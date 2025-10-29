@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property [GH-30762]
 
 FEATURES:
+* **New Resource**: `azurerm_network_manager_routing_rule` [GH-30439]
 * **New Resource**: `azurerm_oracle_resource_anchor` [GH-30823]
 * **New Data Source**: `azurerm_oracle_resource_anchor` [GH-30823]
 
