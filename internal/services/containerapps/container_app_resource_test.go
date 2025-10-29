@@ -835,6 +835,24 @@ resource "azurerm_container_app" "test" {
         name        = "key-vault-secret"
         secret_name = "key-vault-secret"
       }
+      volume_mounts {
+        name     = "secret-mount"
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
+      }
+    }
+  }
+  
+  volume {
+    name        = "key-vault-mounts"
+    storage_type = "Secret"
+    secret {
+      name      = "key-vault-secret"
+      path      = "/tmp/key-vault-secret
+    }
+    secret {
+      name      = "key-vault-secret"
+      path      = "/tmp/key-vault-secret-2
     }
   }
 
