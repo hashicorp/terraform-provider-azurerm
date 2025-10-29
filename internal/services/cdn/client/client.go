@@ -22,7 +22,7 @@ type Client struct {
 	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
 	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
-	FrontDoorCustomDomainsClientNew *afdcustomdomains.AFDCustomDomainsClient
+	AFDCustomDomainsClient          *afdcustomdomains.AFDCustomDomainsClient
 	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
 	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient            *rules.RulesClient
@@ -48,11 +48,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	frontDoorCustomDomainsClientNew, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	afdCustomDomainsClient, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building AFDCustomDomainsClient: %+v", err)
 	}
-	o.Configure(frontDoorCustomDomainsClientNew.Client, o.Authorizers.ResourceManager)
+	o.Configure(afdCustomDomainsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorSecurityPoliciesClient, err := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -101,7 +101,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          &frontDoorOriginsClient,
 		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
-		FrontDoorCustomDomainsClientNew: frontDoorCustomDomainsClientNew,
+		AFDCustomDomainsClient:          afdCustomDomainsClient,
 		FrontDoorSecurityPoliciesClient: frontDoorSecurityPoliciesClient,
 		FrontDoorRoutesClient:           &frontDoorRoutesClient,
 		FrontDoorRulesClient:            frontDoorRulesClient,
