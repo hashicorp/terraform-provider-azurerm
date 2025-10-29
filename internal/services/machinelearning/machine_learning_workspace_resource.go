@@ -572,7 +572,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
-			d.Set("system_datastores_auth_mode", props.SystemDatastoresAuthMode)
+			d.Set("system_datastores_auth_mode", pointer.From(props.SystemDatastoresAuthMode))
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
