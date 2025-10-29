@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New Resource**: `azurerm_oracle_resource_anchor` [GH-30823]
+* **New Data Source**: `azurerm_oracle_resource_anchor` [GH-30823]
 
 BUG FIXES:
 * Data Source: `azurerm_managed_redis` - fix a panic caused by a nested field access on a pointer without nil checking [GH-30978]
