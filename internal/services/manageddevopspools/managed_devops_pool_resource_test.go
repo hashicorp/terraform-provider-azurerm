@@ -283,18 +283,44 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 
+provider "azuread" {}
+
+data "azuread_service_principal" "devops_infrastructure" {
+  display_name = "DevOpsInfrastructure"
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/16"]
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "devops-infrastructure-delegation"
+    service_delegation {
+      name    = "Microsoft.DevOpsInfrastructure/pools"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "devops_infrastructure_vnet_reader" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Reader"
+  principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
+}
+
+resource "azurerm_role_assignment" "devops_infrastructure_vnet_network_contributor" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
 }
 
 resource "azurerm_managed_devops_pool" "test" {
@@ -331,7 +357,7 @@ resource "azurerm_managed_devops_pool" "test" {
   vmss_fabric_profile {
     image {
       resource_id = data.azurerm_platform_image.test.id
-      aliases     = "marketplace image"
+      aliases     = ["marketplace image"]
       buffer      = "0"
     }
     image {

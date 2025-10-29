@@ -621,12 +621,6 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func validateManualProfileAgentCounts(profileType string, manualProfile ManualResourcePredictionsProfileModel, maxConcurrency int64) error {
-	// Check all_week_schedule
-	if manualProfile.AllWeekSchedule > 0 && manualProfile.AllWeekSchedule > maxConcurrency {
-		return fmt.Errorf("%s all_week_schedule agent count (%d) cannot exceed maximum_concurrency (%d)",
-			profileType, manualProfile.AllWeekSchedule, maxConcurrency)
-	}
-
 	// Check daily schedules
 	schedules := []struct {
 		name     string
@@ -639,6 +633,27 @@ func validateManualProfileAgentCounts(profileType string, manualProfile ManualRe
 		{"thursday_schedule", manualProfile.ThursdaySchedule},
 		{"friday_schedule", manualProfile.FridaySchedule},
 		{"saturday_schedule", manualProfile.SaturdaySchedule},
+	}
+
+	// Validate that either all_week_schedule or at least one day schedule is specified
+	hasAllWeekSchedule := manualProfile.AllWeekSchedule > 0
+	hasDaySchedule := false
+	
+	for _, sched := range schedules {
+		if len(sched.schedule) > 0 {
+			hasDaySchedule = true
+			break
+		}
+	}
+	
+	if !hasAllWeekSchedule && !hasDaySchedule {
+		return fmt.Errorf("%s manual_resource_predictions_profile must specify either all_week_schedule or at least one day schedule (sunday_schedule, monday_schedule, tuesday_schedule, wednesday_schedule, thursday_schedule, friday_schedule, saturday_schedule)", profileType)
+	}
+
+	// Check all_week_schedule
+	if manualProfile.AllWeekSchedule > 0 && manualProfile.AllWeekSchedule > maxConcurrency {
+		return fmt.Errorf("%s all_week_schedule agent count (%d) cannot exceed maximum_concurrency (%d)",
+			profileType, manualProfile.AllWeekSchedule, maxConcurrency)
 	}
 
 	for _, sched := range schedules {

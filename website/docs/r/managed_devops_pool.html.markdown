@@ -55,8 +55,8 @@ resource "azurerm_subnet" "test" {
 data "azurerm_platform_image" "test" {
   location  = azurerm_resource_group.test.location
   publisher = "Canonical"
-  offer     = "0001-com-ubuntu-server-focal"
-  sku       = "20_04-lts-gen2"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 
 resource "azurerm_managed_devops_pool" "example" {
@@ -105,7 +105,6 @@ resource "azurerm_managed_devops_pool" "example" {
     image {
       well_known_image_name = "ubuntu-24.0"
       buffer                = "*"
-      alias                 = "well known image"
     }
 
     storage_profile {
@@ -292,21 +291,21 @@ A `manual_resource_predictions_profile` block supports the following:
 
 * `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
-* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday. Agent counts must not exceed `maximum_concurrency`.
+* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday.
 
-* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday. Agent counts must not exceed `maximum_concurrency`.
+* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday.
 
-* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday. Agent counts must not exceed `maximum_concurrency`.
+* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday.
 
-* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday. Agent counts must not exceed `maximum_concurrency`.
+* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday.
 
-* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday. Agent counts must not exceed `maximum_concurrency`.
+* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday.
 
-* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday. Agent counts must not exceed `maximum_concurrency`.
+* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday.
 
-* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday. Agent counts must not exceed `maximum_concurrency`.
+* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday.
 
-~> **Note:** Either `all_week_schedule` or individual daily schedules can be specified. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **Note:** Exactly one of `all_week_schedule` or individual daily schedules are required. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 
