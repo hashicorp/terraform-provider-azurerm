@@ -1,6 +1,7 @@
 ## 4.51.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_cognitive_account` - add `TextAnalytics` to allowed `kind` validation for `network_acls.bypass` [GH-30887]
 * dependencies: `dashboard` - update to API version `2025-08-01` [GH-30972]
 * dependencies: `go-azure-sdk` - update to `v0.20251024.1223440` [GH-30952]
 * dependencies: `network` - update to API version `2025-01-01` [GH-30904]
