@@ -158,7 +158,7 @@ A `default_database` block supports the following:
 
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
-* `persistence` - (Optional) A `persistence` block as defined below. Persistence cannot be enabled on geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-how-to-premium-persistence?tabs=enterprise) to learn more.
+* `persistence` - (Optional) A `persistence` block as defined below. Persistence cannot be enabled on geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
 
 ---
 
