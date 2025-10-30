@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -318,32 +317,16 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("`partition_count` cannot be decreased")
 		}
 
-		namespaceClient := meta.(*clients.Client).Eventhub.NamespacesClient
+		client := meta.(*clients.Client).Eventhub.NamespacesClient
 		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
-		namespaceResp, err := namespaceClient.Get(ctx, namespaceId)
+		resp, err := client.Get(ctx, namespaceId)
 		if err != nil {
 			return err
 		}
-		if namespaceModel := namespaceResp.Model; namespaceModel != nil {
-			clusterArmId := namespaceModel.Properties.ClusterArmId
-			if clusterArmId == nil {
-				if namespaceModel.Sku.Name != namespaces.SkuNamePremium {
+		if model := resp.Model; model != nil {
+			if clusterArmId := model.Properties.ClusterArmId; clusterArmId == nil {
+				if model.Sku.Name != namespaces.SkuNamePremium {
 					return fmt.Errorf("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
-				}
-			} else {
-				clusterClient := meta.(*clients.Client).Eventhub.ClusterClient
-				clusterId, err := eventhubsclusters.ParseClusterIDInsensitively(*clusterArmId)
-				if err != nil {
-					return err
-				}
-				clusterResp, err := clusterClient.ClustersGet(ctx, *clusterId)
-				if err != nil {
-					return err
-				}
-				if clusterModel := clusterResp.Model; clusterModel != nil {
-					if clusterModel.Sku.Name != eventhubsclusters.ClusterSkuNameDedicated && namespaceModel.Sku.Name == namespaces.SkuNameStandard {
-						return fmt.Errorf("`partition_count` can only be changed on dedicated clusters when namespace sku is `Standard`")
-					}
 				}
 			}
 		}
