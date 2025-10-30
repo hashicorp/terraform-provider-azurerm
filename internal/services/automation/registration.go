@@ -32,6 +32,7 @@ func (r Registration) Resources() []sdk.Resource {
 		WatcherResource{},
 		Python3PackageResource{},
 		PowerShell72ModuleResource{},
+		AutomationRuntimeEnvironmentResource{},
 	}
 
 	if !features.FivePointOh() {

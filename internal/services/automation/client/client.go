@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	automation_2024_10_23 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runtimeenvironment"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -27,6 +28,7 @@ type Client struct {
 	SoftwareUpdateConfigClient  *softwareupdateconfiguration.SoftwareUpdateConfigurationClient
 	WebhookClient               *webhook.WebhookClient
 	WatcherClient               *watcher.WatcherClient
+	RuntimeEnvironmentClient    *runtimeenvironment.RuntimeEnvironmentClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -69,6 +71,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(webhookClient.Client, o.Authorizers.ResourceManager)
 
+	runtimeenvironmentClient, err := runtimeenvironment.NewRuntimeEnvironmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Runtime Environment client : %+v", err)
+	}
+	o.Configure(runtimeenvironmentClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		Client:            metaClient,
 		ModuleClientV2023: moduleClientV2023,
@@ -77,5 +85,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SoftwareUpdateConfigClient:  softUpClient,
 		WatcherClient:               watcherClient,
 		WebhookClient:               webhookClient,
+		RuntimeEnvironmentClient:    runtimeenvironmentClient,
 	}, nil
 }
