@@ -293,22 +293,42 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+
 		d.Set("kind", model.Kind)
+
 		if sku := model.Sku; sku != nil {
 			d.Set("sku_name", sku.Name)
 		}
 
 		if props := model.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
-				d.Set("qna_runtime_endpoint", pointer.From(apiProps.QnaRuntimeEndpoint))
 				d.Set("custom_question_answering_search_service_id", pointer.From(apiProps.QnaAzureSearchEndpointId))
 				d.Set("metrics_advisor_aad_client_id", pointer.From(apiProps.AadClientId))
 				d.Set("metrics_advisor_aad_tenant_id", pointer.From(apiProps.AadTenantId))
 				d.Set("metrics_advisor_super_user_name", pointer.From(apiProps.SuperUser))
 				d.Set("metrics_advisor_website_name", pointer.From(apiProps.WebsiteName))
+				d.Set("qna_runtime_endpoint", pointer.From(apiProps.QnaRuntimeEndpoint))
 			}
-			d.Set("endpoint", pointer.From(props.Endpoint))
+
 			d.Set("custom_subdomain_name", pointer.From(props.CustomSubDomainName))
+
+			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
+
+			d.Set("endpoint", pointer.From(props.Endpoint))
+
+			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
+
+			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+
+			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
+			d.Set("local_auth_enabled", localAuthEnabled)
 
 			if err := d.Set("network_acls", flattenCognitiveAccountDataSourceNetworkAcls(props.NetworkAcls)); err != nil {
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
@@ -323,34 +343,20 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `network_injection`: %+v", err)
 			}
 
-			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
-
-			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
 
 			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
 
-			publicNetworkAccess := true
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccess)
+			public_network_access_enabled := (pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
+			d.Set("public_network_access_enabled", public_network_access_enabled)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 			}
 
-			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
-
-			localAuthEnabled := true
-			if props.DisableLocalAuth != nil {
-				localAuthEnabled = !*props.DisableLocalAuth
-			}
-			d.Set("local_auth_enabled", localAuthEnabled)
-
 			if localAuthEnabled {
 				keys, err := client.AccountsListKeys(ctx, id)
 				if err != nil {
-					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
 					return fmt.Errorf("listing the Keys for %s: %+v", id, err)
 				}
 
@@ -358,15 +364,6 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 					d.Set("primary_access_key", pointer.From(model.Key1))
 					d.Set("secondary_access_key", pointer.From(model.Key2))
 				}
-			}
-
-			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
-			if err != nil {
-				return err
-			}
-
-			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 		}
 
@@ -378,7 +375,9 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 	return nil
 }
