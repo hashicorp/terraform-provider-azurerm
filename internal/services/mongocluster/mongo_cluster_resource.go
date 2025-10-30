@@ -355,6 +355,8 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
+			payload.Identity = nil
+
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
 				payload.Properties.Compute = &mongoclusters.ComputeProperties{
