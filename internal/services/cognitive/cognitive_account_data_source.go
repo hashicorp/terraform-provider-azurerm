@@ -347,8 +347,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 
 			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
 
-			public_network_access_enabled := (pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
-			d.Set("public_network_access_enabled", public_network_access_enabled)
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
