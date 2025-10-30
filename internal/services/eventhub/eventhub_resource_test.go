@@ -248,6 +248,28 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 	})
 }
 
+func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedClusterStandard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
+			),
+		},
+		{
+			Config: r.dedicatedClusterStandardPartitionCountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
+			),
+		},
+	})
+}
+
 func TestAccEventHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
@@ -530,6 +552,76 @@ resource "azurerm_eventhub" "test" {
   message_retention = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) dedicatedClusterStandardPartitionCountUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_cluster" "test" {
+  name                = "acctest-EHC-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Dedicated_1"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                 = "acctest-EHN-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "Standard"
+  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 10
+  message_retention = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) dedicatedClusterStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_cluster" "test" {
+  name                = "acctest-EHC-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Dedicated_1"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                 = "acctest-EHN-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "Standard"
+  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (EventHubResource) captureDescription(data acceptance.TestData, enabled bool) string {
