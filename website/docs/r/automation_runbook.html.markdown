@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `publish_content_link` - (Optional) One `publish_content_link` block as defined below.
 
+* `runtime_environment` - (Optional) The runtime environment for the runbook.
+
 * `description` - (Optional) A description for the runbook.
 
 * `content` - (Optional) The desired content of the runbook.
