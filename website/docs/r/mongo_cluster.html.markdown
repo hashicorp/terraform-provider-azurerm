@@ -142,4 +142,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2024-07-01
+* `Microsoft.DocumentDB` - 2025-09-01
