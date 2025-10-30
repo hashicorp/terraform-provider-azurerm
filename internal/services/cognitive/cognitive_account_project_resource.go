@@ -76,7 +76,7 @@ func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_.-]{1,63}$"),
-				"name must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes, periods or underscores.",
+				"name must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-), periods(.) or underscores(_).",
 			),
 		},
 
