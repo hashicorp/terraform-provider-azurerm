@@ -16,7 +16,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 		AdbsCharSetsDataSource{},
 		AdbsNCharSetsDataSource{},
 		AutonomousDatabaseBackupDataSource{},
-		AutonomousDatabaseBackupsDataSource{},
 		AutonomousDatabaseCloneFromBackupDataSource{},
 		AutonomousDatabaseCloneFromDatabaseDataSource{},
 		AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{},

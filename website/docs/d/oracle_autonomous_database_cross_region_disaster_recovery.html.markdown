@@ -54,10 +54,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `compute_model` - The compute model of the Autonomous Database.
-
-* `connection_strings` - The connection string used to connect to the Autonomous Database.
-
 * `cpu_core_count` - The number of CPU cores available to the database. When the ECPU is selected, the value for cpuCoreCount is 0.
 
 -> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
@@ -92,8 +88,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the autonomous database cloned from backup exists.
 
-* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below.
-
 * `memory_per_oracle_compute_unit_in_gb` - The amount of memory in Gigabytes per ECPU or OCPU.
 
 * `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
@@ -126,7 +120,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `replicate_automatic_backups_enabled` - If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
 
-* `source_id` - The Immutable Azure Resource ID of autonomous database for which cross region disaster recovery autonomous database was created.
+* `source_autonomous_database_id` - The Immutable Azure Resource ID of autonomous database for which cross region disaster recovery autonomous database was created.
 
 * `source_location` - The Azure Region where source autonomous database for which cross region disaster recovery autonomous database is located
 

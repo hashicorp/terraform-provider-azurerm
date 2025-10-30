@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
@@ -79,7 +78,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
 		},
 
 		"subnet_id": {
@@ -104,85 +103,72 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		},
 
 		"tags": commonschema.TagsForceNew(),
+	}
+}
 
-		//computed
+func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"remote_disaster_recovery_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
-			Optional: true,
 		},
 		"auto_scaling_for_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
-			Optional: true,
 		},
 		"backup_retention_period_in_days": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
-			Optional: true,
 		},
 		"character_set": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"compute_count": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
-			Optional: true,
 		},
 		"compute_model": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
-			Optional: true,
 		},
 		"database_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"database_workload": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"license_model": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"mtls_connection_required": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
-			Optional: true,
 		},
 		"national_character_set": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Optional: true,
 		},
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
-}
-
-func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) ModelObject() interface{} {
@@ -211,20 +197,20 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 			}
 			sourceDb, err := client.Get(ctx, *sourceId)
 			if err != nil {
-				return fmt.Errorf("fetching source DB: %+v", err)
+				return fmt.Errorf("retrieving %s: %+v", sourceId, err)
 			}
 			if sourceDb.Model == nil {
-				return fmt.Errorf("source DB %s not found", model.SourceAutonomousDatabaseId)
+				return fmt.Errorf("retrieving %s: `Model` was nil", sourceId)
 			}
 			sourceLocation := sourceDb.Model.Location
 			if location.Normalize(model.Location) == location.Normalize(sourceLocation) {
 				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
 			}
 
-			sourceProps, ok := sourceDb.Model.Properties.(autonomousdatabases.AutonomousDatabaseProperties)
-			if !ok {
-				return fmt.Errorf("unexpected source DB properties type")
+			if sourceDb.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `Properties` was nil", sourceId)
 			}
+			sourceProps := sourceDb.Model.Properties.AutonomousDatabaseBaseProperties()
 
 			param := autonomousdatabases.AutonomousDatabase{
 				Name:     pointer.To(model.Name),
@@ -314,10 +300,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-				state.Location = result.Model.Location
+				state.Location = model.Location
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
-				state.Tags = pointer.From(result.Model.Tags)
+				state.Tags = pointer.From(model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
 			}
 			return metadata.Encode(&state)

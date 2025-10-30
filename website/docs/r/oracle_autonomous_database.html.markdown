@@ -118,6 +118,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Autonomous Database.
 
+* `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Autonomous Database.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
