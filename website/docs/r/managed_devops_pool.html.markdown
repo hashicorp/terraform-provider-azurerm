@@ -263,7 +263,7 @@ An `organization` block supports the following:
   * Must not contain Unicode control characters or surrogate characters
   * Must not be a reserved name: `App_Browsers`, `App_Code`, `App_Data`, `App_GlobalResources`, `App_LocalResources`, `App_Themes`, `App_WebResources`, `bin`, or `web.config` (case-insensitive)
 
-~> **NOTE:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
+~> **Note:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
 
 ---
 

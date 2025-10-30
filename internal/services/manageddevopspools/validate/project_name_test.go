@@ -38,7 +38,7 @@ func TestProjectName(t *testing.T) {
 		},
 		{
 			name:      "Too long (65 characters)",
-			input:     "ThisProjectNameIsWayTooLongAndExceedsTheMaximumAllowedLength65",
+			input:     "12345678901234567890123456789012345678901234567890123456789012345",
 			shouldErr: true,
 		},
 		{
