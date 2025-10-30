@@ -1,19 +1,22 @@
-## 4.51.0 (Unreleased)
-
-ENHANCEMENTS:
-* `azurerm_cognitive_account` - add `TextAnalytics` to allowed `kind` validation for `network_acls.bypass` [GH-30887]
-* dependencies: `dashboard` - update to API version `2025-08-01` [GH-30972]
-* dependencies: `go-azure-sdk` - update to `v0.20251024.1223440` [GH-30952]
-* dependencies: `network` - update to API version `2025-01-01` [GH-30904]
-* `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property [GH-30762]
+## 4.51.0 (October 30, 2025)
 
 FEATURES:
-* **New Resource**: `azurerm_network_manager_routing_rule` [GH-30439]
-* **New Resource**: `azurerm_oracle_resource_anchor` [GH-30823]
-* **New Data Source**: `azurerm_oracle_resource_anchor` [GH-30823]
+
+* **New Data Source**: `azurerm_oracle_resource_anchor` ([#30823](https://github.com/hashicorp/terraform-provider-azurerm/issues/30823))
+* **New Resource**: `azurerm_network_manager_routing_rule` ([#30439](https://github.com/hashicorp/terraform-provider-azurerm/issues/30439))
+* **New Resource**: `azurerm_oracle_resource_anchor` ([#30823](https://github.com/hashicorp/terraform-provider-azurerm/issues/30823))
+
+ENHANCEMENTS:
+
+* dependencies: `dashboard` - update to API version `2025-08-01` ([#30972](https://github.com/hashicorp/terraform-provider-azurerm/issues/30972))
+* dependencies: `go-azure-sdk` - update to `v0.20251024.1223440` ([#30952](https://github.com/hashicorp/terraform-provider-azurerm/issues/30952))
+* dependencies: `network` - update to API version `2025-01-01` ([#30904](https://github.com/hashicorp/terraform-provider-azurerm/issues/30904))
+* `azurerm_cognitive_account` - add `TextAnalytics` to allowed `kind` validation for `network_acls.bypass` ([#30887](https://github.com/hashicorp/terraform-provider-azurerm/issues/30887))
+* `azurerm_subnet_service_endpoint_storage_policy` - add support for the `/services/Azure/Databricks` value in the `definition.service_resources` property ([#30762](https://github.com/hashicorp/terraform-provider-azurerm/issues/30762))
 
 BUG FIXES:
-* Data Source: `azurerm_managed_redis` - fix a panic caused by a nested field access on a pointer without nil checking [GH-30978]
+
+* Data Source: `azurerm_managed_redis` - fix a panic caused by a nested field access on a pointer without nil checking ([#30978](https://github.com/hashicorp/terraform-provider-azurerm/issues/30978))
 
 ## 4.50.0 (October 23, 2025)
 
