@@ -3,7 +3,6 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -89,10 +88,6 @@ func TestAccCognitiveAccountProject_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile(`cannot be updated to an empty value`),
-		},
 	})
 }
 

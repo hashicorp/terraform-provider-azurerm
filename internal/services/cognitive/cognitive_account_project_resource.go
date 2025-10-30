@@ -21,16 +21,15 @@ import (
 )
 
 type CognitiveAccountProjectModel struct {
-	Name               string                                     `tfschema:"name"`
 	CognitiveAccountId string                                     `tfschema:"cognitive_account_id"`
-	Location           string                                     `tfschema:"location"`
 	Description        string                                     `tfschema:"description"`
 	DisplayName        string                                     `tfschema:"display_name"`
+	Endpoints          map[string]string                          `tfschema:"endpoints"`
 	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	IsDefault          bool                                       `tfschema:"is_default"`
+	Location           string                                     `tfschema:"location"`
+	Name               string                                     `tfschema:"name"`
 	Tags               map[string]string                          `tfschema:"tags"`
-
-	Endpoints map[string]string `tfschema:"endpoints"`
-	IsDefault bool              `tfschema:"is_default"`
 }
 
 type CognitiveAccountProjectResource struct{}
@@ -57,11 +56,11 @@ func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 			// Azure API issue: description and display_name cannot be updated to empty values, see: https://github.com/Azure/azure-rest-api-specs/issues/38422
 			if oldDesc, newDesc := metadata.ResourceDiff.GetChange("description"); oldDesc.(string) != "" && newDesc.(string) == "" {
-				return fmt.Errorf("`description` cannot be updated to an empty value due to Azure API limitations")
+				metadata.ResourceDiff.ForceNew("description")
 			}
 
 			if oldDisplay, newDisplay := metadata.ResourceDiff.GetChange("display_name"); oldDisplay.(string) != "" && newDisplay.(string) == "" {
-				return fmt.Errorf("`display_name` cannot be updated to an empty value due to Azure API limitations")
+				metadata.ResourceDiff.ForceNew("display_name")
 			}
 
 			return nil
