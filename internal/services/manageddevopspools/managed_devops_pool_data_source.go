@@ -47,6 +47,86 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
+		"azure_devops_organization_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"organization": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"parallelism": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+								"projects": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"url": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"permission_profile": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"kind": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"administrator_account": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"groups": {
+												Type:     pluginsdk.TypeList,
+												Computed: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+											"users": {
+												Type:     pluginsdk.TypeList,
+												Computed: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"dev_center_project_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"identity": commonschema.UserAssignedIdentityComputed(),
+		"maximum_concurrency": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"provisioning_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -75,10 +155,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"dev_center_project_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
+		"tags": commonschema.TagsDataSource(),
 		"vmss_fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -90,7 +167,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"aliases": {
-									Type:     pluginsdk.TypeSet,
+									Type:     pluginsdk.TypeList,
 									Computed: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
@@ -150,7 +227,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 												Computed: true,
 											},
 											"observed_certificates": {
-												Type:     pluginsdk.TypeSet,
+												Type:     pluginsdk.TypeList,
 												Computed: true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
@@ -205,82 +282,6 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"identity": commonschema.UserAssignedIdentityComputed(),
-		"location": commonschema.LocationComputed(),
-		"maximum_concurrency": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-		"azure_devops_organization_profile": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"organization": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"parallelism": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
-								"projects": {
-									Type:     pluginsdk.TypeSet,
-									Computed: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-								"url": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"permission_profile": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"kind": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"administrator_accounts": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"groups": {
-												Type:     pluginsdk.TypeSet,
-												Computed: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-											"users": {
-												Type:     pluginsdk.TypeSet,
-												Computed: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"tags": commonschema.TagsDataSource(),
 	}
 }
 

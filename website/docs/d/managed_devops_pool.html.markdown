@@ -199,7 +199,7 @@ A `permission_profile` block exports the following:
 
 * `kind` - The type of Azure DevOps pool permission.
 
-* `administrator_accounts` - One or more `administrator_accounts` block as defined below.
+* `administrator_account` - One or more `administrator_account` block as defined below.
 
 ---
 
@@ -213,7 +213,7 @@ An `organization` block exports the following:
 
 ---
 
-An `administrator_accounts` block exports the following:
+An `administrator_account` block exports the following:
 
 * `groups` - A list of group email addresses.
 

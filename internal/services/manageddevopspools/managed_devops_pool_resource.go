@@ -14,7 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyvaultvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -53,6 +56,247 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
+		"azure_devops_organization_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"organization": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"url": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.All(
+										validation.IsURLWithHTTPS,
+										validation.StringMatch(
+											regexp.MustCompile(`[a-zA-Z0-9]$`),
+											"url must end with a letter or number",
+										),
+									),
+								},
+								"parallelism": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 10000),
+								},
+								"projects": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validate.ProjectName,
+									},
+								},
+							},
+						},
+					},
+					"permission_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"kind": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
+								},
+								"administrator_account": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"groups": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validate.Email,
+												},
+											},
+											"users": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validate.Email,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"maximum_concurrency": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(1, 10000),
+		},
+		"vmss_fabric_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"image": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"aliases": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+								"buffer": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^(?:\*|[0-9][0-9]?|100)$`),
+										`Buffer must be "*" or value between 0 and 100.`,
+									),
+								},
+								"resource_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+								"well_known_image_name": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+					"sku_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"network_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: commonids.ValidateSubnetID,
+								},
+							},
+						},
+					},
+					"os_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"logon_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pools.LogonTypeService),
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
+								},
+								"secrets_management": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"key_export_enabled": {
+												Type:     pluginsdk.TypeBool,
+												Required: true,
+											},
+											"observed_certificates": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: keyvaultvalidate.NestedItemIdWithOptionalVersion,
+												},
+											},
+											"certificate_store_location": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"certificate_store_name": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCertificateStoreNameOption(), false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"storage_profile": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_disk": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"caching": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
+											},
+											"disk_size_gb": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntBetween(1, 32767),
+											},
+											"drive_letter": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^[FGHIJKLMNOPQRSTUVWXYZfghijklmnopqrstuvwxyz]$`),
+													"drive_letter must be a single letter and cannot be A, C, D, or E (case insensitive)",
+												),
+											},
+											"storage_account_type": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												Default:      pools.StorageAccountTypeStandardLRS,
+												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
+											},
+										},
+									},
+								},
+								"os_disk_storage_account_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -88,228 +332,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
-		},
-		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
-		"vmss_fabric_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"image": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"aliases": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-								"buffer": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^(?:\*|[0-9][0-9]?|100)$`),
-										`Buffer must be "*" or value between 0 and 100.`,
-									),
-								},
-								"resource_id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-								},
-								"well_known_image_name": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-								},
-							},
-						},
-					},
-					"network_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: commonids.ValidateSubnetID,
-								},
-							},
-						},
-					},
-					"os_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"logon_type": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Default:      string(pools.LogonTypeService),
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
-								},
-								"secrets_management": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"certificate_store_location": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-											},
-											"certificate_store_name": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCertificateStoreNameOption(), false),
-											},
-											"key_export_enabled": {
-												Type:     pluginsdk.TypeBool,
-												Required: true,
-											},
-											"observed_certificates": {
-												Type:     pluginsdk.TypeSet,
-												Required: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					"sku_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"storage_profile": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"data_disk": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"caching": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
-											},
-											"disk_size_gb": {
-												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												ValidateFunc: validation.IntBetween(1, 32767),
-											},
-											"drive_letter": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-											},
-											"storage_account_type": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												Default:      pools.StorageAccountTypeStandardLRS,
-												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
-											},
-										},
-									},
-								},
-								"os_disk_storage_account_type": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"maximum_concurrency": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-		},
-		"azure_devops_organization_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"organization": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"parallelism": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-								},
-								"projects": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-								"url": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.IsURLWithHTTPS,
-								},
-							},
-						},
-					},
-					"permission_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"kind": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
-								},
-								"administrator_accounts": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"groups": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-											"users": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 		},
 		"identity": commonschema.UserAssignedIdentityOptional(),
 		"tags":     commonschema.Tags(),
@@ -356,7 +378,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			var agentProfile pools.AgentProfile
-			if config.StatefulAgentProfile != nil {
+			if _, ok := metadata.ResourceData.GetOk("stateful_agent_profile"); ok {
 				agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
 			} else {
 				agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
@@ -368,7 +390,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
-				Location: location.Normalize(config.Location),
+				Location: config.Location,
 				Identity: expandedIdentity,
 				Properties: &pools.PoolProperties{
 					DevCenterProjectResourceId: config.DevCenterProjectResourceId,
@@ -421,7 +443,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandManagedDevopsToUserAssignedIdentity(config.Identity)
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -439,9 +461,9 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("stateful_agent_profile") || metadata.ResourceData.HasChange("stateless_agent_profile") {
 				var agentProfile pools.AgentProfile
 
-				if len(config.StatefulAgentProfile) > 0 {
+				if _, ok := metadata.ResourceData.GetOk("stateful_agent_profile"); ok {
 					agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
-				} else if len(config.StatelessAgentProfile) > 0 {
+				} else {
 					agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
 				}
 
@@ -571,23 +593,16 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("DecodeDiff: %+v", err)
 			}
 
-			// Validate vmss_fabric_profile images
-			for _, vmssFabricProfile := range model.VmssFabricProfile {
-				for i, image := range vmssFabricProfile.Images {
-					resourceIdSet := image.ResourceId != nil && *image.ResourceId != ""
-					wellKnownImageNameSet := image.WellKnownImageName != nil && *image.WellKnownImageName != ""
-
-					if resourceIdSet && wellKnownImageNameSet {
-						return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in vmss_fabric_profile", i)
-					}
-				}
+			// Validate vmss_fabric_profile images with proper handling of computed/unknown values
+			if err := validateVmssFabricProfileImages(metadata, model.VmssFabricProfile); err != nil {
+				return err
 			}
 
 			for _, orgProfile := range model.AzureDevOpsOrganizationProfile {
 				for _, permProfile := range orgProfile.PermissionProfile {
-					if permProfile.Kind != "SpecificAccounts" {
+					if permProfile.Kind != string(pools.AzureDevOpsPermissionTypeSpecificAccounts) {
 						if len(permProfile.AdministratorAccounts) > 0 {
-							return fmt.Errorf("administrator_accounts block is not required when permission_profile kind is '%s'", permProfile.Kind)
+							return fmt.Errorf("`administrator_account` block is not required when `permission_profile` kind is `%s`", permProfile.Kind)
 						}
 					}
 				}
@@ -620,11 +635,61 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
+func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricProfiles []VmssFabricProfileModel) error {
+	rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+
+	vmssFabricValue, exists := rawConfig["vmss_fabric_profile"]
+	if !exists || vmssFabricValue.IsNull() {
+		return nil
+	}
+
+	vmssFabricSlice := vmssFabricValue.AsValueSlice()
+	if len(vmssFabricSlice) == 0 {
+		return nil
+	}
+
+	fabricProfileValue := vmssFabricSlice[0].AsValueMap()
+	imageValue, hasImages := fabricProfileValue["image"]
+	if !hasImages || imageValue.IsNull() {
+		return nil
+	}
+
+	imageSlice := imageValue.AsValueSlice()
+
+	for _, vmssFabricProfile := range vmssFabricProfiles {
+		for i, image := range vmssFabricProfile.Images {
+			if len(imageSlice) <= i {
+				continue
+			}
+
+			currentImageValue := imageSlice[i].AsValueMap()
+			resourceIdVal := currentImageValue["resource_id"]
+			wellKnownNameVal := currentImageValue["well_known_image_name"]
+
+			// Only validate if both values are known (not computed from data sources)
+			if resourceIdVal.IsKnown() && wellKnownNameVal.IsKnown() {
+				haveResourceId := image.ResourceId != ""
+				haveWellKnownImageName := image.WellKnownImageName != ""
+
+				if !haveResourceId && !haveWellKnownImageName {
+					return fmt.Errorf("one of `resource_id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
+				}
+
+				if haveResourceId && haveWellKnownImageName {
+					return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
+				}
+			}
+			// Skip validation if either value is unknown (likely from data source during plan phase)
+		}
+	}
+	return nil
+}
+
 func validateManualProfileAgentCounts(profileType string, manualProfile ManualResourcePredictionsProfileModel, maxConcurrency int64) error {
 	// Check daily schedules
 	schedules := []struct {
 		name     string
-		schedule map[string]interface{}
+		schedule map[string]int64
 	}{
 		{"sunday_schedule", manualProfile.SundaySchedule},
 		{"monday_schedule", manualProfile.MondaySchedule},
@@ -647,12 +712,12 @@ func validateManualProfileAgentCounts(profileType string, manualProfile ManualRe
 	}
 
 	if !hasAllWeekSchedule && !hasDaySchedule {
-		return fmt.Errorf("%s manual_resource_predictions_profile must specify either all_week_schedule or at least one day schedule (sunday_schedule, monday_schedule, tuesday_schedule, wednesday_schedule, thursday_schedule, friday_schedule, saturday_schedule)", profileType)
+		return fmt.Errorf("%s `manual_resource_predictions_profile` must specify either `all_week_schedule` or at least one day schedule", profileType)
 	}
 
 	// Check all_week_schedule
 	if manualProfile.AllWeekSchedule > 0 && manualProfile.AllWeekSchedule > maxConcurrency {
-		return fmt.Errorf("%s all_week_schedule agent count (%d) cannot exceed maximum_concurrency (%d)",
+		return fmt.Errorf("%s `all_week_schedule` agent count (%d) cannot exceed `maximum_concurrency` (%d)",
 			profileType, manualProfile.AllWeekSchedule, maxConcurrency)
 	}
 
@@ -665,27 +730,14 @@ func validateManualProfileAgentCounts(profileType string, manualProfile ManualRe
 	return nil
 }
 
-func validateScheduleAgentCounts(profileType, scheduleName string, schedule map[string]interface{}, maxConcurrency int64) error {
+func validateScheduleAgentCounts(profileType, scheduleName string, schedule map[string]int64, maxConcurrency int64) error {
 	if len(schedule) == 0 {
 		return nil
 	}
 
-	for timeSlot, countInterface := range schedule {
-		var agentCount int64
-
-		switch count := countInterface.(type) {
-		case int:
-			agentCount = int64(count)
-		case int64:
-			agentCount = count
-		case float64:
-			agentCount = int64(count)
-		default:
-			continue
-		}
-
+	for timeSlot, agentCount := range schedule {
 		if agentCount > maxConcurrency {
-			return fmt.Errorf("%s %s time slot %s has agent count (%d) that exceeds maximum_concurrency (%d)",
+			return fmt.Errorf("%s %s time slot %s has agent count (%d) that exceeds `maximum_concurrency` (%d)",
 				profileType, scheduleName, timeSlot, agentCount, maxConcurrency)
 		}
 	}

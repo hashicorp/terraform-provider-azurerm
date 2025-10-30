@@ -219,8 +219,8 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.Ag
 
 	agentProfile := input[0]
 
-	stateful.GracePeriodTimeSpan = agentProfile.GracePeriodTimeSpan
-	stateful.MaxAgentLifetime = agentProfile.MaxAgentLifetime
+	stateful.GracePeriodTimeSpan = pointer.To(agentProfile.GracePeriodTimeSpan)
+	stateful.MaxAgentLifetime = pointer.To(agentProfile.MaxAgentLifetime)
 
 	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
 		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
@@ -240,8 +240,9 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.Ag
 		}
 
 		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
-		if resourcePredictionsProfile.PredictionPreference != nil {
-			automaticPredictionsProfile.PredictionPreference = (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference)
+		if resourcePredictionsProfile.PredictionPreference != "" {
+			predictionPreference := pools.PredictionPreference(resourcePredictionsProfile.PredictionPreference)
+			automaticPredictionsProfile.PredictionPreference = &predictionPreference
 		}
 
 		stateful.ResourcePredictionsProfile = automaticPredictionsProfile
@@ -279,8 +280,9 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 		}
 
 		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
-		if resourcePredictionsProfile.PredictionPreference != nil {
-			automaticPredictionsProfile.PredictionPreference = (*pools.PredictionPreference)(resourcePredictionsProfile.PredictionPreference)
+		if resourcePredictionsProfile.PredictionPreference != "" {
+			predictionPreference := pools.PredictionPreference(resourcePredictionsProfile.PredictionPreference)
+			automaticPredictionsProfile.PredictionPreference = &predictionPreference
 		}
 
 		stateless.ResourcePredictionsProfile = automaticPredictionsProfile
@@ -290,16 +292,16 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 }
 
 func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel) *ResourcePredictionsSdkModel {
-	var daysData []map[string]interface{}
+	var daysData []map[string]int64
 
 	if input.AllWeekSchedule > 0 {
-		allWeekMap := map[string]interface{}{
+		allWeekMap := map[string]int64{
 			"00:00:00": input.AllWeekSchedule,
 		}
 		daysData = append(daysData, allWeekMap)
 	} else {
 		// Per-day schedule - create 7 map entries (one per day)
-		dayMaps := []map[string]interface{}{
+		daysData = []map[string]int64{
 			input.SundaySchedule,    // 0 = Sunday
 			input.MondaySchedule,    // 1 = Monday
 			input.TuesdaySchedule,   // 2 = Tuesday
@@ -308,14 +310,6 @@ func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel)
 			input.FridaySchedule,    // 5 = Friday
 			input.SaturdaySchedule,  // 6 = Saturday
 		}
-
-		for i := range dayMaps {
-			if dayMaps[i] == nil {
-				dayMaps[i] = make(map[string]interface{})
-			}
-		}
-
-		daysData = dayMaps
 	}
 
 	return &ResourcePredictionsSdkModel{
@@ -333,8 +327,8 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 	poolOrganizations := []pools.Organization{}
 	for _, org := range organizationProfile.Organizations {
 		poolOrganization := pools.Organization{
-			Parallelism: org.Parallelism,
-			Projects:    org.Projects,
+			Parallelism: pointer.To(org.Parallelism),
+			Projects:    pointer.To(org.Projects),
 			Url:         org.Url,
 		}
 		poolOrganizations = append(poolOrganizations, poolOrganization)
@@ -350,11 +344,10 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 			Kind: pools.AzureDevOpsPermissionType(permissionProfile.Kind),
 		}
 
-		if poolPermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts &&
-			len(permissionProfile.AdministratorAccounts) > 0 {
+		if poolPermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts && len(permissionProfile.AdministratorAccounts) > 0 {
 			adminAccounts := permissionProfile.AdministratorAccounts[0]
-			poolPermissionProfile.Groups = adminAccounts.Groups
-			poolPermissionProfile.Users = adminAccounts.Users
+			poolPermissionProfile.Groups = pointer.To(adminAccounts.Groups)
+			poolPermissionProfile.Users = pointer.To(adminAccounts.Users)
 		}
 
 		azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
@@ -384,18 +377,23 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 	output := []pools.PoolImage{}
 
 	for _, image := range input {
-		poolImage := pools.PoolImage{
-			Aliases: image.Aliases,
-			Buffer:  image.Buffer,
+		poolImage := pools.PoolImage{}
+
+		if len(image.Aliases) > 0 {
+			poolImage.Aliases = pointer.To(image.Aliases)
+		}
+
+		if image.Buffer != "" {
+			poolImage.Buffer = pointer.To(image.Buffer)
 		}
 
 		// Only apply well_known_image_name or resource_id if they are set, otherwise SDK may throw error
-		if image.WellKnownImageName != nil && *image.WellKnownImageName != "" {
-			poolImage.WellKnownImageName = image.WellKnownImageName
+		if image.WellKnownImageName != "" {
+			poolImage.WellKnownImageName = pointer.To(image.WellKnownImageName)
 		}
 
-		if image.ResourceId != nil && *image.ResourceId != "" {
-			poolImage.ResourceId = image.ResourceId
+		if image.ResourceId != "" {
+			poolImage.ResourceId = pointer.To(image.ResourceId)
 		}
 
 		output = append(output, poolImage)
@@ -442,12 +440,12 @@ func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfil
 	if len(storageProfile.DataDisks) > 0 {
 		dataDisksOut := []pools.DataDisk{}
 		for _, disk := range storageProfile.DataDisks {
-			cachingType := pools.CachingType(pointer.From(disk.Caching))
-			storageAccountType := pools.StorageAccountType(pointer.From(disk.StorageAccountType))
+			cachingType := pools.CachingType(disk.Caching)
+			storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
 			diskOut := pools.DataDisk{
 				Caching:            pointer.To(cachingType),
-				DiskSizeGiB:        disk.DiskSizeGB,
-				DriveLetter:        disk.DriveLetter,
+				DiskSizeGiB:        pointer.To(disk.DiskSizeGB),
+				DriveLetter:        pointer.To(disk.DriveLetter),
 				StorageAccountType: pointer.To(storageAccountType),
 			}
 
@@ -467,13 +465,17 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 
 	secretsManagementSettings := input[0]
 	output := &pools.SecretsManagementSettings{
-		CertificateStoreLocation: secretsManagementSettings.CertificateStoreLocation,
-		KeyExportable:            secretsManagementSettings.KeyExportable,
-		ObservedCertificates:     secretsManagementSettings.ObservedCertificates,
+		KeyExportable:        secretsManagementSettings.KeyExportable,
+		ObservedCertificates: secretsManagementSettings.ObservedCertificates,
 	}
 
-	if secretsManagementSettings.CertificateStoreName != nil {
-		output.CertificateStoreName = pointer.To(pools.CertificateStoreNameOption(pointer.From(secretsManagementSettings.CertificateStoreName)))
+	if secretsManagementSettings.CertificateStoreLocation != "" {
+		output.CertificateStoreLocation = pointer.To(secretsManagementSettings.CertificateStoreLocation)
+	}
+
+	if secretsManagementSettings.CertificateStoreName != "" {
+		certificateStoreName := pools.CertificateStoreNameOption(secretsManagementSettings.CertificateStoreName)
+		output.CertificateStoreName = pointer.To(certificateStoreName)
 	}
 
 	return output
@@ -481,15 +483,15 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 
 func flattenStatefulAgentProfileToModel(input pools.Stateful) []StatefulAgentProfileModel {
 	statefulAgentProfileModel := StatefulAgentProfileModel{
-		GracePeriodTimeSpan: input.GracePeriodTimeSpan,
-		MaxAgentLifetime:    input.MaxAgentLifetime,
+		GracePeriodTimeSpan: pointer.From(input.GracePeriodTimeSpan),
+		MaxAgentLifetime:    pointer.From(input.MaxAgentLifetime),
 	}
 
 	if input.ResourcePredictionsProfile != nil {
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
 			statefulAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
 				{
-					PredictionPreference: pointer.To(string(pointer.From(automatic.PredictionPreference))),
+					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
@@ -513,7 +515,7 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []St
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
 			statelessAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
 				{
-					PredictionPreference: pointer.To(string(pointer.From(automatic.PredictionPreference))),
+					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
@@ -550,13 +552,7 @@ func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePred
 
 	if len(sdkModel.DaysData) == 1 {
 		if agentCount, exists := sdkModel.DaysData[0]["00:00:00"]; exists {
-			if count, ok := agentCount.(float64); ok {
-				manualProfile.AllWeekSchedule = int64(count)
-			} else if count, ok := agentCount.(int); ok {
-				manualProfile.AllWeekSchedule = int64(count)
-			} else if count, ok := agentCount.(int64); ok {
-				manualProfile.AllWeekSchedule = count
-			}
+			manualProfile.AllWeekSchedule = agentCount
 		}
 	} else if len(sdkModel.DaysData) == 7 {
 		if len(sdkModel.DaysData[0]) > 0 {
@@ -597,8 +593,8 @@ func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganiz
 
 		if input.PermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts {
 			adminAccounts := AzureDevOpsAdministratorAccountsModel{
-				Groups: input.PermissionProfile.Groups,
-				Users:  input.PermissionProfile.Users,
+				Groups: pointer.From(input.PermissionProfile.Groups),
+				Users:  pointer.From(input.PermissionProfile.Users),
 			}
 			permissionProfile.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
 		}
@@ -614,8 +610,8 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 
 	for _, org := range input {
 		organizationModel := OrganizationModel{
-			Parallelism: org.Parallelism,
-			Projects:    org.Projects,
+			Parallelism: pointer.From(org.Parallelism),
+			Projects:    pointer.From(org.Projects),
 			Url:         org.Url,
 		}
 		output = append(output, organizationModel)
@@ -667,13 +663,13 @@ func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSetti
 	}
 
 	secretsManagementSettingsModel := SecretsManagementSettingsModel{
-		CertificateStoreLocation: input.CertificateStoreLocation,
+		CertificateStoreLocation: pointer.From(input.CertificateStoreLocation),
 		KeyExportable:            input.KeyExportable,
 		ObservedCertificates:     input.ObservedCertificates,
 	}
 
 	if input.CertificateStoreName != nil {
-		secretsManagementSettingsModel.CertificateStoreName = pointer.To(string(pointer.From(input.CertificateStoreName)))
+		secretsManagementSettingsModel.CertificateStoreName = string(pointer.From(input.CertificateStoreName))
 	}
 
 	return []SecretsManagementSettingsModel{secretsManagementSettingsModel}
@@ -684,13 +680,13 @@ func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
 
 	for _, image := range input {
 		imageModel := ImageModel{
-			Aliases:            image.Aliases,
-			Buffer:             image.Buffer,
-			WellKnownImageName: image.WellKnownImageName,
+			Aliases:            pointer.From(image.Aliases),
+			Buffer:             pointer.From(image.Buffer),
+			WellKnownImageName: pointer.From(image.WellKnownImageName),
 		}
 
 		if image.ResourceId != nil {
-			imageModel.ResourceId = image.ResourceId
+			imageModel.ResourceId = pointer.From(image.ResourceId)
 		}
 
 		output = append(output, imageModel)
@@ -712,10 +708,10 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 		dataDisksOut := []DataDiskModel{}
 		for _, disk := range pointer.From(input.DataDisks) {
 			diskOut := DataDiskModel{
-				Caching:            pointer.To(string(pointer.From(disk.Caching))),
-				DiskSizeGB:         disk.DiskSizeGiB,
-				DriveLetter:        disk.DriveLetter,
-				StorageAccountType: pointer.To(string(pointer.From(disk.StorageAccountType))),
+				Caching:            string(pointer.From(disk.Caching)),
+				DiskSizeGB:         pointer.From(disk.DiskSizeGiB),
+				DriveLetter:        pointer.From(disk.DriveLetter),
+				StorageAccountType: string(pointer.From(disk.StorageAccountType)),
 			}
 
 			dataDisksOut = append(dataDisksOut, diskOut)

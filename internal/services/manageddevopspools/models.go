@@ -6,8 +6,8 @@ const (
 )
 
 type StatefulAgentProfileModel struct {
-	GracePeriodTimeSpan                 *string                                    `tfschema:"grace_period_time_span"`
-	MaxAgentLifetime                    *string                                    `tfschema:"max_agent_lifetime"`
+	GracePeriodTimeSpan                 string                                     `tfschema:"grace_period_time_span"`
+	MaxAgentLifetime                    string                                     `tfschema:"max_agent_lifetime"`
 	ManualResourcePredictionsProfile    []ManualResourcePredictionsProfileModel    `tfschema:"manual_resource_predictions_profile"`
 	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
 }
@@ -18,29 +18,29 @@ type StatelessAgentProfileModel struct {
 }
 
 type ResourcePredictionsSdkModel struct {
-	TimeZone string                   `tfschema:"time_zone"`
-	DaysData []map[string]interface{} `tfschema:"days_data"`
+	TimeZone string             `tfschema:"time_zone"`
+	DaysData []map[string]int64 `tfschema:"days_data"`
 }
 
 type ResourcePredictionsProfileModel struct {
-	Kind                 string  `tfschema:"kind"`
-	PredictionPreference *string `tfschema:"prediction_preference"`
+	Kind                 string `tfschema:"kind"`
+	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
 type ManualResourcePredictionsProfileModel struct {
-	TimeZone          string                 `tfschema:"time_zone"`
-	AllWeekSchedule   int64                  `tfschema:"all_week_schedule"`
-	SundaySchedule    map[string]interface{} `tfschema:"sunday_schedule"`
-	MondaySchedule    map[string]interface{} `tfschema:"monday_schedule"`
-	TuesdaySchedule   map[string]interface{} `tfschema:"tuesday_schedule"`
-	WednesdaySchedule map[string]interface{} `tfschema:"wednesday_schedule"`
-	ThursdaySchedule  map[string]interface{} `tfschema:"thursday_schedule"`
-	FridaySchedule    map[string]interface{} `tfschema:"friday_schedule"`
-	SaturdaySchedule  map[string]interface{} `tfschema:"saturday_schedule"`
+	TimeZone          string           `tfschema:"time_zone"`
+	AllWeekSchedule   int64            `tfschema:"all_week_schedule"`
+	SundaySchedule    map[string]int64 `tfschema:"sunday_schedule"`
+	MondaySchedule    map[string]int64 `tfschema:"monday_schedule"`
+	TuesdaySchedule   map[string]int64 `tfschema:"tuesday_schedule"`
+	WednesdaySchedule map[string]int64 `tfschema:"wednesday_schedule"`
+	ThursdaySchedule  map[string]int64 `tfschema:"thursday_schedule"`
+	FridaySchedule    map[string]int64 `tfschema:"friday_schedule"`
+	SaturdaySchedule  map[string]int64 `tfschema:"saturday_schedule"`
 }
 
 type AutomaticResourcePredictionsProfileModel struct {
-	PredictionPreference *string `tfschema:"prediction_preference"`
+	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
 type VmssFabricProfileModel struct {
@@ -52,10 +52,10 @@ type VmssFabricProfileModel struct {
 }
 
 type ImageModel struct {
-	Aliases            *[]string `tfschema:"aliases"`
-	Buffer             *string   `tfschema:"buffer"`
-	ResourceId         *string   `tfschema:"resource_id"`
-	WellKnownImageName *string   `tfschema:"well_known_image_name"`
+	Aliases            []string `tfschema:"aliases"`
+	Buffer             string   `tfschema:"buffer"`
+	ResourceId         string   `tfschema:"resource_id"`
+	WellKnownImageName string   `tfschema:"well_known_image_name"`
 }
 
 type OsProfileModel struct {
@@ -64,8 +64,8 @@ type OsProfileModel struct {
 }
 
 type SecretsManagementSettingsModel struct {
-	CertificateStoreLocation *string  `tfschema:"certificate_store_location"`
-	CertificateStoreName     *string  `tfschema:"certificate_store_name"`
+	CertificateStoreLocation string   `tfschema:"certificate_store_location"`
+	CertificateStoreName     string   `tfschema:"certificate_store_name"`
 	KeyExportable            bool     `tfschema:"key_export_enabled"`
 	ObservedCertificates     []string `tfschema:"observed_certificates"`
 }
@@ -80,10 +80,10 @@ type StorageProfileModel struct {
 }
 
 type DataDiskModel struct {
-	Caching            *string `tfschema:"caching"`
-	DiskSizeGB         *int64  `tfschema:"disk_size_gb"`
-	DriveLetter        *string `tfschema:"drive_letter"`
-	StorageAccountType *string `tfschema:"storage_account_type"`
+	Caching            string `tfschema:"caching"`
+	DiskSizeGB         int64  `tfschema:"disk_size_gb"`
+	DriveLetter        string `tfschema:"drive_letter"`
+	StorageAccountType string `tfschema:"storage_account_type"`
 }
 
 type AzureDevOpsOrganizationProfileModel struct {
@@ -92,17 +92,17 @@ type AzureDevOpsOrganizationProfileModel struct {
 }
 
 type OrganizationModel struct {
-	Parallelism *int64    `tfschema:"parallelism"`
-	Projects    *[]string `tfschema:"projects"`
-	Url         string    `tfschema:"url"`
+	Parallelism int64    `tfschema:"parallelism"`
+	Projects    []string `tfschema:"projects"`
+	Url         string   `tfschema:"url"`
 }
 
 type AzureDevOpsPermissionProfileModel struct {
 	Kind                  string                                  `tfschema:"kind"`
-	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_accounts"`
+	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_account"`
 }
 
 type AzureDevOpsAdministratorAccountsModel struct {
-	Groups *[]string `tfschema:"groups"`
-	Users  *[]string `tfschema:"users"`
+	Groups []string `tfschema:"groups"`
+	Users  []string `tfschema:"users"`
 }

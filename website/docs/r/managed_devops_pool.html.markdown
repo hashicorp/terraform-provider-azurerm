@@ -18,16 +18,16 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
+resource "azurerm_user_assigned_identity" "example" {
   name                = "example-uai"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_dev_center" "test" {
+resource "azurerm_dev_center" "example" {
   name                = "example-devcenter"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_dev_center_project" "example" {
@@ -37,23 +37,23 @@ resource "azurerm_dev_center_project" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                            = "example-subnet"
-  resource_group_name             = azurerm_resource_group.test.name
-  virtual_network_name            = azurerm_virtual_network.test.name
+  resource_group_name             = azurerm_resource_group.example.name
+  virtual_network_name            = azurerm_virtual_network.example.name
   address_prefixes                = ["10.0.2.0/24"]
   default_outbound_access_enabled = false
 }
 
-data "azurerm_platform_image" "test" {
-  location  = azurerm_resource_group.test.location
+data "azurerm_platform_image" "example" {
+  location  = azurerm_resource_group.example.location
   publisher = "Canonical"
   offer     = "0001-com-ubuntu-server-jammy"
   sku       = "22_04-lts"
@@ -75,7 +75,7 @@ resource "azurerm_managed_devops_pool" "example" {
     permission_profile {
       kind = "SpecificAccounts"
 
-      administrator_accounts {
+      administrator_account {
         groups = ["group1@example.com", "group2@example.com"]
         users  = ["user1@example.com", "user2@example.com"]
       }
@@ -98,12 +98,12 @@ resource "azurerm_managed_devops_pool" "example" {
     sku_name = "Standard_D2ads_v5"
 
     image {
-      resource_id = data.azurerm_platform_image.test.id
+      resource_id = data.azurerm_platform_image.example.id
       buffer      = "*"
     }
 
     image {
-      well_known_image_name = "ubuntu-24.0"
+      well_known_image_name = "ubuntu-24.04"
       buffer                = "*"
     }
 
@@ -117,7 +117,7 @@ resource "azurerm_managed_devops_pool" "example" {
     }
 
     network_profile {
-      subnet_id = azurerm_subnet.test.id
+      subnet_id = azurerm_subnet.example.id
     }
   }
 }
@@ -133,23 +133,21 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
 
+* `azure_devops_organization_profile` - (Required) An `azure_devops_organization_profile` block as defined below.
+
 * `dev_center_project_resource_id` - (Required) The ID of the Dev Center project.
+
+* `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values are between `1` and `10000`.
 
 * `vmss_fabric_profile` - (Required) A `vmss_fabric_profile` block as defined below.
 
-* `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time.
-
-* `azure_devops_organization_profile` - (Required) An `azure_devops_organization_profile` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `stateful_agent_profile` - (Optional) A `stateful_agent_profile` block as defined below.
 
 * `stateless_agent_profile` - (Optional) A `stateless_agent_profile` block as defined below.
 
 ~> **Note:** Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
-
----
-
-* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed DevOps Pool.
 
@@ -195,7 +193,7 @@ A `vmss_fabric_profile` block supports the following:
 
 * `image` - (Required) One or more `image` blocks as defined below.
 
-* `sku_name` - (Required) The Azure SKU name of the machines in the pool.
+* `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer the [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -223,7 +221,7 @@ An `image` block supports the following:
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
-~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=azure-cli#azure-pipelines-image-predefined-aliases)
+~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your well_known_image_name, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
 
 ~> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
 
@@ -247,21 +245,29 @@ A `permission_profile` block supports the following:
 
 * `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
 
-* `administrator_accounts` - (Optional) One or more `administrator_accounts` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
+* `administrator_account` - (Optional) One or more `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
 ---
 
 An `organization` block supports the following:
 
-* `url` - (Required) The Azure DevOps organization URL in which the pool should be created.
+* `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
 
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool.
+* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
 
-* `projects` - (Optional) List of projects in which the pool should be created.
+* `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
+  * Must be between 1 and 64 Unicode characters in length
+  * Must not start with an underscore (`_`) or period (`.`)
+  * Must not end with a period (`.`)
+  * Must not contain special characters: `\ / : * ? " ' < > ; # $ * { } + = [ ] | ,`
+  * Must not contain Unicode control characters or surrogate characters
+  * Must not be a reserved name: `App_Browsers`, `App_Code`, `App_Data`, `App_GlobalResources`, `App_LocalResources`, `App_Themes`, `App_WebResources`, `bin`, or `web.config` (case-insensitive)
+
+~> **NOTE:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
 
 ---
 
-An `administrator_accounts` block supports the following:
+An `administrator_account` block supports the following:
 
 * `groups` - (Optional) Specifies a list of group email addresses.
 
@@ -274,14 +280,6 @@ An `os_profile` block supports the following:
 * `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
 
 * `secrets_management` - (Optional) A `secrets_management` block as defined below.
-
----
-
-A `resource_predictions_profile` block supports the following:
-
-* `kind` - (Required) Determines how the stand-by scheme should be provided. Possible values are: `Manual` and `Automatic`.
-
-* `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values are: `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. This is only valid when `kind` is set to `Automatic`. Defaults to `Balanced`.
 
 ---
 
