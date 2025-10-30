@@ -197,6 +197,11 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 
 			"publish_content_link": contentLinkSchema(false),
 
+			"runtime_environment": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"draft": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
@@ -313,11 +318,12 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
-				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:      pointer.To(d.Get("description").(string)),
-				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -408,6 +414,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment", props.RuntimeEnvironment)
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
