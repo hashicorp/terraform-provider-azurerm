@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -102,6 +104,18 @@ The `plan` block exports the following:
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan. Changing this forces a new resource to be created.
 
 ~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Managed Application. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Managed Application.
+
+~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Managed Application has been created. More details are available below.
+
+~> **Note:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
