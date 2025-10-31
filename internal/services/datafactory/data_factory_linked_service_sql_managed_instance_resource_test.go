@@ -238,7 +238,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv%[1]d"
+  name                = "acctestkv%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = "%[3]s"
@@ -246,7 +246,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name            = "linkkv"
+  name            = "acctestlinkkv"
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
@@ -290,7 +290,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name            = "linkkv"
+  name            = "acctestlinkkv"
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
