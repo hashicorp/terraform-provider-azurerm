@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_windows_web_app` - add support for the `virtual_network_image_pull_enabled` property [GH-30920]
+* `azurerm_windows_web_app_slot` - add support for the `virtual_network_image_pull_enabled` property [GH-30920]
 
 FEATURES:
 
