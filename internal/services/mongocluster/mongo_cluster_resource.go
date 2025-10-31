@@ -224,7 +224,7 @@ func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r MongoClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -321,7 +321,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
@@ -500,7 +500,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
