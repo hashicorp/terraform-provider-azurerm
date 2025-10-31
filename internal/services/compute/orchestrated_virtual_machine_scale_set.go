@@ -1383,7 +1383,10 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypesFromImage,
-		OsType:       pointer.To(osType),
+	}
+
+	if len(osType) > 0 {
+		disk.OsType = pointer.To(osType)
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
