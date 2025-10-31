@@ -291,7 +291,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 	for _, service := range provider.SupportedTypedServices() {
 		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
 		// keep a record of resources/datasources that don't have labels so they can be used to check that prefixes generated later don't match resources from those services
-		label = ""
 		if ok {
 			label = v.AssociatedGitHubLabel()
 		}
@@ -306,15 +305,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		}
 
 		names = removeDuplicateNames(names)
-
-		// Warn if service has resources but no GitHub label
-		if !ok && len(names) > 0 {
-			info := reflect.TypeOf(service)
-			packageSegments := strings.Split(info.PkgPath(), "/")
-			packageName := packageSegments[len(packageSegments)-1]
-			fmt.Fprintf(os.Stderr, "WARNING: Service package %q has %d resource(s)/datasource(s) but does not implement AssociatedGitHubLabel(). These resources will not be categorized in GitHub issue labels.\n", packageName, len(names))
-		}
-
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
 	}
 	for _, service := range provider.SupportedUntypedServices() {
@@ -341,15 +331,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		}
 
 		names = removeDuplicateNames(names)
-
-		// Warn if service has resources but no GitHub label
-		if !ok && len(names) > 0 {
-			info := reflect.TypeOf(service)
-			packageSegments := strings.Split(info.PkgPath(), "/")
-			packageName := packageSegments[len(packageSegments)-1]
-			fmt.Fprintf(os.Stderr, "WARNING: Service package %q has %d resource(s)/datasource(s) but does not implement AssociatedGitHubLabel(). These resources will not be categorized in GitHub issue labels.\n", packageName, len(names))
-		}
-
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
 	}
 
