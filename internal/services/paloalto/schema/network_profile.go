@@ -67,8 +67,11 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					Optional: true,
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: commonids.ValidatePublicIPAddressID,
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.Any(
+							validation.IsCIDR,
+							validation.IsIPv4Address,
+						),
 					},
 				},
 

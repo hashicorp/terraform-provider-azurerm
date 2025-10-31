@@ -241,7 +241,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   network_profile {
     public_ip_address_ids                = [azurerm_public_ip.test.id]
     egress_nat_ip_address_ids            = [azurerm_public_ip.egress.id]
-    private_source_nat_rules_destination = [azurerm_public_ip.private_snat.id]
+    private_source_nat_rules_destination = ["10.0.0.0/16", "192.168.1.0/24"]
     trusted_address_ranges               = ["20.22.92.11", "20.23.92.11"]
 
     vnet_configuration {
@@ -354,14 +354,6 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_public_ip" "egress" {
   name                = "acctestpublicip-%[1]d-e"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_public_ip" "private_snat" {
-  name                = "acctestpublicip-%[1]d-psnat"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"

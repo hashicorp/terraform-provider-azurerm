@@ -203,7 +203,7 @@ A `network_profile` block supports the following:
 
 * `egress_nat_ip_address_ids` - (Optional) Specifies a list of Azure Public IP Address IDs that can be used for Egress (Source) Network Address Translation.
 
-* `private_source_nat_rules_destination` - (Optional) Specifies a list of Azure Public IP Address IDs used for Private Source NAT Rules.
+* `private_source_nat_rules_destination` - (Optional) Specifies a list of destination addresses (IPv4 addresses or CIDR blocks) used for Private Source NAT Rules.
 
 * `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
 
