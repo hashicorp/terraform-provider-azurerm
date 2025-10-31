@@ -21,11 +21,12 @@ import (
 )
 
 type BackupInstancePostgreSQLFlexibleServerModel struct {
-	Name           string `tfschema:"name"`
-	Location       string `tfschema:"location"`
-	VaultId        string `tfschema:"vault_id"`
-	BackupPolicyId string `tfschema:"backup_policy_id"`
-	ServerId       string `tfschema:"server_id"`
+	Name            string `tfschema:"name"`
+	Location        string `tfschema:"location"`
+	VaultId         string `tfschema:"vault_id"`
+	BackupPolicyId  string `tfschema:"backup_policy_id"`
+	ServerId        string `tfschema:"server_id"`
+	ProtectionState string `tfschema:"protection_state"`
 }
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
@@ -64,7 +65,12 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"protection_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() sdk.ResourceFunc {
@@ -204,6 +210,8 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 						return err
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
+
+					state.ProtectionState = string(pointer.From(props.CurrentProtectionState))
 				}
 			}
 
