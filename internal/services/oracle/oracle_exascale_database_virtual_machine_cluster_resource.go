@@ -612,6 +612,7 @@ func flattenExadbDataCollectionOptionInterface(dataCollectionOptions *exadbvmclu
 func expandNsgCidrs(input []NetworkSecurityGroupCidrModel) []exadbvmclusters.NsgCidr {
 	output := make([]exadbvmclusters.NsgCidr, 0, len(input))
 
+	// The schema requires at least one item in the networkSecurityGroupCidr list.
 	for _, nsgCidr := range input {
 		portRangeValue := exadbvmclusters.PortRange{
 			Max: nsgCidr.DestinationPortRange[0].Max,
