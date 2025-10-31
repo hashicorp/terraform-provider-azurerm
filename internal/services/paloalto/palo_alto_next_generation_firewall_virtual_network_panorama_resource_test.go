@@ -184,10 +184,10 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   panorama_base64_config = "%[4]s"
 
   network_profile {
-    public_ip_address_ids              = [azurerm_public_ip.test.id]
-    egress_nat_ip_address_ids          = [azurerm_public_ip.egress.id]
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids            = [azurerm_public_ip.egress.id]
     private_source_nat_rules_destination = ["10.0.0.0/16", "192.168.1.0/24"]
-    trusted_address_ranges             = ["20.22.92.11"]
+    trusted_address_ranges               = ["20.22.92.11"]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id
