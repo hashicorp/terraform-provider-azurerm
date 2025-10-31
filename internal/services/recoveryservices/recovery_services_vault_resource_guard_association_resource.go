@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -93,7 +93,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				Id:   pointer.To(id.ID()),
 				Type: pointer.To(VaultGuardResourceType),
 				Properties: pointer.To(resourceguardproxy.ResourceGuardProxyBase{
-					ResourceGuardResourceId: pointer.To(plan.ResourceGuardId),
+					ResourceGuardResourceId: plan.ResourceGuardId,
 				}),
 			}
 
@@ -132,7 +132,7 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil {
-				state.ResourceGuardId = pointer.From(resp.Model.Properties.ResourceGuardResourceId)
+				state.ResourceGuardId = resp.Model.Properties.ResourceGuardResourceId
 			}
 
 			return metadata.Encode(&state)
