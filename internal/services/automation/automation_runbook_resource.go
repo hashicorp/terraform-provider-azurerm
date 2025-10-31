@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbookdraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -399,9 +399,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", azure.NormalizeLocation(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {
