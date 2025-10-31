@@ -710,7 +710,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[str
 			}
 		case workflows.ParameterTypeFloat:
 			if v.Value == nil {
-				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got nil", k)
 			}
 			valueRaw := *v.Value
 			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
@@ -721,7 +721,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[str
 			value = strconv.FormatFloat(tv, 'f', -1, 64)
 		case workflows.ParameterTypeInt:
 			if v.Value == nil {
-				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got nil", k)
 			}
 			valueRaw := *v.Value
 			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
@@ -733,7 +733,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[str
 
 		case workflows.ParameterTypeArray:
 			if v.Value == nil {
-				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be []interface{}, but got nil", k)
 			}
 			valueRaw := *v.Value
 			tv, ok := valueRaw.([]interface{})
@@ -748,7 +748,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[str
 
 		case workflows.ParameterTypeObject:
 			if v.Value == nil {
-				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be map[string]interface{}, but got nil", k)
 			}
 			valueRaw := *v.Value
 			tv, ok := valueRaw.(map[string]interface{})
@@ -763,7 +763,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[str
 
 		case workflows.ParameterTypeString:
 			if v.Value == nil {
-				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be string, but got nil", k)
 			}
 			valueRaw := *v.Value
 			tv, ok := valueRaw.(string)
