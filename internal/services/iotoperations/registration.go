@@ -43,7 +43,7 @@ func (r Registration) Resources() []sdk.Resource {
 		BrokerAuthorizationResource{},
 		BrokerListenerResource{},
 		DataflowResource{},
-	    DataflowEndpointResource{},
+		DataflowEndpointResource{},
 		DataflowProfileResource{},
 	}
 }

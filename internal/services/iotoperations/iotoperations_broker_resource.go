@@ -18,17 +18,13 @@ type BrokerResource struct{}
 var _ sdk.ResourceWithUpdate = BrokerResource{}
 
 type BrokerModel struct {
-	Name              string                 `tfschema:"name"`
-	InstanceName      string                 `tfschema:"instance_name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	ExtendedLocation  *ExtendedLocationModel `tfschema:"extended_location"`
-	Properties        *BrokerPropertiesModel `tfschema:"properties"`
-	ProvisioningState *string                `tfschema:"provisioning_state"`
-}
-
-type ExtendedLocationModel struct {
-	Name *string `tfschema:"name"`
-	Type *string `tfschema:"type"`
+	Name                 string                 `tfschema:"name"`
+	InstanceName         string                 `tfschema:"instance_name"`
+	ResourceGroupName    string                 `tfschema:"resource_group_name"`
+	ExtendedLocationName *string                `tfschema:"extended_location_name"`
+	ExtendedLocationType *string                `tfschema:"extended_location_type"`
+	Properties           *BrokerPropertiesModel `tfschema:"properties"`
+	ProvisioningState    *string                `tfschema:"provisioning_state"`
 }
 
 type BrokerPropertiesModel struct {
@@ -207,14 +203,15 @@ func (r BrokerResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"extended_location": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true, // Required since SDK requires it
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
 						Type:     pluginsdk.TypeString,
@@ -682,10 +679,10 @@ func (r BrokerResource) Create() sdk.ResourceFunc {
 			// Build FULL payload for Create
 			payload := broker.BrokerResource{
 				Properties: expandBrokerProperties(model.Properties),
-			}
-
-			if model.ExtendedLocation != nil {
-				payload.ExtendedLocation = *expandExtendedLocation(model.ExtendedLocation)
+				ExtendedLocation: broker.ExtendedLocation{
+					Name: *model.ExtendedLocationName,
+					Type: broker.ExtendedLocationType(*model.ExtendedLocationType),
+				},
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -737,7 +734,10 @@ func (r BrokerResource) Update() sdk.ResourceFunc {
 
 			if existing.Model != nil {
 				if payload.ExtendedLocation.Name == "" && existing.Model.ExtendedLocation.Name != "" {
-					payload.ExtendedLocation = existing.Model.ExtendedLocation
+					payload.ExtendedLocation.Name = existing.Model.ExtendedLocation.Name
+				}
+				if payload.ExtendedLocation.Type == "" && existing.Model.ExtendedLocation.Type != "" {
+					payload.ExtendedLocation.Type = existing.Model.ExtendedLocation.Type
 				}
 				// Preserve unchanged properties
 				if payload.Properties == nil && existing.Model.Properties != nil {
@@ -782,7 +782,11 @@ func (r BrokerResource) Read() sdk.ResourceFunc {
 			if resp.Model != nil {
 
 				if resp.Model.ExtendedLocation.Name != "" {
-					model.ExtendedLocation = flattenExtendedLocation(&resp.Model.ExtendedLocation)
+					model.ExtendedLocationName = &resp.Model.ExtendedLocation.Name
+				}
+				if resp.Model.ExtendedLocation.Type != "" {
+					extLocType := string(resp.Model.ExtendedLocation.Type)
+					model.ExtendedLocationType = &extLocType
 				}
 
 				if resp.Model.Properties != nil {
@@ -821,6 +825,22 @@ func (r BrokerResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expanding and flattening data structures
+// Helper to expand SubscriberQueueLimitModel to broker.SubscriberQueueLimit
+func expandSubscriberQueueLimit(input *SubscriberQueueLimitModel) *broker.SubscriberQueueLimit {
+	if input == nil {
+		return nil
+	}
+	result := &broker.SubscriberQueueLimit{}
+	if input.Length != nil {
+		val := int64(*input.Length)
+		result.Length = &val
+	}
+	if input.Strategy != nil {
+		strategy := broker.SubscriberMessageDropStrategy(*input.Strategy)
+		result.Strategy = &strategy
+	}
+	return result
+}
 func expandBrokerProperties(input *BrokerPropertiesModel) *broker.BrokerProperties {
 	if input == nil {
 		return nil
@@ -856,24 +876,7 @@ func expandBrokerProperties(input *BrokerPropertiesModel) *broker.BrokerProperti
 	return props
 }
 
-func expandExtendedLocation(input *ExtendedLocationModel) *broker.ExtendedLocation {
-	if input == nil {
-		return nil
-	}
-
-	result := &broker.ExtendedLocation{}
-
-	if input.Name != nil {
-		result.Name = *input.Name
-	}
-
-	if input.Type != nil {
-		extType := broker.ExtendedLocationType(*input.Type)
-		result.Type = extType
-	}
-
-	return result
-}
+// expandExtendedLocation removed; now handled inline with separate fields
 
 func expandAdvancedSettings(input *AdvancedSettingsModel) *broker.AdvancedSettings {
 	if input == nil {
@@ -942,61 +945,342 @@ func expandClientConfig(input *ClientConfigModel) *broker.ClientConfig {
 	if input == nil {
 		return nil
 	}
-	// Implement based on the SDK's ClientConfig model
-	return &broker.ClientConfig{}
+	result := &broker.ClientConfig{}
+
+	if input.MaxSessionExpirySeconds != nil {
+		val := int64(*input.MaxSessionExpirySeconds)
+		result.MaxSessionExpirySeconds = &val
+	}
+	if input.MaxMessageExpirySeconds != nil {
+		val := int64(*input.MaxMessageExpirySeconds)
+		result.MaxMessageExpirySeconds = &val
+	}
+	if input.MaxPacketSizeBytes != nil {
+		val := int64(*input.MaxPacketSizeBytes)
+		result.MaxPacketSizeBytes = &val
+	}
+	if input.SubscriberQueueLimit != nil {
+		result.SubscriberQueueLimit = expandSubscriberQueueLimit(input.SubscriberQueueLimit)
+	}
+	if input.MaxReceiveMaximum != nil {
+		val := int64(*input.MaxReceiveMaximum)
+		result.MaxReceiveMaximum = &val
+	}
+	if input.MaxKeepAliveSeconds != nil {
+		val := int64(*input.MaxKeepAliveSeconds)
+		result.MaxKeepAliveSeconds = &val
+	}
+
+	return result
 }
 
 func expandCertManagerCertOptions(input *CertManagerCertOptionsModel) *broker.CertManagerCertOptions {
 	if input == nil {
 		return nil
 	}
-	// Implement based on the SDK's CertManagerCertOptions model
-	return &broker.CertManagerCertOptions{}
+
+	result := &broker.CertManagerCertOptions{}
+
+	if input.Duration != nil {
+		result.Duration = *input.Duration
+	}
+	if input.RenewBefore != nil {
+		result.RenewBefore = *input.RenewBefore
+	}
+	if input.PrivateKey != nil {
+		result.PrivateKey = *expandCertManagerPrivateKey(input.PrivateKey)
+	}
+
+	return result
 }
 
+// Helper to expand CertManagerPrivateKeyModel to broker.CertManagerPrivateKey
+func expandCertManagerPrivateKey(input *CertManagerPrivateKeyModel) *broker.CertManagerPrivateKey {
+	if input == nil {
+		return nil
+	}
+	result := &broker.CertManagerPrivateKey{}
+	if input.Algorithm != nil {
+		result.Algorithm = broker.PrivateKeyAlgorithm(*input.Algorithm)
+	}
+	if input.RotationPolicy != nil {
+		result.RotationPolicy = broker.PrivateKeyRotationPolicy(*input.RotationPolicy)
+	}
+	return result
+}
 func expandBrokerDiagnostics(input *BrokerDiagnosticsModel) *broker.BrokerDiagnostics {
 	if input == nil {
 		return nil
 	}
-	// Implement based on the SDK's BrokerDiagnostics model
-	return &broker.BrokerDiagnostics{}
+
+	result := &broker.BrokerDiagnostics{}
+
+	if input.Logs != nil {
+		result.Logs = expandDiagnosticsLogs(input.Logs)
+	}
+	if input.Metrics != nil {
+		result.Metrics = expandMetrics(input.Metrics)
+	}
+	if input.SelfCheck != nil {
+		result.SelfCheck = expandSelfCheck(input.SelfCheck)
+	}
+	if input.Traces != nil {
+		result.Traces = expandTraces(input.Traces)
+	}
+
+	return result
+}
+
+// Helper to expand DiagnosticsLogsModel to broker.DiagnosticsLogs
+func expandDiagnosticsLogs(input *DiagnosticsLogsModel) *broker.DiagnosticsLogs {
+	if input == nil {
+		return nil
+	}
+	result := &broker.DiagnosticsLogs{}
+	if input.Level != nil {
+		result.Level = input.Level
+	}
+	return result
+}
+
+// Helper to expand MetricsModel to broker.Metrics
+func expandMetrics(input *MetricsModel) *broker.Metrics {
+	if input == nil {
+		return nil
+	}
+	result := &broker.Metrics{}
+	if input.PrometheusPort != nil {
+		val := int64(*input.PrometheusPort)
+		result.PrometheusPort = &val
+	}
+	return result
+}
+
+// Helper to expand SelfCheckModel to broker.SelfCheck
+func expandSelfCheck(input *SelfCheckModel) *broker.SelfCheck {
+	if input == nil {
+		return nil
+	}
+	result := &broker.SelfCheck{}
+	if input.Mode != nil {
+		mode := broker.OperationalMode(*input.Mode)
+		result.Mode = &mode
+	}
+	if input.IntervalSeconds != nil {
+		val := int64(*input.IntervalSeconds)
+		result.IntervalSeconds = &val
+	}
+	if input.TimeoutSeconds != nil {
+		val := int64(*input.TimeoutSeconds)
+		result.TimeoutSeconds = &val
+	}
+	return result
+}
+
+// Helper to expand TracesModel to broker.Traces
+func expandTraces(input *TracesModel) *broker.Traces {
+	if input == nil {
+		return nil
+	}
+	result := &broker.Traces{}
+	if input.Mode != nil {
+		mode := broker.OperationalMode(*input.Mode)
+		result.Mode = &mode
+	}
+	if input.CacheSizeMegabytes != nil {
+		val := int64(*input.CacheSizeMegabytes)
+		result.CacheSizeMegabytes = &val
+	}
+	if input.SelfTracing != nil {
+		result.SelfTracing = expandSelfTracing(input.SelfTracing)
+	}
+	if input.SpanChannelCapacity != nil {
+		val := int64(*input.SpanChannelCapacity)
+		result.SpanChannelCapacity = &val
+	}
+	return result
+}
+
+// Helper to expand SelfTracingModel to broker.SelfTracing
+func expandSelfTracing(input *SelfTracingModel) *broker.SelfTracing {
+	if input == nil {
+		return nil
+	}
+	result := &broker.SelfTracing{}
+	if input.Mode != nil {
+		mode := broker.OperationalMode(*input.Mode)
+		result.Mode = &mode
+	}
+	if input.IntervalSeconds != nil {
+		val := int64(*input.IntervalSeconds)
+		result.IntervalSeconds = &val
+	}
+	return result
 }
 
 func expandDiskBackedMessageBuffer(input *DiskBackedMessageBufferModel) *broker.DiskBackedMessageBuffer {
 	if input == nil {
 		return nil
 	}
-	// Implement based on the SDK's DiskBackedMessageBuffer model
-	return &broker.DiskBackedMessageBuffer{}
-}
 
-func expandGenerateResourceLimits(input *GenerateResourceLimitsModel) *broker.GenerateResourceLimits {
-	if input == nil {
-		return nil
+	result := &broker.DiskBackedMessageBuffer{}
+
+	if input.MaxSize != nil {
+		result.MaxSize = *input.MaxSize
 	}
-	// Implement based on the SDK's GenerateResourceLimits model
-	return &broker.GenerateResourceLimits{}
-}
-
-// Flatten functions for Read operations
-func flattenExtendedLocation(input *broker.ExtendedLocation) *ExtendedLocationModel {
-	if input == nil {
-		return nil
+	if input.EphemeralVolumeClaimSpec != nil {
+		result.EphemeralVolumeClaimSpec = expandVolumeClaimSpec(input.EphemeralVolumeClaimSpec)
 	}
-
-	result := &ExtendedLocationModel{}
-
-	if input.Name != "" {
-		result.Name = &input.Name
-	}
-
-	if input.Type != "" {
-		extType := string(input.Type)
-		result.Type = &extType
+	if input.PersistentVolumeClaimSpec != nil {
+		result.PersistentVolumeClaimSpec = expandVolumeClaimSpec(input.PersistentVolumeClaimSpec)
 	}
 
 	return result
 }
+
+// Helper to expand VolumeClaimSpecModel to broker.VolumeClaimSpec
+func expandVolumeClaimSpec(input *VolumeClaimSpecModel) *broker.VolumeClaimSpec {
+	if input == nil {
+		return nil
+	}
+	result := &broker.VolumeClaimSpec{}
+	if input.VolumeName != nil {
+		result.VolumeName = input.VolumeName
+	}
+	if input.VolumeMode != nil {
+		result.VolumeMode = input.VolumeMode
+	}
+	if input.StorageClassName != nil {
+		result.StorageClassName = input.StorageClassName
+	}
+	if len(input.AccessModes) > 0 {
+		accessModes := make([]string, len(input.AccessModes))
+		copy(accessModes, input.AccessModes)
+		result.AccessModes = &accessModes
+	}
+	if input.DataSource != nil {
+		result.DataSource = expandDataSource(input.DataSource)
+	}
+	if input.DataSourceRef != nil {
+		result.DataSourceRef = expandDataSourceRef(input.DataSourceRef)
+	}
+	if input.Resources != nil {
+		result.Resources = expandResourceRequirements(input.Resources)
+	}
+	if input.Selector != nil {
+		result.Selector = expandLabelSelector(input.Selector)
+	}
+	return result
+}
+
+// Helper to expand DataSourceModel to broker.LocalKubernetesReference
+func expandDataSource(input *DataSourceModel) *broker.LocalKubernetesReference {
+	if input == nil {
+		return nil
+	}
+	result := &broker.LocalKubernetesReference{}
+	if input.ApiGroup != nil {
+		result.ApiGroup = input.ApiGroup
+	}
+	if input.Kind != nil {
+		result.Kind = *input.Kind
+	}
+	if input.Name != nil {
+		result.Name = *input.Name
+	}
+	return result
+}
+
+// Helper to expand DataSourceRefModel to broker.KubernetesReference
+func expandDataSourceRef(input *DataSourceRefModel) *broker.KubernetesReference {
+	if input == nil {
+		return nil
+	}
+	result := &broker.KubernetesReference{}
+	if input.ApiGroup != nil {
+		result.ApiGroup = input.ApiGroup
+	}
+	if input.Kind != nil {
+		result.Kind = *input.Kind
+	}
+	if input.Name != nil {
+		result.Name = *input.Name
+	}
+	if input.Namespace != nil {
+		result.Namespace = input.Namespace
+	}
+	return result
+}
+
+// Helper to expand ResourceRequirementsModel to broker.VolumeClaimResourceRequirements
+func expandResourceRequirements(input *ResourceRequirementsModel) *broker.VolumeClaimResourceRequirements {
+	if input == nil {
+		return nil
+	}
+	result := &broker.VolumeClaimResourceRequirements{}
+	if input.Limits != nil {
+		result.Limits = &map[string]string{}
+		for k, v := range input.Limits {
+			(*result.Limits)[k] = v
+		}
+	}
+	if input.Requests != nil {
+		result.Requests = &map[string]string{}
+		for k, v := range input.Requests {
+			(*result.Requests)[k] = v
+		}
+	}
+	return result
+}
+
+// Helper to expand LabelSelectorModel to broker.VolumeClaimSpecSelector
+func expandLabelSelector(input *LabelSelectorModel) *broker.VolumeClaimSpecSelector {
+	if input == nil {
+		return nil
+	}
+	result := &broker.VolumeClaimSpecSelector{}
+	if len(input.MatchExpressions) > 0 {
+		matchExprs := make([]broker.VolumeClaimSpecSelectorMatchExpressions, len(input.MatchExpressions))
+		for i, me := range input.MatchExpressions {
+			matchExprs[i] = expandMatchExpression(me)
+		}
+		result.MatchExpressions = &matchExprs
+	}
+	if input.MatchLabels != nil {
+		result.MatchLabels = &input.MatchLabels
+	}
+	return result
+}
+
+// Helper to expand MatchExpressionModel to broker.VolumeClaimSpecSelectorMatchExpressions
+func expandMatchExpression(input MatchExpressionModel) broker.VolumeClaimSpecSelectorMatchExpressions {
+	result := broker.VolumeClaimSpecSelectorMatchExpressions{}
+	if input.Key != nil {
+		result.Key = *input.Key
+	}
+	if input.Operator != nil {
+		result.Operator = broker.OperatorValues(*input.Operator)
+	}
+	if len(input.Values) > 0 {
+		result.Values = &input.Values
+	}
+	return result
+}
+func expandGenerateResourceLimits(input *GenerateResourceLimitsModel) *broker.GenerateResourceLimits {
+	if input == nil {
+		return nil
+	}
+
+	result := &broker.GenerateResourceLimits{}
+	if input.Cpu != nil {
+		opMode := broker.OperationalMode(*input.Cpu)
+		result.Cpu = &opMode
+	}
+	return result
+}
+
+// Flatten functions for Read operations
+// flattenExtendedLocation removed; now handled inline with separate fields
 
 func flattenBrokerProperties(input *broker.BrokerProperties) *BrokerPropertiesModel {
 	if input == nil {

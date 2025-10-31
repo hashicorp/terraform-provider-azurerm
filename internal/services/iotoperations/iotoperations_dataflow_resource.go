@@ -17,14 +17,15 @@ type DataflowResource struct{}
 var _ sdk.ResourceWithUpdate = DataflowResource{}
 
 type DataflowModel struct {
-	Name                string                   `tfschema:"name"`
-	ResourceGroupName   string                   `tfschema:"resource_group_name"`
-	InstanceName        string                   `tfschema:"instance_name"`
-	DataflowProfileName string                   `tfschema:"dataflow_profile_name"`
-	Mode                *string                  `tfschema:"mode"`
-	Operations          []DataflowOperationModel `tfschema:"operations"`
-	ExtendedLocation    ExtendedLocationModel    `tfschema:"extended_location"`
-	ProvisioningState   *string                  `tfschema:"provisioning_state"`
+	Name                 string                   `tfschema:"name"`
+	ResourceGroupName    string                   `tfschema:"resource_group_name"`
+	InstanceName         string                   `tfschema:"instance_name"`
+	DataflowProfileName  string                   `tfschema:"dataflow_profile_name"`
+	Mode                 *string                  `tfschema:"mode"`
+	Operations           []DataflowOperationModel `tfschema:"operations"`
+	ExtendedLocationName *string                  `tfschema:"extended_location_name"`
+	ExtendedLocationType *string                  `tfschema:"extended_location_type"`
+	ProvisioningState    *string                  `tfschema:"provisioning_state"`
 }
 
 type DataflowOperationModel struct {
@@ -400,9 +401,25 @@ func (r DataflowResource) Create() sdk.ResourceFunc {
 			id := dataflow.NewDataflowID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.DataflowProfileName, model.Name)
 
 			// Build payload
+			extendedLocationName := ""
+			if model.ExtendedLocationName != nil {
+				extendedLocationName = *model.ExtendedLocationName
+			}
+			extendedLocationType := dataflow.ExtendedLocationTypeCustomLocation
+			if model.ExtendedLocationType != nil {
+				extendedLocationType = dataflow.ExtendedLocationType(*model.ExtendedLocationType)
+			}
+			// no new variables on left side of :=
+			extendedLocationType = dataflow.ExtendedLocationTypeCustomLocation
+			if model.ExtendedLocationType != nil {
+				extendedLocationType = dataflow.ExtendedLocationType(*model.ExtendedLocationType)
+			}
 			payload := dataflow.DataflowResource{
-				ExtendedLocation: expandDataflowExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowProperties(model),
+				ExtendedLocation: dataflow.ExtendedLocation{
+					Name: extendedLocationName,
+					Type: extendedLocationType,
+				},
+				Properties: expandDataflowProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -439,7 +456,9 @@ func (r DataflowResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				model.ExtendedLocation = flattenDataflowExtendedLocation(respModel.ExtendedLocation)
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					flattenDataflowProperties(respModel.Properties, &model)
@@ -473,9 +492,21 @@ func (r DataflowResource) Update() sdk.ResourceFunc {
 			}
 
 			// For dataflow, we use CreateOrUpdate for updates since there's no dedicated Update method
+			extendedLocationName := ""
+			if model.ExtendedLocationName != nil {
+				extendedLocationName = *model.ExtendedLocationName
+			}
+			extendedLocationType := dataflow.ExtendedLocationTypeCustomLocation
+			if model.ExtendedLocationType != nil {
+				extendedLocationType = dataflow.ExtendedLocationType(*model.ExtendedLocationType)
+			}
+
 			payload := dataflow.DataflowResource{
-				ExtendedLocation: expandDataflowExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowProperties(model),
+				ExtendedLocation: dataflow.ExtendedLocation{
+					Name: extendedLocationName,
+					Type: extendedLocationType,
+				},
+				Properties: expandDataflowProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -508,20 +539,7 @@ func (r DataflowResource) Delete() sdk.ResourceFunc {
 }
 
 // Helper functions for expand/flatten operations
-func expandDataflowExtendedLocation(input ExtendedLocationModel) dataflow.ExtendedLocation {
-	return dataflow.ExtendedLocation{
-		Name: *input.Name,
-		Type: dataflow.ExtendedLocationType(*input.Type),
-	}
-}
-
-func flattenDataflowExtendedLocation(input dataflow.ExtendedLocation) ExtendedLocationModel {
-	typeStr := string(input.Type)
-	return ExtendedLocationModel{
-		Name: &input.Name,
-		Type: &typeStr,
-	}
-}
+// expandDataflowExtendedLocation and flattenDataflowExtendedLocation removed; now handled inline with separate fields
 
 func expandDataflowProperties(model DataflowModel) *dataflow.DataflowProperties {
 	props := &dataflow.DataflowProperties{

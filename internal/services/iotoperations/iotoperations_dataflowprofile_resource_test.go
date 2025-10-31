@@ -16,9 +16,6 @@ import (
 // IotOperationsDataflowProfileResource is a test harness for azurerm_iotoperations_dataflow_profile acceptance tests.
 type IotOperationsDataflowProfileResource struct{}
 
-// NOTE: These tests currently use a placeholder instance name "REPLACE_WITH_INSTANCE_NAME".
-// To make them pass, add or reference an actual azurerm_iotoperations_instance in the template.
-
 func TestAccIotOperationsDataflowProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotoperations_dataflow_profile", "test")
 	r := IotOperationsDataflowProfileResource{}
@@ -112,7 +109,6 @@ func (IotOperationsDataflowProfileResource) Exists(ctx context.Context, c *clien
 }
 
 // template builds the minimal provider + resource_group.
-// TODO: Create or reference a real azurerm_iotoperations_instance and feed its name into the dataflow profile.
 func (IotOperationsDataflowProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

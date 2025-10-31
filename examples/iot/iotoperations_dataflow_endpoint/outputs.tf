@@ -54,13 +54,13 @@ output "local_endpoint_name" {
 
 # Fabric OneLake Endpoint Outputs
 output "fabric_endpoint_id" {
-  description = "The ID of the Fabric OneLake dataflow endpoint"
-  value       = var.enable_fabric_endpoint ? azurerm_iotoperations_dataflow_endpoint.fabric[0].id : null
+  description = "The ID of the Fabric OneLake dataflow endpoint."
+  value       = var.enable_fabric_endpoint ? azurerm_iotoperations_dataflow_endpoint.fabric.id : null
 }
 
 output "fabric_endpoint_name" {
-  description = "The name of the Fabric OneLake dataflow endpoint"
-  value       = var.enable_fabric_endpoint ? azurerm_iotoperations_dataflow_endpoint.fabric[0].name : null
+  description = "The name of the Fabric OneLake dataflow endpoint."
+  value       = var.enable_fabric_endpoint ? azurerm_iotoperations_dataflow_endpoint.fabric.name : null
 }
 
 # Endpoint Configuration Summary

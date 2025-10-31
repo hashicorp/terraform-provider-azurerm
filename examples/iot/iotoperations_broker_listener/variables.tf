@@ -1,3 +1,8 @@
+# Required for azurerm_iotoperations_instance
+variable "schema_registry_ref" {
+  description = "The resource ID of the schema registry to associate with the instance."
+  type        = string
+}
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string

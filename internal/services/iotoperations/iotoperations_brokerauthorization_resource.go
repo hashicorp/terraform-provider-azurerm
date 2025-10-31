@@ -21,7 +21,8 @@ type BrokerAuthorizationModel struct {
 	ResourceGroupName     string                         `tfschema:"resource_group_name"`
 	InstanceName          string                         `tfschema:"instance_name"`
 	BrokerName            string                         `tfschema:"broker_name"`
-	ExtendedLocation      ExtendedLocationModel          `tfschema:"extended_location"`
+	ExtendedLocationName  *string                        `tfschema:"extended_location_name"`
+	ExtendedLocationType  *string                        `tfschema:"extended_location_type"`
 	AuthorizationPolicies BrokerAuthorizationConfigModel `tfschema:"authorization_policies"`
 	ProvisioningState     *string                        `tfschema:"provisioning_state"`
 }
@@ -116,7 +117,7 @@ func (r BrokerAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 					"type": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						Default:  "CustomLocation",
 						ValidateFunc: validation.StringInSlice([]string{
 							"CustomLocation",
@@ -291,8 +292,8 @@ func (r BrokerAuthorizationResource) Create() sdk.ResourceFunc {
 			// Build payload
 			payload := brokerauthorization.BrokerAuthorizationResource{
 				ExtendedLocation: brokerauthorization.ExtendedLocation{
-					Name: *model.ExtendedLocation.Name,
-					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocation.Type),
+					Name: *model.ExtendedLocationName,
+					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerAuthorizationProperties(model.AuthorizationPolicies),
 			}
@@ -331,13 +332,9 @@ func (r BrokerAuthorizationResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				model.ExtendedLocation = ExtendedLocationModel{
-					Name: &respModel.ExtendedLocation.Name,
-					Type: func() *string {
-						s := string(respModel.ExtendedLocation.Type)
-						return &s
-					}(),
-				}
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					model.AuthorizationPolicies = flattenBrokerAuthorizationProperties(respModel.Properties)
@@ -373,8 +370,8 @@ func (r BrokerAuthorizationResource) Update() sdk.ResourceFunc {
 			// Since there's no separate Update method, use CreateOrUpdate
 			payload := brokerauthorization.BrokerAuthorizationResource{
 				ExtendedLocation: brokerauthorization.ExtendedLocation{
-					Name: *model.ExtendedLocation.Name,
-					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocation.Type),
+					Name: *model.ExtendedLocationName,
+					Type: brokerauthorization.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerAuthorizationProperties(model.AuthorizationPolicies),
 			}

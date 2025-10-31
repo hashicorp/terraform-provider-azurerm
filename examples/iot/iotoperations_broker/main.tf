@@ -10,9 +10,9 @@ terraform {
     }
   }
 }
-
 provider "azurerm" {
   features {}
+  subscription_id = "d4ccd08b-0809-446d-a8b7-7af8a90109cd"
 }
 
 # Use existing resource group
@@ -31,90 +31,92 @@ resource "azurerm_iotoperations_broker" "example" {
     type = "CustomLocation"
   }
   
-  memory_profile = "Medium"
-  
-  cardinality {
-    backend_chain {
-      partitions        = 2
-      redundancy_factor = 1
-      workers          = 1
-    }
+  properties {
+    memory_profile = "Medium"
     
-    frontend {
-      replicas = 2
-      workers  = 1
-    }
-  }
-  
-  advanced {
-    encrypt_internal_traffic = "Enabled"
-    
-    clients {
-      max_session_expiry_seconds = 3600
-      max_message_expiry_seconds = 3600
-      max_packet_size_bytes      = 1048576
-      max_receive_maximum        = 100
-      max_keep_alive_seconds     = 3600
+    cardinality {
+      backend_chain {
+        partitions        = 2
+        redundancy_factor = 1
+        workers          = 1
+      }
       
-      subscriber_queue_limit {
-        length   = 1000
-        strategy = "DropOldest"
+      frontend {
+        replicas = 2
+        workers  = 1
       }
     }
     
-    internal_certs {
-      duration     = "8760h"
-      renew_before = "720h"
+    advanced {
+      encrypt_internal_traffic = "Enabled"
       
-      private_key {
-        algorithm       = "RSA"
-        rotation_policy = "Always"
+      clients {
+        max_session_expiry_seconds = 3600
+        max_message_expiry_seconds = 3600
+        max_packet_size_bytes      = 1048576
+        max_receive_maximum        = 100
+        max_keep_alive_seconds     = 3600
+        
+        subscriber_queue_limit {
+          length   = 1000
+          strategy = "DropOldest"
+        }
       }
-    }
-  }
-  
-  diagnostics {
-    logs {
-      level = "info"
-    }
-    
-    metrics {
-      prometheus_port = 9090
-    }
-    
-    self_check {
-      mode             = "Enabled"
-      interval_seconds = 30
-      timeout_seconds  = 15
-    }
-    
-    traces {
-      mode                 = "Enabled"
-      cache_size_megabytes = 16
-      span_channel_capacity = 1000
       
-      self_tracing {
-        mode             = "Enabled"
-        interval_seconds = 30
-      }
-    }
-  }
-  
-  disk_backed_message_buffer {
-    max_size = "1Gi"
-    
-    ephemeral_volume_claim_spec {
-      access_modes = ["ReadWriteOnce"]
-      
-      resources {
-        requests = {
-          "storage" = "1Gi"
+      internal_certs {
+        duration     = "8760h"
+        renew_before = "720h"
+        
+        private_key {
+          algorithm       = "RSA"
+          rotation_policy = "Always"
         }
       }
     }
-  }
-  
-  generate_resource_limits {
-    cpu = "Enabled"
+    
+    diagnostics {
+      logs {
+        level = "info"
+      }
+      
+      metrics {
+        prometheus_port = 9090
+      }
+      
+      self_check {
+        mode             = "Enabled"
+        interval_seconds = 30
+        timeout_seconds  = 15
+      }
+      
+      traces {
+        mode                 = "Enabled"
+        cache_size_megabytes = 16
+        span_channel_capacity = 1000
+        
+        self_tracing {
+          mode             = "Enabled"
+          interval_seconds = 30
+        }
+      }
+    }
+    
+    disk_backed_message_buffer {
+      max_size = "1Gi"
+      
+      ephemeral_volume_claim_spec {
+        access_modes = ["ReadWriteOnce"]
+        
+        resources {
+          requests = {
+            "storage" = "1Gi"
+          }
+        }
+      }
+    }
+    
+    generate_resource_limits {
+      cpu = "Enabled"
+    }
   }
 }

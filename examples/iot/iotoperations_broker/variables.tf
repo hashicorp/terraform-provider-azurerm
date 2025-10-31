@@ -20,3 +20,8 @@ variable "custom_location_id" {
   description = "The ARM resource ID of the Custom Location (Arc-enabled Kubernetes cluster)"
   type        = string
 }
+
+variable "broker_name" {
+  description = "The name of the IoT Operations broker"
+  type        = string
+}

@@ -253,11 +253,7 @@ variable "development_self_check_timeout" {
   default     = 15
 }
 
-variable "tags" {
-  description = "A mapping of tags to assign to the resources"
-  type        = map(string)
-  default = {
-    Environment = "Example"
-    Purpose     = "IoT Operations Dataflow Profiles Demo"
-  }
+variable "schema_registry_ref" {
+  description = "The resource ID of the schema registry to use."
+  type        = string
 }

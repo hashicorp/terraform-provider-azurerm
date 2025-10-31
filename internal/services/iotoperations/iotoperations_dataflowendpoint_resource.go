@@ -21,7 +21,8 @@ type DataflowEndpointModel struct {
 	ResourceGroupName       string                                `tfschema:"resource_group_name"`
 	InstanceName            string                                `tfschema:"instance_name"`
 	EndpointType            string                                `tfschema:"endpoint_type"`
-	ExtendedLocation        ExtendedLocationModel                 `tfschema:"extended_location"`
+	ExtendedLocationName    *string                               `tfschema:"extended_location_name"`
+	ExtendedLocationType    *string                               `tfschema:"extended_location_type"`
 	DataExplorerSettings    *DataflowEndpointDataExplorerModel    `tfschema:"data_explorer_settings"`
 	DataLakeStorageSettings *DataflowEndpointDataLakeStorageModel `tfschema:"data_lake_storage_settings"`
 	FabricOneLakeSettings   *DataflowEndpointFabricOneLakeModel   `tfschema:"fabric_one_lake_settings"`
@@ -695,14 +696,35 @@ func (r DataflowEndpointResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// Extract extended_location block from ResourceData and set model fields (value types)
+			if v, ok := metadata.ResourceData.GetOk("extended_location"); ok {
+				if list, ok := v.([]interface{}); ok && len(list) > 0 && list[0] != nil {
+					m := list[0].(map[string]interface{})
+					if name, ok := m["name"].(string); ok && name != "" {
+						model.ExtendedLocationName = &name
+					}
+					if typ, ok := m["type"].(string); ok && typ != "" {
+						model.ExtendedLocationType = &typ
+					}
+				}
+			}
+
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := dataflowendpoint.NewDataflowEndpointID(subscriptionId, model.ResourceGroupName, model.InstanceName, model.Name)
 
 			// Build payload
-			payload := dataflowendpoint.DataflowEndpointResource{
-				ExtendedLocation: expandDataflowEndpointExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowEndpointProperties(model),
+			var extendedLocation *dataflowendpoint.ExtendedLocation
+			if model.ExtendedLocationName != nil && model.ExtendedLocationType != nil {
+				extendedLocation = &dataflowendpoint.ExtendedLocation{
+					Name: *model.ExtendedLocationName,
+					Type: dataflowendpoint.ExtendedLocationType(*model.ExtendedLocationType),
+				}
 			}
+			var payload dataflowendpoint.DataflowEndpointResource
+			if extendedLocation != nil {
+				payload.ExtendedLocation = *extendedLocation
+			}
+			payload.Properties = expandDataflowEndpointProperties(model)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -737,7 +759,9 @@ func (r DataflowEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				model.ExtendedLocation = flattenDataflowEndpointExtendedLocation(respModel.ExtendedLocation)
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					flattenDataflowEndpointProperties(respModel.Properties, &model)
@@ -770,11 +794,32 @@ func (r DataflowEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// For dataflow endpoint, we use CreateOrUpdate for updates since there's no dedicated Update method
-			payload := dataflowendpoint.DataflowEndpointResource{
-				ExtendedLocation: expandDataflowEndpointExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowEndpointProperties(model),
+			// Extract extended_location block from ResourceData and set model fields (value types)
+			if v, ok := metadata.ResourceData.GetOk("extended_location"); ok {
+				if list, ok := v.([]interface{}); ok && len(list) > 0 && list[0] != nil {
+					m := list[0].(map[string]interface{})
+					if name, ok := m["name"].(string); ok && name != "" {
+						model.ExtendedLocationName = &name
+					}
+					if typ, ok := m["type"].(string); ok && typ != "" {
+						model.ExtendedLocationType = &typ
+					}
+				}
 			}
+
+			// For dataflow endpoint, we use CreateOrUpdate for updates since there's no dedicated Update method
+			var extendedLocation *dataflowendpoint.ExtendedLocation
+			if model.ExtendedLocationName != nil && model.ExtendedLocationType != nil {
+				extendedLocation = &dataflowendpoint.ExtendedLocation{
+					Name: *model.ExtendedLocationName,
+					Type: dataflowendpoint.ExtendedLocationType(*model.ExtendedLocationType),
+				}
+			}
+			var payload dataflowendpoint.DataflowEndpointResource
+			if extendedLocation != nil {
+				payload.ExtendedLocation = *extendedLocation
+			}
+			payload.Properties = expandDataflowEndpointProperties(model)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -802,22 +847,6 @@ func (r DataflowEndpointResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-	}
-}
-
-// Helper functions for expand/flatten operations
-func expandDataflowEndpointExtendedLocation(input ExtendedLocationModel) dataflowendpoint.ExtendedLocation {
-	return dataflowendpoint.ExtendedLocation{
-		Name: *input.Name,
-		Type: dataflowendpoint.ExtendedLocationType(*input.Type),
-	}
-}
-
-func flattenDataflowEndpointExtendedLocation(input dataflowendpoint.ExtendedLocation) ExtendedLocationModel {
-	typeStr := string(input.Type)
-	return ExtendedLocationModel{
-		Name: &input.Name,
-		Type: &typeStr,
 	}
 }
 

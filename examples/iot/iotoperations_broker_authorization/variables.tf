@@ -20,3 +20,8 @@ variable "broker_name" {
   description = "The name of the existing IoT Operations broker"
   type        = string
 }
+
+variable "custom_location_id" {
+  description = "The ID of the custom location to use for extended location."
+  type        = string
+}

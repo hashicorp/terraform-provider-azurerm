@@ -13,6 +13,7 @@ terraform {
 
 provider "azurerm" {
   features {}
+  subscription_id = "d4ccd08b-0809-446d-a8b7-7af8a90109cd"
 }
 
 # Use existing resource group
@@ -56,13 +57,12 @@ resource "azurerm_iotoperations_broker_authentication" "example" {
     
     x509_settings {
       trusted_client_ca_cert = "vlctsqddl"
-      
-      authorization_attributes = {
-        "key3384" = {
-          subject = "jpgwctfeixitptfgfnqhua"
-          attributes = {
-            "key186" = "ucpajramsz"
-          }
+
+      authorization_attributes {
+        name    = "key3384"
+        subject = "jpgwctfeixitptfgfnqhua"
+        attributes = {
+          key186 = "ucpajramsz"
         }
       }
     }

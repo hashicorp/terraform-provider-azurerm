@@ -17,13 +17,14 @@ type DataflowProfileResource struct{}
 var _ sdk.ResourceWithUpdate = DataflowProfileResource{}
 
 type DataflowProfileModel struct {
-	Name              string                           `tfschema:"name"`
-	ResourceGroupName string                           `tfschema:"resource_group_name"`
-	InstanceName      string                           `tfschema:"instance_name"`
-	InstanceCount     *int64                           `tfschema:"instance_count"`
-	Diagnostics       *DataflowProfileDiagnosticsModel `tfschema:"diagnostics"`
-	ExtendedLocation  ExtendedLocationModel            `tfschema:"extended_location"`
-	ProvisioningState *string                          `tfschema:"provisioning_state"`
+	Name                 string                           `tfschema:"name"`
+	ResourceGroupName    string                           `tfschema:"resource_group_name"`
+	InstanceName         string                           `tfschema:"instance_name"`
+	InstanceCount        *int64                           `tfschema:"instance_count"`
+	Diagnostics          *DataflowProfileDiagnosticsModel `tfschema:"diagnostics"`
+	ExtendedLocationName *string                          `tfschema:"extended_location_name"`
+	ExtendedLocationType *string                          `tfschema:"extended_location_type"`
+	ProvisioningState    *string                          `tfschema:"provisioning_state"`
 }
 
 type DataflowProfileDiagnosticsModel struct {
@@ -175,8 +176,11 @@ func (r DataflowProfileResource) Create() sdk.ResourceFunc {
 
 			// Build payload
 			payload := dataflowprofile.DataflowProfileResource{
-				ExtendedLocation: expandDataflowProfileExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowProfileProperties(model),
+				ExtendedLocation: dataflowprofile.ExtendedLocation{
+					Name: *model.ExtendedLocationName,
+					Type: dataflowprofile.ExtendedLocationType(*model.ExtendedLocationType),
+				},
+				Properties: expandDataflowProfileProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -212,7 +216,9 @@ func (r DataflowProfileResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				model.ExtendedLocation = flattenDataflowProfileExtendedLocation(respModel.ExtendedLocation)
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					flattenDataflowProfileProperties(respModel.Properties, &model)
@@ -247,8 +253,11 @@ func (r DataflowProfileResource) Update() sdk.ResourceFunc {
 
 			// For dataflow profile, we use CreateOrUpdate for updates since there's no dedicated Update method
 			payload := dataflowprofile.DataflowProfileResource{
-				ExtendedLocation: expandDataflowProfileExtendedLocation(model.ExtendedLocation),
-				Properties:       expandDataflowProfileProperties(model),
+				ExtendedLocation: dataflowprofile.ExtendedLocation{
+					Name: *model.ExtendedLocationName,
+					Type: dataflowprofile.ExtendedLocationType(*model.ExtendedLocationType),
+				},
+				Properties: expandDataflowProfileProperties(model),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -277,22 +286,6 @@ func (r DataflowProfileResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-	}
-}
-
-// Helper functions for expand/flatten operations
-func expandDataflowProfileExtendedLocation(input ExtendedLocationModel) dataflowprofile.ExtendedLocation {
-	return dataflowprofile.ExtendedLocation{
-		Name: *input.Name,
-		Type: dataflowprofile.ExtendedLocationType(*input.Type),
-	}
-}
-
-func flattenDataflowProfileExtendedLocation(input dataflowprofile.ExtendedLocation) ExtendedLocationModel {
-	typeStr := string(input.Type)
-	return ExtendedLocationModel{
-		Name: &input.Name,
-		Type: &typeStr,
 	}
 }
 

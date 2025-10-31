@@ -9,6 +9,8 @@ terraform {
 
 provider "azurerm" {
   features {}
+  subscription_id = "d4ccd08b-0809-446d-a8b7-7af8a90109cd"
+
 }
 
 resource "azurerm_resource_group" "example" {
@@ -24,9 +26,7 @@ resource "azurerm_iotoperations_instance" "example" {
   extended_location_name = var.custom_location_id
   extended_location_type = "CustomLocation"
 
-  identity {
-    type = "SystemAssigned"
-  }
+  schema_registry_ref = var.schema_registry_ref
 
   tags = var.tags
 }
@@ -34,7 +34,8 @@ resource "azurerm_iotoperations_instance" "example" {
 # High-performance dataflow profile for real-time processing
 resource "azurerm_iotoperations_dataflow_profile" "high_performance" {
   name                = var.high_performance_profile_name
-  iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+  resource_group_name = var.resource_group_name
+  instance_name       = var.instance_name
 
   extended_location {
     name = azurerm_iotoperations_instance.example.extended_location_name
@@ -50,18 +51,14 @@ resource "azurerm_iotoperations_dataflow_profile" "high_performance" {
     metrics {
       prometheus_port = var.high_performance_prometheus_port
     }
-    self_check {
-      mode                = var.high_performance_self_check_mode
-      interval_seconds    = var.high_performance_self_check_interval
-      timeout_seconds     = var.high_performance_self_check_timeout
-    }
   }
 }
 
 # Standard dataflow profile for batch processing
 resource "azurerm_iotoperations_dataflow_profile" "standard" {
   name                = var.standard_profile_name
-  iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+  resource_group_name = var.resource_group_name
+  instance_name       = var.instance_name
 
   extended_location {
     name = azurerm_iotoperations_instance.example.extended_location_name
@@ -77,18 +74,14 @@ resource "azurerm_iotoperations_dataflow_profile" "standard" {
     metrics {
       prometheus_port = var.standard_prometheus_port
     }
-    self_check {
-      mode                = var.standard_self_check_mode
-      interval_seconds    = var.standard_self_check_interval
-      timeout_seconds     = var.standard_self_check_timeout
-    }
   }
 }
 
 # Low-resource dataflow profile for edge scenarios
 resource "azurerm_iotoperations_dataflow_profile" "edge" {
   name                = var.edge_profile_name
-  iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+  resource_group_name = var.resource_group_name
+  instance_name       = var.instance_name
 
   extended_location {
     name = azurerm_iotoperations_instance.example.extended_location_name
@@ -104,11 +97,6 @@ resource "azurerm_iotoperations_dataflow_profile" "edge" {
     metrics {
       prometheus_port = var.edge_prometheus_port
     }
-    self_check {
-      mode                = var.edge_self_check_mode
-      interval_seconds    = var.edge_self_check_interval
-      timeout_seconds     = var.edge_self_check_timeout
-    }
   }
 }
 
@@ -117,7 +105,8 @@ resource "azurerm_iotoperations_dataflow_profile" "development" {
   count = var.create_development_profile ? 1 : 0
 
   name                = var.development_profile_name
-  iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+  resource_group_name = var.resource_group_name
+  instance_name       = var.instance_name
 
   extended_location {
     name = azurerm_iotoperations_instance.example.extended_location_name
@@ -132,11 +121,6 @@ resource "azurerm_iotoperations_dataflow_profile" "development" {
     }
     metrics {
       prometheus_port = var.development_prometheus_port
-    }
-    self_check {
-      mode                = var.development_self_check_mode
-      interval_seconds    = var.development_self_check_interval
-      timeout_seconds     = var.development_self_check_timeout
     }
   }
 }

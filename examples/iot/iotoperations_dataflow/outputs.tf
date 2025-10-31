@@ -33,12 +33,3 @@ output "dataflow_mode" {
   value       = azurerm_iotoperations_dataflow.example.mode
 }
 
-output "dataflow_sources" {
-  description = "The sources configured for the dataflow"
-  value       = azurerm_iotoperations_dataflow.example.source
-}
-
-output "dataflow_destinations" {
-  description = "The destinations configured for the dataflow"
-  value       = azurerm_iotoperations_dataflow.example.destination
-}

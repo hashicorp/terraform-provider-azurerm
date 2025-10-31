@@ -249,3 +249,38 @@ variable "tags" {
     Purpose     = "IoT Operations Dataflow Endpoints Demo"
   }
 }
+
+variable "custom_location_id" {
+  description = "The ID of the custom location to use for extended location."
+  type        = string
+}
+
+variable "adx_host" {
+  description = "Azure Data Explorer host"
+  type        = string
+}
+
+variable "adx_database" {
+  description = "Azure Data Explorer database"
+  type        = string
+}
+
+variable "storage_host" {
+  description = "Azure Storage host"
+  type        = string
+}
+
+variable "fabric_workspace_name" {
+  description = "Fabric workspace name"
+  type        = string
+}
+
+variable "fabric_one_lake_path_type" {
+  description = "Fabric OneLake path type"
+  type        = string
+}
+
+variable "schema_registry_ref" {
+  description = "The resource ID of the schema registry."
+  type        = string
+}

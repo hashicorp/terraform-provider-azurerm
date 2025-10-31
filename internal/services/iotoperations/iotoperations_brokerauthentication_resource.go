@@ -21,7 +21,8 @@ type BrokerAuthenticationModel struct {
 	ResourceGroupName     string                            `tfschema:"resource_group_name"`
 	InstanceName          string                            `tfschema:"instance_name"`
 	BrokerName            string                            `tfschema:"broker_name"`
-	ExtendedLocation      ExtendedLocationModel             `tfschema:"extended_location"`
+	ExtendedLocationName  *string                           `tfschema:"extended_location_name"`
+	ExtendedLocationType  *string                           `tfschema:"extended_location_type"`
 	AuthenticationMethods []BrokerAuthenticationMethodModel `tfschema:"authentication_methods"`
 	ProvisioningState     *string                           `tfschema:"provisioning_state"`
 }
@@ -53,11 +54,12 @@ type BrokerAuthenticationServiceAccountTokenModel struct {
 }
 
 type BrokerAuthenticationX509SettingsModel struct {
-	AuthorizationAttributes map[string]BrokerAuthenticationX509AttributesModel `tfschema:"authorization_attributes"`
-	TrustedClientCaCert     *string                                            `tfschema:"trusted_client_ca_cert"`
+	AuthorizationAttributes []BrokerAuthenticationX509AttributesModel `tfschema:"authorization_attributes"`
+	TrustedClientCaCert     *string                                   `tfschema:"trusted_client_ca_cert"`
 }
 
 type BrokerAuthenticationX509AttributesModel struct {
+	Name       string            `tfschema:"name"`
 	Attributes map[string]string `tfschema:"attributes"`
 	Subject    string            `tfschema:"subject"`
 }
@@ -123,7 +125,7 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 					"type": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						Default:  "CustomLocation",
 						ValidateFunc: validation.StringInSlice([]string{
 							"CustomLocation",
@@ -226,10 +228,15 @@ func (r BrokerAuthenticationResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"authorization_attributes": {
-									Type:     pluginsdk.TypeMap,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
 											"subject": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
@@ -286,8 +293,8 @@ func (r BrokerAuthenticationResource) Create() sdk.ResourceFunc {
 			// Build payload with proper ExtendedLocation struct
 			payload := brokerauthentication.BrokerAuthenticationResource{
 				ExtendedLocation: brokerauthentication.ExtendedLocation{
-					Name: *model.ExtendedLocation.Name,
-					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocation.Type),
+					Name: *model.ExtendedLocationName,
+					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerAuthenticationProperties(model.AuthenticationMethods),
 			}
@@ -327,13 +334,9 @@ func (r BrokerAuthenticationResource) Read() sdk.ResourceFunc {
 
 			if respModel := resp.Model; respModel != nil {
 				// Properly map ExtendedLocation struct
-				model.ExtendedLocation = ExtendedLocationModel{
-					Name: &respModel.ExtendedLocation.Name,
-					Type: func() *string {
-						s := string(respModel.ExtendedLocation.Type)
-						return &s
-					}(),
-				}
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					model.AuthenticationMethods = flattenBrokerAuthenticationProperties(respModel.Properties)
@@ -369,8 +372,8 @@ func (r BrokerAuthenticationResource) Update() sdk.ResourceFunc {
 			// Since there's no separate Update method, use CreateOrUpdate
 			payload := brokerauthentication.BrokerAuthenticationResource{
 				ExtendedLocation: brokerauthentication.ExtendedLocation{
-					Name: *model.ExtendedLocation.Name,
-					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocation.Type),
+					Name: *model.ExtendedLocationName,
+					Type: brokerauthentication.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerAuthenticationProperties(model.AuthenticationMethods),
 			}
@@ -476,8 +479,8 @@ func expandBrokerAuthenticationX509Settings(settings BrokerAuthenticationX509Set
 
 	if len(settings.AuthorizationAttributes) > 0 {
 		authzAttrs := make(map[string]brokerauthentication.BrokerAuthenticatorMethodX509Attributes)
-		for key, attr := range settings.AuthorizationAttributes {
-			authzAttrs[key] = brokerauthentication.BrokerAuthenticatorMethodX509Attributes{
+		for _, attr := range settings.AuthorizationAttributes {
+			authzAttrs[attr.Name] = brokerauthentication.BrokerAuthenticatorMethodX509Attributes{
 				Subject:    attr.Subject,
 				Attributes: attr.Attributes,
 			}
@@ -550,7 +553,7 @@ func flattenBrokerAuthenticationServiceAccountToken(settings *brokerauthenticati
 
 func flattenBrokerAuthenticationX509Settings(settings *brokerauthentication.BrokerAuthenticatorMethodX509) *BrokerAuthenticationX509SettingsModel {
 	result := &BrokerAuthenticationX509SettingsModel{
-		AuthorizationAttributes: make(map[string]BrokerAuthenticationX509AttributesModel),
+		AuthorizationAttributes: []BrokerAuthenticationX509AttributesModel{},
 	}
 
 	if settings.TrustedClientCaCert != nil {
@@ -559,10 +562,11 @@ func flattenBrokerAuthenticationX509Settings(settings *brokerauthentication.Brok
 
 	if settings.AuthorizationAttributes != nil {
 		for key, attr := range *settings.AuthorizationAttributes {
-			result.AuthorizationAttributes[key] = BrokerAuthenticationX509AttributesModel{
+			result.AuthorizationAttributes = append(result.AuthorizationAttributes, BrokerAuthenticationX509AttributesModel{
+				Name:       key,
 				Subject:    attr.Subject,
 				Attributes: attr.Attributes,
-			}
+			})
 		}
 	}
 

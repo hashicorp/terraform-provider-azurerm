@@ -9,6 +9,7 @@ terraform {
 
 provider "azurerm" {
   features {}
+  subscription_id = "d4ccd08b-0809-446d-a8b7-7af8a90109cd"
 }
 
 resource "azurerm_resource_group" "example" {
@@ -16,53 +17,32 @@ resource "azurerm_resource_group" "example" {
   location = var.location
 }
 
-resource "azurerm_iotoperations_instance" "example" {
-  name                = var.instance_name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  extended_location_name = var.custom_location_id
-  extended_location_type = "CustomLocation"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = var.tags
-}
 
 resource "azurerm_iotoperations_broker" "example" {
-  name                  = var.broker_name
-  iot_operations_instance_id = azurerm_iotoperations_instance.example.id
+  name                = var.broker_name
+  resource_group_name = azurerm_resource_group.example.name
+  instance_name       = var.instance_name
 
-  extended_location_name = azurerm_iotoperations_instance.example.extended_location_name
-  extended_location_type = "CustomLocation"
-
-  cardinality {
-    backend = {
-      partitions   = 2
-      redundancy_factor = 1
-      workers      = 1
-    }
-    frontend = {
-      replicas = 2
-      workers  = 1
-    }
+  extended_location {
+    name = var.custom_location_id
+    type = "CustomLocation"
   }
 
-  memory_profile = "Medium"
+  # Add other supported properties/blocks here as needed
 }
 
 # Simple Broker Listener - Basic port configuration only
 resource "azurerm_iotoperations_broker_listener" "simple" {
-  name                 = var.simple_listener_name
-  resource_group_name  = azurerm_resource_group.example.name
-  instance_name        = azurerm_iotoperations_instance.example.name
-  broker_name          = azurerm_iotoperations_broker.example.name
-  extended_location_name = azurerm_iotoperations_instance.example.extended_location_name
+
+  name                = var.simple_listener_name
+  resource_group_name = azurerm_resource_group.example.name
+  instance_name       = var.instance_name
+  broker_name         = azurerm_iotoperations_broker.example.name
+
+  extended_location_name = var.custom_location_id
 
   service_name = var.simple_service_name
-  service_type = var.simple_service_type
+  service_type = "ClusterIp"
 
   ports {
     port = var.simple_listener_port
@@ -71,11 +51,13 @@ resource "azurerm_iotoperations_broker_listener" "simple" {
 
 # Complex Broker Listener - With TLS, authentication, and authorization
 resource "azurerm_iotoperations_broker_listener" "complex" {
-  name                 = var.complex_listener_name
-  resource_group_name  = azurerm_resource_group.example.name
-  instance_name        = azurerm_iotoperations_instance.example.name
-  broker_name          = azurerm_iotoperations_broker.example.name
-  extended_location_name = azurerm_iotoperations_instance.example.extended_location_name
+
+  name                = var.complex_listener_name
+  resource_group_name = azurerm_resource_group.example.name
+  instance_name       = var.instance_name
+  broker_name         = azurerm_iotoperations_broker.example.name
+
+  extended_location_name = var.custom_location_id
 
   service_name = var.complex_service_name
   service_type = var.complex_service_type
@@ -83,9 +65,9 @@ resource "azurerm_iotoperations_broker_listener" "complex" {
   ports {
     port             = var.complex_listener_port
     node_port        = var.complex_node_port
-    protocol         = var.complex_protocol
-    authentication_ref = var.complex_authentication_ref
-    authorization_ref  = var.complex_authorization_ref
+  protocol         = "MQTT"
+  authentication_ref = "example-auth-ref"
+  authorization_ref  = "example-authz-ref"
 
     tls {
       mode = var.complex_tls_mode
@@ -102,7 +84,7 @@ resource "azurerm_iotoperations_broker_listener" "complex" {
         }
 
         private_key {
-          algorithm       = var.complex_tls_private_key_algorithm
+          algorithm       = "Rsa2048"
           rotation_policy = var.complex_tls_private_key_rotation_policy
         }
 
@@ -119,11 +101,13 @@ resource "azurerm_iotoperations_broker_listener" "complex" {
 resource "azurerm_iotoperations_broker_listener" "full" {
   count = var.enable_full_listener ? 1 : 0
 
-  name                 = var.full_listener_name
-  resource_group_name  = azurerm_resource_group.example.name
-  instance_name        = azurerm_iotoperations_instance.example.name
-  broker_name          = azurerm_iotoperations_broker.example.name
-  extended_location_name = azurerm_iotoperations_instance.example.extended_location_name
+
+  name                = var.full_listener_name
+  resource_group_name = azurerm_resource_group.example.name
+  instance_name       = var.instance_name
+  broker_name         = azurerm_iotoperations_broker.example.name
+
+  extended_location_name = var.custom_location_id
 
   service_name = var.full_service_name
   service_type = var.full_service_type
@@ -132,9 +116,9 @@ resource "azurerm_iotoperations_broker_listener" "full" {
   ports {
     port             = 8883
     node_port        = 30883
-    protocol         = "Mqtt"
-    authentication_ref = var.full_authentication_ref
-    authorization_ref  = var.full_authorization_ref
+  protocol         = "MQTT"
+  authentication_ref = "example-auth-ref"
+  authorization_ref  = "example-authz-ref"
 
     tls {
       mode = "Automatic"
@@ -151,7 +135,7 @@ resource "azurerm_iotoperations_broker_listener" "full" {
         }
 
         private_key {
-          algorithm       = "RSA"
+    algorithm       = "Rsa2048"
           rotation_policy = "Always"
         }
 

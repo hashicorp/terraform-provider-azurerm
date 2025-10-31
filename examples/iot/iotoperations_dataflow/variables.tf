@@ -174,11 +174,8 @@ variable "dataflow_operations" {
   ]
 }
 
-variable "tags" {
-  description = "A mapping of tags to assign to the resources"
-  type        = map(string)
-  default = {
-    Environment = "Example"
-    Purpose     = "IoT Operations Dataflow Demo"
-  }
+variable "schema_registry_ref" {
+  description = "The resource ID of the schema registry to associate with the instance."
+  type        = string
 }
+

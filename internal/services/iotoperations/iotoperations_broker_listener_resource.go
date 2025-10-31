@@ -21,7 +21,8 @@ type BrokerListenerModel struct {
 	ResourceGroupName    string                    `tfschema:"resource_group_name"`
 	InstanceName         string                    `tfschema:"instance_name"`
 	BrokerName           string                    `tfschema:"broker_name"`
-	ExtendedLocationName string                    `tfschema:"extended_location_name"`
+	ExtendedLocationName *string                   `tfschema:"extended_location_name"`
+	ExtendedLocationType *string                   `tfschema:"extended_location_type"`
 	ServiceName          *string                   `tfschema:"service_name"`
 	ServiceType          *string                   `tfschema:"service_type"`
 	Ports                []BrokerListenerPortModel `tfschema:"ports"`
@@ -350,8 +351,8 @@ func (r BrokerListenerResource) Create() sdk.ResourceFunc {
 			// Build payload with required ExtendedLocation
 			payload := brokerlistener.BrokerListenerResource{
 				ExtendedLocation: brokerlistener.ExtendedLocation{
-					Name: model.ExtendedLocationName,
-					Type: brokerlistener.ExtendedLocationTypeCustomLocation,
+					Name: *model.ExtendedLocationName,
+					Type: brokerlistener.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerListenerProperties(model),
 			}
@@ -390,7 +391,9 @@ func (r BrokerListenerResource) Read() sdk.ResourceFunc {
 			}
 
 			if respModel := resp.Model; respModel != nil {
-				model.ExtendedLocationName = respModel.ExtendedLocation.Name
+				model.ExtendedLocationName = &respModel.ExtendedLocation.Name
+				extendedLocationType := string(respModel.ExtendedLocation.Type)
+				model.ExtendedLocationType = &extendedLocationType
 
 				if respModel.Properties != nil {
 					flattenBrokerListenerProperties(respModel.Properties, &model)
@@ -426,8 +429,8 @@ func (r BrokerListenerResource) Update() sdk.ResourceFunc {
 			// Since there's no separate Update method, use CreateOrUpdate
 			payload := brokerlistener.BrokerListenerResource{
 				ExtendedLocation: brokerlistener.ExtendedLocation{
-					Name: model.ExtendedLocationName,
-					Type: brokerlistener.ExtendedLocationTypeCustomLocation,
+					Name: *model.ExtendedLocationName,
+					Type: brokerlistener.ExtendedLocationType(*model.ExtendedLocationType),
 				},
 				Properties: expandBrokerListenerProperties(model),
 			}

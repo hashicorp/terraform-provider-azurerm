@@ -26,3 +26,8 @@ variable "audience" {
   type        = string
   default     = "aio-internal"
 }
+
+variable "custom_location_id" {
+  description = "The ID of the custom location to use for extended location."
+  type        = string
+}

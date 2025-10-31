@@ -75,6 +75,7 @@ func (r InstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C Azure assigns a default version if not specified, and may update it during resource lifecycle
 			Computed: true,
 		},
 		"extended_location_name": {

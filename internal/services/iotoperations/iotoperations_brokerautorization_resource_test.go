@@ -60,7 +60,7 @@ resource "azurerm_iotoperations_instance" "test" {
   location           = azurerm_resource_group.test.location
 
   extended_location {
-    name = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ExtendedLocation/customLocations/location1"
+    name = "/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.ExtendedLocation/customLocations/location1"
     type = "CustomLocation"
   }
 }
@@ -106,5 +106,5 @@ resource "azurerm_iotoperations_broker_authorization" "test" {
     type = azurerm_iotoperations_instance.test.extended_location[0].type
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
