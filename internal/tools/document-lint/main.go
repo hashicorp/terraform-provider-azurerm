@@ -30,6 +30,7 @@ var (
 	service      string
 	skipResource string
 	skipService  string
+	fileList     string
 )
 
 func parseArgs() {
@@ -38,6 +39,7 @@ func parseArgs() {
 	fs.StringVar(&skipResource, "skip-resource", os.Getenv("SKIP_RESOURCE"), "a list of resource names to skip the check")
 	fs.StringVar(&service, "service", os.Getenv("ONLY_SERVICE"), "a list of services names to check")
 	fs.StringVar(&skipService, "skip-service", os.Getenv("SKIP_SERVICE"), "a list of service names to skip the check")
+	fs.StringVar(&fileList, "file-list", os.Getenv("FILE_LIST"), "a list of files to check")
 
 	fs.Usage = func() {
 		printHelp()
@@ -62,7 +64,7 @@ func parseArgs() {
 func main() {
 	parseArgs()
 
-	result := check.DiffAll(check.AzurermAllResources(service, skipService, resource, skipResource), dryRun)
+	result := check.DiffAll(check.AzurermAllResources(service, skipService, resource, skipResource, fileList), dryRun)
 	if !result.HasDiff() {
 		log.Printf("document linter runs success, time costs: %v", result.CostTime())
 		return
