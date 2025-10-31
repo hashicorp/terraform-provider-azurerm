@@ -1400,6 +1400,7 @@ resource "azurerm_container_app" "test" {
     target_port                = 5000
     transport                  = "http"
     client_certificate_mode    = "accept"
+    session_affinity           = "sticky"
     traffic_weight {
       latest_revision = true
       percentage      = 100
