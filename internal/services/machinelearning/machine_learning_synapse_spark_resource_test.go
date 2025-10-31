@@ -267,7 +267,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%[3]d"
+  name                       = "acctest%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -277,7 +277,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -322,5 +322,5 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_count           = 3
   spark_version        = "3.4"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15), data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(8))
 }

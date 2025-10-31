@@ -525,7 +525,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -537,7 +537,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -556,7 +556,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15), data.RandomIntOfLength(16))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(16))
 }
 
 func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {
@@ -587,7 +587,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[1]d"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -599,7 +599,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
+  name                     = "accsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -685,5 +685,5 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
