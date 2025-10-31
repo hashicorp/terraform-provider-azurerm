@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,7 +76,7 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *virtualmachinesc
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		Elem: &pluginsdk.Resource{
@@ -118,14 +119,12 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -143,6 +142,33 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_accelerated_networking` has been deprecated in favour of the `accelerated_networking_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["accelerated_networking_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_ip_forwarding` has been deprecated in favour of the `accelerated_networking_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["ip_forwarding_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return schema
 }
 
 func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
@@ -412,7 +438,7 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -441,13 +467,11 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 						Type: pluginsdk.TypeString,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -462,6 +486,19 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return schema
 }
 
 func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
@@ -748,11 +785,16 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
+		}
+
+		if !features.FivePointOh() {
+			config.Properties.EnableAcceleratedNetworking = pointer.To(raw["enable_accelerated_networking"].(bool))
+			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding"].(bool))
 		}
 
 		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
@@ -887,11 +929,16 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
+		}
+
+		if !features.FivePointOh() {
+			config.Properties.EnableAcceleratedNetworking = pointer.To(raw["enable_accelerated_networking"].(bool))
+			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding"].(bool))
 		}
 
 		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
@@ -1028,16 +1075,21 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":                          v.Name,
-				"auxiliary_mode":                auxiliaryMode,
-				"auxiliary_sku":                 auxiliarySku,
-				"dns_servers":                   dnsServers,
-				"enable_accelerated_networking": enableAcceleratedNetworking,
-				"enable_ip_forwarding":          enableIPForwarding,
-				"ip_configuration":              ipConfigurations,
-				"network_security_group_id":     networkSecurityGroupId,
-				"primary":                       primary,
+				"name":                           v.Name,
+				"auxiliary_mode":                 auxiliaryMode,
+				"auxiliary_sku":                  auxiliarySku,
+				"dns_servers":                    dnsServers,
+				"accelerated_networking_enabled": enableAcceleratedNetworking,
+				"ip_forwarding_enabled":          enableIPForwarding,
+				"ip_configuration":               ipConfigurations,
+				"network_security_group_id":      networkSecurityGroupId,
+				"primary":                        primary,
 			})
+
+			if !features.FivePointOh() {
+				results[0].(map[string]interface{})["enable_accelerated_networking"] = enableAcceleratedNetworking
+				results[0].(map[string]interface{})["enable_ip_forwarding"] = enableIPForwarding
+			}
 		}
 	}
 
@@ -1134,7 +1186,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 }
 
 func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1208,16 +1260,14 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
-				"ultra_ssd_disk_iops_read_write": {
+				"disk_iops_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
 					Computed:     true,
 				},
 
-				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
-				"ultra_ssd_disk_mbps_read_write": {
+				"disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
@@ -1226,6 +1276,37 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_iops_read_write"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Computed:     true,
+			Deprecated:   "`ultra_ssd_disk_iops_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["disk_iops_read_write"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_mbps_read_write"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Deprecated:   "`ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `disk_mpbs_read_write` and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		}
+	}
+
+	return schema
 }
 
 func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, error) {
@@ -1257,21 +1338,31 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		}
 
 		var iops int
-		if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
 			iops = diskIops.(int)
+		}
+		if !features.FivePointOh() {
+			if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+				iops = diskIops.(int)
+			}
 		}
 
 		if iops > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		var mbps int
-		if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
 			mbps = diskMbps.(int)
+		}
+		if !features.FivePointOh() {
+			if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+				mbps = diskMbps.(int)
+			}
 		}
 
 		if mbps > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1333,16 +1424,21 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 		}
 
 		dataDisk := map[string]interface{}{
-			"name":                           name,
-			"caching":                        string(pointer.From(v.Caching)),
-			"create_option":                  string(v.CreateOption),
-			"lun":                            v.Lun,
-			"disk_encryption_set_id":         diskEncryptionSetId,
-			"disk_size_gb":                   diskSizeGb,
-			"storage_account_type":           storageAccountType,
-			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_disk_mbps_read_write": mbps,
-			"write_accelerator_enabled":      writeAcceleratorEnabled,
+			"name":                      name,
+			"caching":                   string(pointer.From(v.Caching)),
+			"create_option":             string(v.CreateOption),
+			"lun":                       v.Lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+		}
+
+		if !features.FivePointOh() {
+			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
+			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
 		}
 
 		output = append(output, dataDisk)
@@ -1593,7 +1689,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 }
 
 func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -1604,26 +1700,48 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_automatic_os_upgrade": {
+				"automatic_os_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["enable_automatic_os_upgrade"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_automatic_os_upgrade` has been deprecated in favour of the `automatic_os_upgrade_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["automatic_os_upgrade_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return schema
 }
 
-func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
+func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(d *pluginsdk.ResourceData) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
+	input := d.Get("automatic_os_upgrade_policy").([]interface{})
 	if len(input) == 0 {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &virtualmachinescalesets.AutomaticOSUpgradePolicy{
+	policy := virtualmachinescalesets.AutomaticOSUpgradePolicy{
 		DisableAutomaticRollback: pointer.To(raw["disable_automatic_rollback"].(bool)),
-		EnableAutomaticOSUpgrade: pointer.To(raw["enable_automatic_os_upgrade"].(bool)),
+		EnableAutomaticOSUpgrade: pointer.To(raw["automatic_os_upgrade_enabled"].(bool)),
 	}
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("automatic_os_upgrade_policy.0.enable_automatic_os_upgrade"); ok {
+			policy.EnableAutomaticOSUpgrade = pointer.To(v.(bool))
+		}
+	}
+	return &policy
 }
 
 func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *virtualmachinescalesets.AutomaticOSUpgradePolicy) []interface{} {
@@ -1641,12 +1759,18 @@ func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *virtualmachine
 		enableAutomaticOSUpgrade = *input.EnableAutomaticOSUpgrade
 	}
 
-	return []interface{}{
+	flattened := []interface{}{
 		map[string]interface{}{
-			"disable_automatic_rollback":  disableAutomaticRollback,
-			"enable_automatic_os_upgrade": enableAutomaticOSUpgrade,
+			"disable_automatic_rollback":   disableAutomaticRollback,
+			"automatic_os_upgrade_enabled": enableAutomaticOSUpgrade,
 		},
 	}
+
+	if !features.FivePointOh() {
+		flattened[0].(map[string]interface{})["enable_automatic_os_upgrade"] = enableAutomaticOSUpgrade
+	}
+
+	return flattened
 }
 
 func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
