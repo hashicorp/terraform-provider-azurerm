@@ -13,6 +13,12 @@ Manages a Managed DevOps Pool.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -39,7 +45,7 @@ resource "azurerm_dev_center_project" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
-  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -50,6 +56,32 @@ resource "azurerm_subnet" "example" {
   virtual_network_name            = azurerm_virtual_network.example.name
   address_prefixes                = ["10.0.2.0/24"]
   default_outbound_access_enabled = false
+
+  delegation {
+    name = "devops-infrastructure-delegation"
+    service_delegation {
+      name = "Microsoft.DevOpsInfrastructure/pools"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
+}
+
+data "azuread_service_principal" "devops_infrastructure" {
+  display_name = "DevOpsInfrastructure"
+}
+
+resource "azurerm_role_assignment" "devops_infrastructure_vnet_reader" {
+  scope                = azurerm_virtual_network.example.id
+  role_definition_name = "Reader"
+  principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
+}
+
+resource "azurerm_role_assignment" "devops_infrastructure_vnet_network_contributor" {
+  scope                = azurerm_virtual_network.example.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
 }
 
 data "azurerm_platform_image" "example" {
@@ -70,6 +102,7 @@ resource "azurerm_managed_devops_pool" "example" {
     organization {
       parallelism = 1
       url         = "https://dev.azure.com/example"
+      projects    = ["example"]
     }
 
     permission_profile {
@@ -83,8 +116,10 @@ resource "azurerm_managed_devops_pool" "example" {
   }
 
   stateful_agent_profile {
+    grace_period_time_span = "00:10:00"
+    max_agent_lifetime     = "08:00:00"
     manual_resource_predictions_profile {
-      time_zone = "Eastern Standard Time"
+      time_zone = "UTC"
 
       monday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
       tuesday_schedule   = { "09:00:00" = 1, "17:00:00" = 0 }
@@ -104,6 +139,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
     image {
       well_known_image_name = "ubuntu-24.04"
+      aliases               = ["ubuntu-latest"]
       buffer                = "*"
     }
 
@@ -112,7 +148,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
       data_disk {
         disk_size_gb = 1
-        drive_letter = "B"
+        drive_letter = "F"
       }
     }
 
@@ -120,6 +156,22 @@ resource "azurerm_managed_devops_pool" "example" {
       subnet_id = azurerm_subnet.example.id
     }
   }
+
+  tags = {
+    Project = "Terraform"
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.devops_infrastructure_vnet_reader,
+    azurerm_role_assignment.devops_infrastructure_vnet_network_contributor,
+  ]
 }
 ```
 
@@ -153,27 +205,25 @@ The following arguments are supported:
 
 ---
 
-A `stateful_agent_profile` block supports the following:
+An `administrator_account` block supports the following:
 
-* `grace_period_time_span` - (Optional) Configures the amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete. The format for Grace Period is `dd.hh:mm:ss`. Defaults to `00:00:00`.
+* `groups` - (Optional) Specifies a list of group email addresses.
 
-* `max_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. Defaults to `7.00:00:00`.
-
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
-
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
-
-~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+* `users` - (Optional) Specifies a list of user email addresses.
 
 ---
 
-A `stateless_agent_profile` block supports the following:
+An `automatic_resource_predictions_profile` block supports the following:
 
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
+* `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values are `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. Defaults to `Balanced`.
 
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+---
 
-~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+An `azure_devops_organization_profile` block supports the following:
+
+* `organization` - (Required) One or more `organization` blocks as defined below.
+
+* `permission_profile` - (Optional) A `permission_profile` block as defined below.
 
 ---
 
@@ -186,20 +236,6 @@ A `data_disk` block supports the following:
 * `drive_letter` - (Optional) The drive letter for the empty data disk. If not specified, it will be the first available letter.
 
 * `storage_account_type` - (Optional) The Storage Account type to be used for the data disk. Possible values are `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
-
----
-
-A `vmss_fabric_profile` block supports the following:
-
-* `image` - (Required) One or more `image` blocks as defined below.
-
-* `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer the [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
-
-* `network_profile` - (Optional) A `network_profile` block as defined below.
-
-* `os_profile` - (Optional) An `os_profile` block as defined below.
-
-* `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
 ---
 
@@ -227,62 +263,6 @@ An `image` block supports the following:
 
 ---
 
-A `network_profile` block supports the following:
-
-* `subnet_id` - (Required) The subnet id on which to put all machines created in the pool.
-
----
-
-An `azure_devops_organization_profile` block supports the following:
-
-* `organization` - (Required) One or more `organization` blocks as defined below.
-
-* `permission_profile` - (Optional) A `permission_profile` block as defined below.
-
----
-
-A `permission_profile` block supports the following:
-
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
-
-* `administrator_account` - (Optional) One or more `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
-
----
-
-An `organization` block supports the following:
-
-* `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
-
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
-
-* `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
-  * Must be between 1 and 64 Unicode characters in length
-  * Must not start with an underscore (`_`) or period (`.`)
-  * Must not end with a period (`.`)
-  * Must not contain special characters: `\ / : * ? " ' < > ; # $ * { } + = [ ] | ,`
-  * Must not contain Unicode control characters or surrogate characters
-  * Must not be a reserved name: `App_Browsers`, `App_Code`, `App_Data`, `App_GlobalResources`, `App_LocalResources`, `App_Themes`, `App_WebResources`, `bin`, or `web.config` (case-insensitive)
-
-~> **Note:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
-
----
-
-An `administrator_account` block supports the following:
-
-* `groups` - (Optional) Specifies a list of group email addresses.
-
-* `users` - (Optional) Specifies a list of user email addresses.
-
----
-
-An `os_profile` block supports the following:
-
-* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
-
-* `secrets_management` - (Optional) A `secrets_management` block as defined below.
-
----
-
 A `manual_resource_predictions_profile` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
@@ -307,9 +287,43 @@ A `manual_resource_predictions_profile` block supports the following:
 
 ---
 
-An `automatic_resource_predictions_profile` block supports the following:
+A `network_profile` block supports the following:
 
-* `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values are: `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. Defaults to `Balanced`.
+* `subnet_id` - (Required) The subnet ID on which to put all machines created in the pool.
+
+---
+
+An `organization` block supports the following:
+
+* `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
+
+* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
+
+* `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
+  * Must be between 1 and 64 Unicode characters in length
+  * Must not start with an underscore (`_`) or period (`.`)
+  * Must not end with a period (`.`)
+  * Must not contain special characters: `\ / : * ? " ' < > ; # $ * { } + = [ ] | ,`
+  * Must not contain Unicode control characters or surrogate characters
+  * Must not be a reserved name: `App_Browsers`, `App_Code`, `App_Data`, `App_GlobalResources`, `App_LocalResources`, `App_Themes`, `App_WebResources`, `bin`, or `web.config` (case-insensitive)
+
+~> **Note:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
+
+---
+
+An `os_profile` block supports the following:
+
+* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
+
+* `secrets_management` - (Optional) A `secrets_management` block as defined below.
+
+---
+
+A `permission_profile` block supports the following:
+
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+
+* `administrator_account` - (Optional) One or more `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
 ---
 
@@ -317,7 +331,7 @@ A `secrets_management` block supports the following:
 
 * `certificate_store_location` - (Optional) Specifies where to store certificates on the machine.
 
-* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Possible values are: 'My' and 'Root'.
+* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Possible values are `My` and `Root`.
 
 * `key_export_enabled` - (Required) Defines if the key of the certificates should be exportable.
 
@@ -325,11 +339,49 @@ A `secrets_management` block supports the following:
 
 ---
 
+A `stateful_agent_profile` block supports the following:
+
+* `grace_period_time_span` - (Optional) Configures the amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete. The format for Grace Period is `dd.hh:mm:ss`. Defaults to `00:00:00`.
+
+* `max_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. Defaults to `7.00:00:00`.
+
+* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
+
+* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+
+~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+
+---
+
+A `stateless_agent_profile` block supports the following:
+
+* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
+
+* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+
+~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+
+---
+
 A `storage_profile` block supports the following:
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined above.
 
-* `os_disk_storage_account_type` - (Optional) The storage account type of the OS disk. Possible values are: `Premium`, `Standard` and `StandardSSD`.
+* `os_disk_storage_account_type` - (Optional) The storage account type of the OS disk. Possible values are `Premium`, `Standard` and `StandardSSD`.
+
+---
+
+A `vmss_fabric_profile` block supports the following:
+
+* `image` - (Required) One or more `image` blocks as defined below.
+
+* `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer to the [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
+
+* `network_profile` - (Optional) A `network_profile` block as defined below.
+
+* `os_profile` - (Optional) An `os_profile` block as defined below.
+
+* `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
 ## Attributes Reference
 
@@ -339,7 +391,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed DevOps Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed DevOps Pool.

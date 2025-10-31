@@ -27,7 +27,6 @@ type ManagedDevOpsPoolDataSourceModel struct {
 	MaximumConcurrency             int64                                 `tfschema:"maximum_concurrency"`
 	Name                           string                                `tfschema:"name"`
 	AzureDevOpsOrganizationProfile []AzureDevOpsOrganizationProfileModel `tfschema:"azure_devops_organization_profile"`
-	ProvisioningState              string                                `tfschema:"provisioning_state"`
 	ResourceGroupName              string                                `tfschema:"resource_group_name"`
 	Tags                           map[string]string                     `tfschema:"tags"`
 	StatefulAgentProfile           []StatefulAgentProfileModel           `tfschema:"stateful_agent_profile"`
@@ -121,10 +120,6 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"identity": commonschema.UserAssignedIdentityComputed(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"stateful_agent_profile": {
@@ -334,7 +329,6 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
 						if stateful, ok := agentProfile.(pools.Stateful); ok {

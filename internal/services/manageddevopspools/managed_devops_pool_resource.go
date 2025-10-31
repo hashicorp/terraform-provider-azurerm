@@ -643,45 +643,25 @@ func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricPr
 		return nil
 	}
 
-	vmssFabricSlice := vmssFabricValue.AsValueSlice()
-	if len(vmssFabricSlice) == 0 {
+	if !vmssFabricValue.IsWhollyKnown() {
 		return nil
 	}
-
-	fabricProfileValue := vmssFabricSlice[0].AsValueMap()
-	imageValue, hasImages := fabricProfileValue["image"]
-	if !hasImages || imageValue.IsNull() {
-		return nil
-	}
-
-	imageSlice := imageValue.AsValueSlice()
 
 	for _, vmssFabricProfile := range vmssFabricProfiles {
 		for i, image := range vmssFabricProfile.Images {
-			if len(imageSlice) <= i {
-				continue
+			haveResourceId := image.ResourceId != ""
+			haveWellKnownImageName := image.WellKnownImageName != ""
+
+			if !haveResourceId && !haveWellKnownImageName {
+				return fmt.Errorf("one of `resource_id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
 			}
 
-			currentImageValue := imageSlice[i].AsValueMap()
-			resourceIdVal := currentImageValue["resource_id"]
-			wellKnownNameVal := currentImageValue["well_known_image_name"]
-
-			// Only validate if both values are known (not computed from data sources)
-			if resourceIdVal.IsKnown() && wellKnownNameVal.IsKnown() {
-				haveResourceId := image.ResourceId != ""
-				haveWellKnownImageName := image.WellKnownImageName != ""
-
-				if !haveResourceId && !haveWellKnownImageName {
-					return fmt.Errorf("one of `resource_id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
-				}
-
-				if haveResourceId && haveWellKnownImageName {
-					return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
-				}
+			if haveResourceId && haveWellKnownImageName {
+				return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
 			}
-			// Skip validation if either value is unknown (likely from data source during plan phase)
 		}
 	}
+
 	return nil
 }
 
