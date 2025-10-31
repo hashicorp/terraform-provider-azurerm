@@ -545,7 +545,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW%[5]d"
+  name                    = "acctest-MLW%[4]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   application_insights_id = azurerm_application_insights.test.id
@@ -556,9 +556,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
-		data.RandomInteger, data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }
 
 func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {

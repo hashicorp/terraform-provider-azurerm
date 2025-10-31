@@ -297,12 +297,12 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
-  name               = "acc%d"
+  name               = "acc%[5]d"
   storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
+  name                                 = "acctestsw%[5]d"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -315,14 +315,12 @@ resource "azurerm_synapse_workspace" "test" {
 }
 
 resource "azurerm_synapse_spark_pool" "test" {
-  name                 = "acc%d"
+  name                 = "acc%[5]d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
   node_count           = 3
   spark_version        = "3.4"
 }
-`, data.RandomInteger, data.Locations.Primary,
-		data.RandomInteger, data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15), data.RandomIntOfLength(16), data.RandomIntOfLength(8))
 }

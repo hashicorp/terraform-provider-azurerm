@@ -131,7 +131,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Basic(data acceptance.
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -150,7 +150,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Spn(data acceptance.Te
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 resource "azuread_application" "test" {
@@ -183,7 +183,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2CrossSubStorageAccount
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
