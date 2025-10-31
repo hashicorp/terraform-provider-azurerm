@@ -83,14 +83,14 @@ func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection", "system_version", "enabled_ecpu_count", "total_ecpu_count", "virtual_machine_file_system_storage"),
+		data.ImportStep("data_collection"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("data_collection", "system_version", "enabled_ecpu_count", "total_ecpu_count", "virtual_machine_file_system_storage"),
+		data.ImportStep("data_collection"),
 	})
 }
 
