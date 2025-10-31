@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,12 +27,15 @@ func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
 }
 
 type FederatedIdentityCredentialResourceSchema struct {
-	Audience          []string `tfschema:"audience"`
-	Issuer            string   `tfschema:"issuer"`
-	Name              string   `tfschema:"name"`
-	ResourceGroupName string   `tfschema:"resource_group_name"`
-	ResourceName      string   `tfschema:"parent_id"`
-	Subject           string   `tfschema:"subject"`
+	Audience []string `tfschema:"audience"`
+	Issuer   string   `tfschema:"issuer"`
+	Name     string   `tfschema:"name"`
+
+	// TODO: Remove this in V5.0
+	ResourceGroupName string `tfschema:"resource_group_name,removedInNextMajorVersion"`
+
+	ResourceName string `tfschema:"parent_id"`
+	Subject      string `tfschema:"subject"`
 }
 
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -43,7 +47,7 @@ func (r FederatedIdentityCredentialResource) ResourceType() string {
 }
 
 func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"audience": {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -63,9 +67,8 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
 		"parent_id": {
-			// TODO: this wants renaming to `user_assigned_identity_id` (and `resource_group_name` removing in 4.0)
+			// TODO: this wants renaming to `user_assigned_identity_id`
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
@@ -77,6 +80,11 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeString,
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+	}
+	return schema
 }
 
 func (r FederatedIdentityCredentialResource) Attributes() map[string]*pluginsdk.Schema {
@@ -103,7 +111,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
+			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, parentId.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
 			if metadata.ResourceData.IsNewResource() {
 				existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
 				if err != nil {
@@ -151,10 +159,14 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Name = id.FederatedIdentityCredentialName
-				schema.ResourceGroupName = id.ResourceGroupName
 				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
 				schema.ResourceName = parentId.ID()
+
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
+
+				if !features.FivePointOh() {
+					schema.ResourceGroupName = id.ResourceGroupName
+				}
 			}
 
 			return metadata.Encode(&schema)
