@@ -38,4 +38,6 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 	s.DataSourceConfigureData = resp.DataSourceData
 	s.ResourceConfigureData = resp.ResourceData
 	s.EphemeralResourceConfigureData = resp.EphemeralResourceData
+	s.ActionConfigureData = resp.ActionData
+	s.ListResourceConfigureData = resp.ListResourceData
 }

@@ -330,6 +330,35 @@ func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_updateMultiplePolicyDefinitionReferences(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResourceTest{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleReferences(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleReferencesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleReferences(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicySetDefinitionResourceTest) builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -932,6 +961,50 @@ VALUES
 `, r.template(data), data.RandomInteger, version)
 }
 
+func (r PolicySetDefinitionResourceTest) multipleReferences(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPSD-%[2]d"
+  policy_type  = "Custom"
+  display_name = "Test Initiative"
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference1.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference2.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference3.id
+  }
+}
+`, r.templateMultiplePolicies(), data.RandomInteger)
+}
+
+func (r PolicySetDefinitionResourceTest) multipleReferencesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPSD-%[2]d"
+  policy_type  = "Custom"
+  display_name = "Test Initiative"
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference1.id
+  }
+
+  policy_definition_reference {
+    policy_definition_id = data.azurerm_policy_definition_built_in.policyReference3.id
+  }
+}
+`, r.templateMultiplePolicies(), data.RandomInteger)
+}
+
 func (r PolicySetDefinitionResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -972,6 +1045,26 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger)
+}
+
+func (PolicySetDefinitionResourceTest) templateMultiplePolicies() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_policy_definition_built_in" "policyReference1" {
+  display_name = "App Service apps should require FTPS only"
+}
+
+data "azurerm_policy_definition_built_in" "policyReference2" {
+  display_name = "Storage accounts should restrict network access"
+}
+
+data "azurerm_policy_definition_built_in" "policyReference3" {
+  display_name = "Function apps should require FTPS only"
+}
+`
 }
 
 func (r PolicySetDefinitionResourceTest) templateNoParameter(data acceptance.TestData) string {

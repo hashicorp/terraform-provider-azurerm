@@ -138,7 +138,7 @@ type builder struct {
 	finished int // finished is the length of the prefix of fns containing built functions.
 
 	// The task of building shared functions within the builder.
-	// Shared functions are ones the the builder may either create or lookup.
+	// Shared functions are ones the builder may either create or lookup.
 	// These may be built by other builders in parallel.
 	// The task is done when the builder has finished iterating, and it
 	// waits for all shared functions to finish building.
@@ -380,7 +380,13 @@ func (b *builder) builtin(fn *Function, obj *types.Builtin, args []ast.Expr, typ
 		}
 
 	case "new":
-		return emitNew(fn, typeparams.MustDeref(typ), pos, "new")
+		alloc := emitNew(fn, typeparams.MustDeref(typ), pos, "new")
+		if !fn.info.Types[args[0]].IsType() {
+			// new(expr), requires go1.26
+			v := b.expr(fn, args[0])
+			emitStore(fn, alloc, v, pos)
+		}
+		return alloc
 
 	case "len", "cap":
 		// Special case: len or cap of an array or *array is

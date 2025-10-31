@@ -4,6 +4,7 @@
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -111,7 +112,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 					return resp, "diff", nil
 				}
 			}
-			return resp, "error", fmt.Errorf("Properties was nil")
+			return resp, "error", errors.New("properties was nil")
 		},
 		MinTimeout:                30 * time.Second,
 		ContinuousTargetOccurence: 10,

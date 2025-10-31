@@ -1031,15 +1031,15 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		}
 
 		if resp.Model == nil {
-			return nil, "", fmt.Errorf("Missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("Missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties.ProviderSpecificDetails == nil {
-			return nil, "", fmt.Errorf("Missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
 
 		// Find first disk that is not fully replicated yet

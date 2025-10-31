@@ -47,7 +47,7 @@ func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Resource Group %q was not found", name)
+			return fmt.Errorf("'Resource Group' %q was not found", name)
 		}
 		return err
 	}

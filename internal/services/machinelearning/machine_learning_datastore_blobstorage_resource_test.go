@@ -147,7 +147,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
@@ -167,7 +167,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "accdatastore%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
 }
 `, template, data.RandomInteger)
@@ -223,7 +223,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "accdatastore%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceUserAssignedIdentity"
   shared_access_signature    = data.azurerm_storage_account_sas.test.sas
   account_key                = azurerm_storage_account.test.primary_access_key
@@ -280,7 +280,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_container_id    = azurerm_storage_container.test.resource_manager_id
+  storage_container_id    = azurerm_storage_container.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, template, data.RandomInteger)
@@ -335,7 +335,8 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

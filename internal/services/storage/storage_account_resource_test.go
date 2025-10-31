@@ -1686,7 +1686,14 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.sasPolicy(data),
+			Config: r.sasPolicy(data, "Log"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sasPolicy(data, "Block"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -4377,12 +4384,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4477,12 +4485,13 @@ func (r StorageAccountResource) customerManagedKeyUpdate(data acceptance.TestDat
 %s
 
 resource "azurerm_key_vault" "update" {
-  name                     = "acctestkvu%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkvu%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storageupdate" {
@@ -4672,13 +4681,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "remotetest" {
-  provider                 = azurerm-alt
-  name                     = "acctestkvr%s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = "%s"
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  provider                   = azurerm-alt
+  name                       = "acctestkvr%s"
+  location                   = azurerm_resource_group.remotetest.location
+  resource_group_name        = azurerm_resource_group.remotetest.name
+  tenant_id                  = "%s"
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4890,7 +4900,7 @@ resource "azurerm_storage_account" "test" {
     `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) sasPolicy(data acceptance.TestData) string {
+func (r StorageAccountResource) sasPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4910,11 +4920,11 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   sas_policy {
-    expiration_action = "Log"
+    expiration_action = "%s"
     expiration_period = "1.15:5:05"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, action)
 }
 
 func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {
