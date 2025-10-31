@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
@@ -358,9 +357,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		v := input["azure_policy_enabled"].(bool)
 		props := managedclusters.ManagedClusterAddonProfile{
 			Enabled: v,
-			Config: pointer.To(map[string]string{
-				"version": "v2",
-			}),
 		}
 		addonProfiles[azurePolicyKey] = props
 	}
