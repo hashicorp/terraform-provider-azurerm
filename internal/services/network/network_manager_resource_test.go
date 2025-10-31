@@ -21,7 +21,7 @@ type ManagerResource struct{}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one (connectivity or securityAdmin) network manager per subscription at once
+	// Azure only being happy about provisioning one securityAdmin network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
@@ -31,13 +31,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManager_update,
 			"requiresImport": testAccNetworkManager_requiresImport,
 			"dataSource":     testAccNetworkManagerDataSource_complete,
-		},
-		"NetworkGroup": {
-			"basic":          testAccNetworkManagerNetworkGroup_basic,
-			"complete":       testAccNetworkManagerNetworkGroup_complete,
-			"update":         testAccNetworkManagerNetworkGroup_update,
-			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
-			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
@@ -56,10 +49,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerScopeConnection_complete,
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
-		},
-		"StaticMember": {
-			"basic":          testAccNetworkManagerStaticMember_basic,
-			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
 		},
 		"ConnectivityConfiguration": {
 			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
