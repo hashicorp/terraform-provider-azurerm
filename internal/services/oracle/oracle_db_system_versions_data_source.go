@@ -35,7 +35,6 @@ type DbVersionItemModel struct {
 }
 
 func (d DbVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
-
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
@@ -72,7 +71,6 @@ func (d DbVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (d DbVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
-
 	return map[string]*pluginsdk.Schema{
 		"versions": {
 			Type:        pluginsdk.TypeList,
