@@ -1,8 +1,8 @@
 # NOTE: this file is generated via 'make generate'
 bug:
-  - 'panic:'
+  - "panic:"
 crash:
-  - 'panic:'
+  - "panic:"
 v/1.x (legacy):
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)1\.\d+'
 v/2.x (legacy):
