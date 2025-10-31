@@ -676,6 +676,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	agentpool := agentpools.AgentPool{
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
+			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
 			Count:                      defaultCluster.Count,
 			VMSize:                     defaultCluster.VMSize,
 			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
@@ -697,7 +698,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			NodeTaints:                 defaultCluster.NodeTaints,
 			PodSubnetID:                defaultCluster.PodSubnetID,
 			Tags:                       defaultCluster.Tags,
-			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
 		},
 	}
 
