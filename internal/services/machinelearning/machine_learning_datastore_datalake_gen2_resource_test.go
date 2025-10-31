@@ -162,7 +162,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
@@ -222,7 +222,7 @@ resource "azurerm_storage_account" "testalt" {
 resource "azurerm_storage_container" "testalt" {
   provider              = azurerm-alt
   name                  = "acctestcontaineralt%[5]d"
-  storage_account_name  = azurerm_storage_account.testalt.name
+  storage_account_id    = azurerm_storage_account.testalt.id
   container_access_type = "private"
 }
 
