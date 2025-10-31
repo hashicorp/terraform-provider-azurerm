@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -122,6 +123,21 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 												"appendBlob",
 												"pageBlob",
 											}, false),
+										},
+									},
+
+									"creation_time": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"last_n_days": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(1, 36500),
+												},
+											},
 										},
 									},
 
@@ -307,9 +323,10 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
 		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
 		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
-		IncludeBlobVersions: utils.Bool(v["include_blob_versions"].(bool)),
-		IncludeDeleted:      utils.Bool(v["include_deleted"].(bool)),
-		IncludeSnapshots:    utils.Bool(v["include_snapshots"].(bool)),
+		IncludeBlobVersions: pointer.To(v["include_blob_versions"].(bool)),
+		IncludeDeleted:      pointer.To(v["include_deleted"].(bool)),
+		IncludeSnapshots:    pointer.To(v["include_snapshots"].(bool)),
+		CreationTime:        expandBlobInventoryPolicyCreationTime(v["creation_time"].([]interface{})),
 	}
 
 	// If the objectType is Container, the following values must be nil when passed to the API
@@ -323,6 +340,17 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 	}
 
 	return policyFilter, nil
+}
+
+func expandBlobInventoryPolicyCreationTime(input []interface{}) *blobinventorypolicies.BlobInventoryCreationTime {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &blobinventorypolicies.BlobInventoryCreationTime{
+		LastNDays: pointer.To(int64(v["last_n_days"].(int))),
+	}
 }
 
 func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []interface{} {
@@ -374,6 +402,19 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 			"include_snapshots":     includeSnapshots,
 			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
 			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
+			"creation_time":         flattenBlobInventoryPolicyCreationTime(input.CreationTime),
+		},
+	}
+}
+
+func flattenBlobInventoryPolicyCreationTime(input *blobinventorypolicies.BlobInventoryCreationTime) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"last_n_days": pointer.From(input.LastNDays),
 		},
 	}
 }
