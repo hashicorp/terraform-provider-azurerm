@@ -1,8 +1,8 @@
 # NOTE: this file is generated via 'make generate'
 bug:
-  - "panic:"
+  - 'panic:'
 crash:
-  - "panic:"
+  - 'panic:'
 v/1.x (legacy):
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)1\.\d+'
 v/2.x (legacy):
@@ -291,10 +291,13 @@ service/redhatopenshift:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redhat_openshift_cluster((.|\n)*)###'
 
 service/redis:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(managed_redis|redis_|resource_deployment_script_azure_cli\W+|resource_deployment_script_azure_power_shell\W+|resource_management_private_link\W+|resource_management_private_link_association\W+|resource_provider_registration\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(managed_redis|redis_)((.|\n)*)###'
 
 service/relay:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_relay_((.|\n)*)###'
+
+service/resource:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group_template_deployment\W+|management_lock\W+|resource_deployment_script_azure_cli\W+|resource_deployment_script_azure_power_shell\W+|resource_group\W+|resource_group_deployment_stack\W+|resource_group_template_deployment\W+|resource_management_private_link\W+|resource_management_private_link_association\W+|resource_provider_registration\W+|resources|subscription_deployment_stack\W+|subscription_template_deployment\W+|template_spec_version|tenant_template_deployment)((.|\n)*)###'
 
 service/search:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_search_s((.|\n)*)###'

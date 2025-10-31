@@ -496,6 +496,11 @@ service/relay:
   - any-glob-to-any-file:
     - internal/services/relay/**/*
 
+service/resource:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/resource/**/*
+
 service/search:
 - changed-files:
   - any-glob-to-any-file:
