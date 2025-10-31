@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -81,6 +82,76 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.customizedCipherSuiteWithoutBlock(data),
+			ExpectError: regexp.MustCompile("`customized_cipher_suite` is required when `cipher_suite_set_type` is `Customized`"),
+		},
+		{
+			Config:      r.customizedCipherSuiteEmpty(data),
+			ExpectError: regexp.MustCompile("at least one cipher suite must be selected in `customized_cipher_suite` when `cipher_suite_set_type` is set to `Customized`"),
+		},
+		{
+			Config:      r.customizedCipherSuiteWithPreset(data),
+			ExpectError: regexp.MustCompile("`customized_cipher_suite` cannot be specified when `cipher_suite_set_type` is not `Customized`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls12Single(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls12Multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls13Single(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cipherSuitesTls13Multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -211,4 +282,174 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   sku_name            = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteWithoutBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = "acctest-%[2]d.acctestzone%[2]d.com"
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = "acctest-%[2]d.acctestzone%[2]d.com"
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      # Empty - no cipher suites selected
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteWithPreset(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = "acctest-%[2]d.acctestzone%[2]d.com"
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "TLS12_2023"
+
+    customized_cipher_suite {
+      tls13_cipher_suites = [
+        "TLS_AES_256_GCM_SHA384",
+      ]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      tls12_cipher_suites = [
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+      ]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      tls12_cipher_suites = [
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+      ]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls13Single(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      tls13_cipher_suites = [
+        "TLS_AES_256_GCM_SHA384",
+      ]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls13Multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctestcustomdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      tls13_cipher_suites = [
+        "TLS_AES_128_GCM_SHA256",
+        "TLS_AES_256_GCM_SHA384",
+      ]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
 }

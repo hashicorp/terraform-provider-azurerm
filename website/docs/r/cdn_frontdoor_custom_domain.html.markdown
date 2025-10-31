@@ -44,6 +44,34 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 }
 ```
 
+## Example Usage with Customized Cipher Suites
+
+```hcl
+resource "azurerm_cdn_frontdoor_custom_domain" "example" {
+  name                     = "example-customDomain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = "contoso.fabrikam.com"
+
+  tls {
+    certificate_type      = "ManagedCertificate"
+    minimum_tls_version   = "TLS12"
+    cipher_suite_set_type = "Customized"
+
+    customized_cipher_suite {
+      tls12_cipher_suites = [
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+      ]
+      tls13_cipher_suites = [
+        "TLS_AES_256_GCM_SHA384",
+        "TLS_AES_128_GCM_SHA256",
+      ]
+    }
+  }
+}
+```
+
 ## Example DNS Auth TXT Record Usage
 
 The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
@@ -104,10 +132,28 @@ A `tls` block supports the following:
 -> **Note:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
 
 * `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
-  
-~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+
+~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
+
+* `cipher_suite_set_type` - (Optional) The cipher suite set type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, and `TLS12_2022`.
+
+~> **Note:** The `customized_cipher_suite` block is required when `cipher_suite_set_type` is set to `Customized`.
+
+* `customized_cipher_suite` - (Optional) A `customized_cipher_suite` block as defined below.
+
+---
+
+A `customized_cipher_suite` block supports the following:
+
+* `tls12_cipher_suites` - (Optional) A set of TLS 1.2 cipher suites to be used. Possible values are `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, and `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`.
+
+-> **Note:** Azure Front Door does not support ECDSA cipher suites. Only RSA-based cipher suites are supported.
+
+* `tls13_cipher_suites` - (Optional) A set of TLS 1.3 cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
+
+~> **Note:** At least one cipher suite must be selected when using customized cipher suites.
 
 ---
 
