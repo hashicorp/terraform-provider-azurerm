@@ -21,13 +21,14 @@ type RoleDefinitionDataSource struct{}
 var _ sdk.DataSource = RoleDefinitionDataSource{}
 
 type RoleDefinitionDataSourceModel struct {
-	Name             string                      `tfschema:"name"`
-	RoleDefinitionId string                      `tfschema:"role_definition_id"`
-	Scope            string                      `tfschema:"scope"`
-	Description      string                      `tfschema:"description"`
-	Type             string                      `tfschema:"type"`
-	Permissions      []PermissionDataSourceModel `tfschema:"permissions"`
-	AssignableScopes []string                    `tfschema:"assignable_scopes"`
+	Name               string                      `tfschema:"name"`
+	RoleDefinitionId   string                      `tfschema:"role_definition_id"`
+	Scope              string                      `tfschema:"scope"`
+	Description        string                      `tfschema:"description"`
+	Type               string                      `tfschema:"type"`
+	Permissions        []PermissionDataSourceModel `tfschema:"permissions"`
+	AssignableScopes   []string                    `tfschema:"assignable_scopes"`
+	RoleDefinitionUuid string                      `tfschema:"role_definition_uuid"`
 }
 
 type PermissionDataSourceModel struct {
@@ -142,6 +143,11 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		"role_definition_uuid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -218,9 +224,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: defId,
+				Scope:              id.Scope,
+				RoleDefinitionId:   defId,
+				RoleDefinitionUuid: id.RoleDefinitionId,
 			}
+
 			if props := role.Properties; props != nil {
 				state.Name = pointer.From(props.RoleName)
 				state.Type = pointer.From(props.Type)
