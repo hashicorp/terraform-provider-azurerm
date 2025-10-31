@@ -93,6 +93,8 @@ A `default_database` block exports the following:
 
 * `module` - A list of `module` blocks as defined below.
 
+* `persistence` - A `persistence` block as defined below.
+
 * `port` - The TCP port of the database endpoint.
 
 * `primary_access_key` - The Primary Access Key for the Managed Redis Database instance.
@@ -120,6 +122,14 @@ A `module` block exports the following:
 * `args` - The configuration options for the module.
 
 * `version` - The version of the module.
+
+---
+
+A `persistence` block exports the following:
+
+* `method` - The persistence method used.
+
+* `backup_frequency` - The frequency of backups.
 
 ## Timeouts
 
