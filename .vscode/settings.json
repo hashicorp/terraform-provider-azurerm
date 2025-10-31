@@ -1,0 +1,40 @@
+{
+    // Commit message generation with Azure provider context
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "Write clear, concise commit messages under 72 characters. Focus on what changed, not why. No need for conventional commit prefixes unless it's a breaking change."
+        }
+    ],
+
+    // Disable conversation history for privacy
+    "github.copilot.chat.summarizeAgentConversationHistory.enabled": false,
+
+    // Enable code review with instruction files
+    "github.copilot.chat.reviewSelection.enabled": true,
+    "github.copilot.chat.reviewSelection.instructions": [
+        {"file": ".github/copilot-instructions.md"},
+        {"file": ".github/instructions/implementation-guide.instructions.md"},
+        {"file": ".github/instructions/azure-patterns.instructions.md"},
+        {"file": ".github/instructions/testing-guidelines.instructions.md"},
+        {"file": ".github/instructions/documentation-guidelines.instructions.md"},
+        {"file": ".github/instructions/provider-guidelines.instructions.md"}
+    ],
+
+    // File associations for proper syntax highlighting
+    "files.associations": {
+        "*.instructions.md": "markdown",
+        ".github/*.md": "markdown"
+    },
+
+    // Additional Copilot optimization settings
+    "github.copilot.advanced": {
+        "length": 3000,
+        "temperature": 0.1
+    },
+
+    // Enable Copilot across all relevant contexts and file types
+    "github.copilot.enable": {
+        "*": true,
+        "terminal": true
+    }
+}
