@@ -289,6 +289,8 @@ An `ingress` block exports the following:
 
 * `transport` - The transport method for the Ingress.
 
+* `session_affinity` - The session affinity for the Container App.
+
 ---
 
 A `cors` block exports the following:
