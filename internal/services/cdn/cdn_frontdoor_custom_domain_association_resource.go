@@ -8,12 +8,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -62,7 +63,7 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -75,9 +76,10 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 
 	id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
 
-	existing, err := client.Get(ctx, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+	customDomainId := afdcustomdomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+	existing, err := client.Get(ctx, customDomainId)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("creating %s: %s was not found", id, cdId)
 		}
 
@@ -98,7 +100,7 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -107,9 +109,10 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	resp, err := client.Get(ctx, customDomainId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -121,7 +124,7 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -133,9 +136,10 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 
 		id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
 
-		existing, err := client.Get(ctx, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		customDomainId := afdcustomdomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		existing, err := client.Get(ctx, customDomainId)
 		if err != nil {
-			if utils.ResponseWasNotFound(existing.Response) {
+			if response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("updating %s: %s was not found", id, cdId)
 			}
 

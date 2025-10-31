@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
@@ -74,6 +75,35 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"cipher_suite_set_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"customized_cipher_suite": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"tls12_cipher_suites": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"tls13_cipher_suites": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -92,15 +122,16 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 }
 
 func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorCustomDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
+	id := afdcustomdomains.NewCustomDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -108,34 +139,28 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 
 	d.SetId(id.ID())
 	d.Set("name", id.CustomDomainName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("profile_name", id.ProfileName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	if props := resp.AFDDomainProperties; props != nil {
-		d.Set("host_name", props.HostName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("host_name", props.HostName)
 
-		dnsZoneId, err := flattenDNSZoneResourceReference(props.AzureDNSZone)
-		if err != nil {
-			return fmt.Errorf("flattening `dns_zone_id`: %+v", err)
-		}
+			dnsZoneId := flattenAfdDNSZoneResourceReference(props.AzureDnsZone)
+			if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
+				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
+			}
 
-		if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
-			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
-		}
+			tls := flattenAfdDomainHttpsParameters(props.TlsSettings)
+			if err := d.Set("tls", tls); err != nil {
+				return fmt.Errorf("setting `tls`: %+v", err)
+			}
 
-		tls, err := flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)
-		if err != nil {
-			return fmt.Errorf("flattening `tls`: %+v", err)
-		}
-
-		if err := d.Set("tls", tls); err != nil {
-			return fmt.Errorf("setting `tls`: %+v", err)
-		}
-
-		if validationProps := props.ValidationProperties; validationProps != nil {
-			d.Set("expiration_date", validationProps.ExpirationDate)
-			d.Set("validation_token", validationProps.ValidationToken)
+			if validationProps := props.ValidationProperties; validationProps != nil {
+				d.Set("expiration_date", validationProps.ExpirationDate)
+				d.Set("validation_token", validationProps.ValidationToken)
+			}
 		}
 	}
 
