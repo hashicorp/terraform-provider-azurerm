@@ -86,27 +86,15 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 
 	vmLocation := ""
 	vmSku := ""
-	vmDiskControllerType := ""
 	if model := virtualMachine.Model; model != nil {
 		vmLocation = location.Normalize(model.Location)
 		if props := model.Properties; props != nil {
 			if props.HardwareProfile != nil && props.HardwareProfile.VMSize != nil {
 				vmSku = string(*props.HardwareProfile.VMSize)
 			}
-
-			if props.StorageProfile != nil && props.StorageProfile.DiskControllerType != nil {
-				vmDiskControllerType = string(*props.StorageProfile.DiskControllerType)
-			}
 		}
 	}
 
-	isUltraOrPremiumV2Disk := strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesUltraSSDLRS))
-	if isUltraOrPremiumV2Disk {
-		// cannot expand a VM that's using NVMe controllers for Ultra or Premium SSD v2 disks without downtime
-		return pointer.To(!strings.EqualFold(vmDiskControllerType, string(virtualmachines.DiskControllerTypesNVMe))), nil
-	}
-
-	// The following limitation doesn't apply to Premium SSD v2 or Ultra Disks
 	if vmLocation == "" || vmSku == "" {
 		return pointer.To(false), nil
 	}
