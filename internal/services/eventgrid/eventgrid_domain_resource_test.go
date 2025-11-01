@@ -200,7 +200,7 @@ func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("1.1"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
 			),
 		},
 		data.ImportStep(),
@@ -466,7 +466,7 @@ resource "azurerm_eventgrid_domain" "test" {
     action  = "Allow"
   }
 
-  minimal_tls_version = "1.1"
+  minimum_tls_version = "1.1"
 
   input_schema = "CustomEventSchema"
 
