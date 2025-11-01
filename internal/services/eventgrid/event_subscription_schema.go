@@ -14,6 +14,7 @@ import (
 	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,6 +24,8 @@ import (
 type EventSubscriptionEndpointType string
 
 const (
+	// AzureAlertMonitorEndpoint
+	AzureAlertMonitorEndpoint EventSubscriptionEndpointType = "azure_alert_monitor_endpoint"
 	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
 	// EventHubEndpointID ...
@@ -133,6 +136,40 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 				"preferred_batch_size_in_kilobytes": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func eventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		ConflictsWith: conflictsWith,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action_groups": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+				},
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"severity": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice(
+						eventsubscriptions.PossibleValuesForMonitorAlertSeverity(),
+						false,
+					),
 				},
 			},
 		},
