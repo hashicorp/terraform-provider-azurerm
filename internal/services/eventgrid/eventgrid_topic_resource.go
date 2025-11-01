@@ -194,10 +194,13 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"minimum_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Default:      string(topics.TlsVersionOnePointTwo),
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(topics.PossibleValuesForTlsVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Default:  string(topics.TlsVersionOnePointTwo),
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					topics.PossibleValuesForTlsVersion(),
+					false,
+				),
 			},
 		},
 	}
