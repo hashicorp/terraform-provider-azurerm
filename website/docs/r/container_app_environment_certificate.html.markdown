@@ -141,7 +141,7 @@ The following arguments are supported:
 
 ~> **Note:** required if `certificate_blob_base64` is specified.
 
-* `certificate_key_vault` - (Optional) A `certificate_key_vault` block as defined below.
+* `certificate_key_vault` - (Optional) A `certificate_key_vault` block as defined below. Changing this forces a new resource to be created.
 
 ~> **Note:** one of `certificate_blob_base64` and `certificate_key_vault` must be set.
 
@@ -153,11 +153,11 @@ The following arguments are supported:
 
 A `certificate_key_vault` block supports the following:
 
-* `identity` - (Required) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity.
+* `identity` - (Required) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Changing this forces a new resource to be created.
 
 ~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
 
-* `key_vault_secret_id` - (Required) The Base ID of the Key Vault Secret containing the certificate.
+* `key_vault_secret_id` - (Required) The Base ID of the Key Vault Secret containing the certificate. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
