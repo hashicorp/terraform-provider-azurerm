@@ -179,7 +179,7 @@ ASP.NET V4.8 | v4.0
 .NET 7 (STS) | v7.0
 .NET 8 (LTS) | v8.0
 .NET 9 (STS) | v9.0
-.NET 10 (preview) | v10.0
+.NET 10 (LTS) | v10.0
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
