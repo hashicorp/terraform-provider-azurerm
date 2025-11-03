@@ -152,6 +152,8 @@ The following arguments are supported:
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
+~> **Note:** This will become Required in version 5.0 of the AzureRM Provider since the Azure API always returns this block with default values.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **Note:** A route table must be configured on this Subnet.
