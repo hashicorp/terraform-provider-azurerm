@@ -33,8 +33,9 @@ type NetworkProfileVHub struct {
 	PublicIPIDs []string `tfschema:"public_ip_address_ids"`
 
 	// Optional
-	EgressNatIPIDs []string `tfschema:"egress_nat_ip_address_ids"`
-	TrustedRanges  []string `tfschema:"trusted_address_ranges"`
+	EgressNatIPIDs                   []string `tfschema:"egress_nat_ip_address_ids"`
+	PrivateSourceNatRulesDestination []string `tfschema:"private_source_nat_rules_destination"`
+	TrustedRanges                    []string `tfschema:"trusted_address_ranges"`
 
 	// Computed
 	PublicIPs       []string `tfschema:"public_ip_addresses"`
@@ -67,11 +68,8 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					Optional: true,
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.Any(
-							validation.IsCIDR,
-							validation.IsIPv4Address,
-						),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.IsIPv4Address,
 					},
 				},
 
@@ -280,6 +278,16 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"private_source_nat_rules_destination": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.IsIPv4Address,
+					},
+				},
+
 				"trusted_address_ranges": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -361,6 +369,10 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 		result.EgressNatIP = pointer.To(egressNatIPs)
 	}
 
+	if len(profile.PrivateSourceNatRulesDestination) > 0 {
+		result.PrivateSourceNatRulesDestination = pointer.To(profile.PrivateSourceNatRulesDestination)
+	}
+
 	if len(profile.TrustedRanges) > 0 {
 		result.TrustedRanges = pointer.To(profile.TrustedRanges)
 	}
@@ -407,6 +419,12 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 	}
 	result.EgressNatIPIDs = egressIds
 	result.EgressNatIP = egressIPs
+
+	privateSourceNatRulesDestination := make([]string, 0)
+	if v := input.PrivateSourceNatRulesDestination; v != nil {
+		privateSourceNatRulesDestination = pointer.From(v)
+	}
+	result.PrivateSourceNatRulesDestination = privateSourceNatRulesDestination
 
 	trustedRanges := make([]string, 0)
 	if v := input.TrustedRanges; v != nil {
