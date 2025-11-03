@@ -14,7 +14,7 @@ Manages a Front Door (standard/premium) Custom Domain.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "azurerm_resource_group" "example" {
   name     = "example-cdn-frontdoor"
   location = "West Europe"
@@ -38,15 +38,31 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   host_name                = "contoso.fabrikam.com"
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_version     = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 ```
 
 ## Example Usage with Customized Cipher Suites
 
-```hcl
+```terraform
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
+  location = "West Europe"
+}
+
+resource "azurerm_dns_zone" "example" {
+  name                = "sub-domain.domain.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+
 resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   name                     = "example-customDomain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
@@ -54,8 +70,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   host_name                = "contoso.fabrikam.com"
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_version     = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
 
     cipher_suite {
       type = "Customized"
