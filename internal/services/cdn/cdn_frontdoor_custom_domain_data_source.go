@@ -76,29 +76,37 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"cipher_suite_set_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"customized_cipher_suite": {
+						"cipher_suite": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"tls12_cipher_suites": {
-										Type:     pluginsdk.TypeSet,
+									"type": {
+										Type:     pluginsdk.TypeString,
 										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
 									},
 
-									"tls13_cipher_suites": {
-										Type:     pluginsdk.TypeSet,
+									"custom_ciphers": {
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"tls12": {
+													Type:     pluginsdk.TypeSet,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+
+												"tls13": {
+													Type:     pluginsdk.TypeSet,
+													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+											},
 										},
 									},
 								},

@@ -47,9 +47,9 @@ func TestAccCdnFrontDoorCustomDomainDataSource_cipherSuiteBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
 				check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
 				check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists(),
-				check.That(data.ResourceName).Key("tls.0.cipher_suite_set_type").HasValue("Customized"),
-				check.That(data.ResourceName).Key("tls.0.customized_cipher_suite.0.tls12_cipher_suites.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tls.0.customized_cipher_suite.0.tls13_cipher_suites.#").HasValue("2"),
+				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.type").HasValue("Customized"),
+				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls12.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls13.#").HasValue("2"),
 			),
 		},
 	})
@@ -76,5 +76,5 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorCustomDomainResource{}.cipherSuitesTls13Multiple(data))
+`, CdnFrontDoorCustomDomainResource{}.cipherSuitesMixedWithTls12MinMultiple(data))
 }

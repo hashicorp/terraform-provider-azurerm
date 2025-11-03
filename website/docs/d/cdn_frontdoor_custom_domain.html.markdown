@@ -54,19 +54,25 @@ A `tls` block exports the following:
 
 * `certificate_type` - The SSL certificate type.
 
-* `minimum_tls_version` - The TLS protocol version that will be used for Https connections.
+* `minimum_version` - The TLS protocol version that will be used for Https connections.
 
-* `cipher_suite_set_type` - The cipher suite set type used for this Front Door Custom Domain.
-
-* `customized_cipher_suite` - A `customized_cipher_suite` block as defined below.
+* `cipher_suite` - A `cipher_suite` block as defined below.
 
 ---
 
-A `customized_cipher_suite` block exports the following:
+A `cipher_suite` block exports the following:
 
-* `tls12_cipher_suites` - A set of TLS 1.2 cipher suites.
+* `type` - The TLS policy type used for this Front Door Custom Domain.
 
-* `tls13_cipher_suites` - A set of TLS 1.3 cipher suites.
+* `custom_ciphers` - A `custom_ciphers` block as defined below.
+
+---
+
+A `custom_ciphers` block exports the following:
+
+* `tls12` - A set of TLS 1.2 cipher suites.
+
+* `tls13` - A set of TLS 1.3 cipher suites.
 
 ---
 

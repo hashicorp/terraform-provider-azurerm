@@ -39,7 +39,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 
   tls {
     certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    minimum_version     = "TLS12"
   }
 }
 ```
@@ -54,19 +54,22 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   host_name                = "contoso.fabrikam.com"
 
   tls {
-    certificate_type      = "ManagedCertificate"
-    minimum_tls_version   = "TLS12"
-    cipher_suite_set_type = "Customized"
+    certificate_type    = "ManagedCertificate"
+    minimum_version     = "TLS12"
 
-    customized_cipher_suite {
-      tls12_cipher_suites = [
-        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-      ]
-      tls13_cipher_suites = [
-        "TLS_AES_256_GCM_SHA384",
-        "TLS_AES_128_GCM_SHA256",
-      ]
+    cipher_suite {
+      type = "Customized"
+
+      custom_ciphers {
+        tls12 = [
+          "ECDHE_RSA_AES256_GCM_SHA384",
+          "ECDHE_RSA_AES128_GCM_SHA256",
+        ]
+        tls13 = [
+          "TLS_AES_256_GCM_SHA384",
+          "TLS_AES_128_GCM_SHA256",
+        ]
+      }
     }
   }
 }
@@ -131,29 +134,36 @@ A `tls` block supports the following:
 
 -> **Note:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
 
-* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
+* `minimum_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
 
 ~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
 
-* `cipher_suite_set_type` - (Optional) The cipher suite set type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, and `TLS12_2022`.
-
-~> **Note:** The `customized_cipher_suite` block is required when `cipher_suite_set_type` is set to `Customized`.
-
-* `customized_cipher_suite` - (Optional) A `customized_cipher_suite` block as defined below.
+* `cipher_suite` - (Optional) A `cipher_suite` block as defined below.
 
 ---
 
-A `customized_cipher_suite` block supports the following:
+A `cipher_suite` block supports the following:
 
-* `tls12_cipher_suites` - (Optional) A set of TLS 1.2 cipher suites to be used. Possible values are `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, and `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`.
+* `type` - (Required) The TLS policy type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, and `TLS12_2022`.
 
--> **Note:** Azure Front Door does not support ECDSA cipher suites. Only RSA-based cipher suites are supported.
+~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized`.
 
-* `tls13_cipher_suites` - (Optional) A set of TLS 1.3 cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
+* `custom_ciphers` - (Optional) A `custom_ciphers` block as defined below.
 
-~> **Note:** At least one cipher suite must be selected when using customized cipher suites.
+---
+
+A `custom_ciphers` block supports the following:
+
+* `tls12` - (Optional) A set of TLS 1.2 cipher suites to be used. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_SHA384`, `DHE_RSA_AES128_GCM_SHA256`, and `DHE_RSA_AES256_GCM_SHA384`.
+
+-> **Note:** Azure Front Door does not support `ECDSA` cipher suites. Only RSA-based cipher suites are supported.
+
+* `tls13` - (Optional) A set of TLS 1.3 cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
+
+~> **Note:** At least one cipher suite must be selected when using customized cipher suites. When `minimum_version` is set to `TLS12`, at least one TLS 1.2 cipher suite must be specified in the `tls12` field.
+
 
 ---
 

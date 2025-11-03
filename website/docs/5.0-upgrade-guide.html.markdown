@@ -160,10 +160,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_api_management`
 
-* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.developer_portal.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the ``hostname_configuration.management.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.portal.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the ``hostname_configuration.proxy.key_vault_certificate_id`` property. 
+* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.developer_portal.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the ``hostname_configuration.management.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.portal.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the ``hostname_configuration.proxy.key_vault_certificate_id`` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the ``hostname_configuration.scm.key_vault_certificate_id`` property.
 * The deprecated `protocols.enable_http2` property has been removed in favour of the `protocols.http2_enabled` property.
 * The deprecated `security.enable_backend_ssl30` property has been removed in favour of the `security.backend_ssl30_enabled` property.
@@ -204,7 +204,8 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cdn_frontdoor_custom_domain`
 
-* The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
+* The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
+* The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
 ### `azurerm_container_app`
 
@@ -218,7 +219,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_container_registry`
 
-* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.
 
 ### `azurerm_cosmosdb_account`
 
