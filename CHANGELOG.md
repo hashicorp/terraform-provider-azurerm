@@ -1,5 +1,7 @@
 ## 4.52.0 (Unreleased)
 
+**NOTE:** This release removes the `azurerm_spatial_anchors_account` resource and data source due to Azure having retired the service
+
 ENHANCEMENTS:
 * `azurerm_machine_learning_datastore_blobstorage` - improve validation for `storage_container_id` [GH-31002]
 * `azurerm_machine_learning_datastore_datalake_gen2` - improve validation for `storage_container_id` [GH-31002]
