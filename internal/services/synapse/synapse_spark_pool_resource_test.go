@@ -99,7 +99,6 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 	r := SynapseSparkPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
 			Config: r.sparkVersion(data, "3.4"),
 			Check: acceptance.ComposeTestCheckFunc(
