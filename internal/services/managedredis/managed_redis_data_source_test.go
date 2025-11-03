@@ -60,7 +60,7 @@ func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
 		{
 			Config: r.dataSourceDbPersistence(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("default_database.0.persistence.0.method").HasValue("RDB"),
+				check.That(data.ResourceName).Key("default_database.0.persistence.0.method").HasValue("RedisDatabase"),
 				check.That(data.ResourceName).Key("default_database.0.persistence.0.backup_frequency").HasValue("1h"),
 			),
 		},
@@ -195,7 +195,7 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RDB"
+      method           = "RedisDatabase"
       backup_frequency = "1h"
     }
   }

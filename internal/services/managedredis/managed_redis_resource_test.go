@@ -627,7 +627,7 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RDB"
+      method           = "RedisDatabase"
       backup_frequency = "12h"
     }
   }
