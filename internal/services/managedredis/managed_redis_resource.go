@@ -654,8 +654,8 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 					if dbP11Model.Method != "" && dbP11Model.BackupFrequency != "" {
 						switch dbP11Model.Method {
 						case validate.DbPersistenceMethodAOF:
-							if !slices.Contains(redisenterprise.PossibleValuesForAofFrequency(), dbP11Model.BackupFrequency) {
-								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(redisenterprise.PossibleValuesForAofFrequency(), ", "))
+							if !slices.Contains(validate.PossibleValuesForAofFrequency(), dbP11Model.BackupFrequency) {
+								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(validate.PossibleValuesForAofFrequency(), ", "))
 							}
 						case validate.DbPersistenceMethodRDB:
 							if !slices.Contains(redisenterprise.PossibleValuesForRdbFrequency(), dbP11Model.BackupFrequency) {

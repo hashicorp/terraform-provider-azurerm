@@ -192,9 +192,9 @@ A `module` block supports the following:
 
 A `persistence` block supports the following:
 
-* `method` - (Required) The persistence method to use. Possible values are `RDB` (Redis Database Backup) and `AOF` (Append Only File).
+* `method` - (Required) The persistence method to use. Possible values are `RedisDatabase` and `AppendOnlyFile`.
 
-* `backup_frequency` - (Required) The frequency of backups. Possible values for `RDB` are `1h`, `6h` and `12h`. Possible values for `AOF` are `always` and `1s`.
+* `backup_frequency` - (Required) The frequency of backups. Possible values for `RedisDatabase` are `1h`, `6h` and `12h`. Possible values for `AppendOnlyFile` is `1s`.
 
 ## Attributes Reference
 

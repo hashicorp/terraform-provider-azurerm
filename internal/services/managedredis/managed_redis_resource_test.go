@@ -655,7 +655,7 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "AOF"
+      method           = "AppendOnlyFile"
       backup_frequency = "1s"
     }
   }
@@ -678,7 +678,7 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RDB"
+      method           = "RedisDatabase"
       backup_frequency = "1s"
     }
   }
@@ -701,7 +701,7 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "AOF"
+      method           = "AppendOnlyFile"
       backup_frequency = "1h"
     }
   }
@@ -726,7 +726,7 @@ resource "azurerm_managed_redis" "test" {
     geo_replication_group_name = "acctest-amr"
 
     persistence {
-      method           = "AOF"
+      method           = "AppendOnlyFile"
       backup_frequency = "1h"
     }
   }
