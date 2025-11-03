@@ -176,7 +176,7 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 A `bootstrap_profile` block exports the following:
 
-* `artifact_source` - The source from which artifacts are pulled during bootstrap. Possible values include `Direct` and `Cache`.
+* `artifact_source` - The source from which artifacts are pulled during bootstrap.
 
 * `container_registry_id` - The ID of the Azure Container Registry used for caching artifacts during bootstrap.
 
@@ -271,7 +271,7 @@ A `network_profile` block exports the following:
 
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
-* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic. Possible values include: `loadBalancer`, `userDefinedRouting`, `managedNATGateway`, `userAssignedNATGateway` and `none`.
+* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 

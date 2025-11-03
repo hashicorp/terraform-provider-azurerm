@@ -1401,9 +1401,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
 
-	if profile.OutboundType != nil {
-		values["outbound_type"] = string(*profile.OutboundType)
-	}
+	values["outbound_type"] = pointer.From(profile.OutboundType)
 
 	return []interface{}{values}
 }
