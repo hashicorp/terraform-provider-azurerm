@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountconnectionresource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -74,7 +73,7 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_-]{2,32}$"),
-				"name must be between 3 and 33 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-) or underscores(_).",
+				"`name` must be between 3 and 33 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-) or underscores(_).",
 			),
 		},
 
@@ -220,19 +219,17 @@ func (r CognitiveAccountConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Cognitive.AccountConnectionResourceClient
+
 			var model CognitiveAccountConnectionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cognitive.AccountConnectionResourceClient
 			accountId, err := accountconnectionresource.ParseAccountID(model.CognitiveAccountId)
 			if err != nil {
 				return err
 			}
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
 
 			id := accountconnectionresource.NewConnectionID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 			existing, err := client.AccountConnectionsGet(ctx, id)
@@ -246,7 +243,7 @@ func (r CognitiveAccountConnectionResource) Create() sdk.ResourceFunc {
 
 			properties, err := expandConnectionProperties(model)
 			if err != nil {
-				return fmt.Errorf("expanding connection properties: %+v", err)
+				return fmt.Errorf("expanding `properties`: %+v", err)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -359,26 +356,19 @@ func (r CognitiveAccountConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CognitiveAccountConnectionModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
 			client := metadata.Client.Cognitive.AccountConnectionResourceClient
-			accountId, err := accountconnectionresource.ParseAccountID(model.CognitiveAccountId)
-			if err != nil {
-				return err
-			}
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
 
 			id, err := accountconnectionresource.ParseConnectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			// since we update with PATCH method, ignore this fields when no change detected.
+			var model CognitiveAccountConnectionModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// since we update with PATCH method, and multiple models used for API payload, ignore this fields when no change detected.
 			if !metadata.ResourceData.HasChange("metadata") {
 				model.Metadata = map[string]string{}
 			}
@@ -389,7 +379,7 @@ func (r CognitiveAccountConnectionResource) Update() sdk.ResourceFunc {
 
 			properties, err := expandConnectionProperties(model)
 			if err != nil {
-				return fmt.Errorf("expanding connection properties: %+v", err)
+				return fmt.Errorf("expanding `properties`: %+v", err)
 			}
 
 			switch props := properties.(type) {
@@ -437,10 +427,6 @@ func (r CognitiveAccountConnectionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
 
 			if _, err := client.AccountConnectionsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
