@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,11 +21,11 @@ import (
 
 type CognitiveAccountProjectModel struct {
 	CognitiveAccountId string                                     `tfschema:"cognitive_account_id"`
+	Default            bool                                       `tfschema:"default"`
 	Description        string                                     `tfschema:"description"`
 	DisplayName        string                                     `tfschema:"display_name"`
 	Endpoints          map[string]string                          `tfschema:"endpoints"`
 	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	IsDefault          bool                                       `tfschema:"is_default"`
 	Location           string                                     `tfschema:"location"`
 	Name               string                                     `tfschema:"name"`
 	Tags               map[string]string                          `tfschema:"tags"`
@@ -76,11 +75,13 @@ func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_.-]{1,63}$"),
-				"name must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-), periods(.) or underscores(_).",
+				"`name` must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-), periods(.) or underscores(_).",
 			),
 		},
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"location": commonschema.Location(),
 
@@ -96,8 +97,6 @@ func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -112,7 +111,7 @@ func (r CognitiveAccountProjectResource) Attributes() map[string]*schema.Schema 
 			},
 		},
 
-		"is_default": {
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -134,9 +133,6 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
 
 			id := cognitiveservicesprojects.NewProjectID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 
@@ -191,18 +187,13 @@ func (r CognitiveAccountProjectResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			accountId := cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
-
 			existing, err := client.ProjectsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			payload := *existing.Model
@@ -277,10 +268,10 @@ func (r CognitiveAccountProjectResource) Read() sdk.ResourceFunc {
 				state.Identity = *flattenedIdentity
 
 				if props := model.Properties; props != nil {
+					state.Default = pointer.From(props.IsDefault)
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Endpoints = pointer.From(props.Endpoints)
-					state.IsDefault = pointer.From(props.IsDefault)
 				}
 			}
 
@@ -299,11 +290,6 @@ func (r CognitiveAccountProjectResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			accountId := cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
 
 			if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

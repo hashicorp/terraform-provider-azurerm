@@ -55,7 +55,7 @@ func TestAccCognitiveAccountProject_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoints.%").IsNotEmpty(),
-				check.That(data.ResourceName).Key("is_default").IsNotEmpty(),
+				check.That(data.ResourceName).Key("default").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -99,7 +99,7 @@ func (r CognitiveAccountProjectResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.Cognitive.ProjectsClient.ProjectsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

@@ -59,13 +59,13 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Account where the Project should exist. Changing this forces a new resource to be created.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `location` - (Required) The Azure Region where the Cognitive Account Project should exist. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description of the Cognitive Account Project.
 
 * `display_name` - (Optional) The display name of the Cognitive Account Project.
-
-* `identity` - (Required) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `is_default` - Whether this project is the default project for the Cognitive Account.
+* `default` - Whether this project is the default project for the Cognitive Account.
 
 ---
 
@@ -99,7 +99,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Account Project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Account Project.
