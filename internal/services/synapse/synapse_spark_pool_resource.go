@@ -235,6 +235,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				"3.2",
 				"3.3",
 				"3.4",
+				"3.5",
 			}, false),
 				func(v interface{}, k string) (warnings []string, errors []error) {
 					if val, ok := v.(string); ok && (val == "3.2" || val == "3.3") {
