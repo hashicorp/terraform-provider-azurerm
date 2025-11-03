@@ -100,15 +100,13 @@ func (r ManagerNetworkGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			group := networkgroups.NetworkGroup{
-				Properties: &networkgroups.NetworkGroupProperties{},
+				Properties: &networkgroups.NetworkGroupProperties{
+					MemberType: pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType),
+				},
 			}
 
 			if model.Description != "" {
 				group.Properties.Description = &model.Description
-			}
-
-			if model.MemberType != "" {
-				group.Properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, group, networkgroups.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -158,11 +156,7 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("member_type") {
-				if model.MemberType != "" {
-					properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
-				} else {
-					properties.MemberType = nil
-				}
+				properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model, networkgroups.DefaultCreateOrUpdateOperationOptions()); err != nil {
