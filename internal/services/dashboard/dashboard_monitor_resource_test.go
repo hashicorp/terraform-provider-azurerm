@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DashboardResource struct{}
+type DashboardMonitorResource struct{}
 
-func TestAccDashboard_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
-	r := DashboardResource{}
+func TestAccDashboardMonitor_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_monitor", "test")
+	r := DashboardMonitorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccDashboard_basic(t *testing.T) {
 	})
 }
 
-func TestAccDashboard_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
-	r := DashboardResource{}
+func TestAccDashboardMonitor_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_monitor", "test")
+	r := DashboardMonitorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,9 +48,9 @@ func TestAccDashboard_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDashboard_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
-	r := DashboardResource{}
+func TestAccDashboardMonitor_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_monitor", "test")
+	r := DashboardMonitorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,9 +70,9 @@ func TestAccDashboard_update(t *testing.T) {
 	})
 }
 
-func TestAccDashboard_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
-	r := DashboardResource{}
+func TestAccDashboardMonitor_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_monitor", "test")
+	r := DashboardMonitorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccDashboard_complete(t *testing.T) {
 	})
 }
 
-func (r DashboardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DashboardMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := manageddashboards.ParseDashboardID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r DashboardResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r DashboardResource) basic(data acceptance.TestData) string {
+func (r DashboardMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,7 +110,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "azurerm_dashboard_monitor" "test" {
   name                = "acctest-db-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -118,19 +118,19 @@ resource "azurerm_dashboard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DashboardResource) requiresImport(data acceptance.TestData) string {
+func (r DashboardMonitorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dashboard" "import" {
-  name                = azurerm_dashboard.test.name
-  resource_group_name = azurerm_dashboard.test.resource_group_name
-  location            = azurerm_dashboard.test.location
+resource "azurerm_dashboard_monitor" "import" {
+  name                = azurerm_dashboard_monitor.test.name
+  resource_group_name = azurerm_dashboard_monitor.test.resource_group_name
+  location            = azurerm_dashboard_monitor.test.location
 }
 `, r.basic(data))
 }
 
-func (r DashboardResource) update(data acceptance.TestData) string {
+func (r DashboardMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,7 +141,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "azurerm_dashboard_monitor" "test" {
   name                = "acctest-db-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -154,7 +154,7 @@ resource "azurerm_dashboard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DashboardResource) complete(data acceptance.TestData) string {
+func (r DashboardMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +165,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "azurerm_dashboard_monitor" "test" {
   name                = "acctest-db-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

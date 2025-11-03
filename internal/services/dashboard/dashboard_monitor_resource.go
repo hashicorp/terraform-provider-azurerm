@@ -18,30 +18,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type DashboardResourceModel struct {
+type DashboardMonitorResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type DashboardResource struct{}
+type DashboardMonitorResource struct{}
 
-var _ sdk.Resource = DashboardResource{}
+var _ sdk.Resource = DashboardMonitorResource{}
 
-func (r DashboardResource) ResourceType() string {
-	return "azurerm_dashboard"
+func (r DashboardMonitorResource) ResourceType() string {
+	return "azurerm_dashboard_monitor"
 }
 
-func (r DashboardResource) ModelObject() interface{} {
-	return &DashboardResourceModel{}
+func (r DashboardMonitorResource) ModelObject() interface{} {
+	return &DashboardMonitorResourceModel{}
 }
 
-func (r DashboardResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DashboardMonitorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return manageddashboards.ValidateDashboardID
 }
 
-func (r DashboardResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DashboardMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -61,15 +61,15 @@ func (r DashboardResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r DashboardResource) Attributes() map[string]*pluginsdk.Schema {
+func (r DashboardMonitorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r DashboardResource) Create() sdk.ResourceFunc {
+func (r DashboardMonitorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model DashboardResourceModel
+			var model DashboardMonitorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -103,7 +103,7 @@ func (r DashboardResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r DashboardResource) Update() sdk.ResourceFunc {
+func (r DashboardMonitorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -114,7 +114,7 @@ func (r DashboardResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model DashboardResourceModel
+			var model DashboardMonitorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -134,7 +134,7 @@ func (r DashboardResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DashboardResource) Read() sdk.ResourceFunc {
+func (r DashboardMonitorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -159,7 +159,7 @@ func (r DashboardResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := DashboardResourceModel{
+			state := DashboardMonitorResourceModel{
 				Name:              id.DashboardName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -174,7 +174,7 @@ func (r DashboardResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r DashboardResource) Delete() sdk.ResourceFunc {
+func (r DashboardMonitorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

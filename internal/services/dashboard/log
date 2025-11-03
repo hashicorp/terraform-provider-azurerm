@@ -1,0 +1,63 @@
+2025/11/03 16:15:41 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:15:44 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:15:59 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:01 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:16 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:17 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:21 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:23 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:25 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:26 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:34 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:35 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:37 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:38 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:41 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025-11-03T16:16:41.358+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_mux_provider="*schema.GRPCProviderServer" tf_rpc=ConfigureProvider tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_req_id=1fd8a6c1-a17e-ca11-42d0-3c24918d8b26
+2025/11/03 16:16:41 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:42 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:42 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025-11-03T16:16:42.612+0800 [ERROR] sdk.proto: Response contains error diagnostic: diagnostic_severity=ERROR diagnostic_summary="a resource with the ID \"/subscriptions/79133cc5-0525-4c13-9cca-4298eca1d3e1/resourceGroups/acctestRG-dashboard-251103161509421782/providers/Microsoft.Dashboard/dashboards/acctest-db-251103161509421782\" already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for \"azurerm_dashboard_monitor\" for more information" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_dashboard_monitor tf_req_id=c63d7205-fcae-d110-b1cc-0588f99e7ee3 diagnostic_detail="a resource with the ID \"/subscriptions/79133cc5-0525-4c13-9cca-4298eca1d3e1/resourceGroups/acctestRG-dashboard-251103161509421782/providers/Microsoft.Dashboard/dashboards/acctest-db-251103161509421782\" already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for \"azurerm_dashboard_monitor\" for more information"
+2025-11-03T16:16:42.624+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: a resource with the ID "/subscriptions/79133cc5-0525-4c13-9cca-4298eca1d3e1/resourceGroups/acctestRG-dashboard-251103161509421782/providers/Microsoft.Dashboard/dashboards/acctest-db-251103161509421782" already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for "azurerm_dashboard_monitor" for more information
+  | 
+  |   with azurerm_dashboard_monitor.import,
+  |   on terraform_plugin_test.tf line 48, in resource "azurerm_dashboard_monitor" "import":
+  |   48: resource "azurerm_dashboard_monitor" "import" {
+  | 
+  | a resource with the ID
+  | "/subscriptions/79133cc5-0525-4c13-9cca-4298eca1d3e1/resourceGroups/acctestRG-dashboard-251103161509421782/providers/Microsoft.Dashboard/dashboards/acctest-db-251103161509421782"
+  | already exists - to be managed via Terraform this resource needs to be
+  | imported into the State. Please see the resource documentation for
+  | "azurerm_dashboard_monitor" for more information
+   test_name=TestAccDashboardMonitor_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_step_number=2 test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2671798219
+2025/11/03 16:16:44 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025-11-03T16:16:44.150+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_mux_provider="*schema.GRPCProviderServer" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_req_id=20905913-6268-74d2-76ba-e775370632e4
+2025/11/03 16:16:44 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:45 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:56 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:16:57 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:00 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:04 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:12 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:14 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:17 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:18 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:21 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:22 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025-11-03T16:17:22.470+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=52b58285-4b08-ba9a-b3f6-bb97020bdacd tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2025/11/03 16:17:23 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:34 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:38 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:41 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:46 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:47 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:51 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:17:54 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:18:06 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025/11/03 16:18:10 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2025-11-03T16:18:10.690+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_mux_provider="*schema.GRPCProviderServer" tf_rpc=ConfigureProvider tf_req_id=f28189ad-fa31-57c8-9dfa-9f45773e4d21
+2025/11/03 16:18:11 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API

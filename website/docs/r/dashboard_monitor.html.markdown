@@ -1,14 +1,14 @@
 ---
 subcategory: "Dashboard"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dashboard"
+page_title: "Azure Resource Manager: azurerm_dashboard_monitor"
 description: |-
-  Manages a Dashboard.
+  Manages a Dashboard Monitor.
 ---
 
-# azurerm_dashboard
+# azurerm_dashboard_monitor
 
-Manages a Dashboard.
+Manages a Dashboard Monitor.
 
 ## Example Usage
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_dashboard" "example" {
+resource "azurerm_dashboard_monitor" "example" {
   name                = "example-dashboard"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -58,10 +58,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Dashboards can be imported using the `resource id`, e.g.
+Dashboard Monitors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dashboard.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Dashboard/dashboards/dashboard1
+terraform import azurerm_dashboard_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Dashboard/dashboards/dashboard1
 ```
 
 ## API Providers
