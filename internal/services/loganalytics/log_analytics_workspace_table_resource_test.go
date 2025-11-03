@@ -35,8 +35,12 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 		},
 		{
 			Config: r.removeRetentionDays(data),
-			// The `retention_in_days` is an optional property, when it's not specified, the service will set a default value for it.
-			ExpectNonEmptyPlan: true,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
+				check.That(data.ResourceName).Key("retention_in_days").HasValue("0"), // since it's removed, we will not set a value to it to state.
+			),
 		},
 	})
 }

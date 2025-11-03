@@ -247,9 +247,11 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 					if !pointer.From(props.RetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
+
 					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
 						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
+
 					state.Plan = string(pointer.From(props.Plan))
 				}
 			}
