@@ -76,4 +76,4 @@ terraform import azurerm_nat_gateway_public_ip_prefix_association.example "/subs
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01
