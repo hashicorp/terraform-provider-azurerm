@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securityrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityrules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,16 +20,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityRuleCreate,
 		Read:   resourceNetworkSecurityRuleRead,
 		Update: resourceNetworkSecurityRuleUpdate,
 		Delete: resourceNetworkSecurityRuleDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := securityrules.ParseSecurityRuleID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&securityrules.SecurityRuleId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&securityrules.SecurityRuleId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -101,49 +106,51 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"source_address_prefix": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"source_address_prefixes"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 			},
 
 			"source_address_prefixes": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:           pluginsdk.HashString,
-				ConflictsWith: []string{"source_address_prefix"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 			},
 
 			"destination_address_prefix": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"destination_address_prefixes"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
 			},
 
 			"destination_address_prefixes": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:           pluginsdk.HashString,
-				ConflictsWith: []string{"destination_address_prefix"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
 			},
 
 			// lintignore:S018
 			"source_application_security_group_ids": {
-				Type:     pluginsdk.TypeSet,
-				MaxItems: 10,
-				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+				Type:         pluginsdk.TypeSet,
+				MaxItems:     10,
+				Optional:     true,
+				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:          pluginsdk.HashString,
 			},
 
 			// lintignore:S018
 			"destination_application_security_group_ids": {
-				Type:     pluginsdk.TypeSet,
-				MaxItems: 10,
-				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+				Type:         pluginsdk.TypeSet,
+				MaxItems:     10,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:          pluginsdk.HashString,
 			},
 
 			"access": {
@@ -469,7 +476,7 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

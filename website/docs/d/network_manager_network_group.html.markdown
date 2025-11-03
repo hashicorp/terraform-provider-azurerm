@@ -6,7 +6,7 @@ description: |-
   Get information about a Network Manager Network Group.
 ---
 
-# azurerm_network_manager_network_group
+# Data Source: azurerm_network_manager_network_group
 
 Use this data source to access information about a Network Manager Network Group.
 
@@ -62,7 +62,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
  
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Network Group.
 
@@ -70,4 +70,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-01-01

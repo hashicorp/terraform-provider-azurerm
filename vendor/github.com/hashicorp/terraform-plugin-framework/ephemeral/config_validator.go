@@ -1,5 +1,6 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
+
 package ephemeral
 
 import "context"
@@ -20,9 +21,7 @@ type ConfigValidator interface {
 
 	// ValidateEphemeralResource performs the validation.
 	//
-	// This method name is separate from the datasource.ConfigValidator
-	// interface ValidateDataSource method name, provider.ConfigValidator
-	// interface ValidateProvider method name, and resource.ConfigValidator
-	// interface ValidateResource method name to allow generic validators.
+	// This method name is separate from ConfigValidators in resource and other packages in
+	// order to allow generic validators.
 	ValidateEphemeralResource(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

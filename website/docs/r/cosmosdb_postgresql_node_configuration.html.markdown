@@ -37,7 +37,7 @@ resource "azurerm_cosmosdb_postgresql_node_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.
@@ -74,4 +74,4 @@ terraform import azurerm_cosmosdb_postgresql_node_configuration.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2022-11-08
+* `Microsoft.DBforPostgreSQL` - 2022-11-08

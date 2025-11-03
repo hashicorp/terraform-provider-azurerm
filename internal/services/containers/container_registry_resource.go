@@ -5,6 +5,7 @@ package containers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -243,6 +244,14 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"data_endpoint_host_names": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"network_rule_bypass_option": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -262,7 +271,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			geoReplications := d.Get("georeplications").([]interface{})
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+				return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 			}
 
 			// ensure location is different than any location of the geo-replication
@@ -274,38 +283,38 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			location := location.Normalize(d.Get("location").(string))
 			for _, loc := range geoReplicationLocations {
 				if loc == location {
-					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 				}
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
+				return errors.New("an ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
 			if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+				return errors.New("an ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
 			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
+				return errors.New("an ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
 			}
 
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
 			if !exportPolicyEnabled {
 				if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+					return errors.New("an ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
 				}
 				if d.Get("public_network_access_enabled").(bool) {
-					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+					return errors.New("to disable export of artifacts, `public_network_access_enabled` must also be `false`")
 				}
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption")
 			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
 			}
 
 			// zone redundancy is only available for Premium Sku.
@@ -398,7 +407,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	publicNetworkAccess := registries.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-			return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+			return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 		}
 
 		publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -512,7 +521,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess := registries.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			if !isPremiumSku {
-				return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+				return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 			}
 
 			publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -616,7 +625,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// geo replication is only supported by Premium Sku
 	if len(newReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+		return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 	}
 
 	if hasGeoReplicationsChanges {
@@ -848,6 +857,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {

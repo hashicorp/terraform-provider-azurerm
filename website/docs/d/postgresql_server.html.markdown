@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing PostgreSQL Azure Database Server.
 
+~> **Note:** The `azurerm_postgresql_server` data source is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server` data source instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
 ## Example Usage
 
 ```hcl
@@ -23,7 +25,7 @@ output "postgresql_server_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the PostgreSQL Server.
 
@@ -59,7 +61,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the PostgreSQL Azure Database Server.
 
@@ -67,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2017-12-01
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

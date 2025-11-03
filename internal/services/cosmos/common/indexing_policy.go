@@ -295,7 +295,7 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPoli
 	}
 
 	// The root path must be included or excluded
-	if (includedPathsDefined || excludedPathsDefined) && !(includedPathsContainRootPath || excludedPathsContainRootPath) {
+	if (includedPathsDefined || excludedPathsDefined) && (!includedPathsContainRootPath && !excludedPathsContainRootPath) {
 		return fmt.Errorf("either included_path or excluded_path must include the path %q", rootPath)
 	}
 

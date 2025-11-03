@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
@@ -19,30 +20,36 @@ import (
 type Client struct {
 	Factories                 *factories.FactoriesClient
 	Credentials               *credentials.CredentialsClient
+	DataFlowClient            *dataflows.DataFlowsClient
 	IntegrationRuntimesClient *integrationruntimes.IntegrationRuntimesClient
 	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
 	PipelinesClient           *pipelines.PipelinesClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
-	DataFlowClient      *datafactory.DataFlowsClient
 	DatasetClient       *datafactory.DatasetsClient
 	LinkedServiceClient *datafactory.LinkedServicesClient
 	TriggersClient      *datafactory.TriggersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	credentialsClient, err := credentials.NewCredentialsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Credentials client: %+v", err)
+	}
+	o.Configure(credentialsClient.Client, o.Authorizers.ResourceManager)
+
+	dataFlowClient, err := dataflows.NewDataFlowsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Flows client: %+v", err)
+	}
+	o.Configure(dataFlowClient.Client, o.Authorizers.ResourceManager)
+
 	factoriesClient, err := factories.NewFactoriesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Factories client: %+v", err)
 	}
 	o.Configure(factoriesClient.Client, o.Authorizers.ResourceManager)
-
-	credentialsClient, err := credentials.NewCredentialsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Factories client: %+v", err)
-	}
-	o.Configure(credentialsClient.Client, o.Authorizers.ResourceManager)
 
 	integrationRuntimesClient, err := integrationruntimes.NewIntegrationRuntimesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -63,9 +70,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(managedVirtualNetworksClient.Client, o.Authorizers.ResourceManager)
 
 	// TODO: port the below operations to use `hashicorp/go-azure-sdk` in time
-	dataFlowClient := datafactory.NewDataFlowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&dataFlowClient.Client, o.ResourceManagerAuthorizer)
-
 	DatasetClient := datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatasetClient.Client, o.ResourceManagerAuthorizer)
 
@@ -84,13 +88,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		Factories:                 factoriesClient,
 		Credentials:               credentialsClient,
+		DataFlowClient:            dataFlowClient,
 		IntegrationRuntimesClient: integrationRuntimesClient,
 		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:    managedVirtualNetworksClient,
 		PipelinesClient:           PipelinesClient,
 
 		// TODO: port to `hashicorp/go-azure-sdk`
-		DataFlowClient:      &dataFlowClient,
 		DatasetClient:       &DatasetClient,
 		LinkedServiceClient: &LinkedServiceClient,
 		TriggersClient:      &TriggersClient,

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subscription"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -135,18 +135,15 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					// check if the subscription is for all apis or a specific product/ api
+					// Check if the subscription is for all apis or a specific product/ api, excluding the built-in master subscription.
+					// The scope of the built-in subscription is the API Management service itself (service ID).
 					if props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
-						// the scope is either a product or api id
-						parseId, err := product.ParseProductIDInsensitively(props.Scope)
-						if err == nil {
-							state.ProductId = parseId.ID()
-						} else {
-							parsedApiId, err := api.ParseApiIDInsensitively(props.Scope)
-							if err != nil {
-								return fmt.Errorf("parsing scope into product/api id %q: %+v", props.Scope, err)
-							}
-							state.ApiId = parsedApiId.ID()
+						// the scope is either a product, api id or service id
+						if productId, err := product.ParseProductIDInsensitively(props.Scope); err == nil {
+							state.ProductId = productId.ID()
+						}
+						if apiId, err := api.ParseApiIDInsensitively(props.Scope); err == nil {
+							state.ApiId = apiId.ID()
 						}
 					}
 					state.AllowTracing = pointer.From(props.AllowTracing)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -270,7 +270,7 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPool(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -285,7 +285,7 @@ func TestAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -300,7 +300,7 @@ func TestAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -315,7 +315,7 @@ func TestAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -344,7 +344,7 @@ func TestAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
+func testAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -436,7 +436,7 @@ func TestVirtualNetworkResource_tagCount(t *testing.T) {
 	})
 }
 
-func (t VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseVirtualNetworkID(state.ID)
 	if err != nil {
 		return nil, err
@@ -689,10 +689,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "100"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -755,10 +751,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test2.id
     number_of_ip_addresses = "200"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -801,10 +793,6 @@ resource "azurerm_virtual_network" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "300"
-  }
-
-  lifecycle {
-    ignore_changes = [address_space]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -851,10 +839,6 @@ resource "azurerm_virtual_network" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "5192296858534827628530496329220096"
-  }
-
-  lifecycle {
-    ignore_changes = [address_space]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

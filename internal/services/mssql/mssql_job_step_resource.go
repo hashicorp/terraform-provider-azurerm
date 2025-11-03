@@ -65,7 +65,7 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"job_credential_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: jobcredentials.ValidateCredentialID,
 		},
 		"job_step_index": {
@@ -101,11 +101,6 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"job_credential_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: jobcredentials.ValidateCredentialID,
-					},
 					"mssql_database_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -115,6 +110,11 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"job_credential_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"schema_name": {
 						Type:         pluginsdk.TypeString,
@@ -163,6 +163,14 @@ func (r MsSqlJobStepResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
 			}
 
+			// Once set, `job_credential_id` cannot be removed
+			// https://github.com/Azure/azure-rest-api-specs/issues/35881
+			if o, n := metadata.ResourceDiff.GetChange("job_credential_id"); o.(string) != "" && n.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("job_credential_id"); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
@@ -209,7 +217,7 @@ func (r MsSqlJobStepResource) Create() sdk.ResourceFunc {
 					Action: jobsteps.JobStepAction{
 						Value: model.SqlScript,
 					},
-					Credential: pointer.To(model.JobCredentialID),
+					Credential: stringPtrIfSet(model.JobCredentialID),
 					ExecutionOptions: pointer.To(jobsteps.JobStepExecutionOptions{
 						InitialRetryIntervalSeconds:    pointer.To(model.InitialRetryIntervalSeconds),
 						MaximumRetryIntervalSeconds:    pointer.To(model.MaximumRetryIntervalSeconds),
@@ -273,21 +281,23 @@ func (r MsSqlJobStepResource) Read() sdk.ResourceFunc {
 						state.JobCredentialID = credentialID.ID()
 					}
 
-					state.JobStepIndex = pointer.From(props.StepId)
-					state.JobTargetGroupID = props.TargetGroup
-					state.SqlScript = props.Action.Value
-					state.InitialRetryIntervalSeconds = pointer.From(props.ExecutionOptions.InitialRetryIntervalSeconds)
-					state.MaximumRetryIntervalSeconds = pointer.From(props.ExecutionOptions.MaximumRetryIntervalSeconds)
-
 					target, err := flattenOutputTarget(props.Output)
 					if err != nil {
 						return fmt.Errorf("flattening `output_target`: %+v", err)
 					}
 					state.OutputTarget = target
 
-					state.RetryAttempts = pointer.From(props.ExecutionOptions.RetryAttempts)
-					state.RetryIntervalBackoffMultiplier = pointer.From(props.ExecutionOptions.RetryIntervalBackoffMultiplier)
-					state.TimeoutSeconds = pointer.From(props.ExecutionOptions.TimeoutSeconds)
+					state.JobStepIndex = pointer.From(props.StepId)
+					state.JobTargetGroupID = props.TargetGroup
+					state.SqlScript = props.Action.Value
+
+					if exec := props.ExecutionOptions; exec != nil {
+						state.InitialRetryIntervalSeconds = pointer.From(exec.InitialRetryIntervalSeconds)
+						state.MaximumRetryIntervalSeconds = pointer.From(exec.MaximumRetryIntervalSeconds)
+						state.RetryAttempts = pointer.From(exec.RetryAttempts)
+						state.RetryIntervalBackoffMultiplier = pointer.From(exec.RetryIntervalBackoffMultiplier)
+						state.TimeoutSeconds = pointer.From(exec.TimeoutSeconds)
+					}
 				}
 			}
 
@@ -331,7 +341,7 @@ func (r MsSqlJobStepResource) Update() sdk.ResourceFunc {
 			props := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("job_credential_id") {
-				props.Credential = pointer.To(config.JobCredentialID)
+				props.Credential = stringPtrIfSet(config.JobCredentialID)
 			}
 
 			if metadata.ResourceData.HasChange("job_step_index") {
@@ -453,4 +463,11 @@ func flattenOutputTarget(input *jobsteps.JobStepOutput) ([]JobStepOutputTarget, 
 			SchemaName:      pointer.From(input.SchemaName),
 		},
 	}, nil
+}
+
+func stringPtrIfSet(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return pointer.To(s)
 }

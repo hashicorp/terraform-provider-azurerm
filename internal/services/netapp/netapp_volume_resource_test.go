@@ -11,10 +11,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -42,6 +43,24 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_protocolsEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test for NetApp Volume protocolsEnabled as it is not supported in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocolsEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -150,6 +169,22 @@ func TestAccNetAppVolume_createFromSnapshotInAnotherPool(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_shortTermClone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.shortTermClone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("accept_grow_capacity_pool_for_short_term_clone_split").HasValue("Accepted"),
+			),
+		},
+		data.ImportStep("create_from_snapshot_resource_id"),
+	})
+}
+
 func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
@@ -195,6 +230,40 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_crossZoneReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossZoneReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone").HasValue("2"),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
+				check.That(data.ResourceName).Key("data_protection_replication.0.remote_volume_location").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_crossZoneRegionReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_cross_region")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossZoneRegionReplication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
@@ -415,6 +484,81 @@ func TestAccNetAppVolume_serviceLevelUpdate(t *testing.T) {
 			Config: r.serviceLevelUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_coolAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.coolAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccessUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccessUpdatedTier(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_protocolConversion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv41(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -698,6 +842,41 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
+func (NetAppVolumeResource) protocolsEnabled(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv4.1"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv4.1"] # This property will be removed in v5.0
+    unix_read_only    = false
+    unix_read_write   = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
 func (NetAppVolumeResource) availabilityZone(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
@@ -744,11 +923,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv4.1"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv4.1"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -952,11 +1131,11 @@ resource "azurerm_netapp_volume" "test_primary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -980,11 +1159,11 @@ resource "azurerm_netapp_volume" "test_secondary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   data_protection_replication {
@@ -1021,11 +1200,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1058,10 +1237,10 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   throughput_in_mibps              = 3.125
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_write = true
   }
 
   tags = {
@@ -1092,11 +1271,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1127,11 +1306,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1179,27 +1358,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1229,27 +1408,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 64
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["1.2.6.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["1.2.6.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1279,19 +1458,19 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 63
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1323,7 +1502,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["1.2.4.0/24", "1.3.4.0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
@@ -1545,6 +1724,79 @@ resource "azurerm_netapp_pool" "test" {
 `, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (r NetAppVolumeResource) templateCoolAccess(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.88.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.88.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+  cool_access_enabled = true
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (r NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
 	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
@@ -1727,4 +1979,561 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (NetAppVolumeResource) coolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  cool_access {
+    tiering_policy          = "Auto"
+    retrieval_policy        = "OnRead"
+    coolness_period_in_days = 10
+  }
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) coolAccessUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  cool_access {
+    tiering_policy          = "SnapshotOnly"
+    retrieval_policy        = "Default"
+    coolness_period_in_days = 10
+  }
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) coolAccessUpdatedTier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  cool_access {
+    tiering_policy          = "SnapshotOnly"
+    retrieval_policy        = "Never"
+    coolness_period_in_days = 30
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) coolAccessDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) shortTermClone(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_original" {
+  name                = "acctest-NetAppVolume-Original-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-original-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+}
+
+resource "azurerm_netapp_snapshot" "test_original" {
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-NetAppVolume-Snapshot-%[2]d"
+  pool_name           = azurerm_netapp_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  volume_name         = azurerm_netapp_volume.test_original.name
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                                                 = "acctest-NetAppVolume-ShortTermClone-%[2]d"
+  location                                             = azurerm_resource_group.test.location
+  resource_group_name                                  = azurerm_resource_group.test.name
+  account_name                                         = azurerm_netapp_account.test.name
+  pool_name                                            = azurerm_netapp_pool.test.name
+  volume_path                                          = "my-unique-file-path-clone-%[2]d"
+  service_level                                        = "Standard"
+  subnet_id                                            = azurerm_subnet.test.id
+  protocols                                            = ["NFSv3"]
+  security_style                                       = "unix"
+  storage_quota_in_gb                                  = 100
+  throughput_in_mibps                                  = 16
+  create_from_snapshot_resource_id                     = azurerm_netapp_snapshot.test_original.id
+  accept_grow_capacity_pool_for_short_term_clone_split = "Accepted"
+
+  depends_on = [azurerm_netapp_snapshot.test_original]
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) protocolConversionNFSv3(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-ProtocolConversion-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-conversion-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv3"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) protocolConversionNFSv41(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-ProtocolConversion-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-conversion-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv4.1"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) crossZoneReplication(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateCrossZoneReplication(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_primary" {
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "1"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_secondary" {
+  name                       = "acctest-NetAppVolume-secondary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "2"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test_secondary.name
+  volume_path                = "my-unique-file-path-secondary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_secondary.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) crossZoneRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	template := NetAppVolumeResource{}.templateCrossZoneRegionReplication(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_primary" {
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "1"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_cross_zone" {
+  name                       = "acctest-NetAppVolume-cross-zone-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "2"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test_cross_zone.name
+  volume_path                = "my-unique-file-path-cross-zone-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_cross_zone.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_cross_region" {
+  name                       = "acctest-NetAppVolume-cross-region-%[2]d"
+  location                   = "%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test_secondary.name
+  pool_name                  = azurerm_netapp_pool.test_secondary.name
+  volume_path                = "my-unique-file-path-cross-region-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_secondary.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, overriddenlocations.Secondary)
+}
+
+func (r NetAppVolumeResource) templateCrossZoneReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test_secondary" {
+  name                = "acctest-VirtualNetwork-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.89.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_secondary" {
+  name                 = "acctest-Subnet-secondary-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_secondary.name
+  address_prefixes     = ["10.89.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) templateCrossZoneRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test_cross_zone" {
+  name                = "acctest-VirtualNetwork-cross-zone-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.89.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_cross_zone" {
+  name                 = "acctest-Subnet-cross-zone-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_cross_zone.name
+  address_prefixes     = ["10.89.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_virtual_network" "test_secondary" {
+  name                = "acctest-VirtualNetwork-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.90.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_secondary" {
+  name                 = "acctest-Subnet-secondary-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_secondary.name
+  address_prefixes     = ["10.90.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test_secondary" {
+  name                = "acctest-NetAppAccount-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test_cross_zone" {
+  name                = "acctest-NetAppPool-cross-zone-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test_secondary.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, overriddenlocations.Secondary)
 }

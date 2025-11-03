@@ -268,7 +268,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -324,13 +324,13 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	workspaceInfo.Identity = expandedIdentity
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
-		workspaceInfo.WorkspaceProperties.PurviewConfiguration = &synapse.PurviewConfiguration{
+		workspaceInfo.PurviewConfiguration = &synapse.PurviewConfiguration{
 			PurviewResourceID: utils.String(purviewId.(string)),
 		}
 	}
 
 	if computeSubnetId, ok := d.GetOk("compute_subnet_id"); ok {
-		workspaceInfo.WorkspaceProperties.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
+		workspaceInfo.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
 			ComputeSubnetID: utils.String(computeSubnetId.(string)),
 		}
 	}
@@ -443,11 +443,12 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
-		if repoType == workspaceVSTSConfiguration {
+		switch repoType {
+		case workspaceVSTSConfiguration:
 			if err := d.Set("azure_devops_repo", repo); err != nil {
 				return fmt.Errorf("setting `azure_devops_repo`: %+v", err)
 			}
-		} else if repoType == workspaceGitHubConfiguration {
+		case workspaceGitHubConfiguration:
 			if err := d.Set("github_repo", repo); err != nil {
 				return fmt.Errorf("setting `github_repo`: %+v", err)
 			}
@@ -762,14 +763,15 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 	if repoType := config.Type; repoType != nil {
 		repo := map[string]interface{}{}
 
-		if *repoType == workspaceVSTSConfiguration {
+		switch *repoType {
+		case workspaceVSTSConfiguration:
 			if config.ProjectName != nil {
 				repo["project_name"] = *config.ProjectName
 			}
 			if config.TenantID != nil {
 				repo["tenant_id"] = config.TenantID.String()
 			}
-		} else if *repoType == workspaceGitHubConfiguration {
+		case workspaceGitHubConfiguration:
 			if config.HostName != nil {
 				repo["git_url"] = *config.HostName
 			}

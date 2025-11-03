@@ -93,12 +93,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating this Azure Native Qumulo Scalable File System.
-* `delete` - (Defaults to 60 minutes) Used when deleting this Azure Native Qumulo Scalable File System.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Azure Native Qumulo Scalable File System.
-* `update` - (Defaults to 90 minutes) Used when updating this Azure Native Qumulo Scalable File System.
+* `create` - (Defaults to 90 minutes) Used when creating the Azure Native Qumulo Scalable File System.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Native Qumulo Scalable File System.
+* `update` - (Defaults to 1 hour) Used when updating the Azure Native Qumulo Scalable File System.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Native Qumulo Scalable File System.
 
 ## Import
 
@@ -107,3 +107,9 @@ An existing File System can be imported into Terraform using the `resource id`, 
 ```shell
 terraform import azurerm_qumulo_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Qumulo.Storage/fileSystems/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Qumulo.Storage` - 2024-06-19

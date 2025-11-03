@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -27,16 +28,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_link_service -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateLinkServiceCreate,
-		Read:   resourcePrivateLinkServiceRead,
-		Update: resourcePrivateLinkServiceUpdate,
-		Delete: resourcePrivateLinkServiceDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privatelinkservices.ParsePrivateLinkServiceID(id)
-			return err
-		}),
+		Create:   resourcePrivateLinkServiceCreate,
+		Read:     resourcePrivateLinkServiceRead,
+		Update:   resourcePrivateLinkServiceUpdate,
+		Delete:   resourcePrivateLinkServiceDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&privatelinkservices.PrivateLinkServiceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatelinkservices.PrivateLinkServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -65,6 +69,13 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 				Set: pluginsdk.HashString,
+			},
+
+			"destination_ip_address": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -136,16 +147,16 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				},
 			},
 
-			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"alias": {
@@ -199,6 +210,10 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("destination_ip_address"); ok {
+		parameters.Properties.DestinationIPAddress = pointer.To(v.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -274,8 +289,8 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{}))
 	}
 
-	if d.HasChange("load_balancer_frontend_ip_configuration_ids") {
-		payload.Properties.LoadBalancerFrontendIPConfigurations = expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List())
+	if d.HasChange("destination_ip_address") {
+		payload.Properties.DestinationIPAddress = pointer.To(d.Get("destination_ip_address").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -335,6 +350,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
 			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {
@@ -364,9 +380,12 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -542,14 +561,14 @@ func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 		if d.HasChange(p) {
 			o, n := d.GetChange(p)
 			if o != "" && n == "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
 			}
 		}
 
 		if isPrimary && d.HasChange(s) {
 			o, _ := d.GetChange(s)
 			if o != "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
 			}
 		}
 	}

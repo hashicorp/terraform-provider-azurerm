@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -44,7 +44,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
 		Schema: resourceVirtualNetworkGatewaySchema(),
@@ -169,7 +169,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
@@ -464,6 +464,11 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 128),
 									Sensitive:    true,
+									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
+									// TODO - Convert this to an Write Only property?
+									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+										return len(newValue) == 0
+									},
 								},
 
 								"score": {

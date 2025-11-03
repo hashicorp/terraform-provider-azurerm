@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -138,14 +138,14 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 8),
+						ValidateFunc: validation.IntBetween(1, 100),
 					},
 
 					"maximum_session_expiry_in_hours": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 100),
+						ValidateFunc: validation.IntBetween(1, 8),
 					},
 
 					"route_topic_id": {

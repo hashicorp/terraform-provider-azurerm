@@ -121,7 +121,7 @@ resource "azurerm_key_vault_key" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -223,7 +223,7 @@ A `identity` block exports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Microsoft SQL Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Server.
@@ -242,4 +242,4 @@ terraform import azurerm_mssql_server.example /subscriptions/00000000-0000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

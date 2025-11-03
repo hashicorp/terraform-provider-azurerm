@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceRouteCreate,
@@ -27,10 +30,11 @@ func resourceRoute() *pluginsdk.Resource {
 		Update: resourceRouteUpdate,
 		Delete: resourceRouteDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routes.ParseRouteID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&routes.RouteId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&routes.RouteId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -205,7 +209,7 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {

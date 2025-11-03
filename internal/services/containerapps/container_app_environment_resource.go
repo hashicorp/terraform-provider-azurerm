@@ -5,6 +5,7 @@ package containerapps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -13,10 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -36,19 +38,21 @@ const (
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                                    string                         `tfschema:"name"`
-	ResourceGroup                           string                         `tfschema:"resource_group_name"`
-	Location                                string                         `tfschema:"location"`
-	DaprApplicationInsightsConnectionString string                         `tfschema:"dapr_application_insights_connection_string"`
-	LogAnalyticsWorkspaceId                 string                         `tfschema:"log_analytics_workspace_id"`
-	LogsDestination                         string                         `tfschema:"logs_destination"`
-	InfrastructureSubnetId                  string                         `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
-	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
-	Tags                                    map[string]interface{}         `tfschema:"tags"`
-	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
-	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
-	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
+	Name                                    string                                     `tfschema:"name"`
+	ResourceGroup                           string                                     `tfschema:"resource_group_name"`
+	Location                                string                                     `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                                     `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                                     `tfschema:"log_analytics_workspace_id"`
+	LogsDestination                         string                                     `tfschema:"logs_destination"`
+	InfrastructureSubnetId                  string                                     `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                                       `tfschema:"internal_load_balancer_enabled"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccess                     string                                     `tfschema:"public_network_access"`
+	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
+	Tags                                    map[string]interface{}                     `tfschema:"tags"`
+	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
+	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -153,6 +157,15 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
 		},
 
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure sets a different value depending on whether the CAE is provisioned with its own virtual network.
+			Computed:     true,
+			Description:  "The public network access setting for the Container App Environment.",
+			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false),
+		},
+
 		"workload_profile": helpers.WorkloadProfileSchema(),
 
 		"zone_redundancy_enabled": {
@@ -169,6 +182,8 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:    true,
 			Default:     false,
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -278,6 +293,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
 
+			if containerAppEnvironment.PublicNetworkAccess != "" {
+				managedEnvironment.Properties.PublicNetworkAccess = pointer.ToEnum[managedenvironments.PublicNetworkAccess](containerAppEnvironment.PublicNetworkAccess)
+			}
+
 			if containerAppEnvironment.DaprApplicationInsightsConnectionString != "" {
 				managedEnvironment.Properties.DaprAIConnectionString = pointer.To(containerAppEnvironment.DaprApplicationInsightsConnectionString)
 			}
@@ -305,12 +324,22 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
+			ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(containerAppEnvironment.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
+			managedEnvironment.Identity = ident
+
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Set the `log_analytics_workspace_id` during creation, in case the workspace is created on another subscription.
+			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
+				metadata.ResourceData.Set("log_analytics_workspace_id", containerAppEnvironment.LogAnalyticsWorkspaceId)
+			}
 			metadata.SetID(id)
 			return nil
 		},
@@ -327,6 +356,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			var existingState ContainerAppEnvironmentModel
+			if err := metadata.Decode(&existingState); err != nil {
+				return err
+			}
+
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
@@ -337,13 +371,18 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentModel
 
-			consumptionDefined := consumptionIsExplicitlyDefined(metadata)
-
 			if model := existing.Model; model != nil {
 				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
+				if model.Identity != nil {
+					ident, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening identity: %+v", err)
+					}
+					state.Identity = ident
+				}
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
@@ -358,23 +397,24 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.LogsDestination = pointer.From(appLogsConfig.Destination)
 						if appLogsConfig.LogAnalyticsConfiguration != nil && appLogsConfig.LogAnalyticsConfiguration.CustomerId != nil {
 							workspaceId, err := findWorkspaceResourceIDFromCustomerID(ctx, metadata, *appLogsConfig.LogAnalyticsConfiguration.CustomerId)
-							if err != nil {
-								if v := metadata.ResourceData.GetRawConfig().AsValueMap()["log_analytics_workspace_id"]; !v.IsNull() && v.AsString() != "" {
-									state.LogAnalyticsWorkspaceId = v.AsString()
+							// During refreshing stage, `GetRawConfig()` may return null value.
+
+							if err == nil {
+								if workspaceId != nil {
+									state.LogAnalyticsWorkspaceId = workspaceId.ID()
 								} else {
-									return fmt.Errorf("retrieving Log Analytics Workspace ID for %s: %+v", *appLogsConfig.LogAnalyticsConfiguration.CustomerId, err)
+									state.LogAnalyticsWorkspaceId = existingState.LogAnalyticsWorkspaceId
 								}
 							}
-
-							state.LogAnalyticsWorkspaceId = workspaceId.ID()
 						}
 					}
 
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
@@ -448,6 +488,14 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				payload.Tags = tags.Expand(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				payload.Identity = ident
+			}
+
 			if metadata.ResourceData.HasChange("workload_profile") {
 				payload.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
@@ -491,6 +539,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 								SharedKey:  sharedKey,
 							},
 						}
+						// Set the `log_analytics_workspace_id` during creation, in case the workspace is created on another subscription.
+						if state.LogAnalyticsWorkspaceId != "" {
+							metadata.ResourceData.Set("log_analytics_workspace_id", state.LogAnalyticsWorkspaceId)
+						}
 					}
 				default:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
@@ -498,6 +550,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 						LogAnalyticsConfiguration: nil,
 					}
 				}
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access") {
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[managedenvironments.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if err := workaroundClient.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -509,20 +565,6 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
-	config := ContainerAppEnvironmentModel{}
-	if err := metadata.Decode(&config); err != nil {
-		return false
-	}
-	for _, v := range config.WorkloadProfiles {
-		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5,
@@ -531,18 +573,24 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			if metadata.ResourceDiff.HasChange("workload_profile") {
-				oldProfiles, newProfiles := metadata.ResourceDiff.GetChange("workload_profile")
+			var model ContainerAppEnvironmentModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-				oldProfileCount := oldProfiles.(*pluginsdk.Set).Len()
-				newProfileCount := newProfiles.(*pluginsdk.Set).Len()
-				if oldProfileCount > 0 && newProfileCount == 0 {
+			if metadata.ResourceDiff.HasChange("workload_profile") {
+				o, n := metadata.ResourceDiff.GetChange("workload_profile")
+
+				oldProfiles := o.(*pluginsdk.Set)
+				newProfiles := n.(*pluginsdk.Set)
+
+				if oldProfiles.Len() > 0 && newProfiles.Len() == 0 && !helpers.OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles) {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
 				}
 
-				if newProfileCount > 0 && oldProfileCount == 0 {
+				if newProfiles.Len() > 0 && oldProfiles.Len() == 0 {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
@@ -560,12 +608,12 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 						switch logsDestination {
 						case LogsDestinationLogAnalytics:
 							if logAnalyticsWorkspaceIDIsNull {
-								return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+								return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 							}
 
 						case LogsDestinationAzureMonitor, LogsDestinationNone:
 							if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
-								return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+								return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 							}
 						}
 					}
@@ -578,15 +626,19 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 					switch logsDestination {
 					case LogsDestinationLogAnalytics:
 						if logAnalyticsWorkspaceID == "" {
-							return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
 					case LogsDestinationAzureMonitor, LogsDestinationNone:
 						if logAnalyticsWorkspaceID != "" {
-							return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 						}
 					}
 				}
+			}
+
+			if model.InternalLoadBalancerEnabled && model.PublicNetworkAccess == string(managedenvironments.PublicNetworkAccessEnabled) {
+				return errors.New("`public_network_access` cannot be `Enabled` when `internal_load_balancer_enabled` is set to `true`")
 			}
 
 			return nil
@@ -598,8 +650,6 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 	client := meta.Client.LogAnalytics.WorkspaceClient
 
 	subscriptionId := commonids.NewSubscriptionID(meta.Client.Account.SubscriptionId)
-
-	result := &workspaces.WorkspaceId{}
 
 	list, err := client.List(ctx, subscriptionId)
 	if err != nil {
@@ -617,14 +667,15 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 
 	for _, v := range *list.Model.Value {
 		if v.Properties != nil && v.Properties.CustomerId != nil && strings.EqualFold(*v.Properties.CustomerId, customerID) {
-			result, err = workspaces.ParseWorkspaceIDInsensitively(pointer.From(v.Id))
+			result, err := workspaces.ParseWorkspaceIDInsensitively(pointer.From(v.Id))
 			if err != nil {
 				return nil, err
 			}
+			return result, nil
 		}
 	}
 
-	return result, nil
+	return nil, nil
 }
 
 func getSharedKeyForWorkspace(ctx context.Context, meta sdk.ResourceMetaData, workspaceID string) (*string, *string, error) {

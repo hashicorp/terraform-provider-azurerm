@@ -116,12 +116,12 @@ A `link` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Express Route Port.
+* `create` - (Defaults to 2 hours) Used when creating the Express Route Port.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Express Route Port.
-* `update` - (Defaults to 30 minutes) Used when updating the Express Route Port.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Express Route Port.
+* `update` - (Defaults to 2 hours) Used when updating the Express Route Port.
+* `delete` - (Defaults to 2 hours) Used when deleting the Express Route Port.
 
 ## Import
 
@@ -130,3 +130,9 @@ Express Route Ports can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_express_route_port.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/expressRoutePorts/port1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

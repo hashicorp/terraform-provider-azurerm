@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -101,18 +101,52 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerIpamPool_complete,
 			"update":         testAccNetworkManagerIpamPool_update,
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
+		},
+		"IPAMPoolStaticCIDR": {
+			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
+			"complete":              testAccNetworkManagerIpamPoolStaticCidr_complete,
+			"update":                testAccNetworkManagerIpamPoolStaticCidr_update,
+			"requiresImport":        testAccNetworkManagerIpamPoolStaticCidr_requiresImport,
+			"ipAddressNumber":       testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber,
+			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
 		},
 		"VerifierWorkspace": {
-			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
-			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
-			"update":         testAccNetorkManagerVerifierWorkspace_update,
-			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
+			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspace_complete,
+			"update":         testAccNetworkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetworkManagerVerifierWorkspace_requiresImport,
+		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
 		},
 		"RoutingConfiguration": {
 			"basic":          testAccNetworkManagerRoutingConfiguration_basic,
 			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
 			"update":         testAccNetworkManagerRoutingConfiguration_update,
 			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
+		},
+		"RoutingRuleCollection": {
+			"basic":          testAccNetworkManagerRoutingRuleCollection_basic,
+			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
+			"update":         testAccNetworkManagerRoutingRuleCollection_update,
+			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
+		},
+		"SubnetIPAMPool": {
+			"ipAddressPool":              testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+		},
+		"VNETIPANPool": {
+			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
 		},
 	}
 
