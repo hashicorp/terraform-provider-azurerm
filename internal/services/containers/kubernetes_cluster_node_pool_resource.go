@@ -1273,6 +1273,7 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1282,8 +1283,8 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 				"max_unavailable": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      "0",
 					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1411,9 +1412,11 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
 	}
 	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
 	}
 
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
@@ -1436,10 +1439,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	values := make(map[string]interface{})
 
-	if input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
 	}
-	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" {
+	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" && *input.MaxUnavailable != "0" && *input.MaxUnavailable != "0%" {
 		values["max_unavailable"] = *input.MaxUnavailable
 	}
 
