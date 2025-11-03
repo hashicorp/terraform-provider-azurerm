@@ -1,6 +1,8 @@
 ## 4.52.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_machine_learning_datastore_blobstorage` - improve validation for `storage_container_id` [GH-31002]
+* `azurerm_machine_learning_datastore_datalake_gen2` - improve validation for `storage_container_id` [GH-31002]
 * `azurerm_windows_web_app` - add support for the `virtual_network_image_pull_enabled` property [GH-30920]
 * `azurerm_windows_web_app_slot` - add support for the `virtual_network_image_pull_enabled` property [GH-30920]
 
