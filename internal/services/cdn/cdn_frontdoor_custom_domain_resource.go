@@ -508,7 +508,9 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 
 	secretId := ""
 	if input.Secret != nil && input.Secret.Id != nil {
-		secretId = *input.Secret.Id
+		if id, err := parse.FrontDoorSecretIDInsensitively(*input.Secret.Id); err == nil {
+			secretId = id.ID()
+		}
 	}
 
 	minTlsVersion := ""
@@ -567,5 +569,10 @@ func flattenAfdDNSZoneResourceReference(input *afdcustomdomains.ResourceReferenc
 	if input == nil || input.Id == nil {
 		return ""
 	}
-	return *input.Id
+
+	if id, err := dnsValidate.ParseDnsZoneIDInsensitively(*input.Id); err == nil {
+		return id.ID()
+	}
+
+	return ""
 }
