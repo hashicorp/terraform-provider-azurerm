@@ -256,12 +256,9 @@ func (r ApiManagementWorkspaceCertificateResource) Update() sdk.ResourceFunc {
 			}
 
 			if kv := payload.Properties.KeyVault; kv != nil {
-				parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{}
-				if payload.Properties.KeyVault.SecretIdentifier != nil {
-					parameters.Properties.KeyVault.SecretIdentifier = kv.SecretIdentifier
-				}
-				if payload.Properties.KeyVault.IdentityClientId != nil {
-					parameters.Properties.KeyVault.IdentityClientId = kv.IdentityClientId
+				parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{
+					SecretIdentifier: kv.SecretIdentifier,
+					IdentityClientId: kv.IdentityClientId,
 				}
 			}
 
