@@ -356,7 +356,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			payload.SystemData = nil
 
 			// Set `identity` to `nil` to avoid schema validation errors returned by service API when upgrading API version from `2024-07-01` to `2025-09-01`.
-			// The API returns `identity` with `userAssignedIdentities` as `nil`, which doesn't match the schema validation in new API version.
 			payload.Identity = nil
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
