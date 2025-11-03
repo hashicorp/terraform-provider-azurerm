@@ -6,12 +6,12 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -177,16 +177,16 @@ func (a *DataProtectionBackupInstanceProtectAction) protectActionStopProtection(
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
-name             = "acctest-dbi-%d"
-location         = azurerm_resource_group.test.location
-vault_id         = azurerm_data_protection_backup_vault.test.id
-server_id        = azurerm_postgresql_flexible_server.test.id
-backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 
   lifecycle {
     action_trigger {
-      events    = [after_create]
-      actions   = [action.azurerm_data_protection_backup_instance_protect.stop_protection]
+      events  = [after_create]
+      actions = [action.azurerm_data_protection_backup_instance_protect.stop_protection]
     }
   }
 }
@@ -194,10 +194,9 @@ backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_ser
 action "azurerm_data_protection_backup_instance_protect" "stop_protection" {
   config {
     backup_instance_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.id
-    protect_action             = "stop_protection"
+    protect_action     = "stop_protection"
   }
 }
-
 `, a.templatePostgres(data), data.RandomInteger)
 }
 
@@ -206,28 +205,26 @@ func (a *DataProtectionBackupInstanceProtectAction) protectActionResumeProtectio
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
-name             = "acctest-dbi-%d"
-location         = azurerm_resource_group.test.location
-vault_id         = azurerm_data_protection_backup_vault.test.id
-server_id        = azurerm_postgresql_flexible_server.test.id
-backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 
-lifecycle {
-  action_trigger {
-      events    = [after_create]
-      actions   = [action.azurerm_data_protection_backup_instance_protect.resume_protection]
+  lifecycle {
+    action_trigger {
+      events  = [after_create]
+      actions = [action.azurerm_data_protection_backup_instance_protect.resume_protection]
     }
-}
+  }
 }
 
 action "azurerm_data_protection_backup_instance_protect" "resume_protection" {
   config {
     backup_instance_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.id
-    protect_action             = "resume_protection"
+    protect_action     = "resume_protection"
   }
 }
-
-
 `, a.templatePostgres(data), data.RandomInteger)
 }
 
@@ -236,16 +233,16 @@ func (a *DataProtectionBackupInstanceProtectAction) protectActionSuspendBackups(
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
-name             = "acctest-dbi-%d"
-location         = azurerm_resource_group.test.location
-vault_id         = azurerm_data_protection_backup_vault.test.id
-server_id        = azurerm_postgresql_flexible_server.test.id
-backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 
   lifecycle {
     action_trigger {
-      events    = [after_create]
-      actions   = [action.azurerm_data_protection_backup_instance_protect.suspend_backups]
+      events  = [after_create]
+      actions = [action.azurerm_data_protection_backup_instance_protect.suspend_backups]
     }
   }
 }
@@ -253,10 +250,9 @@ backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_ser
 action "azurerm_data_protection_backup_instance_protect" "suspend_backups" {
   config {
     backup_instance_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.id
-    protect_action             = "suspend_backups"
+    protect_action     = "suspend_backups"
   }
 }
-
 `, a.templatePostgres(data), data.RandomInteger)
 }
 
@@ -265,16 +261,16 @@ func (a *DataProtectionBackupInstanceProtectAction) protectActionResumeBackups(d
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
-name             = "acctest-dbi-%d"
-location         = azurerm_resource_group.test.location
-vault_id         = azurerm_data_protection_backup_vault.test.id
-server_id        = azurerm_postgresql_flexible_server.test.id
-backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 
   lifecycle {
     action_trigger {
-      events    = [after_create]
-      actions   = [action.azurerm_data_protection_backup_instance_protect.resume_backups]
+      events  = [after_create]
+      actions = [action.azurerm_data_protection_backup_instance_protect.resume_backups]
     }
   }
 }
@@ -282,9 +278,8 @@ backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_ser
 action "azurerm_data_protection_backup_instance_protect" "resume_backups" {
   config {
     backup_instance_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.id
-    protect_action             = "resume_backups"
+    protect_action     = "resume_backups"
   }
 }
-
 `, a.templatePostgres(data), data.RandomInteger)
 }
