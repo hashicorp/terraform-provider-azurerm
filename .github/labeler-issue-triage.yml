@@ -93,7 +93,7 @@ service/custom-resource-provider:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_custom_provider((.|\n)*)###'
 
 service/dashboard:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dashboard((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dashboard_((.|\n)*)###'
 
 service/data-factory:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_data_factory((.|\n)*)###'
