@@ -140,7 +140,8 @@ func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*plugins
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -205,7 +206,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sql_managed_instance", id.ID())
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
 			parameters := &linkedservices.AzureSqlMILinkedService{
@@ -340,16 +341,10 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				if val, ok := (*props.ConnectionString).(map[string]interface{}); ok {
 					state.KeyVaultConnectionString = flattenKeyVaultConnectionStringToConfig(val)
 				}
-				if val, ok := (*props.ConnectionString).(string); ok {
-					state.ConnectionString = val
-				}
+				state.ConnectionString = (*props.ConnectionString).(string)
 			}
 
-			if props.ServicePrincipalId != nil {
-				if id, ok := (*props.ServicePrincipalId).(string); ok {
-					state.ServicePrincipalID = id
-				}
-			}
+			state.ServicePrincipalID = pointer.From(props.ServicePrincipalId).(string)
 
 			if props.Tenant != nil {
 				if tenant, ok := (*props.Tenant).(string); ok {
@@ -518,11 +513,9 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Delete(ctx, *id)
+			_, err = client.Delete(ctx, *id)
 			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", id, err)
-				}
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
