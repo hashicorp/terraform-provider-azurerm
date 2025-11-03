@@ -82,7 +82,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
@@ -304,7 +303,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			managedidentity.Registration{},
 			managementgroup.Registration{},
 			maps.Registration{},
-			mixedreality.Registration{},
 			monitor.Registration{},
 			mssql.Registration{},
 			mssqlmanagedinstance.Registration{},
