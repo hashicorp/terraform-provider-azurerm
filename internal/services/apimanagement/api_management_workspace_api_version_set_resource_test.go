@@ -106,7 +106,7 @@ func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameMustBeSetIfSche
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.versionHeaderNameMustBeSetIfSchemaIsHeaderError(data),
-			ExpectError: regexp.MustCompile("`version_header_name` must be set if `versioning_schema` is `Header`"),
+			ExpectError: regexp.MustCompile("`version_header_name` must be set if `versioning_scheme` is `Header`"),
 		},
 	})
 }
@@ -117,7 +117,7 @@ func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameCanNotBeSetIfSc
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.versionHeaderNameCanNotBeSetIfSchemaIsQueryError(data),
-			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_schema` is `Query`"),
+			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_scheme` is `Query`"),
 		},
 	})
 }
@@ -128,7 +128,7 @@ func TestAccApiManagementWorkspaceApiVersionSet_versionQueryNameMustBeSetIfSchem
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.versionQueryNameMustBeSetIfSchemaIsQueryError(data),
-			ExpectError: regexp.MustCompile("`version_query_name` must be set if `versioning_schema` is `Query`"),
+			ExpectError: regexp.MustCompile("`version_query_name` must be set if `versioning_scheme` is `Query`"),
 		},
 	})
 }
@@ -139,7 +139,7 @@ func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameCanNotBeSetIfSc
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.versionHeaderNameCanNotBeSetIfSchemaIsSegmentError(data),
-			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_schema` is `Segment`"),
+			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_scheme` is `Segment`"),
 		},
 	})
 }
@@ -150,7 +150,7 @@ func TestAccApiManagementWorkspaceApiVersionSet_versionQueryNameCanNotBeSetIfSch
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.versionQueryNameCanNotBeSetIfSchemaIsSegmentError(data),
-			ExpectError: regexp.MustCompile("`version_query_name` can not be set if `versioning_schema` is `Segment`"),
+			ExpectError: regexp.MustCompile("`version_query_name` can not be set if `versioning_scheme` is `Segment`"),
 		},
 	})
 }

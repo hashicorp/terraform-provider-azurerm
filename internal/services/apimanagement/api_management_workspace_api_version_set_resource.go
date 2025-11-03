@@ -127,12 +127,10 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			versioningScheme := apiversionset.VersioningScheme(model.VersioningScheme)
-
 			parameters := apiversionset.ApiVersionSetContract{
 				Properties: &apiversionset.ApiVersionSetContractProperties{
 					DisplayName:      model.DisplayName,
-					VersioningScheme: versioningScheme,
+					VersioningScheme: apiversionset.VersioningScheme(model.VersioningScheme),
 				},
 			}
 
@@ -189,36 +187,35 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			properties := resp.Model
+			properties := resp.Model.Properties
 			if metadata.ResourceData.HasChange("display_name") {
-				properties.Properties.DisplayName = model.DisplayName
+				properties.DisplayName = model.DisplayName
 			}
 
 			if metadata.ResourceData.HasChange("versioning_scheme") {
-				properties.Properties.VersioningScheme = apiversionset.VersioningScheme(model.VersioningScheme)
+				properties.VersioningScheme = apiversionset.VersioningScheme(model.VersioningScheme)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Properties.Description = pointer.To(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if metadata.ResourceData.HasChange("version_header_name") {
+				properties.VersionHeaderName = nil
 				if model.VersionHeaderName != "" {
-					properties.Properties.VersionHeaderName = pointer.To(model.VersionHeaderName)
-				} else {
-					properties.Properties.VersionHeaderName = nil
+					properties.VersionHeaderName = pointer.To(model.VersionHeaderName)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("version_query_name") {
+				properties.VersionQueryName = nil
 				if model.VersionQueryName != "" {
-					properties.Properties.VersionQueryName = pointer.To(model.VersionQueryName)
-				} else {
-					properties.Properties.VersionQueryName = nil
+					properties.VersionQueryName = pointer.To(model.VersionQueryName)
 				}
 			}
 
-			_, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, *id, *properties, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions())
+			resp.Model.Properties = properties
+			_, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, *id, *resp.Model, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions())
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -306,23 +303,23 @@ func (r ApiManagementWorkspaceApiVersionSetResource) CustomizeDiff() sdk.Resourc
 			switch schema := versioningScheme; schema {
 			case apiversionset.VersioningSchemeHeader:
 				if !headerSet {
-					return errors.New("`version_header_name` must be set if `versioning_schema` is `Header`")
+					return errors.New("`version_header_name` must be set if `versioning_scheme` is `Header`")
 				}
 
 			case apiversionset.VersioningSchemeQuery:
 				if headerSet {
-					return errors.New("`version_header_name` can not be set if `versioning_schema` is `Query`")
+					return errors.New("`version_header_name` can not be set if `versioning_scheme` is `Query`")
 				}
 				if !querySet {
-					return errors.New("`version_query_name` must be set if `versioning_schema` is `Query`")
+					return errors.New("`version_query_name` must be set if `versioning_scheme` is `Query`")
 				}
 
 			case apiversionset.VersioningSchemeSegment:
 				if headerSet {
-					return errors.New("`version_header_name` can not be set if `versioning_schema` is `Segment`")
+					return errors.New("`version_header_name` can not be set if `versioning_scheme` is `Segment`")
 				}
 				if querySet {
-					return errors.New("`version_query_name` can not be set if `versioning_schema` is `Segment`")
+					return errors.New("`version_query_name` can not be set if `versioning_scheme` is `Segment`")
 				}
 			}
 
