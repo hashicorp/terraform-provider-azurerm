@@ -60,8 +60,8 @@ func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
 		{
 			Config: r.dataSourceDbPersistence(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("default_database.0.persistence.0.method").HasValue("RedisDatabase"),
-				check.That(data.ResourceName).Key("default_database.0.persistence.0.backup_frequency").HasValue("1h"),
+				check.That(data.ResourceName).Key("default_database.0.persistence.0.redis_database_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("default_database.0.persistence.0.redis_database_backup_frequency").HasValue("1h"),
 			),
 		},
 	})
