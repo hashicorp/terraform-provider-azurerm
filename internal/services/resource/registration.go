@@ -69,5 +69,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ResourceManagementPrivateLinkResource{},
 		ResourceDeploymentScriptAzurePowerShellResource{},
 		ResourceDeploymentScriptAzureCliResource{},
+		ResourceGroupDeploymentStackResource{},
+		SubscriptionDeploymentStackResource{},
 	}
 }
