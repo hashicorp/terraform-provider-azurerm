@@ -297,7 +297,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   encryption_key            = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomIntOfLength(17), tenantID)
+`, r.template(data), data.RandomInteger, tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate1(data acceptance.TestData, tenantID string) string {
