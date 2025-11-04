@@ -4467,14 +4467,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                                = local.http_setting_name
-    cookie_based_affinity               = "Disabled"
-dedicated_backend_connection_enabled = true
-    host_name                           = "%s"
-    port                                = 80
-    protocol                            = "Http"
-    request_timeout                     = 1
-    pick_host_name_from_backend_address = %t
+    name                                 = local.http_setting_name
+    cookie_based_affinity                = "Disabled"
+    dedicated_backend_connection_enabled = true
+    host_name                            = "%s"
+    port                                 = 80
+    protocol                             = "Http"
+    request_timeout                      = 1
+    pick_host_name_from_backend_address  = %t
   }
 
   http_listener {
