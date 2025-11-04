@@ -45,7 +45,7 @@ resource "azurerm_video_indexer_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

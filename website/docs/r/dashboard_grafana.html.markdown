@@ -146,4 +146,4 @@ terraform import azurerm_dashboard_grafana.example /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Dashboard` - 2023-09-01
+* `Microsoft.Dashboard` - 2025-08-01

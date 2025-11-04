@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `infrastructure_resource_group_name` - (Optional) Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. Changing this forces a new resource to be created.
 
 ~> **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.
@@ -61,25 +63,25 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
-* `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
-
-~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
-
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. 
 
 ~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
 
 * `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
 
-* `workload_profile` - (Optional) One or more `workload_profile` blocks as defined below.
-
 * `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
 
 ~> **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.
 
+* `public_network_access` - (Optional) The public network access setting for the Container App Environment. Possible values are `Enabled` and `Disabled`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `workload_profile` - (Optional) One or more `workload_profile` blocks as defined below.
+
+* `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
 
 ---
 

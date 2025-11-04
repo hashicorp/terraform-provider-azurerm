@@ -30,7 +30,7 @@ resource "azurerm_app_service_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

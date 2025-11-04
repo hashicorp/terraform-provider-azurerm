@@ -65,7 +65,7 @@ resource "azurerm_static_web_app_function_app_registration" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -76,6 +76,12 @@ The following arguments are supported:
 ~> **Note:** Only one Function App can be connected to a Static Web App. Multiple Function Apps are not currently supported.
 
 ~> **Note:** Connecting a Function App resource to a Static Web App resource updates the Function App to use AuthV2 and configures the `azure_static_web_app_v2` which may need to be accounted for by the use of `ignore_changes` depending on the existing `auth_settings_v2` configuration of the target Function App.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service Static Web App Function App Registration.
 
 ## Timeouts
 
