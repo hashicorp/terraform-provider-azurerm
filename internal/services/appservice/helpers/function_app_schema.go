@@ -1321,6 +1321,7 @@ type ApplicationStackDocker struct {
 	RegistryPassword string `tfschema:"registry_password"`
 	ImageName        string `tfschema:"image_name"`
 	ImageTag         string `tfschema:"image_tag"`
+	ImageDigest      string `tfschema:"image_digest"`
 }
 
 func linuxFunctionAppStackSchema() *pluginsdk.Schema {
@@ -1490,10 +1491,19 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 							},
 
 							"image_tag": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The image tag of the image to use.",
+								Type:          pluginsdk.TypeString,
+								Optional:      true,
+								ValidateFunc:  validation.StringIsNotEmpty,
+								Description:   "The image tag of the image to use.",
+								ExactlyOneOf:  []string{"site_config.0.application_stack.0.docker.0.image_tag", "site_config.0.application_stack.0.docker.0.image_digest"},
+							},
+
+							"image_digest": {
+								Type:          pluginsdk.TypeString,
+								Optional:      true,
+								ValidateFunc:  validation.StringIsNotEmpty,
+								Description:   "The SHA256 content hash of the image to use (e.g. 'sha256:abc123...').",
+								ExactlyOneOf:  []string{"site_config.0.application_stack.0.docker.0.image_tag", "site_config.0.application_stack.0.docker.0.image_digest"},
 							},
 						},
 					},
@@ -1589,6 +1599,11 @@ func linuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 							},
 
 							"image_tag": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"image_digest": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
 							},
@@ -1932,7 +1947,14 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 					continue
 				}
 			}
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
+			// Use appropriate separator based on whether tag or digest is specified
+			if dockerConfig.ImageDigest != "" {
+				// Use @ separator for digests (Docker standard)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s@%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageDigest))
+			} else {
+				// Use : separator for tags (Docker standard)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
+			}
 		}
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
