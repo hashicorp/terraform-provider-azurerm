@@ -5,65 +5,36 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkInterfaceListResource struct {
-	sdk.ListResourceMetadata
-}
+type NetworkInterfaceListResource struct{}
 
 type NetworkInterfaceListModel struct {
 	ResourceGroupName types.String `tfsdk:"resource_group_name"`
 	SubscriptionId    types.String `tfsdk:"subscription_id"`
 }
 
-var _ sdk.ListResourceWithRawV5Schemas = new(NetworkInterfaceListResource)
+var _ sdk.FrameworkListWrappedResource = new(NetworkInterfaceListResource)
 
-func NewNetworkInterfaceListResource() list.ListResource {
-	return new(NetworkInterfaceListResource)
-}
-
-func (r *NetworkInterfaceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r NetworkInterfaceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = networkInterfaceResourceName
 }
 
-func (r *NetworkInterfaceListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"resource_group_name": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: resourcegroups.ValidateName,
-					},
-				},
-			},
-			"subscription_id": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: validation.IsUUID,
-					},
-				},
-			},
-		},
-	}
+func (r NetworkInterfaceListResource) ResourceFunc() *pluginsdk.Resource {
+	return resourceNetworkInterface()
 }
 
-func (r *NetworkInterfaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream) {
-	client := r.Client.Network.NetworkInterfaces
+func (r NetworkInterfaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	client := metadata.Client.Network.NetworkInterfaces
 
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
 	defer cancel()
@@ -77,7 +48,7 @@ func (r *NetworkInterfaceListResource) List(ctx context.Context, request list.Li
 
 	results := make([]networkinterfaces.NetworkInterface, 0)
 
-	subscriptionID := r.SubscriptionId
+	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
@@ -147,14 +118,4 @@ func (r *NetworkInterfaceListResource) List(ctx context.Context, request list.Li
 			}
 		}
 	}
-}
-
-func (r *NetworkInterfaceListResource) Configure(_ context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	r.Defaults(request, response)
-}
-
-func (r *NetworkInterfaceListResource) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	res := resourceNetworkInterface()
-	response.ProtoV5Schema = res.ProtoSchema(ctx)()
-	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
 }
