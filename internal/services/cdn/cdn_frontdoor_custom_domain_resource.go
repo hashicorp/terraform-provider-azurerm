@@ -420,11 +420,12 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 				if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
 					tlsBlock := tlsConfig.AsValueSlice()[0]
 					if !tlsBlock.IsNull() {
-						if !tlsBlock.GetAttr("minimum_version").IsNull() {
+						switch {
+						case !tlsBlock.GetAttr("minimum_version").IsNull():
 							minimumVersion = tls["minimum_version"].(string)
-						} else if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+						case !tlsBlock.GetAttr("minimum_tls_version").IsNull():
 							minimumVersion = tls["minimum_tls_version"].(string)
-						} else {
+						default:
 							minimumVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
 						}
 					}
@@ -471,11 +472,12 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
 				tlsBlock := tlsConfig.AsValueSlice()[0]
 				if !tlsBlock.IsNull() {
-					if !tlsBlock.GetAttr("minimum_version").IsNull() {
+					switch {
+					case !tlsBlock.GetAttr("minimum_version").IsNull():
 						minTlsVersion = v["minimum_version"].(string)
-					} else if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+					case !tlsBlock.GetAttr("minimum_tls_version").IsNull():
 						minTlsVersion = v["minimum_tls_version"].(string)
-					} else {
+					default:
 						minTlsVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
 					}
 				}
