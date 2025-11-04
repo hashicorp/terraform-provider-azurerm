@@ -369,11 +369,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/mixed-reality:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mixedreality/**/*
-
 service/mobile-network:
 - changed-files:
   - any-glob-to-any-file:
