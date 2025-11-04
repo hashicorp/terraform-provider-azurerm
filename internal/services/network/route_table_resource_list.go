@@ -5,71 +5,35 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
-
-	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RouteTableListResource struct {
-	sdk.ListResourceMetadata
+type RouteTableListResource struct{}
+
+var _ sdk.FrameworkListWrappedResource = new(RouteTableListResource)
+
+func (r RouteTableListResource) ResourceFunc() *pluginsdk.Resource {
+	return resourceRouteTable()
 }
 
-type RouteTableListModel struct {
-	ResourceGroupName types.String `tfsdk:"resource_group_name"`
-	SubscriptionId    types.String `tfsdk:"subscription_id"`
-}
-
-var _ sdk.ListResourceWithRawV5Schemas = new(RouteTableListResource)
-
-func NewRouteTableListResource() list.ListResource {
-	return new(RouteTableListResource)
-}
-
-func (r *RouteTableListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r RouteTableListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = routeTableResourceName
 }
 
-func (r *RouteTableListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"resource_group_name": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: resourcegroups.ValidateName,
-					},
-				},
-			},
-			"subscription_id": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: validation.IsUUID,
-					},
-				},
-			},
-		},
-	}
-}
-
-func (r *RouteTableListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream) {
-	client := r.Client.Network.RouteTables
+func (r RouteTableListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	client := metadata.Client.Network.RouteTables
 
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
 	defer cancel()
 
-	var data RouteTableListModel
+	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -78,7 +42,7 @@ func (r *RouteTableListResource) List(ctx context.Context, request list.ListRequ
 
 	results := make([]routetables.RouteTable, 0)
 
-	subscriptionID := r.SubscriptionId
+	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
@@ -148,14 +112,4 @@ func (r *RouteTableListResource) List(ctx context.Context, request list.ListRequ
 			}
 		}
 	}
-}
-
-func (r *RouteTableListResource) Configure(_ context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	r.Defaults(request, response)
-}
-
-func (r *RouteTableListResource) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	res := resourceRouteTable()
-	response.ProtoV5Schema = res.ProtoSchema(ctx)()
-	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
 }
