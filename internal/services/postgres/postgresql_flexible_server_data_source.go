@@ -82,6 +82,26 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.TagsDataSource(),
+
+			"high_availability": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"standby_availability_zone": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"zone": commonschema.ZoneSingleComputed(),
 		},
 	}
 }
@@ -116,6 +136,7 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("zone", props.AvailabilityZone)
 
 			if storage := props.Storage; storage != nil {
 				if storage.AutoGrow != nil {
@@ -139,6 +160,10 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 				}
 				d.Set("public_network_access_enabled", publicNetworkAccess)
 			}
+
+			if err := d.Set("high_availability", flattenDataSourceFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
+				return fmt.Errorf("setting `high_availability`: %+v", err)
+			}
 		}
 
 		sku, err := flattenFlexibleServerSku(model.Sku)
@@ -152,4 +177,22 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	return nil
+}
+
+func flattenDataSourceFlexibleServerHighAvailability(ha *servers.HighAvailability) []interface{} {
+	if ha == nil || *ha.Mode == servers.HighAvailabilityModeDisabled {
+		return []interface{}{}
+	}
+
+	var zone string
+	if ha.StandbyAvailabilityZone != nil {
+		zone = *ha.StandbyAvailabilityZone
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"mode":                      string(*ha.Mode),
+			"standby_availability_zone": zone,
+		},
+	}
 }
