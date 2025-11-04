@@ -28,7 +28,12 @@ func TestAccNetworkSecurityGroup_list_basic(t *testing.T) {
 			},
 			{
 				Query:             true,
-				Config:            r.basicListQuery(data),
+				Config:            r.basicQuery(),
+				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+			},
+			{
+				Query:             true,
+				Config:            r.basicQueryByResourceGroupName(data),
 				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
 			},
 		},
@@ -66,7 +71,16 @@ resource "azurerm_network_security_group" "test3" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NetworkSecurityGroupResource) basicListQuery(data acceptance.TestData) string {
+func (r NetworkSecurityGroupResource) basicQuery() string {
+	return `
+list "azurerm_network_security_group" "list" {
+  provider = azurerm
+  config {}
+}
+`
+}
+
+func (r NetworkSecurityGroupResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_network_security_group" "list" {
   provider = azurerm
