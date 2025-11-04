@@ -179,13 +179,24 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Default:    string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
-			Deprecated: "This field has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the provider.",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
+			Computed:   true,
+			Deprecated: "`minimum_tls_version` has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the AzureRM provider",
 			ValidateFunc: validation.StringInSlice([]string{
 				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
 				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero),
+			}, false),
+		}
+
+		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
 			}, false),
 		}
 	}
@@ -230,7 +241,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		props.Properties.AzureDnsZone = expandAfdResourceReference(dnsZone)
 	}
 
-	tlsSettings, err := expandAfdDomainTlsParameters(tls)
+	tlsSettings, err := expandAfdDomainTlsParameters(d, tls)
 	if err != nil {
 		return err
 	}
@@ -315,7 +326,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("tls") {
 		tlsSettings := d.Get("tls").([]interface{})
-		tls, err := expandAfdDomainTlsParameters(tlsSettings)
+		tls, err := expandAfdDomainTlsParameters(d, tlsSettings)
 		if err != nil {
 			return err
 		}
@@ -353,6 +364,23 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 	}
 
 	tls := tlsRaw[0].(map[string]interface{})
+
+	if !features.FivePointOh() {
+		if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+			tlsConfig := rawConfig.GetAttr("tls")
+			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+				tlsBlock := tlsConfig.AsValueSlice()[0]
+				if !tlsBlock.IsNull() {
+					if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+						if minTlsVersion := tls["minimum_tls_version"].(string); minTlsVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero) {
+							return fmt.Errorf("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
+						}
+					}
+				}
+			}
+		}
+	}
+
 	cipherSuiteRaw := tls["cipher_suite"].([]interface{})
 
 	if len(cipherSuiteRaw) == 0 || cipherSuiteRaw[0] == nil {
@@ -380,8 +408,30 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 			return fmt.Errorf("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
 		}
 
-		// Validate that cipher suites match the minimum TLS version
-		minimumVersion := tls["minimum_version"].(string)
+		minimumVersion := ""
+
+		if features.FivePointOh() {
+			minimumVersion = tls["minimum_version"].(string)
+		}
+
+		if !features.FivePointOh() {
+			if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+				tlsConfig := rawConfig.GetAttr("tls")
+				if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+					tlsBlock := tlsConfig.AsValueSlice()[0]
+					if !tlsBlock.IsNull() {
+						if !tlsBlock.GetAttr("minimum_version").IsNull() {
+							minimumVersion = tls["minimum_version"].(string)
+						} else if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+							minimumVersion = tls["minimum_tls_version"].(string)
+						} else {
+							minimumVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+						}
+					}
+				}
+			}
+		}
+
 		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && tls12Suites.Len() == 0 {
 			return fmt.Errorf("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
 		}
@@ -396,7 +446,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 	return nil
 }
 
-func expandAfdDomainTlsParameters(input []interface{}) (*afdcustomdomains.AFDDomainHTTPSParameters, error) {
+func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}) (*afdcustomdomains.AFDDomainHTTPSParameters, error) {
 	// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
 	// if it is not nil they assume it is fully defined and then end up throwing errors when they
 	// attempt to get a value from one of the fields.
@@ -409,13 +459,27 @@ func expandAfdDomainTlsParameters(input []interface{}) (*afdcustomdomains.AFDDom
 	certType := v["certificate_type"].(string)
 	secretRaw := v["cdn_frontdoor_secret_id"].(string)
 
-	// Handle both new and deprecated field names
 	minTlsVersion := ""
-	if version, exists := v["minimum_version"]; exists && version != nil {
-		minTlsVersion = version.(string)
-	} else if !features.FivePointOh() {
-		if version, exists := v["minimum_tls_version"]; exists && version != nil {
-			minTlsVersion = version.(string)
+
+	if features.FivePointOh() {
+		minTlsVersion = v["minimum_version"].(string)
+	}
+
+	if !features.FivePointOh() {
+		if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+			tlsConfig := rawConfig.GetAttr("tls")
+			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+				tlsBlock := tlsConfig.AsValueSlice()[0]
+				if !tlsBlock.IsNull() {
+					if !tlsBlock.GetAttr("minimum_version").IsNull() {
+						minTlsVersion = v["minimum_version"].(string)
+					} else if !tlsBlock.GetAttr("minimum_tls_version").IsNull() {
+						minTlsVersion = v["minimum_tls_version"].(string)
+					} else {
+						minTlsVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+					}
+				}
+			}
 		}
 	}
 

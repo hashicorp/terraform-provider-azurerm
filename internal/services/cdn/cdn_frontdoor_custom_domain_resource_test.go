@@ -90,7 +90,7 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorCustomDomain_legacyTlsVersion(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_tlsVersion_legacy(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping test in 5.0 mode as `minimum_tls_version` field was removed")
 	}
@@ -99,7 +99,7 @@ func TestAccCdnFrontDoorCustomDomain_legacyTlsVersion(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.legacyTlsVersion(data),
+			Config: r.tlsVersionLegacy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,7 +112,7 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	testSteps := []acceptance.TestStep{
 		{
 			Config:      r.customizedCipherSuiteWithoutBlock(data),
 			ExpectError: regexp.MustCompile("`custom_ciphers` is required when `type` is `Customized`"),
@@ -129,7 +129,16 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 			Config:      r.customCiphersWithPresetType(data),
 			ExpectError: regexp.MustCompile("`custom_ciphers` cannot be specified when `type` is not `Customized`"),
 		},
-	})
+	}
+
+	if !features.FivePointOh() {
+		testSteps = append(testSteps, acceptance.TestStep{
+			Config:      r.deprecatedMinimumTlsVersionWithTls10(data),
+			ExpectError: regexp.MustCompile("support for TLS 1.0 and 1.1 was retired on March 1, 2025"),
+		})
+	}
+
+	data.ResourceTest(t, r, testSteps)
 }
 
 func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
@@ -277,7 +286,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r CdnFrontDoorCustomDomainResource) legacyTlsVersion(data acceptance.TestData) string {
+func (r CdnFrontDoorCustomDomainResource) tlsVersionLegacy(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -547,6 +556,24 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
         ]
       }
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorCustomDomainResource) deprecatedMinimumTlsVersionWithTls10(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                     = "acctest-customdomain-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = "acctest-%[2]d.acctestzone%[2]d.com"
+
+  tls {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS10"
   }
 }
 `, r.template(data), data.RandomInteger)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type CdnFrontDoorCustomDomainDataSource struct{}
@@ -17,40 +18,52 @@ func TestAccCdnFrontDoorCustomDomainDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
 	d := CdnFrontDoorCustomDomainDataSource{}
 
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
+		check.That(data.ResourceName).Key("host_name").Exists(),
+		check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
+		check.That(data.ResourceName).Key("tls.0.cdn_frontdoor_secret_id").IsEmpty(),
+		check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
+		check.That(data.ResourceName).Key("tls.0.minimum_version").Exists(),
+		check.That(data.ResourceName).Key("expiration_date").Exists(),
+		check.That(data.ResourceName).Key("validation_token").Exists(),
+	}
+
+	if !features.FivePointOh() {
+		checks = append(checks, check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists())
+	}
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("dns_zone_id").Exists(),
-				check.That(data.ResourceName).Key("host_name").Exists(),
-				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
-				check.That(data.ResourceName).Key("tls.0.cdn_frontdoor_secret_id").IsEmpty(),
-				check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
-				check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists(),
-				check.That(data.ResourceName).Key("expiration_date").Exists(),
-				check.That(data.ResourceName).Key("validation_token").Exists(),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
 }
 
-func TestAccCdnFrontDoorCustomDomainDataSource_cipherSuiteBasic(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomainDataSource_cipherSuite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
 	d := CdnFrontDoorCustomDomainDataSource{}
+
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
+		check.That(data.ResourceName).Key("host_name").Exists(),
+		check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
+		check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
+		check.That(data.ResourceName).Key("tls.0.minimum_version").Exists(),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.type").HasValue("Customized"),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls12.#").HasValue("1"),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls13.#").HasValue("2"),
+	}
+
+	if !features.FivePointOh() {
+		checks = append(checks, check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists())
+	}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.cipherSuites(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("dns_zone_id").Exists(),
-				check.That(data.ResourceName).Key("host_name").Exists(),
-				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
-				check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
-				check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists(),
-				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.type").HasValue("Customized"),
-				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls12.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls13.#").HasValue("2"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
 }

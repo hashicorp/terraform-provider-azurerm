@@ -44,58 +44,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 }
 ```
 
-## Example Usage with Customized Cipher Suites
-
-```terraform
-resource "azurerm_resource_group" "example" {
-  name     = "example-cdn-frontdoor"
-  location = "West Europe"
-}
-
-resource "azurerm_dns_zone" "example" {
-  name                = "sub-domain.domain.com"
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "example-profile"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Standard_AzureFrontDoor"
-}
-
-resource "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name                     = "example-customDomain"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  dns_zone_id              = azurerm_dns_zone.example.id
-  host_name                = "contoso.fabrikam.com"
-
-  tls {
-    certificate_type = "ManagedCertificate"
-    minimum_version  = "TLS12"
-
-    cipher_suite {
-      type = "Customized"
-
-      custom_ciphers {
-        tls12 = [
-          "ECDHE_RSA_AES256_GCM_SHA384",
-          "ECDHE_RSA_AES128_GCM_SHA256",
-        ]
-        tls13 = [
-          "TLS_AES_256_GCM_SHA384",
-          "TLS_AES_128_GCM_SHA256",
-        ]
-      }
-    }
-  }
-}
-```
-
 ## Example DNS Auth TXT Record Usage
 
 The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
 
-```hcl
+```terraform
 resource "azurerm_dns_txt_record" "example" {
   name                = join(".", ["_dnsauth", "contoso"])
   zone_name           = azurerm_dns_zone.example.name
@@ -112,7 +65,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 !> **Note:** You **must** include the `depends_on` meta-argument which references both the `azurerm_cdn_frontdoor_route` and the `azurerm_cdn_frontdoor_security_policy` that are associated with your Custom Domain. The reason for these `depends_on` meta-arguments is because all of the resources for the Custom Domain need to be associated within Front Door before the CNAME record can be written to the domains DNS, else the CNAME validation will fail and Front Door will not enable traffic to the Domain.
 
-```hcl
+```terraform
 resource "azurerm_dns_cname_record" "example" {
   depends_on = [azurerm_cdn_frontdoor_route.example, azurerm_cdn_frontdoor_security_policy.example]
 
@@ -152,7 +105,7 @@ A `tls` block supports the following:
 
 * `minimum_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
 
-~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+~> **Note:** As of March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 has been retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
 
@@ -162,24 +115,23 @@ A `tls` block supports the following:
 
 A `cipher_suite` block supports the following:
 
-* `type` - (Required) The TLS policy type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, and `TLS12_2022`.
-
-~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized`.
+* `type` - (Required) The TLS policy type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, or `TLS12_2022`.
 
 * `custom_ciphers` - (Optional) A `custom_ciphers` block as defined below.
+
+~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized`.
 
 ---
 
 A `custom_ciphers` block supports the following:
 
-* `tls12` - (Optional) A set of TLS 1.2 cipher suites to be used. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_SHA384`, `DHE_RSA_AES128_GCM_SHA256`, and `DHE_RSA_AES256_GCM_SHA384`.
+* `tls12` - (Optional) A set of `TLS 1.2` cipher suites to be used. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_SHA384`, `DHE_RSA_AES128_GCM_SHA256`, and `DHE_RSA_AES256_GCM_SHA384`.
 
--> **Note:** Azure Front Door does not support `ECDSA` cipher suites. Only RSA-based cipher suites are supported.
+-> **Note:** Azure Front Door does not support `ECDSA` cipher suites. Only `RSA-based` cipher suites are supported.
 
-* `tls13` - (Optional) A set of TLS 1.3 cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
+* `tls13` - (Optional) A set of `TLS 1.3` cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
-~> **Note:** At least one cipher suite must be selected when using customized cipher suites. When `minimum_version` is set to `TLS12`, at least one TLS 1.2 cipher suite must be specified in the `tls12` field.
-
+~> **Note:** At least one cipher suite must be selected when using `customized` cipher suites. When `minimum_version` is set to `TLS12`, at least one `TLS 1.2` cipher suite must be specified in the `tls12` field.
 
 ---
 
