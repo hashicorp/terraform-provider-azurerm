@@ -207,6 +207,22 @@ func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
 	})
 }
 
+func TestAccEventGridDomain_defaultTlsMinimumVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := domains.ParseDomainID(state.ID)
 	if err != nil {
