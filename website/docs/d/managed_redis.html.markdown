@@ -127,9 +127,13 @@ A `module` block exports the following:
 
 A `persistence` block exports the following:
 
-* `method` - The persistence method used.
+* `redis_database_enabled` - Whether Redis Database persistence method is enabled.
 
-* `backup_frequency` - The frequency of backups.
+* `redis_database_backup_frequency` - The frequency of backups.
+
+* `append_only_file_enabled` - Whether Append Only File persistence method is enabled.
+
+* `append_only_file_backup_frequency` - The frequency of backups.
 
 ## Timeouts
 

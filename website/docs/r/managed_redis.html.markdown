@@ -192,9 +192,15 @@ A `module` block supports the following:
 
 A `persistence` block supports the following:
 
-* `method` - (Required) The persistence method to use. Possible values are `RedisDatabase` and `AppendOnlyFile`.
+* `redis_database_enabled` - (Optional) Whether Redis Database persistence method is enabled.
 
-* `backup_frequency` - (Required) The frequency of backups. Possible values for `RedisDatabase` are `1h`, `6h` and `12h`. Possible values for `AppendOnlyFile` is `1s`.
+* `redis_database_backup_frequency` - (Optional) The frequency of backups. Possible values are `1h`, `6h` and `12h`. Required if `redis_database_enabled` is set to `true`.
+
+* `append_only_file_enabled` - (Optional) Whether Append Only File persistence method is enabled.
+
+* `append_only_file_backup_frequency` - (Optional) The frequency of backups. Possible values is `1s`. Required if `append_only_file_enabled` is set to `true`.
+
+~> **Note:** Persistence cannot be enabled on geo-replicated databases. Only one persistence method can be enabled at a time. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
 
 ## Attributes Reference
 
