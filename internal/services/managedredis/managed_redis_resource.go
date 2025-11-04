@@ -85,8 +85,10 @@ type ModuleModel struct {
 }
 
 type PersistenceModel struct {
-	Method          string `tfschema:"method"`
-	BackupFrequency string `tfschema:"backup_frequency"`
+	RedisDatabaseEnabled          bool   `tfschema:"redis_database_enabled"`
+	RedisDatabaseBackupFrequency  string `tfschema:"redis_database_backup_frequency"`
+	AppendOnlyFileEnabled         bool   `tfschema:"append_only_file_enabled"`
+	AppendOnlyFileBackupFrequency string `tfschema:"append_only_file_backup_frequency"`
 }
 
 const defaultDatabaseName = "default"
@@ -208,16 +210,40 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"default_database.0.geo_replication_group_name"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"method": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForPersistenceMethod(), false),
+								"redis_database_enabled": {
+									Type:          pluginsdk.TypeBool,
+									Optional:      true,
+									ConflictsWith: []string{"default_database.0.persistence.0.append_only_file_enabled"},
+									AtLeastOneOf: []string{
+										"default_database.0.persistence.0.redis_database_enabled",
+										"default_database.0.persistence.0.append_only_file_enabled",
+									},
+									ValidateFunc: validate.BoolIsTrue,
 								},
 
-								"backup_frequency": {
+								"redis_database_backup_frequency": {
 									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForPersistenceBackupFrequency(), false),
+									Optional:     true,
+									RequiredWith: []string{"default_database.0.persistence.0.redis_database_enabled"},
+									ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
+								},
+
+								"append_only_file_enabled": {
+									Type:          pluginsdk.TypeBool,
+									Optional:      true,
+									ConflictsWith: []string{"default_database.0.persistence.0.redis_database_enabled"},
+									AtLeastOneOf: []string{
+										"default_database.0.persistence.0.redis_database_enabled",
+										"default_database.0.persistence.0.append_only_file_enabled",
+									},
+									ValidateFunc: validate.BoolIsTrue,
+								},
+
+								"append_only_file_backup_frequency": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									RequiredWith: []string{"default_database.0.persistence.0.append_only_file_enabled"},
+									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
 								},
 							},
 						},
@@ -648,22 +674,6 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-
-				if len(dbModel.Persistence) > 0 {
-					dbP11Model := dbModel.Persistence[0]
-					if dbP11Model.Method != "" && dbP11Model.BackupFrequency != "" {
-						switch dbP11Model.Method {
-						case validate.DbPersistenceMethodAOF:
-							if !slices.Contains(validate.PossibleValuesForAofFrequency(), dbP11Model.BackupFrequency) {
-								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(validate.PossibleValuesForAofFrequency(), ", "))
-							}
-						case validate.DbPersistenceMethodRDB:
-							if !slices.Contains(redisenterprise.PossibleValuesForRdbFrequency(), dbP11Model.BackupFrequency) {
-								return fmt.Errorf("invalid backup_frequency %q for persistence method %q, only following values are supported: %s", dbP11Model.BackupFrequency, dbP11Model.Method, strings.Join(redisenterprise.PossibleValuesForRdbFrequency(), ", "))
-							}
-						}
-					}
-				}
 			}
 
 			return nil
@@ -806,42 +816,36 @@ func dbLen(v interface{}) int {
 }
 
 func expandPersistence(input []PersistenceModel) *databases.Persistence {
-	res := databases.Persistence{}
 	if len(input) == 0 {
-		return &res
+		return &databases.Persistence{}
 	}
-
-	p11Model := input[0]
-
-	switch p11Model.Method {
-	case validate.DbPersistenceMethodRDB:
-		res.RdbEnabled = pointer.To(true)
-		res.RdbFrequency = pointer.ToEnum[databases.RdbFrequency](p11Model.BackupFrequency)
-	case validate.DbPersistenceMethodAOF:
-		res.AofEnabled = pointer.To(true)
-		res.AofFrequency = pointer.ToEnum[databases.AofFrequency](p11Model.BackupFrequency)
+	model := input[0]
+	persistence := databases.Persistence{
+		RdbEnabled: pointer.To(model.RedisDatabaseEnabled),
+		AofEnabled: pointer.To(model.AppendOnlyFileEnabled),
 	}
-
-	return &res
+	if model.RedisDatabaseBackupFrequency != "" {
+		persistence.RdbFrequency = pointer.ToEnum[databases.RdbFrequency](model.RedisDatabaseBackupFrequency)
+	}
+	if model.AppendOnlyFileBackupFrequency != "" {
+		persistence.AofFrequency = pointer.ToEnum[databases.AofFrequency](model.AppendOnlyFileBackupFrequency)
+	}
+	return &persistence
 }
 
 func flattenPersistence(input *databases.Persistence) []PersistenceModel {
 	if input == nil {
 		return []PersistenceModel{}
 	}
-
-	p11Model := PersistenceModel{}
-
-	switch {
-	case pointer.From(input.RdbEnabled):
-		p11Model.Method = validate.DbPersistenceMethodRDB
-		p11Model.BackupFrequency = pointer.FromEnum(input.RdbFrequency)
-	case pointer.From(input.AofEnabled):
-		p11Model.Method = validate.DbPersistenceMethodAOF
-		p11Model.BackupFrequency = pointer.FromEnum(input.AofFrequency)
-	default:
+	rdbEnabled, aofEnabled := pointer.From(input.RdbEnabled), pointer.From(input.AofEnabled)
+	if rdbEnabled || aofEnabled {
+		return []PersistenceModel{{
+			RedisDatabaseEnabled:          rdbEnabled,
+			RedisDatabaseBackupFrequency:  pointer.FromEnum(input.RdbFrequency),
+			AppendOnlyFileEnabled:         aofEnabled,
+			AppendOnlyFileBackupFrequency: pointer.FromEnum(input.AofFrequency),
+		}}
+	} else {
 		return []PersistenceModel{}
 	}
-
-	return []PersistenceModel{p11Model}
 }

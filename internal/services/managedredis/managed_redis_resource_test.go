@@ -189,24 +189,13 @@ func TestAccManagedRedis_dbPersistence(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedis_dbPersistenceInvalidRDBBackupFreq(t *testing.T) {
+func TestAccManagedRedis_dbPersistenceCannotEnableBothRDBAndAOF(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.dbPersistenceInvalidRDBBackupFreq(),
-			ExpectError: regexp.MustCompile(`invalid backup_frequency .* for persistence method`),
-		},
-	})
-}
-
-func TestAccManagedRedis_dbPersistenceInvalidAOFBackupFreq(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-	r := ManagedRedisResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.dbPersistenceInvalidAOFBackupFreq(),
-			ExpectError: regexp.MustCompile(`invalid backup_frequency .* for persistence method`),
+			Config:      r.dbPersistenceCannotEnableBothRDBAndAOF(),
+			ExpectError: regexp.MustCompile(`Conflicting configuration arguments`),
 		},
 	})
 }
@@ -218,6 +207,17 @@ func TestAccManagedRedis_dbPersistenceConflictsWithGeoReplication(t *testing.T) 
 		{
 			Config:      r.dbPersistenceConflictsWithGeoReplication(),
 			ExpectError: regexp.MustCompile(`Conflicting configuration arguments`),
+		},
+	})
+}
+
+func TestAccManagedRedis_dbPersistenceCannotProvideFalseValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.dbPersistenceCannotProvideFalseValue(),
+			ExpectError: regexp.MustCompile(`expected .* to be true, got false`),
 		},
 	})
 }
@@ -627,8 +627,8 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RedisDatabase"
-      backup_frequency = "12h"
+      redis_database_enabled          = true
+      redis_database_backup_frequency = "12h"
     }
   }
 }
@@ -655,15 +655,15 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "AppendOnlyFile"
-      backup_frequency = "1s"
+      append_only_file_enabled          = true
+      append_only_file_backup_frequency = "1s"
     }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagedRedisResource) dbPersistenceInvalidRDBBackupFreq() string {
+func (r ManagedRedisResource) dbPersistenceCannotEnableBothRDBAndAOF() string {
 	return `
 provider "azurerm" {
   features {}
@@ -678,31 +678,10 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RedisDatabase"
-      backup_frequency = "1s"
-    }
-  }
-}
-  `
-}
-
-func (r ManagedRedisResource) dbPersistenceInvalidAOFBackupFreq() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_managed_redis" "test" {
-  name     = "acctest-invalid"
-  location = "eastus"
-
-  resource_group_name = "my-rg"
-  sku_name            = "Balanced_B0"
-
-  default_database {
-    persistence {
-      method           = "AppendOnlyFile"
-      backup_frequency = "1h"
+      redis_database_enabled            = true
+      redis_database_backup_frequency   = "1h"
+      append_only_file_enabled          = true
+      append_only_file_backup_frequency = "1s"
     }
   }
 }
@@ -726,8 +705,30 @@ resource "azurerm_managed_redis" "test" {
     geo_replication_group_name = "acctest-amr"
 
     persistence {
-      method           = "AppendOnlyFile"
-      backup_frequency = "1h"
+      redis_database_enabled          = true
+      redis_database_backup_frequency = "1h"
+    }
+  }
+}`
+}
+
+func (r ManagedRedisResource) dbPersistenceCannotProvideFalseValue() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis" "test" {
+  name     = "acctest-invalid"
+  location = "eastus"
+
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B0"
+
+  default_database {
+    persistence {
+      redis_database_enabled          = false
+      redis_database_backup_frequency = "1h"
     }
   }
 }`

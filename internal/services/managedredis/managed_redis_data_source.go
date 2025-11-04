@@ -151,12 +151,22 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"method": {
+								"redis_database_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+
+								"redis_database_backup_frequency": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 
-								"backup_frequency": {
+								"append_only_file_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+
+								"append_only_file_backup_frequency": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},

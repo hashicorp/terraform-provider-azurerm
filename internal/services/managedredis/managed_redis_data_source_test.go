@@ -195,8 +195,8 @@ resource "azurerm_managed_redis" "test" {
 
   default_database {
     persistence {
-      method           = "RedisDatabase"
-      backup_frequency = "1h"
+      redis_database_enabled          = true
+      redis_database_backup_frequency = "1h"
     }
   }
 }
