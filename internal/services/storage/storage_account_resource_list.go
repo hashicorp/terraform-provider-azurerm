@@ -8,79 +8,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.ListResourceWithRawV5Schemas = &StorageAccountListResource{}
+var _ sdk.FrameworkListWrappedResource = &StorageAccountListResource{}
 
-type StorageAccountListResource struct {
-	sdk.ListResourceMetadata
+type StorageAccountListResource struct{}
+
+func (r StorageAccountListResource) ResourceFunc() *pluginsdk.Resource {
+	return resourceStorageAccount()
 }
 
-type StorageAccountListModel struct {
-	ResourceGroupName types.String `tfsdk:"resource_group_name"`
-	SubscriptionId    types.String `tfsdk:"subscription_id"`
-}
-
-func NewStorageAccountListResource() list.ListResource {
-	return &StorageAccountListResource{}
-}
-
-func (r *StorageAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r StorageAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = storageAccountResourceName
 }
 
-func (r *StorageAccountListResource) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	res := resourceStorageAccount()
-	response.ProtoV5Schema = res.ProtoSchema(ctx)()
-	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
-}
-
-func (r *StorageAccountListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	// Storage Accounts support listing by Resource Group Name or Subscription ID, both are optional here and we default
-	// to the local subscription ID if nothing is provided
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"resource_group_name": listschema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: resourcegroups.ValidateName,
-					},
-				},
-			},
-			"subscription_id": listschema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: validation.IsUUID,
-					},
-				},
-			},
-		},
-	}
-}
-
-func (r *StorageAccountListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream) {
-	storageClient := r.Client.Storage.ResourceManager
+func (r StorageAccountListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	storageClient := metadata.Client.Storage.ResourceManager
 	client := storageClient.StorageAccounts
 
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60) // TODO - Can/should we make this user configurable?
-	defer cancel()
-
-	var data StorageAccountListModel
+	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -88,7 +42,7 @@ func (r *StorageAccountListResource) List(ctx context.Context, request list.List
 	}
 
 	listResults := make([]storageaccounts.StorageAccount, 0)
-	subscriptionID := r.SubscriptionId
+	subscriptionID := metadata.SubscriptionId
 	if data.SubscriptionId.ValueString() != "" {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
@@ -134,7 +88,7 @@ func (r *StorageAccountListResource) List(ctx context.Context, request list.List
 
 			rd.SetId(id.ID())
 
-			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), r.Client); err != nil {
+			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client); err != nil {
 				sdk.SetResponseWarningDiagnostic(stream, "encoding resource data", err)
 				// Not erroring here as best effort on additional API call(s) made by the flatten function can error out
 				// when we have enough data to perform the import.
@@ -167,8 +121,4 @@ func (r *StorageAccountListResource) List(ctx context.Context, request list.List
 			}
 		}
 	}
-}
-
-func (r *StorageAccountListResource) Configure(_ context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	r.Defaults(request, response)
 }
