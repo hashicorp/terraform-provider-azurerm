@@ -169,8 +169,27 @@ func (r S004) Run(d *data.TerraformNodeData, fix bool) []error {
         if fix {
             // Create and add the missing section
             section = &markdown.ExampleSection{}
-            // Set default content...
-            d.Document.Sections = append(d.Document.Sections, section)
+
+            newContent, err := template.Render(d, section.Template())
+            if err != nil {
+                log.WithFields(log.Fields{
+                    "name": d.Name,
+                    "type": d.Type,
+                }.Error((fmt.Errorf("%s: failed to render template: %+v", IdAndName(r), err))
+                return errs
+            }
+            section.SetContent(content)
+
+            updatedSections, err := markdown.InsertAfterSection(d.Document.Sections, &markdown.TitleSection{})
+            if err != nil {
+                log.WithFields(log.Fields{
+                    "name": d.Name,
+                    "type": d.Type,
+                }.Error((fmt.Errorf("%s: failed to insert new templated section: %+v", IdAndName(r), err))
+                return errs
+            }
+            
+            d.Document.Sections = sections
             d.Document.HasChange = true
         }
         return errs
