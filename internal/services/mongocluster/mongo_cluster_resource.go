@@ -224,7 +224,7 @@ func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r MongoClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -321,7 +321,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
@@ -355,6 +355,7 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
+			// Set `identity` to `nil` to avoid schema validation errors returned by service API when upgrading API version from `2024-07-01` to `2025-09-01`.
 			payload.Identity = nil
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
@@ -501,7 +502,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
