@@ -30,7 +30,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -49,7 +49,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_requiresImport(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,7 +87,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "cloud-ngfw-payg-test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -101,7 +101,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "cloud-ngfw-for-msft"), // Have to use msft basic one, as it cannot go back to the old plan in the test subscription.
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,7 +127,8 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Exists(ctx context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) basic(data acceptance.TestData) string {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) basic(data acceptance.TestData, planId string) string {
+	if planId == "" {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,10 +154,37 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
   }
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager" "test" {
+  name                             = "acctest-ngfwvhscm-%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  strata_cloud_manager_tenant_name = "%[3]s"
+  plan_id                          = "%[4]s"
+
+  network_profile {
+    virtual_hub_id               = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids        = [azurerm_public_ip.test.id]
+  }
+
+  // tags is required in the test subscription account, otherwise it fails
+  tags = {
+    userid = "terraform-test"
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"), planId)
 }
 
 func (r NextGenerationFirewallVHubStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+	template := r.basic(data, "")
 	return fmt.Sprintf(`
 %s
 
