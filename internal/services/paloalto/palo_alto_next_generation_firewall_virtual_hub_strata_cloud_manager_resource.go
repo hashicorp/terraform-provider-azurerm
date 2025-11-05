@@ -60,8 +60,8 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Arguments() map[st
 		"network_profile": schema.VHubNetworkProfileSchema(),
 
 		"strata_cloud_manager_tenant_name": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
