@@ -279,18 +279,6 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			firewall := *existing.Model
 			props := firewall.Properties
 
-			if metadata.ResourceData.HasChange("plan_id") {
-				// Updating the Azure Marketplace Plan along with other Cloud NGFW properties in a single UPDATE call is not supported
-				props.PlanData.PlanId = model.PlanId
-				if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
-					return fmt.Errorf("updating plan_id %s: %+v", *id, err)
-				}
-
-				if !metadata.ResourceData.HasChangeExcept("plan_id") {
-					return nil
-				}
-			}
-
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
 				// Validate that the new Strata Cloud Manager tenant exists
 				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
@@ -327,6 +315,16 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if metadata.ResourceData.HasChange("plan_id") {
+				// Updating the Azure Marketplace Plan along with other Cloud NGFW properties in a single UPDATE call is not supported
+				props.PlanData.PlanId = model.PlanId
+				firewall.Properties = props
+
+				if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+					return fmt.Errorf("updating plan_id %s: %+v", *id, err)
+				}
 			}
 
 			return nil
