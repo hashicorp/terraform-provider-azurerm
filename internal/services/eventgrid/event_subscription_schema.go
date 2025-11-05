@@ -165,7 +165,8 @@ func eventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *p
 				},
 				"severity": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Default:  eventsubscriptions.MonitorAlertSeveritySevOne,
 					ValidateFunc: validation.StringInSlice(
 						eventsubscriptions.PossibleValuesForMonitorAlertSeverity(),
 						false,
