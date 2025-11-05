@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
-* `high_availability` - A `high_availability` block for this MySQL Flexible Server as defined below.
+* `high_availability` - A `high_availability` block for this PostgreSQL Flexible Server as defined below.
 
 * `public_network_access_enabled` - Is public network access enabled?
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `high_availability` block exports the following:
 
-* `mode` - The high availability mode of the MySQL Flexible Server.
+* `mode` - The high availability mode of the PostgreSQL Flexible Server.
 
 * `standby_availability_zone` - The availability zone of the standby Flexible Server.
 
