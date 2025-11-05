@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/registrymanagement"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -25,26 +24,26 @@ import (
 type MachineLearningRegistry struct{}
 
 type ReplicationRegion struct {
-	Location                      string `tfschema:"location"`
-	StorageAccountType            string `tfschema:"storage_account_type"`
-	HnsEnabled                    bool   `tfschema:"hns_enabled"`
-	SystemCreatedStorageAccountId string `tfschema:"system_created_storage_account_id"`
-	SystemCreatedAcrId            string `tfschema:"system_created_container_registry_id"`
+	Location                        string `tfschema:"location"`
+	HnsEnabled                      bool   `tfschema:"hns_enabled"`
+	SystemCreatedStorageAccountType string `tfschema:"system_created_storage_account_type"`
+	SystemCreatedStorageAccountId   string `tfschema:"system_created_storage_account_id"`
+	SystemCreatedAcrId              string `tfschema:"system_created_container_registry_id"`
 }
 
 type MachineLearningRegistryModel struct {
-	Name                          string                                     `tfschema:"name"`
-	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
-	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
-	ReplicationRegion             []ReplicationRegion                        `tfschema:"replication_region"`
-	Location                      string                                     `tfschema:"location"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
-	IntellectualPropertyPublisher string                                     `tfschema:"intellectual_property_publisher"`
-	MlFlowRegistryUri             string                                     `tfschema:"ml_flow_registry_uri"`
-	ManagedResourceGroup          string                                     `tfschema:"managed_resource_group"`
-	Tags                          map[string]string                          `tfschema:"tags"`
+	Name                           string                                     `tfschema:"name"`
+	ResourceGroupName              string                                     `tfschema:"resource_group_name"`
+	PublicNetworkAccessEnabled     bool                                       `tfschema:"public_network_access_enabled"`
+	MainRegion                     []ReplicationRegion                        `tfschema:"primary_region"`
+	ReplicationRegion              []ReplicationRegion                        `tfschema:"replication_region"`
+	Location                       string                                     `tfschema:"location"`
+	Identity                       []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	DiscoveryUrl                   string                                     `tfschema:"discovery_url"`
+	IntellectualPropertyPublisher  string                                     `tfschema:"intellectual_property_publisher"`
+	MachineLearningFlowRegistryUri string                                     `tfschema:"machine_learning_flow_registry_uri"`
+	ManagedResourceGroup           string                                     `tfschema:"managed_resource_group_id"`
+	Tags                           map[string]string                          `tfschema:"tags"`
 }
 
 func (r MachineLearningRegistry) ModelObject() interface{} {
@@ -68,8 +67,8 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-_]{1,31}$`),
-				"Machine Learning Registry name must be 2 - 32 characters long, begin and end with alphanumeric and may contain only alphanumeric, hyphen or underscore.",
+				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-_]{1,32}$`),
+				"Machine Learning Registry name must be 3 - 33 characters long. Its first character has to be alphanumeric, and the rest may contain hyphens and underscores. No whitespace is allowed.",
 			),
 		},
 
@@ -85,13 +84,12 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Default:  true,
 		},
 
-		"main_region": {
+		"primary_region": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
-			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-				Schema: regionSchema(),
+				Schema: regionSchema(false),
 			},
 		},
 
@@ -99,7 +97,7 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
-				Schema: regionSchema(),
+				Schema: regionSchema(true),
 			},
 		},
 
@@ -107,10 +105,8 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func regionSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"location": commonschema.LocationWithoutForceNew(),
-
+func regionSchema(isReplication bool) map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
 		"system_created_storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -143,6 +139,12 @@ func regionSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
+
+	if isReplication {
+		schema["location"] = commonschema.LocationWithoutForceNew()
+	}
+
+	return schema
 }
 
 func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
@@ -157,7 +159,7 @@ func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"ml_flow_registry_uri": {
+		"machine_learning_flow_registry_uri": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -188,7 +190,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			
+
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_machine_learning_registry", id.ID())
 			}
@@ -197,43 +199,44 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: registrymanagement.Registry{
-					PublicNetworkAccess: pointer.To("Disabled"),
+					PublicNetworkAccess: pointer.To(string(PublicNetworkAccessStateDisabled)),
 				},
 			}
-			
+
 			if model.PublicNetworkAccessEnabled {
-				param.Properties.PublicNetworkAccess = pointer.To("Enabled")
+				param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateEnabled))
 			}
 
 			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding identity: %+v", err)
 			}
-			
+
 			param.Identity = expandedIdentity
 
-			regions := []registrymanagement.RegistryRegionArmDetails{expandRegistryRegionDetail(model.MainRegion[0])}
+			regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
+
+			primaryRegion := registrymanagement.RegistryRegionArmDetails{
+				Location: pointer.To(model.Location),
+			}
+
+			if len(model.MainRegion) > 0 {
+				primaryRegion = expandRegistryRegionDetail(model.MainRegion[0])
+				primaryRegion.Location = pointer.To(model.Location)
+			}
+
+			model.MainRegion[0].Location = model.Location
+			regions = append(regions, primaryRegion)
+
 			for _, region := range model.ReplicationRegion {
 				regions = append(regions, expandRegistryRegionDetail(region))
 			}
+
 			param.Properties.RegionDetails = &regions
 
-			resp, err := client.RegistriesCreateOrUpdate(ctx, id, param)
+			response, err := client.RegistriesCreateOrUpdate(ctx, id, param)
 			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-			if response.HttpResponse != nil {
-				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, response.HttpResponse)
-				if err != nil {
-					return fmt.Errorf("creating poller: %+v", err)
-				}
-				if pollerType == nil {
-					return fmt.Errorf("no poller created for creating %s", id)
-				}
-				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-				if err := poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("polling creation of %s: %+v", id, err)
-				}
 			}
 
 			metadata.SetID(id)
@@ -258,39 +261,42 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("reading nil model %s", *id)
+				return fmt.Errorf("model is nil %s", *id)
 			}
 
 			identityIds, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(resp.Model.Identity)
 			if err != nil {
 				return fmt.Errorf("flatten identity %s: %+v", *id, err)
 			}
-			
+
 			prop := resp.Model.Properties
 			model := MachineLearningRegistryModel{
-				Name:                          id.RegistryName,
-				ResourceGroupName:             id.ResourceGroupName,
-				Identity:                      identityIds,
-				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enabled",
-				Tags:                          pointer.From(resp.Model.Tags),
-				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
-				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
-				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
-				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
+				Name:                           id.RegistryName,
+				ResourceGroupName:              id.ResourceGroupName,
+				Identity:                       identityIds,
+				Location:                       resp.Model.Location,
+				PublicNetworkAccessEnabled:     pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
+				Tags:                           pointer.From(resp.Model.Tags),
+				MachineLearningFlowRegistryUri: pointer.From(prop.MlFlowRegistryUri),
+				DiscoveryUrl:                   pointer.From(prop.DiscoveryURL),
+				IntellectualPropertyPublisher:  pointer.From(prop.IntellectualPropertyPublisher),
+			}
+
+			if prop.ManagedResourceGroup != nil {
+				model.ManagedResourceGroup = pointer.From(prop.ManagedResourceGroup.ResourceId)
 			}
 
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
 					model.MainRegion = []ReplicationRegion{region}
-				} else {
-					model.ReplicationRegion = append(model.ReplicationRegion, region)
+					continue
 				}
+				model.ReplicationRegion = append(model.ReplicationRegion, region)
 			}
 
 			return metadata.Encode(&model)
@@ -303,15 +309,18 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model MachineLearningRegistryModel
+			id, err := registrymanagement.ParseRegistryID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding Machine Learning Registry model %+v", err)
 			}
 
-			id := registrymanagement.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.RegistriesGet(ctx, id)
+			existing, err := client.RegistriesGet(ctx, *id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -338,13 +347,13 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				param.Properties.PublicNetworkAccess = pointer.To("Disabled")
+				param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateDisabled))
 				if model.PublicNetworkAccessEnabled {
-					param.Properties.PublicNetworkAccess = pointer.To("Enabled")
+					param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateEnabled))
 				}
 			}
 
-			if metadata.ResourceData.HasChanges("main_region", "replication_region") {
+			if metadata.ResourceData.HasChanges("primary_region", "replication_region") {
 				regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
 				if len(model.MainRegion) > 0 {
@@ -358,22 +367,9 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 				param.Properties.RegionDetails = &regions
 			}
 
-			response, err := client.RegistriesCreateOrUpdate(ctx, id, *param)
+			response, err := client.RegistriesCreateOrUpdate(ctx, *id, param)
 			if err != nil && (response.HttpResponse == nil || response.HttpResponse.StatusCode != 202) {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-			if response.HttpResponse != nil {
-				pollerType, err := custompollers.NewMachineLearningRegistryPoller(client, response.HttpResponse)
-				if err != nil {
-					return fmt.Errorf("creating poller: %+v", err)
-				}
-				if pollerType == nil {
-					return fmt.Errorf("no poller created for updating %s", id)
-				}
-				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-				if err := poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("polling update of %s: %+v", id, err)
-				}
 			}
 
 			metadata.SetID(id)
@@ -416,7 +412,7 @@ func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.Regi
 			{
 				SystemCreatedStorageAccount: &registrymanagement.SystemCreatedStorageAccount{
 					StorageAccountHnsEnabled: pointer.To(input.HnsEnabled),
-					StorageAccountType:       pointer.To(input.StorageAccountType),
+					StorageAccountType:       pointer.To(input.SystemCreatedStorageAccountType),
 				},
 			},
 		},
@@ -435,15 +431,20 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
-				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
+				region.SystemCreatedStorageAccountType = pointer.From(systemAccount.StorageAccountType)
 				region.HnsEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
-				region.SystemCreatedStorageAccountId = pointer.From(pointer.From(systemAccount.ArmResourceId).ResourceId)
+
+				if systemAccount.ArmResourceId != nil {
+					region.SystemCreatedStorageAccountId = pointer.From(systemAccount.ArmResourceId.ResourceId)
+				}
 			}
 		}
 
 		if acr := pointer.From(item.AcrDetails); len(acr) > 0 {
 			if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
-				region.SystemCreatedAcrId = pointer.From(pointer.From(systemAcr.ArmResourceId).ResourceId)
+				if systemAcr.ArmResourceId != nil {
+					region.SystemCreatedAcrId = pointer.From(systemAcr.ArmResourceId.ResourceId)
+				}
 			}
 		}
 
@@ -451,3 +452,10 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 	}
 	return result
 }
+
+type PublicNetworkAccessState string
+
+const (
+	PublicNetworkAccessStateEnabled  PublicNetworkAccessState = "Enabled"
+	PublicNetworkAccessStateDisabled PublicNetworkAccessState = "Disabled"
+)

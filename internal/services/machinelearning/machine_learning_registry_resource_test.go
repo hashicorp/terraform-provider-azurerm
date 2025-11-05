@@ -139,10 +139,6 @@ resource "azurerm_machine_learning_registry" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  main_region {
-    location = azurerm_resource_group.test.location
-  }
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
@@ -159,10 +155,6 @@ resource "azurerm_machine_learning_registry" "import" {
     identity {
     type = azurerm_machine_learning_registry.test.identity.0.type
   }
-
-  main_region {
-    location = azurerm_machine_learning_registry.test.main_region.0.location
-  }
 }
 `, r.basic(data))
 }
@@ -177,21 +169,20 @@ resource "azurerm_machine_learning_registry" "test" {
   name                          = "accmlreg-%[2]d"
   public_network_access_enabled = false
 
-  main_region {
-    location             = azurerm_resource_group.test.location
-    storage_account_type = "Standard_ZRS"
+  primary_region {
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
   replication_region {
     location             = "%[3]s"
-    storage_account_type = "Standard_ZRS"
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
   replication_region {
     location             = "%[4]s"
-    storage_account_type = "Standard_ZRS"
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
@@ -211,21 +202,20 @@ resource "azurerm_machine_learning_registry" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   name                          = "accmlreg-%[2]d"
   public_network_access_enabled = true
-  main_region {
-    location             = azurerm_resource_group.test.location
-    storage_account_type = "Standard_ZRS"
+  primary_region {
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
   replication_region {
     location             = "%[3]s"
-    storage_account_type = "Standard_ZRS"
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
   replication_region {
     location             = "%[4]s"
-    storage_account_type = "Standard_ZRS"
+    system_created_storage_account_type = "Standard_ZRS"
     hns_enabled          = true
   }
 
@@ -293,10 +283,6 @@ resource "azurerm_machine_learning_registry" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  main_region {
-    location = azurerm_resource_group.test.location
   }
 }
 `, r.template(data), data.RandomInteger)
