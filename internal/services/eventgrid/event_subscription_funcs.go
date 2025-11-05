@@ -94,14 +94,15 @@ func expandEventGridEventSubscriptionAzureAlertMonitor(input []interface{}) even
 	item := input[0].(map[string]interface{})
 	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{}
 
-	if v, ok := item["severity"]; ok && v != "" {
-		props.Severity = pointer.To(v.(eventsubscriptions.MonitorAlertSeverity))
+	// if v, ok := item["severity"].(eventsubscriptions.MonitorAlertSeverity); ok {
+	// 	props.Severity = pointer.To(v)
+	// }
+	props.Severity = pointer.To(eventsubscriptions.MonitorAlertSeveritySevFour)
+	if v, ok := item["description"].(string); ok && v != "" {
+		props.Description = pointer.To(v)
 	}
-	if v, ok := item["description"]; ok && v != "" {
-		props.Description = pointer.To(v.(string))
-	}
-	if v, ok := item["action_groups"]; ok && v != nil {
-		props.ActionGroups = utils.StringSlice(v.([]string))
+	if v, ok := item["action_groups"].([]string); ok && v != nil {
+		props.ActionGroups = pointer.To(v)
 	}
 
 	return eventsubscriptions.MonitorAlertEventSubscriptionDestination{
@@ -113,7 +114,7 @@ func flattenEventSubscriptionDestinationAzureAlertMonitor(input interface{}) []i
 	output := make([]interface{}, 0)
 	val, ok := input.(eventsubscriptions.MonitorAlertEventSubscriptionDestination)
 
-	if ok {
+	if ok && val.Properties != nil {
 		output = append(output, map[string]interface{}{
 			"severity":      pointer.From(val.Properties.Severity),
 			"description":   pointer.From(val.Properties.Description),
