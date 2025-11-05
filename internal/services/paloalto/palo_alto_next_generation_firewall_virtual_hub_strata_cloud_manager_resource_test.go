@@ -146,6 +146,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
     public_ip_address_ids        = [azurerm_public_ip.test.id]
   }
+
+  // tags is required in the test subscription account, otherwise it fails
+  tags = {
+    userid = "terraform-test"
+  }
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
@@ -166,6 +171,10 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
     network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].network_virtual_appliance_id
     public_ip_address_ids        = azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.test.network_profile[0].public_ip_address_ids
   }
+
+  tags = {
+    userid = "terraform-test"
+  }
 }
 `, template)
 }
@@ -183,8 +192,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
   strata_cloud_manager_tenant_name = "%[3]s"
-  marketplace_offer_id             = "pan_swfw_cloud_ngfw"
-  plan_id                          = "panw-cngfw-payg"
+  plan_id                          = "cloud-ngfw-for-msft"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -285,7 +293,7 @@ resource "azurerm_palo_alto_virtual_network_appliance" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uaid-%[2]d"
+  name                = "acctest-uaid-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }

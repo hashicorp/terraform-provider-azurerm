@@ -62,7 +62,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[st
 		"strata_cloud_manager_tenant_name": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
-			Description: "Strata Cloud Manager name which is intended to manage the policy for this firewall.",
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"dns_settings": schema.DNSSettingsSchema(),
@@ -113,6 +113,11 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 			}
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+			// Validate that the Strata Cloud Manager tenant exists
+			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
+				return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
+			}
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -275,6 +280,10 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			props := firewall.Properties
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
+				// Validate that the new Strata Cloud Manager tenant exists
+				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
+					return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
+				}
 				props.StrataCloudManagerConfig.CloudManagerName = model.StrataCloudManagerTenantName
 			}
 
@@ -297,7 +306,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			firewall.Properties = props
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandPaloAltoLegacyToUserAssignedIdentity(model.Identity)
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

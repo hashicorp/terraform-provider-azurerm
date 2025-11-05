@@ -100,13 +100,13 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-    {
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-    data.ImportStep(),
+		data.ImportStep(),
 	})
 }
 
@@ -151,6 +151,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
     }
   }
 
+  // tags is required in the test subscription account, otherwise it fails
+  tags = {
+    userid = "terraform-test"
+  }
+
   depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
@@ -176,6 +181,10 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
       untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.network_profile[0].vnet_configuration[0].untrusted_subnet_id
     }
   }
+
+  tags = {
+    userid = "terraform-test"
+  }
 }
 `, template)
 }
@@ -192,8 +201,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
   name                             = "acctest-ngfwvnscm-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
-  marketplace_offer_id             = "pan_swfw_cloud_ngfw"
-  plan_id                          = "panw-cngfw-payg"
+  plan_id                          = "cloud-ngfw-for-msft"
   strata_cloud_manager_tenant_name = "%[4]s"
 
   network_profile {
