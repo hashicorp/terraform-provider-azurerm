@@ -24,7 +24,7 @@ type MachineLearningRegistryDataSourceModel struct {
 	Name                          string                                     `tfschema:"name"`
 	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
 	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	PrimaryRegion                    []ReplicationRegion                        `tfschema:"primary_region"`
+	PrimaryRegion                 []ReplicationRegion                        `tfschema:"primary_region"`
 	ReplicationRegion             []ReplicationRegion                        `tfschema:"replication_region"`
 	Location                      string                                     `tfschema:"location"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -182,6 +182,8 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if resp.Model == nil {
 				return fmt.Errorf("reading nil model %s", id)
 			}
@@ -202,13 +204,16 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
 				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
 				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
-				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
+			}
+
+			if prop.ManagedResourceGroup != nil {
+				model.ManagedResourceGroup = pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId)
 			}
 
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for i, region := range regions {
 				if i == 0 {
-					model.MainRegion = []ReplicationRegion{region}
+					model.PrimaryRegion = []ReplicationRegion{region}
 				} else {
 					model.ReplicationRegion = append(model.ReplicationRegion, region)
 				}
