@@ -71,7 +71,6 @@ A `high_availability` block exports the following:
 
 * `standby_availability_zone` - The availability zone of the standby Flexible Server.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
