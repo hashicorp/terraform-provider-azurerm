@@ -3,6 +3,7 @@
 **NOTE:** This release removes the `azurerm_spatial_anchors_account` resource and data source due to Azure having retired the service
 
 ENHANCEMENTS:
+* `azurerm_application_gateway` - add support for the `backend_http_settings.dedicated_backend_connection_enabled` property [GH-31033]
 * dependencies: `Go` updated to `v1.25.3` [GH-31020]
 * `azurerm_machine_learning_datastore_blobstorage` - improve validation for `storage_container_id` [GH-31002]
 * `azurerm_machine_learning_datastore_datalake_gen2` - improve validation for `storage_container_id` [GH-31002]
