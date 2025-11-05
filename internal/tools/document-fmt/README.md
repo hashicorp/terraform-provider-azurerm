@@ -11,10 +11,6 @@ go run ./internal/tools/document-fmt/main.go validate
 
 # Or use the make target
 make document-validate
-
-
-# List available commands and options
-go run ./internal/tools/document-fmt/main.go --help
 ```
 
 ### Fix Documentation Issues
@@ -232,49 +228,4 @@ go run ./internal/tools/document-fmt/main.go fix
 - **Logging**: Add debug logging for troubleshooting (use `log.WithFields()`)
 - **Testing Edge Cases**: Handle resources with unusual configurations gracefully
 
-### Adding Exception Handling
-
-If certain resources need to skip a rule, add exceptions in `rule/rule_exceptions.go`:
-
-```go
-func shouldSkipRule(resourceName string, ruleID string) bool {
-    exceptions := map[string][]string{
-        "azurerm_special_resource": {"S001", "S002"},
-    }
-    
-    if rules, ok := exceptions[resourceName]; ok {
-        for _, r := range rules {
-            if r == ruleID {
-                return true
-            }
-        }
-    }
-    return false
-}
-```
-
-### Adding New Section Types
-
-If your rule needs to work with a new section type:
-
-1. Create section implementation in `markdown/section_*.go`
-2. Implement the `Section` interface
-3. Register the section type in `markdown/registration.go`
-4. Add template if needed in `template/template.go`
-
-## Integration with CI/CD
-
-The tool integrates with the repository's CI/CD pipeline:
-
-- **Pre-commit**: Can be run locally before committing
-- **CI Validation**: `scripts/documentfmt-validate.sh` runs in CI to catch issues
-- **Automated Fixing**: Developers can run `make document-fix` to auto-correct issues
-- **Exit Codes**: Non-zero exit code on validation failure stops the build
-
-## Additional Notes
-
-- The tool uses the `afero` filesystem abstraction for testability
-- All rules can operate in both validate-only and fix modes
-- The validator maintains state across all resources being processed
-- Template rendering uses Go's `text/template` package for flexibility
-- Color-coded output helps distinguish errors, warnings, and success messages
+If certain resources need to skip a rule, add exceptions in [`./rule/rule_exceptions.go`](./rule/rule_exceptions.go)
