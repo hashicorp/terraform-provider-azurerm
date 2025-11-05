@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -75,6 +76,13 @@ func resourceDataFactoryLinkedServiceCosmosDb() *pluginsdk.Resource {
 				Sensitive:     true,
 				ConflictsWith: []string{"connection_string"},
 				ValidateFunc:  validation.StringIsNotEmpty,
+			},
+
+			"credential_name": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"account_endpoint", "account_key"},
 			},
 
 			"database": {
@@ -174,6 +182,15 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 		cosmosdbProperties.Database = databaseName
 	}
 
+	credentialName := d.Get("credential").(string)
+
+	if credentialName != "" {
+		cosmosdbProperties.Credential = &datafactory.CredentialReference{
+			Type:          pointer.To("CredentialReference"),
+			ReferenceName: pointer.To(credentialName),
+		}
+	}
+
 	description := d.Get("description").(string)
 
 	cosmosdbLinkedService := &datafactory.CosmosDbLinkedService{
@@ -244,6 +261,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
 	d.Set("description", cosmosdb.Description)
+	d.Set("credential_name", cosmosdb.Credential.ReferenceName)
 
 	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
