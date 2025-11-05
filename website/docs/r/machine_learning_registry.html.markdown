@@ -20,9 +20,6 @@ resource "azurerm_machine_learning_registry" "example" {
   identity {
     type = "SystemAssigned"
   }
-  main_region {
-    location = "West Europe"
-  }
 }
 ```
 
@@ -34,7 +31,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Machine Learning Registry should exist. Changing this forces a new Machine Learning Registry to be created.
 
-* `main_region` - (Required) A `main_region` block as defined below.
+* `primary_region` - (Optional) A `primary_region` block as defined below.
 
 * `name` - (Required) The name which should be used for this Machine Learning Registry. Changing this forces a new Machine Learning Registry to be created.
 
@@ -58,11 +55,9 @@ A `identity` block supports the following:
 
 ---
 
-A `main_region` block supports the following:
+A `primary_region` block supports the following:
 
-* `location` - (Required) The Azure Region where the Machine Learning Registry should exist. It must be the same location as the Registry.
-
-* `storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
+* `system_created_storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
 
 * `hns_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the blob storage container. Defaults to `false`.
 
@@ -72,7 +67,7 @@ A `replication_region` block supports the following:
 
 * `location` - (Required) The Azure Region where the Machine Learning Registry should exist.
 
-* `storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
+* `system_created_storage_account_type` - (Optional) The type of blob storage to use. Possible values are `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Premium_LRS` and `Premium_ZRS`. Defaults to `Standard_LRS`.
 
 * `hns_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the blob storage container. Defaults to `false`.
 
@@ -86,13 +81,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `intellectual_property_publisher` - The intellectual property publisher for the Machine Learning Registry.
 
-* `managed_resource_group` - The ID of the managed resource group created for the Machine Learning Registry.
+* `managed_resource_group_id` - The ID of the managed resource group created for the Machine Learning Registry.
 
-* `ml_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
+* `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
 
 ---
 
-In addition to the above, each `main_region` and `replication_region` block exports the following:
+In addition to the above, each `primary_region` and `replication_region` block exports the following:
 
 * `system_created_storage_account_id` - The ID of the system-created storage account for this region.
 

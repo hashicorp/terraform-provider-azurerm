@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `public_network_access_enabled` - Whether public network access is enabled for the Machine Learning Registry.
 
-* `main_region` - A `main_region` block as defined below.
+* `primary_region` - A `primary_region` block as defined below.
 
 * `replication_region` - One or more `replication_region` blocks as defined below.
 
@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `intellectual_property_publisher` - The intellectual property publisher for the Machine Learning Registry.
 
-* `ml_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
+* `machine_learning_flow_registry_uri` - The ML Flow registry URI for the Machine Learning Registry.
 
 * `managed_resource_group` - The ID of the managed resource group created for the Machine Learning Registry.
 
@@ -63,11 +63,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `main_region` block exports the following:
+A `primary_region` block exports the following:
 
-* `location` - The Azure Region for the main region.
-
-* `storage_account_type` - The storage account type for the main region.
+* `system_created_storage_account_type` - The storage account type for the main region.
 
 * `hns_enabled` - Whether hierarchical namespace is enabled for the main region storage account.
 
@@ -81,7 +79,7 @@ A `replication_region` block exports the following:
 
 * `location` - The Azure Region for the replication region.
 
-* `storage_account_type` - The storage account type for the replication region.
+* `system_created_storage_account_type` - The storage account type for the replication region.
 
 * `hns_enabled` - Whether hierarchical namespace is enabled for the replication region storage account.
 

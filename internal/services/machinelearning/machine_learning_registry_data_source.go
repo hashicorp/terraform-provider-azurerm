@@ -68,16 +68,11 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"main_region": {
+		"primary_region": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"storage_account_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -146,7 +141,7 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"ml_flow_registry_uri": {
+		"machine_learning_flow_registry_uri": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -199,7 +194,7 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				ResourceGroupName:             id.ResourceGroupName,
 				Identity:                      identityIds,
 				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enabled",
+				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
 				Tags:                          pointer.From(resp.Model.Tags),
 				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
 				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
@@ -207,7 +202,7 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop.ManagedResourceGroup != nil {
-				model.ManagedResourceGroup = pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId)
+				model.ManagedResourceGroup = pointer.From(prop.ManagedResourceGroup.ResourceId)
 			}
 
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
