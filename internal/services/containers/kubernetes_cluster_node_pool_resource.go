@@ -81,20 +81,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
-
-			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				maxSurge := d.Get("upgrade_settings.0.max_surge").(string)
-				maxUnavailable := d.Get("upgrade_settings.0.max_unavailable").(string)
-
-				useMaxSurge := maxSurge != "" && maxSurge != "0"
-				useMaxUnavailable := maxUnavailable != "" && maxUnavailable != "0"
-
-				if useMaxSurge && useMaxUnavailable {
-					return fmt.Errorf("the `upgrade_settings.0.max_surge` must be set to 0 for `upgrade_settings.0.max_unavailable` to be set. The two values can't both be active at the same time")
-				}
-
-				return nil
-			},
 		),
 	}
 
