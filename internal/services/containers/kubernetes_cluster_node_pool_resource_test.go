@@ -553,14 +553,21 @@ func TestAccKubernetesClusterNodePool_upgradeSettingsMaxSurge(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsMaxSurge(data, `10%`, 10, 5, "Cordon"),
+			Config: r.completeUpgradeSettingsWithMaxSurge(data, `10%`, 10, 5, "Cordon"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxSurge(data, `33%`, 15, 8, "Schedule"),
+			Config: r.completeUpgradeSettingsWithMaxSurge(data, `33%`, 15, 8, "Schedule"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxSurge(data, `10%`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -575,14 +582,21 @@ func TestAccKubernetesClusterNodePool_upgradeSettingsMaxUnavailable(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5),
+			Config: r.completeUpgradeSettingsWithMaxUnavailable(data, `25%`, 10, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8),
+			Config: r.completeUpgradeSettingsWithMaxUnavailable(data, `50%`, 15, 8),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `25%`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -597,28 +611,42 @@ func TestAccKubernetesClusterNodePool_upgradeSettingsMaxSurgeToMaxUnavailable(t 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsMaxSurge(data, `10%`, 10, 5, "Cordon"),
+			Config: r.completeUpgradeSettingsWithMaxSurge(data, `10%`, 10, 5, "Cordon"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5),
+			Config: r.completeUpgradeSettingsWithMaxUnavailable(data, `25%`, 10, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxSurge(data, `33%`, 15, 8, "Schedule"),
+			Config: r.completeUpgradeSettingsWithMaxSurge(data, `33%`, 15, 8, "Schedule"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8),
+			Config: r.completeUpgradeSettingsWithMaxUnavailable(data, `50%`, 15, 8),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxSurge(data, `10%`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsMaxUnavailable(data, `25%`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2289,7 +2317,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxSurge(data acceptance.TestData, maxSurge string, drainTimeout int, nodeSoakDuration int, undrainableBehavior string) string {
+func (r KubernetesClusterNodePoolResource) completeUpgradeSettingsWithMaxSurge(data acceptance.TestData, maxSurge string, drainTimeout int, nodeSoakDuration int, undrainableBehavior string) string {
 	template := r.templateConfig(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2313,7 +2341,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, maxSurge, drainTimeout, nodeSoakDuration, undrainableBehavior)
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxUnavailable(data acceptance.TestData, maxUnavailable string, drainTimeout int, nodeSoakDuration int) string {
+func (r KubernetesClusterNodePoolResource) completeUpgradeSettingsWithMaxUnavailable(data acceptance.TestData, maxUnavailable string, drainTimeout int, nodeSoakDuration int) string {
 	template := r.templateConfig(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2335,6 +2363,52 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, template, maxUnavailable, drainTimeout, nodeSoakDuration)
+}
+
+func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxSurge(data acceptance.TestData, maxSurge string) string {
+	template := r.templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  upgrade_settings {
+    max_surge                 = "%s"
+    drain_timeout_in_minutes  = 15
+    undrainable_node_behavior = "Schedule"
+  }
+}
+`, template, maxSurge)
+}
+
+func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxUnavailable(data acceptance.TestData, maxUnavailable string) string {
+	template := r.templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  upgrade_settings {
+    max_unavailable           = %q
+    drain_timeout_in_minutes  = 15
+    undrainable_node_behavior = "Schedule"
+  }
+}
+`, template, maxUnavailable)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
