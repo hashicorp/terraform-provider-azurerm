@@ -101,13 +101,13 @@ The following arguments are supported:
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
-* `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
+* `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. This subnet must belong to the specified virtual_network_id. Changing this value forces a new Exadata VM Cluster to be created.
 
 * `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure. Changing this forces a new resource to be created.
 
 * `virtual_machine_file_system_storage` - (Required) A `virtual_machine_file_system_storage` block as defined below. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
+* `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Exadata VM Cluster that the specified subnet belongs to. Changing this value forces a new Exadata VM Cluster to be created.
 
 * `zones` - (Required) Cloud Exadata Infrastructure zones. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
