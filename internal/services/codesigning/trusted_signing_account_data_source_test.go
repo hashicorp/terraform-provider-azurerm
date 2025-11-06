@@ -24,7 +24,7 @@ func TestAccTrustedSigningAccountDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(location.Normalize("eastus")),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
@@ -41,12 +41,12 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "eastus" # Hardcoding location because resource type Microsoft.CodeSigning/codeSigningAccounts is only available in 'westcentralus, westus2, northeurope, westeurope, eastus, westus, westus3, centraluseuap'
+  location = "%[3]s"
 }
 
 resource "azurerm_trusted_signing_account" "test" {
   name                = "acctest-%[2]s"
-  location            = azurerm_resource_group.test.location
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 
@@ -59,5 +59,5 @@ data "azurerm_trusted_signing_account" "test" {
   name                = azurerm_trusted_signing_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.RandomString, data.Locations.Primary)
 }
