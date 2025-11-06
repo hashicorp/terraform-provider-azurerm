@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `public_network_access` - The public network access setting for the Managed Redis instance.
+
 * `tags` - A mapping of tags assigned to the Managed Redis instance.
 
 * `zones` - A list of Availability Zones in which the Managed Redis instance is located.

@@ -138,6 +138,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `public_network_access` - (Optional) The public network access setting for the Managed Redis instance. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed Redis instance.
 
 ---
