@@ -65,6 +65,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `estimated_patching_time` - A `estimated_patching_time` block as defined below.
 
+* `exascale_config` - A `exascale_config` block as defined below.
+
 * `last_maintenance_run_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the last maintenance run.
 
 * `lifecycle_details` - Additional information about the current lifecycle state.
@@ -126,6 +128,14 @@ A `estimated_patching_time` block exports the following:
 * `estimated_storage_server_patching_time` - The estimated time required in minutes for storage server patching.
 
 * `total_estimated_patching_time` - The estimated total time required in minutes for all patching operations.
+
+---
+
+A `exascale_config` block exports the following:
+
+* `total_storage_in_gb` - Storage size needed for Exascale in GBs.
+
+* `available_storage_in_gb` - Available storage size for Exascale in GBs.
 
 ---
 

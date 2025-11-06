@@ -53,6 +53,8 @@ The following arguments are supported:
 
 * `description` - (Optional) Exadata Database Storage Vault description. Changing this forces a new Exadata Database Storage Vault to be created.
 
+* `exadata_infrastructure_id` - (Optional) Identifier of the Cloud Exadata Infrastructure in Azure. Changing this forces a new Exadata Database Storage Vault to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata Database Storage Vault.
 
 * `time_zone` - (Optional) The time zone that you want to use for the Exadata Database Storage Vault. Changing this forces a new Exadata Database Storage Vault to be created. For details, see [Time Zones](https://docs.oracle.com/en/cloud/paas/base-database/time-zone/).

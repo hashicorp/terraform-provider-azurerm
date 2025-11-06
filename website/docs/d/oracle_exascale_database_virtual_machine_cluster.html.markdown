@@ -99,6 +99,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `shape` - The model name of the Exadata hardware running the Exadata VM Cluster.
 
+* `shape_attribute` - The type of Exascale storage used for Exadata VM cluster.
+
 * `snapshot_file_system_storage` - A `file_system_storage_details` block as defined below.
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster.

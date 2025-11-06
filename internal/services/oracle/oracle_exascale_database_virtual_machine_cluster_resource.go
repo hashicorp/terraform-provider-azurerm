@@ -56,6 +56,7 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 	NetworkSecurityGroupCidr                 []NetworkSecurityGroupCidrModel       `tfschema:"network_security_group_cidr"`
 	Ocid                                     string                                `tfschema:"ocid"`
 	PrivateZoneOcid                          string                                `tfschema:"private_zone_ocid"`
+	ShapeAttribute                           string                                `tfschema:"shape_attribute"`
 	SingleClientAccessNameListenerPortTcp    int64                                 `tfschema:"single_client_access_name_listener_port_tcp"`
 	SingleClientAccessNameListenerPortTcpSsl int64                                 `tfschema:"single_client_access_name_listener_port_tcp_ssl"`
 	SystemVersion                            string                                `tfschema:"system_version"`
@@ -318,6 +319,15 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"shape_attribute": {
+			Type: pluginsdk.TypeString,
+			// O+C if not specified, the default value will be provided by API
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForShapeAttribute(), false),
+		},
+
 		"single_client_access_name_listener_port_tcp": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -453,6 +463,9 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 			if model.PrivateZoneOcid != "" {
 				param.Properties.PrivateZoneOcid = pointer.To(model.PrivateZoneOcid)
 			}
+			if model.ShapeAttribute != "" {
+				param.Properties.ShapeAttribute = pointer.To(exadbvmclusters.ShapeAttribute(model.ShapeAttribute))
+			}
 			if model.SystemVersion != "" {
 				param.Properties.SystemVersion = pointer.To(model.SystemVersion)
 			}
@@ -561,6 +574,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.Ocid = pointer.From(props.Ocid)
 					state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
+					state.ShapeAttribute = pointer.FromEnum(props.ShapeAttribute)
 					state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.SingleClientAccessNameListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
 					state.SystemVersion = pointer.From(props.SystemVersion)

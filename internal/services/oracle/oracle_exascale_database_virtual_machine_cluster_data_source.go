@@ -59,6 +59,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	SingleClientAccessNameListenerPortTcp    int64                                               `tfschema:"single_client_access_name_listener_port_tcp"`
 	SingleClientAccessNameListenerPortTcpSsl int64                                               `tfschema:"single_client_access_name_listener_port_tcp_ssl"`
 	Shape                                    string                                              `tfschema:"shape"`
+	ShapeAttribute                           string                                              `tfschema:"shape_attribute"`
 	SnapshotFileSystemStorage                []ExascaleDatabaseVirtualMachineClusterStorageModel `tfschema:"snapshot_file_system_storage"`
 	SshPublicKeys                            []string                                            `tfschema:"ssh_public_keys"`
 	SubnetId                                 string                                              `tfschema:"subnet_id"`
@@ -349,6 +350,11 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
+		"shape_attribute": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"snapshot_file_system_storage": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -512,6 +518,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.SingleClientAccessNameListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
 					state.Shape = props.Shape
+					state.ShapeAttribute = pointer.FromEnum(props.ShapeAttribute)
 					state.SnapshotFileSystemStorage = flattenExadbVmClusterStorage(props.SnapshotFileSystemStorage)
 					state.SshPublicKeys = props.SshPublicKeys
 					state.SubnetId = props.SubnetId

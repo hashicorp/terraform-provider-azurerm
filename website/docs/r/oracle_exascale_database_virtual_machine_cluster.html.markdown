@@ -129,6 +129,8 @@ The following arguments are supported:
 
 * `private_zone_ocid` - (Optional) The The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
 
+* `shape_attribute` - (Optional) The type of Exascale storage used for Exadata VM cluster. Possible values is `SMART_STORAGE` and `BLOCK_STORAGE`.  Changing this forces a new resource to be created.
+
 * `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. Defaults to `1521`. Changing this forces a new Exadata VM Cluster to be created.
 
 * `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. Defaults to `2484`. Changing this forces a new Exadata VM Cluster to be created.
