@@ -56,7 +56,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

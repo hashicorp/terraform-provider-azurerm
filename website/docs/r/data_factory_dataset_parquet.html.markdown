@@ -44,7 +44,7 @@ resource "azurerm_data_factory_dataset_parquet" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 

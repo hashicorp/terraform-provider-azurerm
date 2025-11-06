@@ -23,8 +23,10 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make depscheck
   save-artifacts-on-fail:
-    if: ${{ needs.depscheck.result }} == 'failure'
+    needs: depscheck
+    if: ${{ failure() }}
     uses: ./.github/workflows/save-artifacts.yaml
   comment-on-fail:
-    if: ${{ needs.depscheck.result }} == 'failure'
+    needs: depscheck
+    if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml

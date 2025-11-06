@@ -60,7 +60,7 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

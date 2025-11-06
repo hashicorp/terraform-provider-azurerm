@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -201,7 +201,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-Hong-Kong-HK1"
+  peering_location    = "Area51-ERDirect"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {

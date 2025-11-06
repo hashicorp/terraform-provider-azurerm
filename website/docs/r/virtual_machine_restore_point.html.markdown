@@ -89,7 +89,7 @@ resource "azurerm_virtual_machine_restore_point" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

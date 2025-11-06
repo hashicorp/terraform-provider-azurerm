@@ -65,7 +65,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
