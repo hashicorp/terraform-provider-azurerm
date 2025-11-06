@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -27,13 +28,11 @@ var _ sdk.Resource = CloudVmClusterResource{}
 type CloudVmClusterResource struct{}
 
 type CloudVmClusterResourceModel struct {
-	// Azure
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
 
-	// Required
 	CloudExadataInfrastructureId string   `tfschema:"cloud_exadata_infrastructure_id"`
 	CpuCoreCount                 int64    `tfschema:"cpu_core_count"`
 	DataStorageSizeInTbs         float64  `tfschema:"data_storage_size_in_tbs"`
@@ -49,21 +48,22 @@ type CloudVmClusterResourceModel struct {
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
 
-	// Optional
-	BackupSubnetCidr         string                         `tfschema:"backup_subnet_cidr"`
-	ClusterName              string                         `tfschema:"cluster_name"`
-	DataCollectionOptions    []DataCollectionOptionsModel   `tfschema:"data_collection_options"`
-	DataStoragePercentage    int64                          `tfschema:"data_storage_percentage"`
-	Domain                   string                         `tfschema:"domain"`
-	IsLocalBackupEnabled     bool                           `tfschema:"local_backup_enabled"`
-	IsSparseDiskgroupEnabled bool                           `tfschema:"sparse_diskgroup_enabled"`
-	Ocid                     string                         `tfschema:"ocid"`
-	ScanListenerPortTcp      int64                          `tfschema:"scan_listener_port_tcp"`
-	ScanListenerPortTcpSsl   int64                          `tfschema:"scan_listener_port_tcp_ssl"`
-	SystemVersion            string                         `tfschema:"system_version"`
-	TimeZone                 string                         `tfschema:"time_zone"`
-	ZoneId                   string                         `tfschema:"zone_id"`
-	FileSystemConfiguration  []FileSystemConfigurationModel `tfschema:"file_system_configuration"`
+	BackupSubnetCidr               string                         `tfschema:"backup_subnet_cidr"`
+	ClusterName                    string                         `tfschema:"cluster_name"`
+	DataCollectionOptions          []DataCollectionOptionsModel   `tfschema:"data_collection_options"`
+	DataStoragePercentage          int64                          `tfschema:"data_storage_percentage"`
+	Domain                         string                         `tfschema:"domain"`
+	ExascaleDatabaseStorageVaultId string                         `tfschema:"exascale_database_storage_vault_id"`
+	IsLocalBackupEnabled           bool                           `tfschema:"local_backup_enabled"`
+	IsSparseDiskgroupEnabled       bool                           `tfschema:"sparse_diskgroup_enabled"`
+	Ocid                           string                         `tfschema:"ocid"`
+	ScanListenerPortTcp            int64                          `tfschema:"scan_listener_port_tcp"`
+	ScanListenerPortTcpSsl         int64                          `tfschema:"scan_listener_port_tcp_ssl"`
+	StorageManagementType          string                         `tfschema:"storage_management_type"`
+	SystemVersion                  string                         `tfschema:"system_version"`
+	TimeZone                       string                         `tfschema:"time_zone"`
+	ZoneId                         string                         `tfschema:"zone_id"`
+	FileSystemConfiguration        []FileSystemConfigurationModel `tfschema:"file_system_configuration"`
 }
 
 func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -79,7 +79,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		// Required
 		"cloud_exadata_infrastructure_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -174,7 +173,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
-		// Optional
 		"backup_subnet_cidr": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -237,6 +235,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"exascale_database_storage_vault_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: exascaledbstoragevaults.ValidateExascaleDbStorageVaultID,
+		},
+
 		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -292,8 +298,10 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"file_system_configuration": {
-			Type:     pluginsdk.TypeList,
+			Type: pluginsdk.TypeList,
+			// O+C - the value will be different between creation and reading because the API provides an additional immutable or default elements
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mount_point": {
@@ -318,6 +326,11 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"ocid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"storage_management_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -355,12 +368,10 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			param := cloudvmclusters.CloudVMCluster{
-				// Azure
 				Name:     pointer.To(model.Name),
 				Location: model.Location,
 				Tags:     pointer.To(model.Tags),
 				Properties: &cloudvmclusters.CloudVMClusterProperties{
-					// Required
 					CloudExadataInfrastructureId: model.CloudExadataInfrastructureId,
 					CpuCoreCount:                 model.CpuCoreCount,
 					DbServers:                    pointer.To(model.DbServers),
@@ -384,6 +395,11 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			if model.ClusterName != "" {
 				param.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
+
+			if model.ExascaleDatabaseStorageVaultId != "" {
+				param.Properties.ExascaleDbStorageVaultId = pointer.To(model.ExascaleDatabaseStorageVaultId)
+			}
+
 			if len(model.DataCollectionOptions) > 0 {
 				param.Properties.DataCollectionOptions = &cloudvmclusters.DataCollectionOptions{
 					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOptions[0].IsDiagnosticsEventsEnabled),
@@ -497,7 +513,6 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			// Azure
 			if model := resp.Model; model != nil {
 				state.Location = model.Location
 				state.Tags = pointer.From(model.Tags)
@@ -524,17 +539,18 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.SshPublicKeys = tmp
 					state.SubnetId = props.SubnetId
 					state.VnetId = props.VnetId
-					// Optional
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DataCollectionOptions = FlattenDataCollectionOptions(props.DataCollectionOptions)
 					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
 					state.Domain = pointer.From(props.Domain)
+					state.ExascaleDatabaseStorageVaultId = pointer.From(props.ExascaleDbStorageVaultId)
 					state.Ocid = pointer.From(props.Ocid)
 					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
 					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
 					state.ScanListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.ScanListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
+					state.StorageManagementType = pointer.FromEnum(props.StorageManagementType)
 					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneId = pointer.From(props.ZoneId)

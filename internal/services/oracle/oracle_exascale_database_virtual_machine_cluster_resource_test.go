@@ -39,6 +39,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("shape_attribute").HasValue("SMART_STORAGE"),
 			),
 		},
 		data.ImportStep(),
@@ -53,6 +54,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("shape_attribute").HasValue("BLOCK_STORAGE"),
 			),
 		},
 		data.ImportStep("data_collection", "system_version"),
@@ -137,7 +139,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   subnet_id                          = azurerm_subnet.virtual_network_subnet.id
   total_ecpu_count                   = 32
   virtual_machine_file_system_storage {
-    total_size_in_gb = 440
+    total_size_in_gb = 520
   }
   virtual_network_id = azurerm_virtual_network.virtual_network.id
   backup_subnet_cidr = "10.1.0.0/16"
@@ -148,6 +150,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
     incident_logs_enabled      = true
   }
   domain                                          = "ociactsubnet.ociactvnet.oraclevcn.com"
+  shape_attribute                                 = "BLOCK_STORAGE"
   grid_image_ocid                                 = local.grid_image_ocid
   license_model                                   = "BringYourOwnLicense"
   private_zone_ocid                               = "private_zoneocid"

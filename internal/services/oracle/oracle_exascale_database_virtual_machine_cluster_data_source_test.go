@@ -31,6 +31,7 @@ func TestExascaleDatabaseVirtualMachineClusterDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("grid_image_ocid").Exists(),
 				check.That(data.ResourceName).Key("total_ecpu_count").Exists(),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("shape_attribute").HasValue("SMART_STORAGE"),
 			),
 		},
 	})

@@ -25,29 +25,26 @@ var _ sdk.Resource = ExadataInfraResource{}
 type ExadataInfraResource struct{}
 
 type ExadataInfraResourceModel struct {
-	// Azure
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
 
-	// Required
 	ComputeCount int64  `tfschema:"compute_count"`
 	DisplayName  string `tfschema:"display_name"`
 	Shape        string `tfschema:"shape"`
 	StorageCount int64  `tfschema:"storage_count"`
 
-	// Optional
 	DatabaseServerType string                   `tfschema:"database_server_type"`
 	StorageServerType  string                   `tfschema:"storage_server_type"`
 	CustomerContacts   []string                 `tfschema:"customer_contacts"`
 	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	ExascaleConfig     []ExascaleConfigDetails  `tfschema:"exascale_config"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// Azure
 		"location": commonschema.Location(),
 
 		"name": {
@@ -59,7 +56,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		// Required
 		"compute_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -95,7 +91,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 		},
 
-		// Optional
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -199,7 +194,24 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (ExadataInfraResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"exascale_config": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"total_storage_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+					"available_storage_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (ExadataInfraResource) ModelObject() interface{} {
@@ -340,10 +352,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
 					state.Name = pointer.ToString(result.Model.Name)
-					state.Location = result.Model.Location
-					state.Zones = result.Model.Zones
 					state.ResourceGroupName = id.ResourceGroupName
-					state.Tags = pointer.From(result.Model.Tags)
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.DisplayName = props.DisplayName
 					state.StorageCount = pointer.From(props.StorageCount)
@@ -351,6 +360,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
 					state.DatabaseServerType = pointer.From(props.DatabaseServerType)
 					state.StorageServerType = pointer.From(props.StorageServerType)
+					state.ExascaleConfig = FlattenExascaleConfig(props.ExascaleConfig)
 				}
 			}
 

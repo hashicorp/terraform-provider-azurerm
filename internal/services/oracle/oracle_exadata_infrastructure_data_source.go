@@ -42,6 +42,7 @@ type ExadataInfraDataModel struct {
 	DbServerVersion                string                                `tfschema:"db_server_version"`
 	DisplayName                    string                                `tfschema:"display_name"`
 	EstimatedPatchingTime          []EstimatedPatchingTimeModel          `tfschema:"estimated_patching_time"`
+	ExascaleConfig                 []ExascaleConfigDetails               `tfschema:"exascale_config"`
 	LastMaintenanceRunId           string                                `tfschema:"last_maintenance_run_id"`
 	LifecycleDetails               string                                `tfschema:"lifecycle_details"`
 	LifecycleState                 string                                `tfschema:"lifecycle_state"`
@@ -105,7 +106,6 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// CloudExadataInfrastructureProperties
 		"activated_storage_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -190,6 +190,22 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"total_estimated_patching_time": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+				},
+			},
+		},
+		"exascale_config": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"total_storage_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+					"available_storage_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
@@ -443,6 +459,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 					state.DbServerVersion = pointer.From(props.DbServerVersion)
 					state.DisplayName = props.DisplayName
 					state.EstimatedPatchingTime = FlattenEstimatedPatchingTimes(props.EstimatedPatchingTime)
+					state.ExascaleConfig = FlattenExascaleConfig(props.ExascaleConfig)
 					state.LastMaintenanceRunId = pointer.From(props.LastMaintenanceRunId)
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 					state.LifecycleState = string(*props.LifecycleState)
