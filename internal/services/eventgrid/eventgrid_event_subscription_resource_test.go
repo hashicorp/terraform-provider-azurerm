@@ -62,9 +62,9 @@ func TestAccEventGridEventSubscription_azureActionGroupMonitor(t *testing.T) {
 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.1.severity").HasValue("Sev1"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.1.description").HasValue("Blob Created or Blob Deleted"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.severity").HasValue("Sev4"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.description").HasValue("Secret or Certificate about to expire"),
 			),
 		},
 		data.ImportStep(),
@@ -682,12 +682,6 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
@@ -695,49 +689,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "Get",
-    ]
-
-    secret_permissions = [
-      "Get",
-      "Delete",
-      "List",
-      "Purge",
-      "Recover",
-      "Set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-
-    secret_permissions = [
-      "Get",
-      "List",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name            = "secret-%[1]d"
-  value           = "%[2]s"
-  key_vault_id    = azurerm_key_vault.test.id
-  expiration_date = "2029-02-02T12:59:00Z"
-}
-
-resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctesteg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  source_resource_id  = azurerm_key_vault.test.id
-  topic_type          = "Microsoft.KeyVault.Vaults"
 }
 
 resource "azurerm_monitor_action_group" "test" {
