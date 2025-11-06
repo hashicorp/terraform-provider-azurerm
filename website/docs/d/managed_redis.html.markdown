@@ -93,7 +93,9 @@ A `default_database` block exports the following:
 
 * `module` - A list of `module` blocks as defined below.
 
-* `persistence` - A `persistence` block as defined below.
+* `persistence_append_only_file_backup_frequency_in_seconds` - The frequency of Append Only File (AOF) backups.
+
+* `persistence_redis_database_backup_frequency_in_seconds` - The frequency of Redis Database (RDB) backups.
 
 * `port` - The TCP port of the database endpoint.
 
@@ -122,18 +124,6 @@ A `module` block exports the following:
 * `args` - The configuration options for the module.
 
 * `version` - The version of the module.
-
----
-
-A `persistence` block exports the following:
-
-* `redis_database_enabled` - Whether Redis Database persistence method is enabled.
-
-* `redis_database_backup_frequency` - The frequency of backups.
-
-* `append_only_file_enabled` - Whether Append Only File persistence method is enabled.
-
-* `append_only_file_backup_frequency` - The frequency of backups.
 
 ## Timeouts
 

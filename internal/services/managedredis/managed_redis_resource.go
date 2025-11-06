@@ -65,13 +65,14 @@ type CustomerManagedKeyModel struct {
 }
 
 type DefaultDatabaseModel struct {
-	AccessKeysAuthenticationEnabled bool               `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string             `tfschema:"client_protocol"`
-	ClusteringPolicy                string             `tfschema:"clustering_policy"`
-	EvictionPolicy                  string             `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string             `tfschema:"geo_replication_group_name"`
-	Module                          []ModuleModel      `tfschema:"module"`
-	Persistence                     []PersistenceModel `tfschema:"persistence"`
+	AccessKeysAuthenticationEnabled                   bool          `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                                    string        `tfschema:"client_protocol"`
+	ClusteringPolicy                                  string        `tfschema:"clustering_policy"`
+	EvictionPolicy                                    string        `tfschema:"eviction_policy"`
+	GeoReplicationGroupName                           string        `tfschema:"geo_replication_group_name"`
+	Module                                            []ModuleModel `tfschema:"module"`
+	PersistenceAppendOnlyFileBackupFrequencyInSeconds int64         `tfschema:"persistence_append_only_file_backup_frequency_in_seconds"`
+	PersistenceRedisDatabaseBackupFrequencyInHours    int64         `tfschema:"persistence_redis_database_backup_frequency_in_hours"`
 
 	Port               int64  `tfschema:"port"`
 	PrimaryAccessKey   string `tfschema:"primary_access_key"`
@@ -82,13 +83,6 @@ type ModuleModel struct {
 	Name    string `tfschema:"name"`
 	Args    string `tfschema:"args"`
 	Version string `tfschema:"version"`
-}
-
-type PersistenceModel struct {
-	RedisDatabaseEnabled          bool   `tfschema:"redis_database_enabled"`
-	RedisDatabaseBackupFrequency  string `tfschema:"redis_database_backup_frequency"`
-	AppendOnlyFileEnabled         bool   `tfschema:"append_only_file_enabled"`
-	AppendOnlyFileBackupFrequency string `tfschema:"append_only_file_backup_frequency"`
 }
 
 const defaultDatabaseName = "default"
@@ -203,50 +197,25 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"persistence": {
-						Type:          pluginsdk.TypeList,
-						Optional:      true,
-						MaxItems:      1,
-						ConflictsWith: []string{"default_database.0.geo_replication_group_name"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"redis_database_enabled": {
-									Type:          pluginsdk.TypeBool,
-									Optional:      true,
-									ConflictsWith: []string{"default_database.0.persistence.0.append_only_file_enabled"},
-									AtLeastOneOf: []string{
-										"default_database.0.persistence.0.redis_database_enabled",
-										"default_database.0.persistence.0.append_only_file_enabled",
-									},
-									ValidateFunc: validate.BoolIsTrue,
-								},
-
-								"redis_database_backup_frequency": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									RequiredWith: []string{"default_database.0.persistence.0.redis_database_enabled"},
-									ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
-								},
-
-								"append_only_file_enabled": {
-									Type:          pluginsdk.TypeBool,
-									Optional:      true,
-									ConflictsWith: []string{"default_database.0.persistence.0.redis_database_enabled"},
-									AtLeastOneOf: []string{
-										"default_database.0.persistence.0.redis_database_enabled",
-										"default_database.0.persistence.0.append_only_file_enabled",
-									},
-									ValidateFunc: validate.BoolIsTrue,
-								},
-
-								"append_only_file_backup_frequency": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									RequiredWith: []string{"default_database.0.persistence.0.append_only_file_enabled"},
-									ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
-								},
-							},
+					"persistence_append_only_file_backup_frequency_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ConflictsWith: []string{
+							"default_database.0.geo_replication_group_name",
+							"default_database.0.persistence_redis_database_backup_frequency_in_hours",
 						},
+
+						ValidateFunc: validate.AofBackupFrequency,
+					},
+
+					"persistence_redis_database_backup_frequency_in_hours": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ConflictsWith: []string{
+							"default_database.0.geo_replication_group_name",
+							"default_database.0.persistence_append_only_file_backup_frequency_in_seconds",
+						},
+						ValidateFunc: validate.RdbBackupFrequency,
 					},
 
 					"port": {
@@ -438,7 +407,6 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
 						Module:                          flattenModules(props.Modules),
-						Persistence:                     flattenPersistence(props.Persistence),
 						Port:                            pointer.From(props.Port),
 					}
 
@@ -453,6 +421,18 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 							defaultDb.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
 						}
 					}
+
+					aofFreq, err := flattenPersistenceAOF(props.Persistence)
+					if err != nil {
+						return err
+					}
+					defaultDb.PersistenceAppendOnlyFileBackupFrequencyInSeconds = aofFreq
+
+					rdbFreq, err := flattenPersistenceRDB(props.Persistence)
+					if err != nil {
+						return err
+					}
+					defaultDb.PersistenceRedisDatabaseBackupFrequencyInHours = rdbFreq
 
 					state.DefaultDatabase = []DefaultDatabaseModel{defaultDb}
 				}
@@ -557,7 +537,8 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						"default_database.0.access_keys_authentication_enabled",
 						"default_database.0.client_protocol",
 						"default_database.0.eviction_policy",
-						"default_database.0.persistence",
+						"default_database.0.persistence_append_only_file_backup_frequency_in_seconds",
+						"default_database.0.persistence_redis_database_backup_frequency_in_hours",
 					) {
 						existingDb, err := dbClient.Get(ctx, dbId)
 						if err != nil {
@@ -582,8 +563,14 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						if metadata.ResourceData.HasChange("default_database.0.eviction_policy") {
 							dbParams.Properties.EvictionPolicy = pointer.ToEnum[databases.EvictionPolicy](state.DefaultDatabase[0].EvictionPolicy)
 						}
-						if metadata.ResourceData.HasChange("default_database.0.persistence") {
-							dbParams.Properties.Persistence = expandPersistence(state.DefaultDatabase[0].Persistence)
+						if metadata.ResourceData.HasChanges(
+							"default_database.0.persistence_append_only_file_backup_frequency_in_seconds",
+							"default_database.0.persistence_redis_database_backup_frequency_in_hours",
+						) {
+							dbParams.Properties.Persistence = expandPersistence(
+								state.DefaultDatabase[0].PersistenceAppendOnlyFileBackupFrequencyInSeconds,
+								state.DefaultDatabase[0].PersistenceRedisDatabaseBackupFrequencyInHours,
+							)
 						}
 
 						// Despite the method name, Create uses PUT (create-or-update behaviour), which is preferred to Update (PATCH)
@@ -690,7 +677,7 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
-			Persistence:              expandPersistence(dbModel.Persistence),
+			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequencyInSeconds, dbModel.PersistenceRedisDatabaseBackupFrequencyInHours),
 		},
 	}
 
@@ -815,37 +802,59 @@ func dbLen(v interface{}) int {
 	return 0
 }
 
-func expandPersistence(input []PersistenceModel) *databases.Persistence {
-	if len(input) == 0 {
+func expandPersistence(rdbBackupFreqHours int64, aofBackupFreqSec int64) *databases.Persistence {
+	if rdbBackupFreqHours == 0 && aofBackupFreqSec == 0 {
 		return &databases.Persistence{}
 	}
-	model := input[0]
-	persistence := databases.Persistence{
-		RdbEnabled: pointer.To(model.RedisDatabaseEnabled),
-		AofEnabled: pointer.To(model.AppendOnlyFileEnabled),
+
+	if aofBackupFreqSec != 0 {
+		var aofFreq databases.AofFrequency
+		if aofBackupFreqSec == -1 {
+			aofFreq = databases.AofFrequencyAlways
+		} else {
+			aofFreq = databases.AofFrequency(fmt.Sprintf("%ds", aofBackupFreqSec))
+		}
+		return &databases.Persistence{
+			AofEnabled:   pointer.To(true),
+			AofFrequency: pointer.To(aofFreq),
+		}
+	} else {
+		return &databases.Persistence{
+			RdbEnabled:   pointer.To(true),
+			RdbFrequency: pointer.ToEnum[databases.RdbFrequency](fmt.Sprintf("%dh", rdbBackupFreqHours)),
+		}
 	}
-	if model.RedisDatabaseBackupFrequency != "" {
-		persistence.RdbFrequency = pointer.ToEnum[databases.RdbFrequency](model.RedisDatabaseBackupFrequency)
-	}
-	if model.AppendOnlyFileBackupFrequency != "" {
-		persistence.AofFrequency = pointer.ToEnum[databases.AofFrequency](model.AppendOnlyFileBackupFrequency)
-	}
-	return &persistence
 }
 
-func flattenPersistence(input *databases.Persistence) []PersistenceModel {
+func flattenPersistenceAOF(input *databases.Persistence) (int64, error) {
 	if input == nil {
-		return []PersistenceModel{}
+		return 0, nil
 	}
-	rdbEnabled, aofEnabled := pointer.From(input.RdbEnabled), pointer.From(input.AofEnabled)
-	if rdbEnabled || aofEnabled {
-		return []PersistenceModel{{
-			RedisDatabaseEnabled:          rdbEnabled,
-			RedisDatabaseBackupFrequency:  pointer.FromEnum(input.RdbFrequency),
-			AppendOnlyFileEnabled:         aofEnabled,
-			AppendOnlyFileBackupFrequency: pointer.FromEnum(input.AofFrequency),
-		}}
-	} else {
-		return []PersistenceModel{}
+	if pointer.From(input.AofEnabled) {
+		aofFreq := pointer.FromEnum(input.AofFrequency)
+		if aofFreq == string(databases.AofFrequencyAlways) {
+			return -1, nil
+		}
+		duration, err := time.ParseDuration(aofFreq)
+		if err != nil {
+			return 0, fmt.Errorf("parsing `persistence.aofFrequency` value %q: %+v", aofFreq, err)
+		}
+		return int64(duration.Seconds()), nil
 	}
+	return 0, nil
+}
+
+func flattenPersistenceRDB(input *databases.Persistence) (int64, error) {
+	if input == nil {
+		return 0, nil
+	}
+	if pointer.From(input.RdbEnabled) {
+		rdbFreq := pointer.FromEnum(input.RdbFrequency)
+		duration, err := time.ParseDuration(rdbFreq)
+		if err != nil {
+			return 0, fmt.Errorf("parsing `persistence.rdbFrequency` value %q: %+v", rdbFreq, err)
+		}
+		return int64(duration.Hours()), nil
+	}
+	return 0, nil
 }

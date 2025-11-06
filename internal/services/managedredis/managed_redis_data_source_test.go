@@ -34,7 +34,6 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_group_name").HasValue(fmt.Sprintf("acctest-geo-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("default_database.0.geo_replication_linked_database_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_database.0.module.#").HasValue("0"),
-				check.That(data.ResourceName).Key("default_database.0.persistence.#").HasValue("0"),
 				check.That(data.ResourceName).Key("default_database.0.port").HasValue("10000"),
 				check.That(data.ResourceName).Key("default_database.0.primary_access_key").IsNotEmpty(),
 				check.That(data.ResourceName).Key("default_database.0.secondary_access_key").IsNotEmpty(),
@@ -60,8 +59,7 @@ func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
 		{
 			Config: r.dataSourceDbPersistence(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("default_database.0.persistence.0.redis_database_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("default_database.0.persistence.0.redis_database_backup_frequency").HasValue("1h"),
+				check.That(data.ResourceName).Key("default_database.0.persistence_redis_database_backup_frequency_in_hours").HasValue("1"),
 			),
 		},
 	})
@@ -194,10 +192,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B0"
 
   default_database {
-    persistence {
-      redis_database_enabled          = true
-      redis_database_backup_frequency = "1h"
-    }
+    persistence_redis_database_backup_frequency_in_hours = 1
   }
 }
 

@@ -40,17 +40,18 @@ type ManagedRedisDataSourceModel struct {
 }
 
 type DefaultDatabaseDataSourceModel struct {
-	AccessKeysAuthenticationEnabled bool               `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string             `tfschema:"client_protocol"`
-	ClusteringPolicy                string             `tfschema:"clustering_policy"`
-	EvictionPolicy                  string             `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string             `tfschema:"geo_replication_group_name"`
-	GeoReplicationLinkedDatabaseIds []string           `tfschema:"geo_replication_linked_database_ids"`
-	Module                          []ModuleModel      `tfschema:"module"`
-	Persistence                     []PersistenceModel `tfschema:"persistence"`
-	Port                            int64              `tfschema:"port"`
-	PrimaryAccessKey                string             `tfschema:"primary_access_key"`
-	SecondaryAccessKey              string             `tfschema:"secondary_access_key"`
+	AccessKeysAuthenticationEnabled                   bool          `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                                    string        `tfschema:"client_protocol"`
+	ClusteringPolicy                                  string        `tfschema:"clustering_policy"`
+	EvictionPolicy                                    string        `tfschema:"eviction_policy"`
+	GeoReplicationGroupName                           string        `tfschema:"geo_replication_group_name"`
+	GeoReplicationLinkedDatabaseIds                   []string      `tfschema:"geo_replication_linked_database_ids"`
+	Module                                            []ModuleModel `tfschema:"module"`
+	PersistenceAppendOnlyFileBackupFrequencyInSeconds int64         `tfschema:"persistence_append_only_file_backup_frequency_in_seconds"`
+	PersistenceRedisDatabaseBackupFrequencyInHours    int64         `tfschema:"persistence_redis_database_backup_frequency_in_hours"`
+	Port                                              int64         `tfschema:"port"`
+	PrimaryAccessKey                                  string        `tfschema:"primary_access_key"`
+	SecondaryAccessKey                                string        `tfschema:"secondary_access_key"`
 }
 
 func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -146,32 +147,14 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"persistence": {
-						Type:     pluginsdk.TypeList,
+					"persistence_append_only_file_backup_frequency_in_seconds": {
+						Type:     pluginsdk.TypeInt,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"redis_database_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
-								},
+					},
 
-								"redis_database_backup_frequency": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"append_only_file_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Computed: true,
-								},
-
-								"append_only_file_backup_frequency": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
+					"persistence_redis_database_backup_frequency_in_hours": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 
 					"port": {
@@ -285,7 +268,6 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
 						Module:                          flattenModules(props.Modules),
-						Persistence:                     flattenPersistence(props.Persistence),
 						Port:                            pointer.From(props.Port),
 					}
 
@@ -303,6 +285,18 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 							defaultDb.SecondaryAccessKey = pointer.From(keysResp.Model.SecondaryKey)
 						}
 					}
+
+					aofFreq, err := flattenPersistenceAOF(props.Persistence)
+					if err != nil {
+						return err
+					}
+					defaultDb.PersistenceAppendOnlyFileBackupFrequencyInSeconds = aofFreq
+
+					rdbFreq, err := flattenPersistenceRDB(props.Persistence)
+					if err != nil {
+						return err
+					}
+					defaultDb.PersistenceRedisDatabaseBackupFrequencyInHours = rdbFreq
 
 					state.DefaultDatabase = []DefaultDatabaseDataSourceModel{defaultDb}
 				}

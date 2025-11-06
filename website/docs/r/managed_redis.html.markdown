@@ -154,11 +154,13 @@ A `default_database` block supports the following:
 
 * `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`.
 
-* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
+* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Conflicts with `persistence_append_only_file_backup_frequency_in_seconds` and `persistence_redis_database_backup_frequency_in_hours`, persistence can only be enabled on non-geo-replicated databases. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information. Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
-* `persistence` - (Optional) A `persistence` block as defined below. Persistence cannot be enabled on geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
+* `persistence_append_only_file_backup_frequency_in_seconds` - (Optional) The frequency of Append Only File (AOF) backups. Possible value is `1`. Providing this value implies AOF persistence method is enabled. Conflicts with `persistence_redis_database_backup_frequency_in_hours`, only one persistence method is allowed. Conflicts with `geo_replication_group_name`, persistence can only be enabled on non-geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
+
+* `persistence_redis_database_backup_frequency_in_hours` - (Optional) The frequency of Redis Database (RDB) backups. Possible values are `1`, `6` and `12`. Providing this value implies RDB persistence method is enabled. Conflicts with `persistence_append_only_file_backup_frequency_in_seconds`, only one persistence method is allowed. Conflicts with `geo_replication_group_name`, persistence can only be enabled on non-geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
 
 ---
 
@@ -187,20 +189,6 @@ A `module` block supports the following:
 * `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`). Changing this forces a new database to be created, data will be lost and Managed Redis will be unavailable during the operation.
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
-
----
-
-A `persistence` block supports the following:
-
-* `redis_database_enabled` - (Optional) Whether Redis Database persistence method is enabled.
-
-* `redis_database_backup_frequency` - (Optional) The frequency of backups. Possible values are `1h`, `6h` and `12h`. Required if `redis_database_enabled` is set to `true`.
-
-* `append_only_file_enabled` - (Optional) Whether Append Only File persistence method is enabled.
-
-* `append_only_file_backup_frequency` - (Optional) The frequency of backups. Possible values is `1s`. Required if `append_only_file_enabled` is set to `true`.
-
-~> **Note:** Persistence cannot be enabled on geo-replicated databases. Only one persistence method can be enabled at a time. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
 
 ## Attributes Reference
 

@@ -211,17 +211,6 @@ func TestAccManagedRedis_dbPersistenceConflictsWithGeoReplication(t *testing.T) 
 	})
 }
 
-func TestAccManagedRedis_dbPersistenceCannotProvideFalseValue(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-	r := ManagedRedisResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.dbPersistenceCannotProvideFalseValue(),
-			ExpectError: regexp.MustCompile(`expected .* to be true, got false`),
-		},
-	})
-}
-
 func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -626,10 +615,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B0"
 
   default_database {
-    persistence {
-      redis_database_enabled          = true
-      redis_database_backup_frequency = "12h"
-    }
+    persistence_redis_database_backup_frequency_in_hours = 12
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -654,10 +640,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B0"
 
   default_database {
-    persistence {
-      append_only_file_enabled          = true
-      append_only_file_backup_frequency = "1s"
-    }
+    persistence_append_only_file_backup_frequency_in_seconds = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -677,12 +660,8 @@ resource "azurerm_managed_redis" "test" {
   sku_name            = "Balanced_B0"
 
   default_database {
-    persistence {
-      redis_database_enabled            = true
-      redis_database_backup_frequency   = "1h"
-      append_only_file_enabled          = true
-      append_only_file_backup_frequency = "1s"
-    }
+    persistence_redis_database_backup_frequency_in_hours     = 1
+    persistence_append_only_file_backup_frequency_in_seconds = 1
   }
 }
   `
@@ -702,34 +681,8 @@ resource "azurerm_managed_redis" "test" {
   sku_name            = "Balanced_B0"
 
   default_database {
-    geo_replication_group_name = "acctest-amr"
-
-    persistence {
-      redis_database_enabled          = true
-      redis_database_backup_frequency = "1h"
-    }
-  }
-}`
-}
-
-func (r ManagedRedisResource) dbPersistenceCannotProvideFalseValue() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_managed_redis" "test" {
-  name     = "acctest-invalid"
-  location = "eastus"
-
-  resource_group_name = "my-rg"
-  sku_name            = "Balanced_B0"
-
-  default_database {
-    persistence {
-      redis_database_enabled          = false
-      redis_database_backup_frequency = "1h"
-    }
+    geo_replication_group_name                           = "acctest-amr"
+    persistence_redis_database_backup_frequency_in_hours = 1
   }
 }`
 }
