@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases` Documentation
 
-The `databases` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2025-04-01`).
+The `databases` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2025-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 ```
 
 

@@ -3,6 +3,8 @@ package redisenterprise
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ClusterPropertiesEncryption struct {
-	CustomerManagedKeyEncryption *ClusterPropertiesEncryptionCustomerManagedKeyEncryption `json:"customerManagedKeyEncryption,omitempty"`
+const defaultApiVersion = "2025-07-01"
+
+func userAgent() string {
+	return "hashicorp/go-azure-sdk/redisenterprise/2025-07-01"
 }

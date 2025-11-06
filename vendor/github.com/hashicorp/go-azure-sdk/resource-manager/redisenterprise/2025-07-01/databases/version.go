@@ -1,8 +1,10 @@
-package redisenterprise
+package databases
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DatabaseUpdate struct {
-	Properties *DatabaseProperties `json:"properties,omitempty"`
+const defaultApiVersion = "2025-07-01"
+
+func userAgent() string {
+	return "hashicorp/go-azure-sdk/databases/2025-07-01"
 }
