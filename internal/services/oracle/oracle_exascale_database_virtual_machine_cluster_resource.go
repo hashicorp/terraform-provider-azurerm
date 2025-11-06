@@ -129,9 +129,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice([]string{"EXADBXS"}, false),
 		},
 
 		"ssh_public_keys": {
