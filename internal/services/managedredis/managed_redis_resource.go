@@ -677,7 +677,7 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
-			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequencyInSeconds, dbModel.PersistenceRedisDatabaseBackupFrequencyInHours),
+			Persistence:              expandPersistence(dbModel.PersistenceRedisDatabaseBackupFrequencyInHours, dbModel.PersistenceAppendOnlyFileBackupFrequencyInSeconds),
 		},
 	}
 
