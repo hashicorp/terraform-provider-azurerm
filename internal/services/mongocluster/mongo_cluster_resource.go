@@ -12,7 +12,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -33,6 +35,7 @@ type MongoClusterResourceModel struct {
 	AdministratorUserName string                         `tfschema:"administrator_username"`
 	AdministratorPassword string                         `tfschema:"administrator_password"`
 	CreateMode            string                         `tfschema:"create_mode"`
+	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
 	ShardCount            int64                          `tfschema:"shard_count"`
 	SourceLocation        string                         `tfschema:"source_location"`
 	SourceServerId        string                         `tfschema:"source_server_id"`
@@ -98,6 +101,8 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(mongoclusters.CreateModeGeoReplica),
 			}, false),
 		},
+
+		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
 
 		"preview_features": {
 			Type:     pluginsdk.TypeList,
@@ -246,7 +251,9 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameter := mongoclusters.MongoCluster{
-				Location:   location.Normalize(state.Location),
+				Location: location.Normalize(state.Location),
+				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
+				Identity:   expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{},
 			}
 
@@ -439,6 +446,13 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
+
+				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
+				identity, err := flattenMongoClusterIdentity(model.Identity)
+				if err != nil {
+					return err
+				}
+				state.Identity = identity
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
@@ -641,4 +655,50 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 	}
 
 	return results
+}
+
+func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.LegacySystemAndUserAssignedMap {
+	if len(input) == 0 {
+		return nil
+	}
+
+	identityObj := input[0]
+
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
+	for _, v := range identityObj.IdentityIds {
+		identityIds[v] = identity.UserAssignedIdentityDetails{
+			// intentionally empty since the expand shouldn't send these values
+		}
+	}
+
+	return &identity.LegacySystemAndUserAssignedMap{
+		Type:        identityObj.Type,
+		IdentityIds: identityIds,
+	}
+}
+
+func flattenMongoClusterIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
+	if input == nil {
+		return []identity.ModelUserAssigned{}, nil
+	}
+
+	if input.Type != identity.TypeUserAssigned {
+		return []identity.ModelUserAssigned{}, nil
+	}
+
+	identityIds := make([]string, 0)
+	for raw := range input.IdentityIds {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+		}
+		identityIds = append(identityIds, id.ID())
+	}
+
+	return []identity.ModelUserAssigned{
+		{
+			Type:        input.Type,
+			IdentityIds: identityIds,
+		},
+	}, nil
 }
