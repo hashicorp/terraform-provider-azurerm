@@ -362,8 +362,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
-			// Set `identity` to `nil` to avoid schema validation errors returned by service API when upgrading API version from `2024-07-01` to `2025-09-01`.
-			payload.Identity = nil
+			// Set `identity` to `nil` to avoid schema validation errors returned by service API when identity type is `None`.
+			if payload.Identity != nil && payload.Identity.Type == identity.TypeNone {
+				payload.Identity = nil
+			}
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
