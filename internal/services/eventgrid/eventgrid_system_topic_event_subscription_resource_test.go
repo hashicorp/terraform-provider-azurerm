@@ -78,11 +78,9 @@ func TestAccEventGridSystemTopicEventSubscription_azureActionGroupMonitor(t *tes
 			Config: r.azureActionGroupMonitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("sev").HasValue("Sev1"),
-				check.That(data.ResourceName).Key("description").HasValue("Something is wrong with the website"),
-				check.That(data.ResourceName).Key("action_groups.#").HasValue("1"),
-				check.That(data.ResourceName).Key("action_groups.1").HasValue("azurerm_monitor_action_group.id"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.severity").HasValue("Sev4"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.description").HasValue("Keyvault activity"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -895,41 +893,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "Get",
-    ]
-
-    secret_permissions = [
-      "Get",
-      "Delete",
-      "List",
-      "Purge",
-      "Recover",
-      "Set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-
-    secret_permissions = [
-      "Get",
-      "List",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name            = "secret-%[1]d"
-  value           = "%[2]s"
-  key_vault_id    = azurerm_key_vault.test.id
-  expiration_date = "2029-02-02T12:59:00Z"
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -951,21 +914,17 @@ resource "azurerm_monitor_action_group" "test" {
   }
 }
 
-resource "azurerm_eventgrid_event_subscription" "test" {
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   name                  = "acctest-eg-%[1]d"
-  scope                 = azurerm_key_vault.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+  system_topic          = azurerm_eventgrid_system_topic.test.name
   event_delivery_schema = "CloudEventSchemaV1_0"
 
   azure_alert_monitor_endpoint {
     action_groups = [azurerm_monitor_action_group.test.id]
-    description   = "Secret or Certificate about to expire"
+    description   = "Keyvault activity"
     severity      = "Sev4"
   }
-
-  included_event_types = [
-    "Microsoft.KeyVault.SecretNearExpiry",
-    "Microsoft.KeyVault.CertificateNearExpiry",
-  ]
 
   depends_on = [
     azurerm_monitor_action_group.test,
