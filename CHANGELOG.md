@@ -16,6 +16,7 @@ FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_api_version_set` [GH-30498]
 
 BUG FIXES:
+* `azurerm_container_registry_task` - prevent a panic by adding a nil check [GH-31043]
 
 ## 4.51.0 (October 30, 2025)
 
