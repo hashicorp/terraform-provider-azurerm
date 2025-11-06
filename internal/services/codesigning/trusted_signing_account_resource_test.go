@@ -93,11 +93,11 @@ func (a TrustedSigningAccountResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_trusted_signing_account" "test" {
   name                = "acctest-%[2]s"
-  location            = "%[3]s"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
-`, a.template(data), data.RandomString, data.Locations.Primary)
+`, a.template(data), data.RandomString)
 }
 
 func (a TrustedSigningAccountResource) complete(data acceptance.TestData) string {
@@ -106,14 +106,14 @@ func (a TrustedSigningAccountResource) complete(data acceptance.TestData) string
 
 resource "azurerm_trusted_signing_account" "test" {
   name                = "acctest-%[2]s"
-  location            = "%[3]s"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium"
   tags = {
     key = "example"
   }
 }
-`, a.template(data), data.RandomString, data.Locations.Primary)
+`, a.template(data), data.RandomString)
 }
 
 func (a TrustedSigningAccountResource) template(data acceptance.TestData) string {
@@ -124,7 +124,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  location = "eastus" # Hardcoding location because resource type Microsoft.CodeSigning/codeSigningAccounts is only available in 'westcentralus, westus2, northeurope, westeurope, eastus, westus, westus3, centraluseuap'
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger)
 }
