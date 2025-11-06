@@ -61,7 +61,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "chaosstudio" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         // Codesigning is only available in certain locations
-        "codesigning" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
+        "codesigning" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", true)),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
         // cognitive is only available in certain locations
