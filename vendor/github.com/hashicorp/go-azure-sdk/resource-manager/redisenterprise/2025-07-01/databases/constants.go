@@ -136,12 +136,14 @@ type ClusteringPolicy string
 
 const (
 	ClusteringPolicyEnterpriseCluster ClusteringPolicy = "EnterpriseCluster"
+	ClusteringPolicyNoCluster         ClusteringPolicy = "NoCluster"
 	ClusteringPolicyOSSCluster        ClusteringPolicy = "OSSCluster"
 )
 
 func PossibleValuesForClusteringPolicy() []string {
 	return []string{
 		string(ClusteringPolicyEnterpriseCluster),
+		string(ClusteringPolicyNoCluster),
 		string(ClusteringPolicyOSSCluster),
 	}
 }
@@ -162,6 +164,7 @@ func (s *ClusteringPolicy) UnmarshalJSON(bytes []byte) error {
 func parseClusteringPolicy(input string) (*ClusteringPolicy, error) {
 	vals := map[string]ClusteringPolicy{
 		"enterprisecluster": ClusteringPolicyEnterpriseCluster,
+		"nocluster":         ClusteringPolicyNoCluster,
 		"osscluster":        ClusteringPolicyOSSCluster,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

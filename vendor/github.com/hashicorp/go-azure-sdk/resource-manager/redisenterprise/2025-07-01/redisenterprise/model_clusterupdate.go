@@ -9,7 +9,7 @@ import (
 
 type ClusterUpdate struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
-	Properties *ClusterProperties                 `json:"properties,omitempty"`
+	Properties *ClusterUpdateProperties           `json:"properties,omitempty"`
 	Sku        *Sku                               `json:"sku,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 }

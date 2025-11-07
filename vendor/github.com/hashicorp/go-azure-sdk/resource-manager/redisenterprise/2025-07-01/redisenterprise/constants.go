@@ -136,12 +136,14 @@ type ClusteringPolicy string
 
 const (
 	ClusteringPolicyEnterpriseCluster ClusteringPolicy = "EnterpriseCluster"
+	ClusteringPolicyNoCluster         ClusteringPolicy = "NoCluster"
 	ClusteringPolicyOSSCluster        ClusteringPolicy = "OSSCluster"
 )
 
 func PossibleValuesForClusteringPolicy() []string {
 	return []string{
 		string(ClusteringPolicyEnterpriseCluster),
+		string(ClusteringPolicyNoCluster),
 		string(ClusteringPolicyOSSCluster),
 	}
 }
@@ -162,6 +164,7 @@ func (s *ClusteringPolicy) UnmarshalJSON(bytes []byte) error {
 func parseClusteringPolicy(input string) (*ClusteringPolicy, error) {
 	vals := map[string]ClusteringPolicy{
 		"enterprisecluster": ClusteringPolicyEnterpriseCluster,
+		"nocluster":         ClusteringPolicyNoCluster,
 		"osscluster":        ClusteringPolicyOSSCluster,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -628,6 +631,47 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ProvisioningState(input)
+	return &out, nil
+}
+
+type PublicNetworkAccess string
+
+const (
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled  PublicNetworkAccess = "Enabled"
+)
+
+func PossibleValuesForPublicNetworkAccess() []string {
+	return []string{
+		string(PublicNetworkAccessDisabled),
+		string(PublicNetworkAccessEnabled),
+	}
+}
+
+func (s *PublicNetworkAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
+	vals := map[string]PublicNetworkAccess{
+		"disabled": PublicNetworkAccessDisabled,
+		"enabled":  PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicNetworkAccess(input)
 	return &out, nil
 }
 
