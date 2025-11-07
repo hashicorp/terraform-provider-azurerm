@@ -131,6 +131,12 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				if old != new {
+					return false
+				}
+				return true
+			},
 		},
 
 		"hostname": {
@@ -307,13 +313,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 				},
-			},
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Suppress diff, Creating and Reading file_system_configuration are different.
-				if d.Id() != "" {
-					return true
-				}
-				return false
 			},
 		},
 	}
