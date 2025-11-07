@@ -19,8 +19,10 @@ Here are some general guidelines you can turn to when naming properties:
 * Properties for certificates or artifacts that must be in a certain format should be appended with the format e.g.
 > A certificate that must be base64 encoded should be named `certificate_base64`
 
-* Similarly, properties that pertain to sizes or durations/windows/occurrences should be appended with the appropriate unit of measure e.g.
+* Similarly, properties that pertain to sizes or durations/windows/occurrences should be appended with the appropriate unit of measure. However refrain appending unit of measure where the possible values are string enums with unit suffix such as `1s`, `12h` to avoid complex two way integer-string mapping logic e.g.
 > `duration_in_seconds` or `size_in_gb`
+
+> `duration = "12h"` (only for enum values)
 
 * Time properties that are not in the format of RFC3339 or are specified as UTC in the documentation should have that appended e.g.
  > `timestamp_in_utc`
