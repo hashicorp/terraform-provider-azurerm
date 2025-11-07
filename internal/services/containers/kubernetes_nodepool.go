@@ -670,6 +670,36 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 	}
 }
 
+func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_surge": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"node_soak_duration_in_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+				},
+			},
+		},
+	}
+}
+
 func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAgentPoolProfile) agentpools.AgentPool {
 	defaultCluster := (*input)[0]
 

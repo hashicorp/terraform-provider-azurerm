@@ -316,7 +316,7 @@ A `upgrade_settings` block supports the following:
 
 ~> **Note:** Exactly one of `max_surge` or `max_unavailable` must be specified.
 
-* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
+* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`. Unsetting this after configuring it will force a new resource to be created.
 
 ---
 
