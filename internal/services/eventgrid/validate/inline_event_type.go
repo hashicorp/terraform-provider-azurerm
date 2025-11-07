@@ -1,6 +1,6 @@
 package validate
 
-import "fmt"
+import "errors"
 
 func ValidateUniqueInlineEventTypeNames(input []interface{}) error {
 	if len(input) <= 1 {
@@ -13,7 +13,7 @@ func ValidateUniqueInlineEventTypeNames(input []interface{}) error {
 		name := eventType["name"].(string)
 
 		if seen[name] {
-			return fmt.Errorf("invalid value for `partner_topic.0.event_type_definitions.0.inline_event_type` - `name` must be unique")
+			return errors.New("invalid value for `partner_topic.0.event_type_definitions.0.inline_event_type` - `name` must be unique")
 		}
 		seen[name] = true
 	}
