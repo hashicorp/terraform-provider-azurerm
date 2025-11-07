@@ -1,3 +1,11 @@
+## 4.53.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.52.0 (November 06, 2025)
 
 **NOTE:** This release removes the `azurerm_spatial_anchors_account` resource and data source due to Azure having retired the service
