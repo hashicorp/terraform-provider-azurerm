@@ -115,7 +115,7 @@ func TestAccLogAnalyticsWorkspaceTableCustomLog_planBasic(t *testing.T) {
 		{
 			Config:      r.basicPlanWithRetentionInDays(data),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("`retention_in_days` cannot be set for the `Basic` plan"),
+			ExpectError: regexp.MustCompile("`retention_in_days` cannot be set when `plan` is set to `Basic`"),
 		},
 	})
 }
