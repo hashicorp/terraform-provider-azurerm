@@ -5,8 +5,11 @@ package mongoclusters
 
 type MongoClusterUpdateProperties struct {
 	Administrator       *AdministratorProperties    `json:"administrator,omitempty"`
+	AuthConfig          *AuthConfigProperties       `json:"authConfig,omitempty"`
 	Backup              *BackupProperties           `json:"backup,omitempty"`
 	Compute             *ComputeProperties          `json:"compute,omitempty"`
+	DataApi             *DataApiProperties          `json:"dataApi,omitempty"`
+	Encryption          *EncryptionProperties       `json:"encryption,omitempty"`
 	HighAvailability    *HighAvailabilityProperties `json:"highAvailability,omitempty"`
 	PreviewFeatures     *[]PreviewFeature           `json:"previewFeatures,omitempty"`
 	PublicNetworkAccess *PublicNetworkAccess        `json:"publicNetworkAccess,omitempty"`
