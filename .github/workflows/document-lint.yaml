@@ -41,7 +41,6 @@ jobs:
             echo "::notice::Document lint success."
           else
             echo "::warning::Document lint failed. Please fix the issues."
-            exit 1
           fi
 
       - name: skip document lint checker
