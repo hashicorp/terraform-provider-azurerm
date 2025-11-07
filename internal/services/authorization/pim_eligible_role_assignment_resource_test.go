@@ -333,7 +333,7 @@ data "azurerm_role_definition" "test" {
 %[1]s
 
 resource "azurerm_management_group" "test" {
-  name     = "acctestmg-%[2]d"
+  name = "acctestmg-%[2]d"
 }
 
 resource "time_static" "test" {}
@@ -373,7 +373,7 @@ data "azurerm_role_definition" "test" {
 %[1]s
 
 resource "azurerm_management_group" "test" {
-  name     = "acctestmg-%[2]d"
+  name = "acctestmg-%[2]d"
 }
 
 resource "time_static" "test" {}
