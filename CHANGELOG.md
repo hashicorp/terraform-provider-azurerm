@@ -1,6 +1,7 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `mongocluster` - update to API version `2025-09-01` [GH-30982]
 `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
 
 FEATURES:
