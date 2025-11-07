@@ -667,7 +667,7 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
-			Persistence:              expandPersistence(dbModel.PersistenceRedisDatabaseBackupFrequency, dbModel.PersistenceAppendOnlyFileBackupFrequency),
+			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequency, dbModel.PersistenceRedisDatabaseBackupFrequency),
 		},
 	}
 
@@ -792,7 +792,7 @@ func dbLen(v interface{}) int {
 	return 0
 }
 
-func expandPersistence(rdbBackupFreq string, aofBackupFreq string) *databases.Persistence {
+func expandPersistence(aofBackupFreq string, rdbBackupFreq string) *databases.Persistence {
 	if rdbBackupFreq == "" && aofBackupFreq == "" {
 		return &databases.Persistence{}
 	}
