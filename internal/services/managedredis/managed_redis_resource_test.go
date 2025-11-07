@@ -615,7 +615,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B0"
 
   default_database {
-    persistence_redis_database_backup_frequency_in_hours = 12
+    persistence_redis_database_backup_frequency = "12h"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -640,7 +640,7 @@ resource "azurerm_managed_redis" "test" {
   sku_name = "Balanced_B0"
 
   default_database {
-    persistence_append_only_file_backup_frequency_in_seconds = 1
+    persistence_append_only_file_backup_frequency = "1s"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -660,8 +660,8 @@ resource "azurerm_managed_redis" "test" {
   sku_name            = "Balanced_B0"
 
   default_database {
-    persistence_redis_database_backup_frequency_in_hours     = 1
-    persistence_append_only_file_backup_frequency_in_seconds = 1
+    persistence_redis_database_backup_frequency   = "1h"
+    persistence_append_only_file_backup_frequency = "1s"
   }
 }
   `
@@ -681,8 +681,8 @@ resource "azurerm_managed_redis" "test" {
   sku_name            = "Balanced_B0"
 
   default_database {
-    geo_replication_group_name                           = "acctest-amr"
-    persistence_redis_database_backup_frequency_in_hours = 1
+    geo_replication_group_name                  = "acctest-amr"
+    persistence_redis_database_backup_frequency = "1h"
   }
 }`
 }
