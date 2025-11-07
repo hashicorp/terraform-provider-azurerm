@@ -6,6 +6,7 @@ ENHANCEMENTS:
 `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
 
 FEATURES:
+* **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
 
 BUG FIXES:
 
