@@ -1,9 +1,12 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
-`azurerm_api_management_backend` - add support for the `circuit_breaker_rule` block  [GH-30471]
+* `azurerm_api_management_backend` - add support for the `circuit_breaker_rule` block  [GH-30471]
 * dependencies: `mongocluster` - update to API version `2025-09-01` [GH-30982]
-`azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
+* dependencies: `go-azure-sdk` - update to `v0.20251029.1173336` [GH-31051]
+* dependencies: `managedredis` - update to API Version `2025-07-01` [GH-31051]
+* `azurerm_managed_redis` - Add support for `public_network_access` [GH-31051]
 
 FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
