@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -35,6 +36,7 @@ type MongoClusterResourceModel struct {
 	AdministratorUserName string                         `tfschema:"administrator_username"`
 	AdministratorPassword string                         `tfschema:"administrator_password"`
 	CreateMode            string                         `tfschema:"create_mode"`
+	CustomerManagedKey    []CustomerManagedKeyModel      `tfschema:"customer_managed_key"`
 	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
 	ShardCount            int64                          `tfschema:"shard_count"`
 	SourceLocation        string                         `tfschema:"source_location"`
@@ -53,6 +55,11 @@ type MongoClusterConnectionString struct {
 	Value       string `tfschema:"value"`
 	Description string `tfschema:"description"`
 	Name        string `tfschema:"name"`
+}
+
+type CustomerManagedKeyModel struct {
+	KeyVaultKeyId          string `tfschema:"key_vault_key_id"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -100,6 +107,28 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(mongoclusters.CreateModeDefault),
 				string(mongoclusters.CreateModeGeoReplica),
 			}, false),
+		},
+
+		"customer_managed_key": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
@@ -253,8 +282,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			parameter := mongoclusters.MongoCluster{
 				Location: location.Normalize(state.Location),
 				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
-				Identity:   expandMongoClusterIdentity(state.Identity),
-				Properties: &mongoclusters.MongoClusterProperties{},
+				Identity: expandMongoClusterIdentity(state.Identity),
+				Properties: &mongoclusters.MongoClusterProperties{
+					Encryption: expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
+				},
 			}
 
 			if state.AdministratorUserName != "" {
@@ -413,6 +444,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -462,6 +497,8 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					// API doesn't return the value of create_mode, https://github.com/Azure/azure-rest-api-specs/issues/31266 has been filed to track it.
 					state.CreateMode = metadata.ResourceData.Get("create_mode").(string)
+
+					state.CustomerManagedKey = flattenMongoClusterCustomerManagedKey(props.Encryption)
 
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
@@ -703,4 +740,41 @@ func flattenMongoClusterIdentity(input *identity.LegacySystemAndUserAssignedMap)
 			IdentityIds: identityIds,
 		},
 	}, nil
+}
+
+func expandMongoClusterCustomerManagedKey(input []CustomerManagedKeyModel) *mongoclusters.EncryptionProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	cmk := input[0]
+
+	return &mongoclusters.EncryptionProperties{
+		CustomerManagedKeyEncryption: &mongoclusters.CustomerManagedKeyEncryptionProperties{
+			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
+			KeyEncryptionKeyIdentity: &mongoclusters.KeyEncryptionKeyIdentity{
+				IdentityType:                   pointer.To(mongoclusters.KeyEncryptionKeyIdentityTypeUserAssignedIdentity),
+				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
+			},
+		},
+	}
+}
+
+func flattenMongoClusterCustomerManagedKey(input *mongoclusters.EncryptionProperties) []CustomerManagedKeyModel {
+	if input == nil || input.CustomerManagedKeyEncryption == nil {
+		return []CustomerManagedKeyModel{}
+	}
+
+	cmkEncryption := input.CustomerManagedKeyEncryption
+	uaiResourceId := ""
+	if cmkEncryption.KeyEncryptionKeyIdentity != nil {
+		uaiResourceId = pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
+	}
+
+	return []CustomerManagedKeyModel{
+		{
+			KeyVaultKeyId:          pointer.From(cmkEncryption.KeyEncryptionKeyURL),
+			UserAssignedIdentityId: uaiResourceId,
+		},
+	}
 }

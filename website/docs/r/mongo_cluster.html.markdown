@@ -81,7 +81,9 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as detailed below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as detailed below. Changing this forces a new resource to be created.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -107,11 +109,19 @@ The following arguments are supported:
 
 ---
 
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the key vault key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`.
+
+* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity that has access to the Key Vault Key.
+
+---
+
 An `identity` block supports the following:
 
-* `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`.
+* `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
