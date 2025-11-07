@@ -6,6 +6,7 @@ package authorization_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -35,6 +36,47 @@ func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
 			),
 		},
 		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
+
+func TestAccPimEligibleRoleAssignment_invalidRoleDefinitionIdSubscriptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidRoleDefinitionIdSubscriptionScope(data),
+			ExpectError: regexp.MustCompile("when `scope` is a subscription or resource, `role_definition_id` must include the subscription id part"),
+		},
+	})
+}
+
+func TestAccPimEligibleRoleAssignment_managementGroupScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managementGroupScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+				check.That(data.ResourceName).Key("schedule.0.expiration.0.duration_hours").HasValue("8"),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
+
+func TestAccPimEligibleRoleAssignment_invalidManagementGroupRoleDefinitionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidManagementGroupRoleDefinitionId(data),
+			ExpectError: regexp.MustCompile("when `scope` is a management group, `role_definition_id` must NOT include the subscription id part"),
+		},
 	})
 }
 
@@ -258,6 +300,104 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r PimEligibleRoleAssignmentResource) invalidRoleDefinitionIdSubscriptionScope(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Disk Backup Reader"
+}
+
+%[1]s
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = azuread_user.test.object_id
+}
+`, r.template(data))
+}
+
+func (r PimEligibleRoleAssignmentResource) managementGroupScope(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "ContainerApp Reader"
+}
+
+%[1]s
+
+resource "azurerm_management_group" "test" {
+  name     = "acctestmg-%[2]d"
+}
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = azurerm_management_group.test.id
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PimEligibleRoleAssignmentResource) invalidManagementGroupRoleDefinitionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "ContainerApp Reader"
+}
+
+%[1]s
+
+resource "azurerm_management_group" "test" {
+  name     = "acctestmg-%[2]d"
+}
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = azurerm_management_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PimEligibleRoleAssignmentResource) expirationByDurationDays(data acceptance.TestData) string {
