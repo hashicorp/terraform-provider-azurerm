@@ -5,9 +5,7 @@ package oracle
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -517,6 +515,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
 					state.DbServers = pointer.From(props.DbServers)
 					state.DisplayName = props.DisplayName
+					state.GiVersion = props.GiVersion
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
 					state.LicenseModel = string(pointer.From(props.LicenseModel))
@@ -547,14 +546,6 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.ZoneId = pointer.From(props.ZoneId)
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
 
-					// our downstream service started sending gi version with minor value,
-					// for this reason we need to extract the major value only to avoid state drift
-					giMajorVersionPtr, err := getMajorGiVersion(&props.GiVersion)
-					if err != nil {
-						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-					} else if giMajorVersionPtr != nil {
-						state.GiVersion = *giMajorVersionPtr
-					}
 				}
 			}
 
@@ -606,22 +597,4 @@ func removeHostnameSuffix(hostnameActual string) string {
 	} else {
 		return hostnameActual
 	}
-}
-
-func getMajorGiVersion(giVersionComputed *string) (*string, error) {
-	if giVersionComputed == nil || *giVersionComputed == "" {
-		return nil, errors.New("giVersionComputed cannot be nil or empty")
-	}
-	const MajorGiVersionPattern = `^(\d{2})\.0\.0\.0$`
-
-	giVersionMajor := strings.Split(*giVersionComputed, ".")[0]
-	giMajorVersion := giVersionMajor + ".0.0.0"
-	regxGiVersionMajor := regexp.MustCompile(MajorGiVersionPattern)
-
-	if !regxGiVersionMajor.MatchString(giMajorVersion) {
-		return nil, fmt.Errorf("GI major version %q retrieved from gi_version_computed does not match pattern %q",
-			giMajorVersion, MajorGiVersionPattern)
-	}
-
-	return &giMajorVersion, nil
 }
