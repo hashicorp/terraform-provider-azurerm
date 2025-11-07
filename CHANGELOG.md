@@ -1,6 +1,7 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
 
 FEATURES:
 
