@@ -66,7 +66,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
   enabled_ecpu_count                 = 4
   hostname                           = "hostname"
   node_count                         = 2
-  shape                              = "ExaDbXS"
+  shape                              = "EXADBXS"
   ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
   subnet_id                          = azurerm_subnet.example.id
   total_ecpu_count                   = 10
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure.
 
-* `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource Changing this forces a new resource to be created.
+* `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource.Possible values is `EXADBXS`.  Changing this forces a new resource to be created.
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
