@@ -28,23 +28,10 @@ resource "azurerm_log_analytics_workspace" "example" {
 resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
   name         = "example_CL"
   workspace_id = azurerm_log_analytics_workspace.example.id
-  display_name = "Example Custom Log"
-  description  = "Custom log table for example data"
-  plan         = "Analytics"
 
   column {
     name = "TimeGenerated"
     type = "datetime"
-  }
-
-  column {
-    name = "Application"
-    type = "string"
-  }
-
-  column {
-    name = "RawData"
-    type = "string"
   }
 }
 ```
@@ -53,7 +40,9 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Log Analytics Workspace Table Custom Log. The table name must end with `_CL` for Custom Log tables. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Log Analytics Workspace Table Custom Log. Changing this forces a new resource to be created.
+
+~> **Note:** `name` must end with `_CL`.
 
 * `workspace_id` - (Required) The object ID of the Log Analytics Workspace that contains the table. Changing this forces a new resource to be created.
 
@@ -65,15 +54,13 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name of the table.
 
-* `labels` - (Optional) Specifies a list of labels to assign to the table.
-
 * `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
 ~> **Note:** Changing the table's `plan` is limited to once a week.
 
 * `retention_in_days` - (Optional) The table's retention in days. Possible values range between `4` and `730`.
 
-~> **Note:** `retention_in_days` cannot be set when `plan` is set to `Basic` because the retention is fixed at eight days on the Basic plan.
+~> **Note:** `retention_in_days` cannot be set when `plan` is set to `Basic` because the retention is fixed.
 
 * `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between `4` and `730`; or `1095`, `1460`, `1826`, `2191`, `2556`, `2922`, `3288`, `3653`, `4018`, or `4383`.
 
@@ -87,15 +74,7 @@ A `column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-* `display_by_default` - (Optional) Specifies whether the column should be displayed by default in the query results. Defaults to `true`.
-
 * `display_name` - (Optional) The display name of the column.
-
-* `hidden` - (Optional) Specifies whether the column is hidden in the query results. Defaults to `false`.
-
-* `type_hint` - (Optional) The type hint for the column data type. Possible values are `armPath`, `guid`, `ip`, and `uri`.
-
-~> **Note:** `type_hint` can only be set for columns of type `string`.
 
 ## Attributes Reference
 
@@ -113,17 +92,11 @@ A `standard_column` block exports the following:
 
 * `description` - The description of the standard column.
 
-* `display_by_default` - Whether the standard column is displayed by default.
-
 * `display_name` - The display name of the standard column.
-
-* `hidden` - Whether the standard column is hidden.
 
 * `name` - The name of the standard column.
 
 * `type` - The data type of the standard column.
-
-* `type_hint` - The type hint of the standard column.
 
 ## Timeouts
 

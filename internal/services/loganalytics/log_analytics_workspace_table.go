@@ -12,17 +12,14 @@ import (
 
 var defaultRetentionInDays = pointer.To(int64(-1))
 
-type WorkspaceTableColumn struct {
-	Name             string `tfschema:"name"`
-	DisplayName      string `tfschema:"display_name"`
-	Description      string `tfschema:"description"`
-	IsHidden         bool   `tfschema:"hidden"`
-	IsDefaultDisplay bool   `tfschema:"display_by_default"`
-	Type             string `tfschema:"type"`
-	TypeHint         string `tfschema:"type_hint"`
+type workspaceTableColumn struct {
+	Name        string `tfschema:"name"`
+	DisplayName string `tfschema:"display_name"`
+	Description string `tfschema:"description"`
+	Type        string `tfschema:"type"`
 }
 
-func columnSchema() map[string]*pluginsdk.Schema {
+func workspaceTableColumnSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -42,40 +39,44 @@ func columnSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"display_by_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+	}
+}
 
-		"hidden": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+func workspaceTableColumnSchemaComputed() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
-		"type_hint": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
 
-func expandColumns(columns []WorkspaceTableColumn) *[]tables.Column {
+func expandWorkspaceTableColumns(columns []workspaceTableColumn) *[]tables.Column {
 	result := make([]tables.Column, 0, len(columns))
 	for _, column := range columns {
 		columnToAdd := tables.Column{
-			Name:             pointer.To(column.Name),
-			IsHidden:         pointer.To(column.IsHidden),
-			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
-			Type:             pointer.ToEnum[tables.ColumnTypeEnum](column.Type),
+			Name: pointer.To(column.Name),
+			Type: pointer.ToEnum[tables.ColumnTypeEnum](column.Type),
 		}
 		if column.DisplayName != "" {
 			columnToAdd.DisplayName = pointer.To(column.DisplayName)
@@ -83,28 +84,22 @@ func expandColumns(columns []WorkspaceTableColumn) *[]tables.Column {
 		if column.Description != "" {
 			columnToAdd.Description = pointer.To(column.Description)
 		}
-		if column.TypeHint != "" {
-			columnToAdd.DataTypeHint = pointer.ToEnum[tables.ColumnDataTypeHintEnum](column.TypeHint)
-		}
 		result = append(result, columnToAdd)
 	}
 	return pointer.To(result)
 }
 
-func flattenColumns(columns *[]tables.Column) []WorkspaceTableColumn {
+func flattenWorkspaceTableColumns(columns *[]tables.Column) []workspaceTableColumn {
 	if columns == nil {
 		return nil
 	}
-	result := make([]WorkspaceTableColumn, 0, len(*columns))
+	result := make([]workspaceTableColumn, 0, len(*columns))
 	for _, column := range *columns {
-		result = append(result, WorkspaceTableColumn{
-			Name:             pointer.From(column.Name),
-			DisplayName:      pointer.From(column.DisplayName),
-			Description:      pointer.From(column.Description),
-			IsHidden:         pointer.From(column.IsHidden),
-			IsDefaultDisplay: pointer.From(column.IsDefaultDisplay),
-			Type:             pointer.FromEnum(column.Type),
-			TypeHint:         pointer.FromEnum(column.DataTypeHint),
+		result = append(result, workspaceTableColumn{
+			Name:        pointer.From(column.Name),
+			DisplayName: pointer.From(column.DisplayName),
+			Description: pointer.From(column.Description),
+			Type:        pointer.FromEnum(column.Type),
 		})
 	}
 	return result

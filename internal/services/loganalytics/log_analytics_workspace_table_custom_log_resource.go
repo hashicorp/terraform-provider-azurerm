@@ -32,10 +32,9 @@ type WorkspaceTableCustomLogResourceModel struct {
 	DisplayName          string                 `tfschema:"display_name"`
 	Description          string                 `tfschema:"description"`
 	Plan                 string                 `tfschema:"plan"`
-	Columns              []WorkspaceTableColumn `tfschema:"column"`
-	Labels               []string               `tfschema:"labels"`
+	Columns              []workspaceTableColumn `tfschema:"column"`
 	Solutions            []string               `tfschema:"solutions"`
-	StandardColumns      []WorkspaceTableColumn `tfschema:"standard_column"`
+	StandardColumns      []workspaceTableColumn `tfschema:"standard_column"`
 	RetentionInDays      int64                  `tfschema:"retention_in_days"`
 	TotalRetentionInDays int64                  `tfschema:"total_retention_in_days"`
 }
@@ -49,15 +48,9 @@ func (r WorkspaceTableCustomLogResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			for _, column := range table.Columns {
-				if column.TypeHint != "" && column.Type != string(tables.ColumnTypeEnumString) {
-					return errors.New("`type_hint` can only be set for columns of type 'string'")
-				}
-			}
-
 			if table.Plan == string(tables.TablePlanEnumBasic) {
 				if _, ok := metadata.ResourceDiff.GetOk("retention_in_days"); ok {
-					return errors.New("cannot set `retention_in_days` for the `Basic` plan")
+					return errors.New("`retention_in_days` cannot be set when `plan` is set to `Basic`")
 				}
 			}
 
@@ -72,7 +65,7 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`_CL$`), "This must end with '_CL'."),
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`_CL$`), "must end with '_CL'."),
 		},
 
 		"column": {
@@ -80,7 +73,7 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-				Schema: columnSchema(),
+				Schema: workspaceTableColumnSchema(),
 			},
 		},
 
@@ -103,14 +96,6 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"labels": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
 		"plan": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -119,18 +104,14 @@ func (r WorkspaceTableCustomLogResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"retention_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C If not specified, defaults to the workspace's retention period
-			Computed:     true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C If not specified, defaults to the workspace's retention period
-			Computed:     true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
@@ -150,42 +131,7 @@ func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"display_by_default": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"display_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"hidden": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"type_hint": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: workspaceTableColumnSchemaComputed(),
 			},
 		},
 	}
@@ -233,10 +179,9 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 					RetentionInDays:      defaultRetentionInDays,
 					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{
-						Columns:      expandColumns(config.Columns),
+						Columns:      expandWorkspaceTableColumns(config.Columns),
 						DisplayName:  pointer.To(config.DisplayName),
 						Description:  pointer.To(config.Description),
-						Labels:       pointer.To(config.Labels),
 						Name:         pointer.To(config.Name),
 						TableSubType: pointer.To(tables.TableSubTypeEnumDataCollectionRuleBased),
 						TableType:    pointer.To(tables.TableTypeEnumCustomLog),
@@ -282,30 +227,28 @@ func (r WorkspaceTableCustomLogResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			workspaceId := pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName))
-
 			state := WorkspaceTableCustomLogResourceModel{
-				WorkspaceId: workspaceId.ID(),
+				WorkspaceId: pointer.To(workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)).ID(),
 				Name:        id.TableName,
 			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if !pointer.From(props.RetentionInDaysAsDefault) {
+					state.Plan = pointer.FromEnum(props.Plan)
+
+					if asDefault := props.RetentionInDaysAsDefault; asDefault != nil && !*asDefault {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
-					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
+					if asDefault := props.TotalRetentionInDaysAsDefault; asDefault != nil && !*asDefault {
 						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
-					state.Plan = pointer.FromEnum(props.Plan)
 
 					if schema := props.Schema; schema != nil {
 						state.DisplayName = pointer.From(schema.DisplayName)
 						state.Description = pointer.From(schema.Description)
-						state.Labels = pointer.From(schema.Labels)
 						state.Solutions = pointer.From(schema.Solutions)
-						state.Columns = flattenColumns(schema.Columns)
-						state.StandardColumns = flattenColumns(schema.StandardColumns)
+						state.Columns = flattenWorkspaceTableColumns(schema.Columns)
+						state.StandardColumns = flattenWorkspaceTableColumns(schema.StandardColumns)
 					}
 				}
 			}
@@ -322,12 +265,13 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			var config WorkspaceTableCustomLogResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
-			}
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -335,23 +279,49 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			if model := existing.Model; model == nil {
-				return fmt.Errorf("model is nil: %+v", existing)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			props := existing.Model.Properties
-
-			if props == nil {
-				return fmt.Errorf("properties is nil: %+v", existing)
+			if props.Schema == nil {
+				props.Schema = &tables.Schema{}
 			}
 
-			param := existing.Model
-
 			// Create / Update requests MUST have a nil value for `StandardColumns` or they will get a 400 response
-			param.Properties.Schema.StandardColumns = nil
+			props.Schema.StandardColumns = nil
+
+			// If RetentionInDaysAsDefault is true, RetentionInDays still returns the actual value.
+			// Since the `Update` reuses the payload from the GET request, that value is included.
+			// If this value is then sent to Azure, `RetentionInDaysAsDefault` no longer returns `true`
+			// causing a diff on the subsequent read where we then set this value into state.
+			if pointer.From(props.RetentionInDaysAsDefault) {
+				props.RetentionInDays = defaultRetentionInDays
+			}
+
+			// The comment above applies to `TotalRetentionInDaysAsDefault` as well.
+			if pointer.From(props.TotalRetentionInDaysAsDefault) {
+				props.TotalRetentionInDays = defaultRetentionInDays
+			}
+
+			if metadata.ResourceData.HasChange("column") {
+				props.Schema.Columns = expandWorkspaceTableColumns(config.Columns)
+			}
+
+			if metadata.ResourceData.HasChange("display_name") {
+				props.Schema.DisplayName = pointer.To(config.DisplayName)
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				props.Schema.Description = pointer.To(config.Description)
+			}
 
 			if metadata.ResourceData.HasChange("plan") {
-				param.Properties.Plan = pointer.To(tables.TablePlanEnum(config.Plan))
+				props.Plan = pointer.ToEnum[tables.TablePlanEnum](config.Plan)
 			}
 
 			if metadata.ResourceData.HasChange("retention_in_days") {
@@ -368,23 +338,7 @@ func (r WorkspaceTableCustomLogResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("display_name") {
-				param.Properties.Schema.DisplayName = pointer.To(config.DisplayName)
-			}
-
-			if metadata.ResourceData.HasChange("description") {
-				param.Properties.Schema.Description = pointer.To(config.Description)
-			}
-
-			if metadata.ResourceData.HasChange("labels") {
-				param.Properties.Schema.Labels = pointer.To(config.Labels)
-			}
-
-			if metadata.ResourceData.HasChange("column") {
-				param.Properties.Schema.Columns = expandColumns(pointer.To(config.Columns))
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, pointer.From(param)); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -397,11 +351,8 @@ func (r WorkspaceTableCustomLogResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model WorkspaceTableCustomLogResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
-			}
 			client := metadata.Client.LogAnalytics.TablesClient
+
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
