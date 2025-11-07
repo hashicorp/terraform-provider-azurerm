@@ -154,13 +154,11 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			},
 		},
 		"channel_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(channels.ChannelTypePartnerTopic),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(channels.ChannelTypePartnerTopic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(channels.ChannelTypePartnerTopic),
+			ValidateFunc: validation.StringInSlice(channels.PossibleValuesForChannelType(), false),
 		},
 		"expiration_time_if_not_activated_in_utc": {
 			Type:     pluginsdk.TypeString,
@@ -242,7 +240,7 @@ func (r EventGridPartnerNamespaceChannelResource) Create() sdk.ResourceFunc {
 			param := channels.Channel{
 				Name: pointer.To(config.ChannelName),
 				Properties: &channels.ChannelProperties{
-					ChannelType:                     pointer.To(channels.ChannelType(config.ChannelType)),
+					ChannelType:                     pointer.ToEnum[channels.ChannelType](config.ChannelType),
 					ExpirationTimeIfNotActivatedUtc: pointer.To(config.ExpirationTimeIfNotActivatedInUtc),
 					PartnerTopicInfo:                expandPartnerNamespaceChannelPartnerTopic(config.PartnerTopic),
 				},

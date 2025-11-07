@@ -34,7 +34,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Event Grid Partner Namespace Channel.
 
-* `channel_type` -  The type of the channel which represents the direction flow of events.
+* `channel_type` - The type of the channel which represents the direction flow of events.
 
 * `expiration_time_if_not_activated_in_utc` - The expiration time of the channel if not activated.
 
@@ -80,7 +80,7 @@ An `inline_event_type` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid Partner Namespace Channel.
 
