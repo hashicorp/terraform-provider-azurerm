@@ -251,8 +251,8 @@ func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {
 	}
 }
 
-// AppendListIteratorErrorDiagnostic is a helper function to write an Error Diagnostic to a List Result
-func AppendListIteratorErrorDiagnostic(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
+// SetListIteratorErrorDiagnostic is a helper function to write an Error Diagnostic to a List Result
+func SetListIteratorErrorDiagnostic(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
 	result.Diagnostics.Append(NewErrorDiagnostic(summary, detail))
 	push(result)
 }

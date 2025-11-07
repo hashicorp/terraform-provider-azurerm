@@ -79,7 +79,7 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "parsing Virtual Network ID", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -91,29 +91,29 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
 			if err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.AppendListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
 				return
 			}
 
