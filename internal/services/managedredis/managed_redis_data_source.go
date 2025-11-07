@@ -255,7 +255,6 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 						ClusteringPolicy:                pointer.FromEnum(props.ClusteringPolicy),
 						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
-						GeoReplicationLinkedDatabaseIds: flattenLinkedDatabases(props.GeoReplication.LinkedDatabases),
 						Module:                          flattenModules(props.Modules),
 						Port:                            pointer.From(props.Port),
 					}

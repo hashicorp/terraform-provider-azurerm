@@ -104,6 +104,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
 						"host_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,

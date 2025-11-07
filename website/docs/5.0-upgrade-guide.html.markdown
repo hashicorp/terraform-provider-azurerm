@@ -193,6 +193,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `encryption.key_source` property has been removed.
 
+### `azurerm_bot_channel_ms_teams`
+
+* The deprecated `enable_calling` property has been removed in favour of the `calling_enabled` property.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
@@ -459,10 +463,12 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 
