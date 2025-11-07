@@ -7,8 +7,6 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
 )
 
 func DatabaseSystemName(i interface{}, k string) (warnings []string, errors []error) {
@@ -34,22 +32,6 @@ func DatabaseSystemName(i interface{}, k string) (warnings []string, errors []er
 	re := regexp.MustCompile("--")
 	if re.MatchString(v) {
 		errors = append(errors, fmt.Errorf("`name` must not contain any consecutive hyphens (--)"))
-		return
-	}
-
-	return
-}
-
-func DatabaseSystemLicenseModel(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if v != string(dbsystems.LicenseModelBringYourOwnLicense) && v != string(dbsystems.LicenseModelLicenseIncluded) {
-		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
-			string(dbsystems.LicenseModelBringYourOwnLicense), string(dbsystems.LicenseModelLicenseIncluded)))
 		return
 	}
 

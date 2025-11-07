@@ -14,19 +14,19 @@ Manages a Database System.
 
 ```hcl
 resource "azurerm_oracle_database_system" "example" {
-  name                            = "example-database-system"
-  resource_group_name             = "example-resources"
-  location                        = "West Europe"
-  zones                           = ["1"]
-  cpu_core_count                  = 4
-  source                  		    = "None"
-  database_edition      		      = "StandardEdition"
-  database_version	              = "19.27.0.0"
-  hostname                        = "hostname"
-  network_anchor_id               = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
-  resource_anchor_id              = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
-  shape                        	  = "VM.Standard.x86"
-  ssh_public_keys                 = [file("~/.ssh/id_rsa.pub")]
+  name                = "example-database-system"
+  resource_group_name = "example-resources"
+  location            = "eastus"
+  zones               = ["1"]
+  cpu_core_count      = 4
+  source              = "None"
+  database_edition    = "StandardEdition"
+  database_version    = "19.27.0.0"
+  hostname            = "hostname"
+  network_anchor_id   = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
+  resource_anchor_id  = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
+  shape               = "VM.Standard.x86"
+  ssh_public_keys     = [file("~/.ssh/id_rsa.pub")]
 }
 ```
 
@@ -34,32 +34,31 @@ resource "azurerm_oracle_database_system" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name which should be used for this Database system. Changing this forces a new Database system to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Database system should exist. Changing this forces a new Database system to be created.
+
+* `location` - (Required) The Azure Region where the Database System should exist. Changing this forces a new Database system to be created.
+
 * `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin. The password must be at least nine characters and contain at least two uppercase, two lowercase, two numbers, and two special characters. The special characters must be _, #, or -. Changing this forces a new Database system to be created.
 
 * `compute_count` - (Required) The number of compute servers for the Database system. Changing this forces a new Database system to be created.
 
 * `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Changing this forces a new Database system to be created.
 
-* `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance.
-Changing this forces a new Database System to be created.
+* `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance. Possible values are `EnterpriseEdition`, `EnterpriseEditionDeveloper`, `EnterpriseEditionExtreme`, `EnterpriseEditionHighPerformance` and `StandardEdition`. Changing this forces a new Database System to be created.
 
 * `database_version` - (Required) A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation. Changing this forces a new Database System to be created.
 
 * `hostname` - (Required) The hostname for the Database system. Changing this forces a new Database system to be created.
 
-* `license_model` - (Required) The Oracle license model that applies to all the databases on the Database system. The default is LicenseIncluded. Changing this forces a new Database system to be created.
-
-* `location` - (Required) The Azure Region where the Database System should exist. Changing this forces a new Database system to be created.
-
-* `name` - (Required) The name which should be used for this Database system. Changing this forces a new Database system to be created.
+* `license_model` - (Required) The Oracle license model that applies to all the databases on the Database system. The default is LicenseIncluded. Possible values are `BringYourOwnLicense` and `LicenseIncluded`. Changing this forces a new Database system to be created.
 
 * `network_anchor_id` - (Required) The ID of the Azure Network Anchor. Changing this forces a new Database system to be created.
 
 * `resource_anchor_id` - (Required) The ID of the Azure Resource Anchor. Changing this forces a new Database system to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Database system should exist. Changing this forces a new Database system to be created.
-
-* `shape` - (Required) The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory. Changing this forces a new Database system to be created.
+* `shape` - (Required) The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory. The only possible value is `VM.Standard.x86`. Changing this forces a new Database system to be created.
 
 * `source` - (Required) The source of the database: Use NONE for creating a new database. The default is `None`. Changing this forces a new Database System to be created.
 
@@ -73,7 +72,7 @@ Changing this forces a new Database System to be created.
 
 * `database_system_options` - (Optional) One or more `database_system_options` blocks as defined below.
 
-* `disk_redundancy` - (Optional) The type of redundancy configured for the Database system. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
+* `disk_redundancy` - (Optional) The type of redundancy configured for the Database system.  Possible values are `High` and `Normal`. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
 
 * `display_name` - (Optional) The user-friendly name for the Database system. Changing this forces a new Database system to be created. The name does not need to be unique.
 
@@ -112,7 +111,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 24 hours) Used when creating the Database System.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Database System.
 * `update` - (Defaults to 30 minutes) Used when updating the Database System.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Database System.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Database System.
 
 ## Import
 

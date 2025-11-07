@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/networkanchors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -25,9 +26,9 @@ var _ sdk.ResourceWithUpdate = DatabaseSystemResource{}
 type DatabaseSystemResource struct{}
 
 type DatabaseSystemResourceModel struct {
-	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
 	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
 
@@ -60,6 +61,16 @@ type DatabaseSystemResourceModel struct {
 
 func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseSystemName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		// Required
 		"admin_password": {
@@ -71,9 +82,10 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"compute_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.FloatBetween(1.0, 512.0),
 		},
 
 		"compute_model": {
@@ -98,9 +110,10 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseSystemName,
 		},
 
 		"license_model": {
@@ -110,25 +123,15 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForLicenseModel(), false),
 		},
 
-		"location": commonschema.Location(),
-
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.DatabaseSystemName,
-			ForceNew:     true,
-		},
-
 		"network_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkanchors.NetworkAnchorId{}),
 
 		"resource_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceanchors.ResourceAnchorId{}),
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForBaseDbSystemShapes(), false),
 		},
 
 		"source": {
@@ -282,7 +285,7 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 					// Required
 					AdminPassword:    pointer.To(model.AdminPassword),
 					ComputeCount:     pointer.To(model.ComputeCount),
-					ComputeModel:     pointer.To(dbsystems.ComputeModel(model.ComputeModel)),
+					ComputeModel:     pointer.ToEnum[dbsystems.ComputeModel](model.ComputeModel),
 					DatabaseEdition:  dbsystems.DbSystemDatabaseEditionType(model.DatabaseEdition),
 					DbVersion:        model.DatabaseVersion,
 					Hostname:         model.Hostname,
@@ -290,7 +293,7 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 					ResourceAnchorId: model.ResourceAnchorId,
 					Source:           dbsystems.DbSystemSourceType(model.Source),
 					Shape:            model.Shape,
-					LicenseModel:     pointer.To(dbsystems.LicenseModel(model.LicenseModel)),
+					LicenseModel:     pointer.ToEnum[dbsystems.LicenseModel](model.LicenseModel),
 					SshPublicKeys:    model.SshPublicKeys,
 				},
 			}
@@ -301,11 +304,11 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 			}
 			if len(model.DatabaseSystemOptions) > 0 {
 				param.Properties.DbSystemOptions = &dbsystems.DbSystemOptions{
-					StorageManagement: pointer.To(dbsystems.StorageManagementType(model.DatabaseSystemOptions[0].StorageManagement)),
+					StorageManagement: pointer.ToEnum[dbsystems.StorageManagementType](model.DatabaseSystemOptions[0].StorageManagement),
 				}
 			}
 			if model.DiskRedundancy != "" {
-				param.Properties.DiskRedundancy = pointer.To(dbsystems.DiskRedundancyType(model.DiskRedundancy))
+				param.Properties.DiskRedundancy = pointer.ToEnum[dbsystems.DiskRedundancyType](model.DiskRedundancy)
 			}
 			if model.DisplayName != "" {
 				param.Properties.DisplayName = pointer.To(model.DisplayName)
@@ -323,7 +326,7 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 				param.Properties.PdbName = pointer.To(model.PluggableDatabaseName)
 			}
 			if model.StorageVolumePerformanceMode != "" {
-				param.Properties.StorageVolumePerformanceMode = pointer.To(dbsystems.StorageVolumePerformanceMode(model.StorageVolumePerformanceMode))
+				param.Properties.StorageVolumePerformanceMode = pointer.ToEnum[dbsystems.StorageVolumePerformanceMode](model.StorageVolumePerformanceMode)
 			}
 			if model.TimeZone != "" {
 				param.Properties.TimeZone = pointer.To(model.TimeZone)

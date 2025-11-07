@@ -3,6 +3,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -12,16 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type DatabaseSystemDataSource struct{}
 
 type DatabaseSystemDataModel struct {
-	Location          string       `tfschema:"location"`
 	Name              string       `tfschema:"name"`
 	ResourceGroupName string       `tfschema:"resource_group_name"`
+	Location          string       `tfschema:"location"`
 	Zones             zones.Schema `tfschema:"zones"`
 
 	// DatabaseSystemProperties
@@ -63,13 +63,12 @@ type DatabaseSystemOptionsModel struct {
 
 func (d DatabaseSystemDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DatabaseSystemName,
 		},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
