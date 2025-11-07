@@ -66,7 +66,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
   enabled_ecpu_count                 = 4
   hostname                           = "hostname"
   node_count                         = 2
-  shape                              = "ExaDbXS"
+  shape                              = "EXADBXS"
   ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
   subnet_id                          = azurerm_subnet.example.id
   total_ecpu_count                   = 10
