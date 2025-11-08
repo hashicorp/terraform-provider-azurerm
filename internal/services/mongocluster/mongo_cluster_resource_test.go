@@ -6,14 +6,13 @@ package mongocluster_test
 import (
 	"context"
 	"fmt"
-	"testing"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"testing"
 )
 
 type MongoClusterResource struct{}
@@ -120,6 +119,21 @@ func TestAccMongoCluster_geoReplica(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_pointInTimeRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pointInTimeRestore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -269,6 +283,31 @@ resource "azurerm_mongo_cluster" "geo_replica" {
   }
 }
 `, source, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "point_in_time_restore" {
+  name                   = "acctest-mc-restore%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  create_mode            = "PointInTimeRestore"
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+
+  restore {
+    source_id         = azurerm_mongo_cluster.test.id
+    point_in_time_utc = timeadd(timestamp(), "-1s")
+  }
+
+  // As "point_in_time_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  lifecycle {
+    ignore_changes = [restore.0.point_in_time_utc, source_server_id, high_availability_mode, preview_features, shard_count, storage_size_in_gb, compute_tier, version]
+  }
+}
+`, r.source(data), data.RandomInteger)
 }
 
 func (r MongoClusterResource) customerManagedKey(data acceptance.TestData) string {

@@ -79,13 +79,15 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`. Changing this forces a new resource to be created.
+* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as detailed below. Changing this forces a new resource to be created.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
+
+* `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
 
 * `shard_count` -  (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -122,6 +124,14 @@ An `identity` block supports the following:
 * `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`. Changing this forces a new resource to be created.
 
 * `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`. Changing this forces a new resource to be created.
+
+---
+
+A `restore` block supports the following:
+
+* `point_in_time_utc` - (Required) The point in time (in UTC) to restore from, in ISO 8601 format (e.g., `2024-01-01T00:00:00Z`). Changing this forces a new resource to be created.
+
+* `source_id` - (Required) The ID of the source MongoDB Cluster to restore from. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

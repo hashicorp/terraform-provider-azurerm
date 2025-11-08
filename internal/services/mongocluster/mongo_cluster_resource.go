@@ -36,8 +36,9 @@ type MongoClusterResourceModel struct {
 	AdministratorUserName string                         `tfschema:"administrator_username"`
 	AdministratorPassword string                         `tfschema:"administrator_password"`
 	CreateMode            string                         `tfschema:"create_mode"`
-	CustomerManagedKey    []CustomerManagedKeyModel      `tfschema:"customer_managed_key"`
+	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
 	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
+	Restore               []Restore                      `tfschema:"restore"`
 	ShardCount            int64                          `tfschema:"shard_count"`
 	SourceLocation        string                         `tfschema:"source_location"`
 	SourceServerId        string                         `tfschema:"source_server_id"`
@@ -57,9 +58,14 @@ type MongoClusterConnectionString struct {
 	Name        string `tfschema:"name"`
 }
 
-type CustomerManagedKeyModel struct {
+type CustomerManagedKey struct {
 	KeyVaultKeyId          string `tfschema:"key_vault_key_id"`
 	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+}
+
+type Restore struct {
+	PointInTimeUtc string `tfschema:"point_in_time_utc"`
+	SourceId       string `tfschema:"source_id"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -102,10 +108,11 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(mongoclusters.CreateModeDefault),
-			// Confirmed with service team the 'Default' and `GeoReplica` are the only accepted value currently, other values will be supported later.
+			// Confirmed with service team the 'Default', `GeoReplica` and `PointInTimeRestore` are the only accepted value currently, other values will be supported later.
 			ValidateFunc: validation.StringInSlice([]string{
 				string(mongoclusters.CreateModeDefault),
 				string(mongoclusters.CreateModeGeoReplica),
+				string(mongoclusters.CreateModePointInTimeRestore),
 			}, false),
 		},
 
@@ -140,6 +147,30 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"restore": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"point_in_time_utc": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"source_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: mongoclusters.ValidateMongoClusterID,
+					},
+				},
 			},
 		},
 
@@ -316,6 +347,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					SourceLocation:   state.SourceLocation,
 					SourceResourceId: state.SourceServerId,
 				}
+			}
+
+			if state.CreateMode == string(mongoclusters.CreateModePointInTimeRestore) {
+				parameter.Properties.RestoreParameters = expandMongoClusterRestore(state.Restore)
 			}
 
 			if state.ComputeTier != "" {
@@ -516,6 +551,8 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 						}
 					}
 
+					state.Restore = flattenMongoClusterRestore(props.RestoreParameters)
+
 					if v := props.Sharding; v != nil {
 						state.ShardCount = pointer.From(v.ShardCount)
 					}
@@ -610,6 +647,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			case string(mongoclusters.CreateModeGeoReplica):
 				if state.SourceLocation == "" {
 					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
+				}
+			case string(mongoclusters.CreateModePointInTimeRestore):
+				if len(state.Restore) == 0 {
+					return fmt.Errorf("`restore` is required when `create_mode` is `PointInTimeRestore`")
 				}
 			}
 
@@ -742,7 +783,7 @@ func flattenMongoClusterIdentity(input *identity.LegacySystemAndUserAssignedMap)
 	}, nil
 }
 
-func expandMongoClusterCustomerManagedKey(input []CustomerManagedKeyModel) *mongoclusters.EncryptionProperties {
+func expandMongoClusterCustomerManagedKey(input []CustomerManagedKey) *mongoclusters.EncryptionProperties {
 	if len(input) == 0 {
 		return nil
 	}
@@ -760,9 +801,9 @@ func expandMongoClusterCustomerManagedKey(input []CustomerManagedKeyModel) *mong
 	}
 }
 
-func flattenMongoClusterCustomerManagedKey(input *mongoclusters.EncryptionProperties) []CustomerManagedKeyModel {
+func flattenMongoClusterCustomerManagedKey(input *mongoclusters.EncryptionProperties) []CustomerManagedKey {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
-		return []CustomerManagedKeyModel{}
+		return []CustomerManagedKey{}
 	}
 
 	cmkEncryption := input.CustomerManagedKeyEncryption
@@ -771,10 +812,37 @@ func flattenMongoClusterCustomerManagedKey(input *mongoclusters.EncryptionProper
 		uaiResourceId = pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
 	}
 
-	return []CustomerManagedKeyModel{
+	return []CustomerManagedKey{
 		{
 			KeyVaultKeyId:          pointer.From(cmkEncryption.KeyEncryptionKeyURL),
 			UserAssignedIdentityId: uaiResourceId,
 		},
 	}
+}
+
+func expandMongoClusterRestore(input []Restore) *mongoclusters.MongoClusterRestoreParameters {
+	if len(input) == 0 {
+		return nil
+	}
+
+	restoreParams := input[0]
+
+	return &mongoclusters.MongoClusterRestoreParameters{
+		PointInTimeUTC:   pointer.To(restoreParams.PointInTimeUtc),
+		SourceResourceId: pointer.To(restoreParams.SourceId),
+	}
+}
+
+func flattenMongoClusterRestore(input *mongoclusters.MongoClusterRestoreParameters) []Restore {
+	results := make([]Restore, 0)
+	if input == nil {
+		return results
+	}
+
+	results = append(results, Restore{
+		PointInTimeUtc: pointer.From(input.PointInTimeUTC),
+		SourceId:       pointer.From(input.SourceResourceId),
+	})
+
+	return results
 }
