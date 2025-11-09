@@ -16,5 +16,6 @@ func PossibleValuesForAofFrequency() []string {
 			res = append(res, freq)
 		}
 	}
+
 	return res
 }

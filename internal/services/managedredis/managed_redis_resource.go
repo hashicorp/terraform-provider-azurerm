@@ -793,20 +793,19 @@ func dbLen(v interface{}) int {
 }
 
 func expandPersistence(aofBackupFreq string, rdbBackupFreq string) *databases.Persistence {
-	if rdbBackupFreq == "" && aofBackupFreq == "" {
-		return &databases.Persistence{}
-	}
-
-	if aofBackupFreq != "" {
+	switch {
+	case aofBackupFreq != "":
 		return &databases.Persistence{
 			AofEnabled:   pointer.To(true),
 			AofFrequency: pointer.ToEnum[databases.AofFrequency](aofBackupFreq),
 		}
-	} else {
+	case rdbBackupFreq != "":
 		return &databases.Persistence{
 			RdbEnabled:   pointer.To(true),
 			RdbFrequency: pointer.ToEnum[databases.RdbFrequency](rdbBackupFreq),
 		}
+	default:
+		return &databases.Persistence{}
 	}
 }
 
@@ -814,9 +813,11 @@ func flattenPersistenceAOF(input *databases.Persistence) string {
 	if input == nil {
 		return ""
 	}
+
 	if pointer.From(input.AofEnabled) {
 		return pointer.FromEnum(input.AofFrequency)
 	}
+
 	return ""
 }
 
@@ -824,8 +825,10 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	if input == nil {
 		return ""
 	}
+
 	if pointer.From(input.RdbEnabled) {
 		return pointer.FromEnum(input.RdbFrequency)
 	}
+
 	return ""
 }
