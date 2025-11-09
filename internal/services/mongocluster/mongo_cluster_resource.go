@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2024-07-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,6 +32,7 @@ type MongoClusterResourceModel struct {
 	Location              string                         `tfschema:"location"`
 	AdministratorUserName string                         `tfschema:"administrator_username"`
 	AdministratorPassword string                         `tfschema:"administrator_password"`
+	AuthAllowedModes      []string                       `tfschema:"auth_allowed_modes"`
 	CreateMode            string                         `tfschema:"create_mode"`
 	ShardCount            int64                          `tfschema:"shard_count"`
 	SourceLocation        string                         `tfschema:"source_location"`
@@ -139,6 +140,18 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"administrator_username"},
+		},
+
+		"auth_allowed_modes": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(
+					mongoclusters.PossibleValuesForAuthenticationMode(),
+					false,
+				),
+			},
 		},
 
 		"compute_tier": {
@@ -255,6 +268,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					UserName: pointer.To(state.AdministratorUserName),
 					Password: pointer.To(state.AdministratorPassword),
 				}
+			}
+
+			if len(state.AuthAllowedModes) > 0 {
+				parameter.Properties.AuthConfig = expandAuthAllowedModes(state.AuthAllowedModes)
 			}
 
 			if state.CreateMode != "" {
@@ -377,6 +394,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("auth_allowed_modes") {
+				payload.Properties.AuthConfig = expandAuthAllowedModes(state.AuthAllowedModes)
+			}
+
 			if metadata.ResourceData.HasChange("high_availability_mode") {
 				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
@@ -446,6 +467,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
+					}
+
+					if v := props.AuthConfig; v != nil {
+						state.AuthAllowedModes = flattenAuthAllowedModes(v)
 					}
 
 					if v := props.Replica; v != nil {
@@ -635,6 +660,34 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 			Description: pointer.From(cs.Description),
 			Value:       value,
 		})
+	}
+
+	return results
+}
+
+func expandAuthAllowedModes(input []string) *mongoclusters.AuthConfigProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]mongoclusters.AuthenticationMode, 0)
+	for _, v := range input {
+		result = append(result, mongoclusters.AuthenticationMode(v))
+	}
+
+	return &mongoclusters.AuthConfigProperties{
+		AllowedModes: &result,
+	}
+}
+
+func flattenAuthAllowedModes(input *mongoclusters.AuthConfigProperties) []string {
+	results := make([]string, 0)
+	if input == nil || input.AllowedModes == nil {
+		return results
+	}
+
+	for _, v := range *input.AllowedModes {
+		results = append(results, string(v))
 	}
 
 	return results

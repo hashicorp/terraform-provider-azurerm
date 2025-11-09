@@ -9,6 +9,47 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AuthenticationMode string
+
+const (
+	AuthenticationModeMicrosoftEntraID AuthenticationMode = "MicrosoftEntraID"
+	AuthenticationModeNativeAuth       AuthenticationMode = "NativeAuth"
+)
+
+func PossibleValuesForAuthenticationMode() []string {
+	return []string{
+		string(AuthenticationModeMicrosoftEntraID),
+		string(AuthenticationModeNativeAuth),
+	}
+}
+
+func (s *AuthenticationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAuthenticationMode(input string) (*AuthenticationMode, error) {
+	vals := map[string]AuthenticationMode{
+		"microsoftentraid": AuthenticationModeMicrosoftEntraID,
+		"nativeauth":       AuthenticationModeNativeAuth,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AuthenticationMode(input)
+	return &out, nil
+}
+
 type CheckNameAvailabilityReason string
 
 const (
@@ -97,6 +138,47 @@ func parseCreateMode(input string) (*CreateMode, error) {
 	return &out, nil
 }
 
+type DataApiMode string
+
+const (
+	DataApiModeDisabled DataApiMode = "Disabled"
+	DataApiModeEnabled  DataApiMode = "Enabled"
+)
+
+func PossibleValuesForDataApiMode() []string {
+	return []string{
+		string(DataApiModeDisabled),
+		string(DataApiModeEnabled),
+	}
+}
+
+func (s *DataApiMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataApiMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDataApiMode(input string) (*DataApiMode, error) {
+	vals := map[string]DataApiMode{
+		"disabled": DataApiModeDisabled,
+		"enabled":  DataApiModeEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DataApiMode(input)
+	return &out, nil
+}
+
 type HighAvailabilityMode string
 
 const (
@@ -138,6 +220,44 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := HighAvailabilityMode(input)
+	return &out, nil
+}
+
+type KeyEncryptionKeyIdentityType string
+
+const (
+	KeyEncryptionKeyIdentityTypeUserAssignedIdentity KeyEncryptionKeyIdentityType = "UserAssignedIdentity"
+)
+
+func PossibleValuesForKeyEncryptionKeyIdentityType() []string {
+	return []string{
+		string(KeyEncryptionKeyIdentityTypeUserAssignedIdentity),
+	}
+}
+
+func (s *KeyEncryptionKeyIdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyEncryptionKeyIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseKeyEncryptionKeyIdentityType(input string) (*KeyEncryptionKeyIdentityType, error) {
+	vals := map[string]KeyEncryptionKeyIdentityType{
+		"userassignedidentity": KeyEncryptionKeyIdentityTypeUserAssignedIdentity,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeyEncryptionKeyIdentityType(input)
 	return &out, nil
 }
 
@@ -590,5 +710,46 @@ func parseReplicationState(input string) (*ReplicationState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ReplicationState(input)
+	return &out, nil
+}
+
+type StorageType string
+
+const (
+	StorageTypePremiumSSD     StorageType = "PremiumSSD"
+	StorageTypePremiumSSDvTwo StorageType = "PremiumSSDv2"
+)
+
+func PossibleValuesForStorageType() []string {
+	return []string{
+		string(StorageTypePremiumSSD),
+		string(StorageTypePremiumSSDvTwo),
+	}
+}
+
+func (s *StorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseStorageType(input string) (*StorageType, error) {
+	vals := map[string]StorageType{
+		"premiumssd":   StorageTypePremiumSSD,
+		"premiumssdv2": StorageTypePremiumSSDvTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := StorageType(input)
 	return &out, nil
 }
