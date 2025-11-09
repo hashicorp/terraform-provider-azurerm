@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Account where the Project should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
-
 * `location` - (Required) The Azure Region where the Cognitive Account Project should exist. Changing this forces a new resource to be created.
+
+* `identity` - (Required) An `identity` block as defined below.
 
 * `description` - (Optional) A description of the Cognitive Account Project.
 
@@ -83,11 +83,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cognitive Account Project.
 
+* `default` - Whether this project is the default project for the Cognitive Account.
+
 * `endpoints` - A mapping of endpoint names to endpoint URLs for the project.
 
 * `identity` - An `identity` block as defined below.
-
-* `default` - Whether this project is the default project for the Cognitive Account.
 
 ---
 

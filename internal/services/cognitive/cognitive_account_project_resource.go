@@ -55,11 +55,15 @@ func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 			// Azure API issue: description and display_name cannot be updated to empty values, see: https://github.com/Azure/azure-rest-api-specs/issues/38422
 			if oldDesc, newDesc := metadata.ResourceDiff.GetChange("description"); oldDesc.(string) != "" && newDesc.(string) == "" {
-				metadata.ResourceDiff.ForceNew("description")
+				if err := metadata.ResourceDiff.ForceNew("description"); err != nil {
+					return err
+				}
 			}
 
 			if oldDisplay, newDisplay := metadata.ResourceDiff.GetChange("display_name"); oldDisplay.(string) != "" && newDisplay.(string) == "" {
-				metadata.ResourceDiff.ForceNew("display_name")
+				if err := metadata.ResourceDiff.ForceNew("display_name"); err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -81,9 +85,9 @@ func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
-
 		"location": commonschema.Location(),
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"description": {
 			Type:         pluginsdk.TypeString,
