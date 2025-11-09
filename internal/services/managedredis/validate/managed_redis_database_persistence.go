@@ -4,7 +4,7 @@
 package validate
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 )
 
 func PossibleValuesForAofFrequency() []string {
