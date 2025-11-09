@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `public_network_access` - The public network access setting for the Managed Redis instance.
+
 * `tags` - A mapping of tags assigned to the Managed Redis instance.
 
 * `zones` - A list of Availability Zones in which the Managed Redis instance is located.
@@ -135,4 +137,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Cache` - 2025-04-01
+* `Microsoft.Cache` - 2025-07-01

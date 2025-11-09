@@ -1,3 +1,25 @@
+## 4.52.0 (November 06, 2025)
+
+**NOTE:** This release removes the `azurerm_spatial_anchors_account` resource and data source due to Azure having retired the service
+
+FEATURES:
+
+* **New Resource**: `azurerm_api_management_workspace_api_version_set` ([#30498](https://github.com/hashicorp/terraform-provider-azurerm/issues/30498))
+
+ENHANCEMENTS:
+
+* dependencies: `Go` updated to `v1.25.3` ([#31020](https://github.com/hashicorp/terraform-provider-azurerm/issues/31020))
+* Data Source: `azurerm_application_gateway` - add support for the `backend_http_settings.dedicated_backend_connection_enabled` property ([#31033](https://github.com/hashicorp/terraform-provider-azurerm/issues/31033))
+* `azurerm_application_gateway` - add support for the `backend_http_settings.dedicated_backend_connection_enabled` property ([#31033](https://github.com/hashicorp/terraform-provider-azurerm/issues/31033))
+* `azurerm_machine_learning_datastore_blobstorage` - improve validation for `storage_container_id` ([#31002](https://github.com/hashicorp/terraform-provider-azurerm/issues/31002))
+* `azurerm_machine_learning_datastore_datalake_gen2` - improve validation for `storage_container_id` ([#31002](https://github.com/hashicorp/terraform-provider-azurerm/issues/31002))
+* `azurerm_windows_web_app` - add support for the `virtual_network_image_pull_enabled` property ([#30920](https://github.com/hashicorp/terraform-provider-azurerm/issues/30920))
+* `azurerm_windows_web_app_slot` - add support for the `virtual_network_image_pull_enabled` property ([#30920](https://github.com/hashicorp/terraform-provider-azurerm/issues/30920))
+
+BUG FIXES:
+
+* `azurerm_container_registry_task` - prevent a panic by adding a nil check ([#31043](https://github.com/hashicorp/terraform-provider-azurerm/issues/31043))
+
 ## 4.51.0 (October 30, 2025)
 
 FEATURES:

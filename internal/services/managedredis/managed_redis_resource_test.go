@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -151,6 +151,27 @@ func TestAccManagedRedis_hasToUseEnterpriseClusteringWithRediSearch(t *testing.T
 			Config:      r.hasToUseEnterpriseClusteringWithRediSearch(),
 			ExpectError: regexp.MustCompile(`invalid clustering_policy .*, when using RediSearch module, clustering_policy must be set to EnterpriseCluster`),
 		},
+	})
+}
+
+func TestAccManagedRedis_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -594,6 +615,28 @@ resource "azurerm_managed_redis" "test" {
   }
 }
 `
+}
+
+func (r ManagedRedisResource) publicNetworkAccess(data acceptance.TestData, enabled string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location              = "%[2]s"
+  sku_name              = "Balanced_B0"
+  public_network_access = "%[3]s"
+}
+`, data.RandomInteger, data.Locations.Primary, enabled)
 }
 
 func (r ManagedRedisResource) dbPersistenceRDB(data acceptance.TestData) string {

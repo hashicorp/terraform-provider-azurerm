@@ -149,6 +149,8 @@ A `backend_http_settings` block exports the following:
 
 * `affinity_cookie_name` - The name of the affinity cookie.
 
+* `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
+
 * `name` - The name of the Backend HTTP Settings Collection.
 
 * `path` - The path which is used as a prefix for all HTTP requests.
