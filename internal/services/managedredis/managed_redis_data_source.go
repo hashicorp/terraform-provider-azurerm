@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,6 +35,7 @@ type ManagedRedisDataSourceModel struct {
 	Hostname                string                                     `tfschema:"hostname"`
 	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Location                string                                     `tfschema:"location"`
+	PublicNetworkAccess     string                                     `tfschema:"plugin_network_access"`
 	SkuName                 string                                     `tfschema:"sku_name"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 }
@@ -179,6 +180,11 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.LocationComputed(),
 
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -244,6 +250,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
+					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}
 			}
 

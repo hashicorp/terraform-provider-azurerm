@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -54,6 +54,7 @@ type ManagedRedisResourceModel struct {
 	DefaultDatabase         []DefaultDatabaseModel                     `tfschema:"default_database"`
 	HighAvailabilityEnabled bool                                       `tfschema:"high_availability_enabled"`
 	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccess     string                                     `tfschema:"public_network_access"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 
 	Hostname string `tfschema:"hostname"`
@@ -224,6 +225,13 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+		"public_network_access": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      redisenterprise.PublicNetworkAccessEnabled,
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForPublicNetworkAccess(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -282,10 +290,11 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 				Sku: redisenterprise.Sku{
 					Name: redisenterprise.SkuName(model.SkuName),
 				},
-				Properties: &redisenterprise.ClusterProperties{
-					Encryption:        expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
-					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersionOnePointTwo),
-					HighAvailability:  expandHighAvailability(model.HighAvailabilityEnabled),
+				Properties: &redisenterprise.ClusterCreateProperties{
+					Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
+					MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
+					HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
+					PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -365,6 +374,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
+					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}
 			}
 
@@ -451,6 +461,11 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				clusterParams.Identity = expandedIdentity
+				clusterUpdateRequired = true
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access") {
+				clusterParams.Properties.PublicNetworkAccess = redisenterprise.PublicNetworkAccess(state.PublicNetworkAccess)
 				clusterUpdateRequired = true
 			}
 
@@ -624,7 +639,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 
 func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId databases.DatabaseId, dbModel DefaultDatabaseModel) error {
 	dbParams := databases.Database{
-		Properties: &databases.DatabaseProperties{
+		Properties: &databases.DatabaseCreateProperties{
 			AccessKeysAuthentication: expandAccessKeysAuth(dbModel.AccessKeysAuthenticationEnabled),
 			ClientProtocol:           pointer.To(databases.Protocol(dbModel.ClientProtocol)),
 			ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(dbModel.ClusteringPolicy)),
@@ -646,17 +661,17 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 	return nil
 }
 
-func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel) *redisenterprise.ClusterPropertiesEncryption {
+func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel) *redisenterprise.ClusterCommonPropertiesEncryption {
 	if len(input) == 0 {
-		return &redisenterprise.ClusterPropertiesEncryption{}
+		return &redisenterprise.ClusterCommonPropertiesEncryption{}
 	}
 
 	cmk := input[0]
 
-	return &redisenterprise.ClusterPropertiesEncryption{
-		CustomerManagedKeyEncryption: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryption{
+	return &redisenterprise.ClusterCommonPropertiesEncryption{
+		CustomerManagedKeyEncryption: &redisenterprise.ClusterCommonPropertiesEncryptionCustomerManagedKeyEncryption{
 			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
-			KeyEncryptionKeyIdentity: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
+			KeyEncryptionKeyIdentity: &redisenterprise.ClusterCommonPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
 				IdentityType:                   pointer.To(redisenterprise.CmkIdentityTypeUserAssignedIdentity),
 				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
 			},
@@ -680,12 +695,12 @@ func expandAccessKeysAuth(enabled bool) *databases.AccessKeysAuthentication {
 	return pointer.To(databases.AccessKeysAuthenticationDisabled)
 }
 
-func expandGeoReplication(input string, id string) *databases.DatabasePropertiesGeoReplication {
+func expandGeoReplication(input string, id string) *databases.DatabaseCommonPropertiesGeoReplication {
 	if input == "" {
 		return nil
 	}
 
-	return &databases.DatabasePropertiesGeoReplication{
+	return &databases.DatabaseCommonPropertiesGeoReplication{
 		GroupNickname: pointer.To(input),
 		LinkedDatabases: &[]databases.LinkedDatabase{
 			{
@@ -695,7 +710,7 @@ func expandGeoReplication(input string, id string) *databases.DatabaseProperties
 	}
 }
 
-func flattenGeoReplicationGroupName(input *databases.DatabasePropertiesGeoReplication) string {
+func flattenGeoReplicationGroupName(input *databases.DatabaseCommonPropertiesGeoReplication) string {
 	if input == nil || input.GroupNickname == nil {
 		return ""
 	}
@@ -729,7 +744,7 @@ func flattenModules(input *[]databases.Module) []ModuleModel {
 	return results
 }
 
-func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKeyModel {
+func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterCommonPropertiesEncryption) []CustomerManagedKeyModel {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
 		return []CustomerManagedKeyModel{}
 	}

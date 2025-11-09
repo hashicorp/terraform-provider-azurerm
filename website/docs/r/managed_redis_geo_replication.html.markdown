@@ -88,4 +88,4 @@ terraform import azurerm_managed_redis_geo_replication.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cache` - 2025-04-01
+* `Microsoft.Cache` - 2025-07-01
