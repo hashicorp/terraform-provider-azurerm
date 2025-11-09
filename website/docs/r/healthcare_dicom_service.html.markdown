@@ -34,7 +34,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

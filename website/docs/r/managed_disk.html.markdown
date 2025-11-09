@@ -68,7 +68,7 @@ resource "azurerm_managed_disk" "copy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

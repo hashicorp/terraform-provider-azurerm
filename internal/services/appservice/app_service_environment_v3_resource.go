@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -557,9 +557,6 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 
 	results := make([]AppServiceV3InboundDependencies, 0, len(inboundNetworking.Items))
 	for _, v := range inboundNetworking.Items {
-		if err != nil {
-			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
-		}
 		result := AppServiceV3InboundDependencies{
 			Description: pointer.From(v.Description),
 		}
