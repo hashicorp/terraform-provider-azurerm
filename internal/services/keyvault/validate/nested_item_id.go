@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// Deprecated: use `ValidateNestedItemID` from go-azure-helpers/resource-manager/keyvault -- TODO: link to pkg
 func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
@@ -29,6 +30,7 @@ func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+// Deprecated: use `ValidateNestedItemID` from go-azure-helpers/resource-manager/keyvault -- TODO: link to pkg
 func VersionlessNestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
@@ -53,6 +55,7 @@ func VersionlessNestedItemId(i interface{}, k string) (warnings []string, errors
 	return warnings, errors
 }
 
+// Deprecated: use `ValidateNestedItemID` from go-azure-helpers/resource-manager/keyvault -- TODO: link to pkg
 func NestedItemIdWithOptionalVersion(i interface{}, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors

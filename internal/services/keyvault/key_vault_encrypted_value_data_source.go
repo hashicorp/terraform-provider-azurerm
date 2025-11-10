@@ -11,13 +11,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	keyvaultSDK "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ sdk.DataSource = EncryptedValueDataSource{}
@@ -37,22 +36,25 @@ func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
 		"key_vault_key_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
+
 		"algorithm": {
 			Type:     schema.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.JSONWebKeyEncryptionAlgorithmRSA15),
-				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP),
-				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
+				string(keyvaultSDK.JSONWebKeyEncryptionAlgorithmRSA15),
+				string(keyvaultSDK.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+				string(keyvaultSDK.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
 			}, false),
 		},
+
 		"encrypted_data": {
 			Type:      schema.TypeString,
 			Optional:  true,
 			Sensitive: true,
 		},
+
 		"plain_text_value": {
 			Type:      schema.TypeString,
 			Optional:  true,
@@ -96,17 +98,17 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("only one of `encrypted_data` or `plain_text_value` must be specified - both were specified")
 			}
 
-			keyVaultKeyId, err := parse.ParseNestedItemID(model.KeyVaultKeyId)
+			keyVaultKeyId, err := keyvault.ParseNestedItemID(model.KeyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
 			}
 
 			if model.EncryptedData != "" {
-				params := keyvault.KeyOperationsParameters{
-					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     utils.String(model.EncryptedData),
+				params := keyvaultSDK.KeyOperationsParameters{
+					Algorithm: keyvaultSDK.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
+					Value:     pointer.To(model.EncryptedData),
 				}
-				result, err := client.Decrypt(ctx, keyVaultKeyId.KeyVaultBaseUrl, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
+				result, err := client.Decrypt(ctx, keyVaultKeyId.KeyVaultBaseURL, keyVaultKeyId.Name, *keyVaultKeyId.Version, params)
 				if err != nil {
 					return fmt.Errorf("decrypting plain-text value using Key Vault Key ID %q: %+v", model.KeyVaultKeyId, err)
 				}
@@ -120,11 +122,11 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 					log.Printf("[WARN] Failed to decode plain-text value: %+v", err)
 				}
 			} else {
-				params := keyvault.KeyOperationsParameters{
-					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     utils.String(model.PlainTextValue),
+				params := keyvaultSDK.KeyOperationsParameters{
+					Algorithm: keyvaultSDK.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
+					Value:     pointer.To(model.PlainTextValue),
 				}
-				result, err := client.Encrypt(ctx, keyVaultKeyId.KeyVaultBaseUrl, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
+				result, err := client.Encrypt(ctx, keyVaultKeyId.KeyVaultBaseURL, keyVaultKeyId.Name, *keyVaultKeyId.Version, params)
 				if err != nil {
 					return fmt.Errorf("encrypting plain-text value using Key Vault Key ID %q: %+v", model.KeyVaultKeyId, err)
 				}

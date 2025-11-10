@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	kv74 "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resource {
@@ -46,13 +48,13 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resour
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"managed_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+				ValidateFunc: keyVaultValidate.VersionlessNestedItemId, // TODO: add storage acc sas ID to go-azure-helpers
 			},
 
 			"sas_template_uri": {
@@ -128,12 +130,12 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	parameters := keyvault.SasDefinitionCreateParameters{
-		TemplateURI:    utils.String(d.Get("sas_template_uri").(string)),
-		SasType:        keyvault.SasTokenType(d.Get("sas_type").(string)),
-		ValidityPeriod: utils.String(d.Get("validity_period").(string)),
-		SasDefinitionAttributes: &keyvault.SasDefinitionAttributes{
-			Enabled: utils.Bool(true),
+	parameters := kv74.SasDefinitionCreateParameters{
+		TemplateURI:    pointer.To(d.Get("sas_template_uri").(string)),
+		SasType:        kv74.SasTokenType(d.Get("sas_type").(string)),
+		ValidityPeriod: pointer.To(d.Get("validity_period").(string)),
+		SasDefinitionAttributes: &kv74.SasDefinitionAttributes{
+			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}

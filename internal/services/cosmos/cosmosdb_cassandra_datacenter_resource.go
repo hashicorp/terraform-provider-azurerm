@@ -9,20 +9,20 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
@@ -71,7 +71,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"backup_storage_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"base64_encoded_yaml_fragment": {
@@ -90,7 +90,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"managed_disk_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"node_count": {
@@ -155,29 +155,29 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 
 	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
-			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
-			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
-			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
-			DiskCapacity:       utils.Int64(int64(d.Get("disk_count").(int))),
-			DiskSku:            utils.String(d.Get("disk_sku").(string)),
-			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
+			AvailabilityZone:   pointer.To(d.Get("availability_zones_enabled").(bool)),
+			DiskCapacity:       pointer.To(int64(d.Get("disk_count").(int))),
+			DiskSku:            pointer.To(d.Get("disk_sku").(string)),
+			DataCenterLocation: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		},
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("sku_name"); ok {
-		payload.Properties.Sku = utils.String(v.(string))
+		payload.Properties.Sku = pointer.To(v.(string))
 	}
 
 	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
@@ -245,24 +245,24 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
-			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
-			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
-			Sku:                utils.String(d.Get("sku_name").(string)),
-			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-			DiskSku:            utils.String(d.Get("disk_sku").(string)),
+			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
+			Sku:                pointer.To(d.Get("sku_name").(string)),
+			DataCenterLocation: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
+			DiskSku:            pointer.To(d.Get("disk_sku").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, *id, payload); err != nil {

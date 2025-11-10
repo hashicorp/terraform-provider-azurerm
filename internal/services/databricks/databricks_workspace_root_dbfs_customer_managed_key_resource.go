@@ -13,12 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -64,7 +63,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"key_vault_id": {
@@ -87,19 +86,13 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	var keyIdRaw string
 	var keyVaultId string
-	var key *keyVaultParse.NestedItemId
-
-	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyIdRaw = v.(string)
-	}
 
 	if v, ok := d.GetOk("key_vault_id"); ok {
 		keyVaultId = v.(string)
 	}
 
-	key, err = keyVaultParse.ParseNestedItemID(keyIdRaw)
+	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
@@ -154,9 +147,9 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	}
 
 	// make sure the key vault exists
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 	}
 
 	// Only throw the import error if the keysource value has been set to something other than default...
@@ -174,8 +167,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		Value: &workspaces.Encryption{
 			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
 			KeyName:     pointer.To(key.Name),
-			Keyversion:  pointer.To(key.Version),
-			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
+			Keyversion:  key.Version,
+			Keyvaulturi: pointer.To(key.KeyVaultBaseURL),
 		},
 	}
 
@@ -222,16 +215,18 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	}
 
 	if model := resp.Model; model != nil {
-		if model.Properties.Parameters != nil {
-			if props := model.Properties.Parameters.Encryption; props != nil {
-				if strings.EqualFold(string(*props.Value.KeySource), string(workspaces.KeySourceMicrosoftPointKeyvault)) && (props.Value.KeyName == nil || props.Value.Keyversion == nil || props.Value.Keyvaulturi == nil) {
-					d.SetId("")
-					return nil
-				}
+		if params := resp.Model.Properties.Parameters; params != nil {
+			if encryption := params.Encryption; encryption != nil {
+				if value := encryption.Value; value != nil {
+					if strings.EqualFold(pointer.FromEnum(value.KeySource), string(workspaces.KeySourceMicrosoftPointKeyvault)) && (value.KeyName == nil || value.Keyversion == nil || value.Keyvaulturi == nil) {
+						d.SetId("")
+						return nil
+					}
 
-				key, err := keyVaultParse.NewNestedItemID(*props.Value.Keyvaulturi, keyVaultParse.NestedItemTypeKey, *props.Value.KeyName, *props.Value.Keyversion)
-				if err == nil {
-					d.Set("key_vault_key_id", key.ID())
+					key, err := keyvault.NewNestedItemID(*value.Keyvaulturi, keyvault.NestedItemTypeKey, *value.KeyName, value.Keyversion)
+					if err == nil {
+						d.Set("key_vault_key_id", key.ID())
+					}
 				}
 			}
 		}
@@ -254,20 +249,14 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	var key *keyVaultParse.NestedItemId
 	var params *workspaces.WorkspaceCustomParameters
 	var keyVaultId string
-	var keyVaultKeyId string
-
-	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKeyId = v.(string)
-	}
 
 	if v, ok := d.GetOk("key_vault_id"); ok {
 		keyVaultId = v.(string)
 	}
 
-	key, err = keyVaultParse.ParseNestedItemID(keyVaultKeyId)
+	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
@@ -313,9 +302,9 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	}
 
 	// make sure the key vault exists
-	_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseUrl)
+	_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseURL)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID for the Key Vault in subscription %q at URL %q: %+v", dbfsSubscriptionId, key.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault in subscription %q at URL %q: %+v", dbfsSubscriptionId, key.KeyVaultBaseURL, err)
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -328,8 +317,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		Value: &workspaces.Encryption{
 			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
 			KeyName:     pointer.To(key.Name),
-			Keyversion:  pointer.To(key.Version),
-			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
+			Keyversion:  key.Version,
+			Keyvaulturi: pointer.To(key.KeyVaultBaseURL),
 		},
 	}
 

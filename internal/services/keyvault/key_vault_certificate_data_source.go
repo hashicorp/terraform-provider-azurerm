@@ -10,16 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	keyvaultModels "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -35,7 +36,7 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -292,7 +293,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	id, err := parse.ParseNestedItemID(*cert.ID)
+	id, err := keyvault.ParseNestedItemID(*cert.ID, keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return err
 	}
@@ -309,11 +310,14 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("secret_id", cert.Sid)
 	d.Set("versionless_id", id.VersionlessID())
 
-	d.Set("resource_manager_id", parse.NewCertificateID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
+	// TODO: Are these a provider only concept, if so, deprecate?
+	d.Set("resource_manager_id", parse.NewCertificateID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, pointer.From(id.Version)).ID())
 	d.Set("resource_manager_versionless_id", parse.NewCertificateVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
 	if cert.Sid != nil {
-		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		// todo confirm this is a secret ID? based on the arg name I'd expect it to be
+		// however, it may make sense to parse this as `any` since it's a data source
+		secretId, err := keyvault.ParseNestedItemID(*cert.Sid, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret)
 		if err != nil {
 			return err
 		}
@@ -370,7 +374,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+func flattenKeyVaultCertificatePolicyForDataSource(input *keyvaultModels.CertificatePolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

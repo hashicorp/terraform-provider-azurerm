@@ -23,6 +23,7 @@ type accountKeyDetails struct {
 }
 
 // nolint unparam // keyVaultApi may be used in future
+// @sreallymatt TODO: rework this function, remove all managed HSM specific code
 func flattenCustomerManagedKey(input *storageaccounts.KeyVaultProperties, keyVaultApi, managedHsmApi environments.Api) accountKeyDetails {
 	output := accountKeyDetails{
 		keyVaultBaseUrl:  "",

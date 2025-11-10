@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
@@ -25,12 +26,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesVault() *pluginsdk.Resource {
@@ -74,7 +73,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 						"infrastructure_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -249,7 +248,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-		vault.Sku.Tier = utils.String("Standard")
+		vault.Sku.Tier = pointer.To("Standard")
 	}
 
 	if _, ok := d.GetOk("encryption"); ok {
@@ -346,7 +345,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		settingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 		settingsInput := replicationvaultsetting.VaultSettingCreationInput{
 			Properties: replicationvaultsetting.VaultSettingCreationInputProperties{
-				VMwareToAzureProviderType: utils.String("Vmware"),
+				VMwareToAzureProviderType: pointer.To("Vmware"),
 			},
 		}
 		if err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput); err != nil {
@@ -438,7 +437,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-			vault.Sku.Tier = utils.String("Standard")
+			vault.Sku.Tier = pointer.To("Standard")
 		}
 
 		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -759,10 +758,10 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	}
 	encryption := &vaults.VaultPropertiesEncryption{
 		KeyVaultProperties: &vaults.CmkKeyVaultProperties{
-			KeyUri: utils.String(keyUri),
+			KeyUri: pointer.To(keyUri),
 		},
 		KekIdentity: &vaults.CmkKekIdentity{
-			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
+			UseSystemAssignedIdentity: pointer.To(encryptionMap["use_system_assigned_identity"].(bool)),
 		},
 		InfrastructureEncryption: &infraEncryptionState,
 	}
@@ -770,7 +769,7 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 		if *encryption.KekIdentity.UseSystemAssignedIdentity {
 			return nil, errors.New("`use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set")
 		}
-		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
+		encryption.KekIdentity.UserAssignedIdentity = pointer.To(v)
 	}
 	return encryption, nil
 }

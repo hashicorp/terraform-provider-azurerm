@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -244,7 +244,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 						"key_versionless_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 						},
 
 						// Default to cmk to ensure backwards compatibility with previous version that hardcoded the key name to cmk
@@ -302,17 +302,17 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	workspaceInfo := synapse.Workspace{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		WorkspaceProperties: &synapse.WorkspaceProperties{
 			DefaultDataLakeStorage:           expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
-			ManagedVirtualNetwork:            utils.String(managedVirtualNetwork),
+			ManagedVirtualNetwork:            pointer.To(managedVirtualNetwork),
 			PublicNetworkAccess:              publicNetworkAccess,
-			SQLAdministratorLogin:            utils.String(d.Get("sql_administrator_login").(string)),
-			SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
-			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
+			SQLAdministratorLogin:            pointer.To(d.Get("sql_administrator_login").(string)),
+			SQLAdministratorLoginPassword:    pointer.To(d.Get("sql_administrator_login_password").(string)),
+			ManagedResourceGroupName:         pointer.To(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
-			AzureADOnlyAuthentication:        utils.Bool(d.Get("azuread_authentication_only").(bool)),
+			AzureADOnlyAuthentication:        pointer.To(d.Get("azuread_authentication_only").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -325,13 +325,13 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
 		workspaceInfo.PurviewConfiguration = &synapse.PurviewConfiguration{
-			PurviewResourceID: utils.String(purviewId.(string)),
+			PurviewResourceID: pointer.To(purviewId.(string)),
 		}
 	}
 
 	if computeSubnetId, ok := d.GetOk("compute_subnet_id"); ok {
 		workspaceInfo.VirtualNetworkProfile = &synapse.VirtualNetworkProfile{
-			ComputeSubnetID: utils.String(computeSubnetId.(string)),
+			ComputeSubnetID: pointer.To(computeSubnetId.(string)),
 		}
 	}
 
@@ -339,7 +339,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if dataExfiltrationProtectionEnabled {
 		workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{
-			PreventDataExfiltration: utils.Bool(dataExfiltrationProtectionEnabled),
+			PreventDataExfiltration: pointer.To(dataExfiltrationProtectionEnabled),
 		}
 	}
 
@@ -489,7 +489,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
-				SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
+				SQLAdministratorLoginPassword:    pointer.To(d.Get("sql_administrator_login_password").(string)),
 				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 				Encryption:                       expandEncryptionDetails(d),
 				PublicNetworkAccess:              publicNetworkAccess,
@@ -505,7 +505,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if purviewId, ok := d.GetOk("purview_id"); ok {
 			workspacePatchInfo.PurviewConfiguration = &synapse.PurviewConfiguration{
-				PurviewResourceID: utils.String(purviewId.(string)),
+				PurviewResourceID: pointer.To(purviewId.(string)),
 			}
 		}
 
@@ -665,8 +665,8 @@ func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *s
 func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2FilesystemId string) *synapse.DataLakeStorageAccountDetails {
 	uri, _ := url.Parse(storageDataLakeGen2FilesystemId)
 	return &synapse.DataLakeStorageAccountDetails{
-		AccountURL: utils.String(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)), // https://storageaccountname.dfs.core.windows.net/filesystemname -> https://storageaccountname.dfs.core.windows.net
-		Filesystem: utils.String(strings.TrimPrefix(uri.Path, "/")),            // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+		AccountURL: pointer.To(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)), // https://storageaccountname.dfs.core.windows.net/filesystemname -> https://storageaccountname.dfs.core.windows.net
+		Filesystem: pointer.To(strings.TrimPrefix(uri.Path, "/")),            // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
 	}
 }
 
@@ -674,13 +674,13 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
 		azdo := azdoList.([]interface{})[0].(map[string]interface{})
 		config := synapse.WorkspaceRepositoryConfiguration{
-			Type:                utils.String(workspaceVSTSConfiguration),
-			AccountName:         utils.String(azdo["account_name"].(string)),
-			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
-			LastCommitID:        utils.String(azdo["last_commit_id"].(string)),
-			ProjectName:         utils.String(azdo["project_name"].(string)),
-			RepositoryName:      utils.String(azdo["repository_name"].(string)),
-			RootFolder:          utils.String(azdo["root_folder"].(string)),
+			Type:                pointer.To(workspaceVSTSConfiguration),
+			AccountName:         pointer.To(azdo["account_name"].(string)),
+			CollaborationBranch: pointer.To(azdo["branch_name"].(string)),
+			LastCommitID:        pointer.To(azdo["last_commit_id"].(string)),
+			ProjectName:         pointer.To(azdo["project_name"].(string)),
+			RepositoryName:      pointer.To(azdo["repository_name"].(string)),
+			RootFolder:          pointer.To(azdo["root_folder"].(string)),
 		}
 		if azdoTenantId := uuid.FromStringOrNil(azdo["tenant_id"].(string)); azdoTenantId != uuid.Nil {
 			config.TenantID = &azdoTenantId
@@ -691,13 +691,13 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 	if githubList, ok := d.GetOk("github_repo"); ok {
 		github := githubList.([]interface{})[0].(map[string]interface{})
 		return &synapse.WorkspaceRepositoryConfiguration{
-			Type:                utils.String(workspaceGitHubConfiguration),
-			AccountName:         utils.String(github["account_name"].(string)),
-			CollaborationBranch: utils.String(github["branch_name"].(string)),
-			HostName:            utils.String(github["git_url"].(string)),
-			LastCommitID:        utils.String(github["last_commit_id"].(string)),
-			RepositoryName:      utils.String(github["repository_name"].(string)),
-			RootFolder:          utils.String(github["root_folder"].(string)),
+			Type:                pointer.To(workspaceGitHubConfiguration),
+			AccountName:         pointer.To(github["account_name"].(string)),
+			CollaborationBranch: pointer.To(github["branch_name"].(string)),
+			HostName:            pointer.To(github["git_url"].(string)),
+			LastCommitID:        pointer.To(github["last_commit_id"].(string)),
+			RepositoryName:      pointer.To(github["repository_name"].(string)),
+			RootFolder:          pointer.To(github["root_folder"].(string)),
 		}
 	}
 
@@ -729,8 +729,8 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 		encryptionDetails := &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
-					Name:        utils.String(cmk["key_name"].(string)),
-					KeyVaultURL: utils.String(cmk["key_versionless_id"].(string)),
+					Name:        pointer.To(cmk["key_name"].(string)),
+					KeyVaultURL: pointer.To(cmk["key_versionless_id"].(string)),
 				},
 			},
 		}
@@ -872,8 +872,8 @@ func flattenIdentity(input *synapse.ManagedIdentity) (interface{}, error) {
 		if input.UserAssignedIdentities != nil {
 			for k, v := range input.UserAssignedIdentities {
 				identityIds[k] = identity.UserAssignedIdentityDetails{
-					ClientId:    utils.String(v.ClientID.String()),
-					PrincipalId: utils.String(v.PrincipalID.String()),
+					ClientId:    pointer.To(v.ClientID.String()),
+					PrincipalId: pointer.To(v.PrincipalID.String()),
 				}
 			}
 		}

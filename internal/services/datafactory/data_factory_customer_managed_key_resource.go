@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,7 +52,7 @@ func (r DataFactoryCustomerManagedKeyResource) Arguments() map[string]*pluginsdk
 		"customer_managed_key_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 		"user_assigned_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -104,14 +103,15 @@ func (r DataFactoryCustomerManagedKeyResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_data_factory_customer_managed_key", id.ID())
 			}
 
-			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(customerManagedKey.CustomerManagedKeyID)
+			// TODO: schema previously (and now) validated as versioned, however this used to validate as optionally versioned, confirm whether version is required
+			keyVaultKey, err := keyvault.ParseNestedItemID(customerManagedKey.CustomerManagedKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 			}
 			encryption := &factories.EncryptionConfiguration{
-				VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
+				VaultBaseURL: keyVaultKey.KeyVaultBaseURL,
 				KeyName:      keyVaultKey.Name,
-				KeyVersion:   pointer.To(keyVaultKey.Version),
+				KeyVersion:   keyVaultKey.Version,
 			}
 
 			if identityId := customerManagedKey.UserAssignedIdentityID; identityId != "" {
@@ -159,9 +159,7 @@ func (r DataFactoryCustomerManagedKeyResource) Read() sdk.ResourceFunc {
 			customerManagedKeyId := ""
 			customerManagedKeyIdentityId := ""
 			if encryption.VaultBaseURL != "" && encryption.KeyName != "" && encryption.KeyVersion != nil {
-				version := pointer.From(encryption.KeyVersion)
-
-				keyId, err := keyVaultParse.NewNestedKeyID(encryption.VaultBaseURL, encryption.KeyName, version)
+				keyId, err := keyvault.NewNestedItemID(encryption.VaultBaseURL, keyvault.NestedItemTypeKey, encryption.KeyName, encryption.KeyVersion)
 				if err != nil {
 					return fmt.Errorf("parsing Nested Item ID: %+v", err)
 				}
@@ -219,13 +217,13 @@ func (r DataFactoryCustomerManagedKeyResource) Update() sdk.ResourceFunc {
 			encryption := payload.Properties.Encryption
 
 			if metadata.ResourceData.HasChange("customer_managed_key_id") {
-				keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(customerManagedKey.CustomerManagedKeyID)
+				keyVaultKey, err := keyvault.ParseNestedItemID(customerManagedKey.CustomerManagedKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 				if err != nil {
 					return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 				}
-				encryption.VaultBaseURL = keyVaultKey.KeyVaultBaseUrl
+				encryption.VaultBaseURL = keyVaultKey.KeyVaultBaseURL
 				encryption.KeyName = keyVaultKey.Name
-				encryption.KeyVersion = pointer.To(keyVaultKey.Version)
+				encryption.KeyVersion = keyVaultKey.Version
 			}
 
 			if metadata.ResourceData.HasChange("user_assigned_identity_id") {

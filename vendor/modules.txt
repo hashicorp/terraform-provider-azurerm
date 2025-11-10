@@ -155,6 +155,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema
 github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones
 github.com/hashicorp/go-azure-helpers/resourcemanager/features
 github.com/hashicorp/go-azure-helpers/resourcemanager/identity
+github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault
 github.com/hashicorp/go-azure-helpers/resourcemanager/location
 github.com/hashicorp/go-azure-helpers/resourcemanager/recaser
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups

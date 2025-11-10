@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -73,9 +72,11 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 		},
 
 		"key_vault_secret_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.NestedItemIdWithOptionalVersion,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// TODO: this seems to be a certificate, is secret the right type? If not, rename this property to `key_vault_certificate_id`?
+			// Or does this allow input of both secrets containing cert data and certificates?
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 		},
 
@@ -146,7 +147,7 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.KeyVaultSecretId != "" {
-				parsedSecretId, err := parse.ParseOptionallyVersionedNestedItemID(model.KeyVaultSecretId)
+				parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret) // TODO: check if secret or cert
 				if err != nil {
 					return err
 				}
@@ -275,7 +276,7 @@ func (r ApiManagementWorkspaceCertificateResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("key_vault_secret_id") {
 				if model.KeyVaultSecretId != "" {
-					parsedSecretId, err := parse.ParseOptionallyVersionedNestedItemID(model.KeyVaultSecretId)
+					parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret)
 					if err != nil {
 						return err
 					}

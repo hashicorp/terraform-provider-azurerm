@@ -16,17 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
-	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,7 +58,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managedHSMValidation.ManagedHardwareSecurityModuleName,
+				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -152,8 +150,9 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Optional:     true,
 				RequiredWith: []string{"security_domain_quorum"},
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyVaultValidation.NestedItemId,
+					Type: pluginsdk.TypeString,
+					// TODO: confirm this can only be a certificate?
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate),
 				},
 			},
 
@@ -198,13 +197,13 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
 	hsm := managedhsms.ManagedHsm{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
-			EnableSoftDelete:          utils.Bool(true),
-			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
-			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			EnableSoftDelete:          pointer.To(true),
+			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
+			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
@@ -478,11 +477,11 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		if !ok {
 			continue
 		}
-		keyID, err := keyVaultParse.ParseNestedItemID(certIDStr)
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate) // TODO: confirm certificate
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}
-		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
+		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, *keyID.Version)
 		if err != nil {
 			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
 		}

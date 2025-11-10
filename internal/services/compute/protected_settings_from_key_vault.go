@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,9 +28,10 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secret_url": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					// TODO: based on the docs this **should** be a secret, confirm
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
 				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
@@ -24,9 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	hsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -130,7 +128,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							ConflictsWith: []string{"customer_managed_key.0.managed_hsm_key_id"},
 							RequiredWith: []string{
 								"identity",
@@ -145,7 +143,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -156,10 +154,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
+						// TODO: deprecate in favour of `key_vault_key_id`
 						"managed_hsm_key_id": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							ValidateFunc:  validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+							ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							ConflictsWith: []string{"customer_managed_key.0.key_vault_key_id"},
 							RequiredWith: []string{
 								"identity",
@@ -1127,19 +1126,17 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption, meta interf
 		return []interface{}{}, nil
 	}
 
-	env := meta.(*clients.Client).Account.Environment
-
 	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
-		isHsmKey, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, pointer.From(de.PrimaryKeyURI))
+		parsedKeyID, err := keyvault.ParseNestedItemID(*de.PrimaryKeyURI, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
-		if isHsmKey {
-			item["managed_hsm_key_id"] = pointer.From(de.PrimaryKeyURI)
+		if parsedKeyID.IsManagedHSM() {
+			item["managed_hsm_key_id"] = parsedKeyID.ID()
 		} else {
-			item["key_vault_key_id"] = pointer.From(de.PrimaryKeyURI)
+			item["key_vault_key_id"] = parsedKeyID.ID()
 		}
 	}
 

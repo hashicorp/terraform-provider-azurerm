@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// Deprecated: instead of suppressing the key vault version diff, validate input as a versionless ID and set the versionless ID into state
 func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *pluginsdk.ResourceData) bool {
 	// TODO: deprecate this method in the future, `ignore_changes` should be used instead
 	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)

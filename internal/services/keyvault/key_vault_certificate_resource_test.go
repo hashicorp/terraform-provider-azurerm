@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultCertificateResource struct{}
@@ -428,15 +428,15 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	client := clients.KeyVault
 	subscriptionId := clients.Account.SubscriptionId
 
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -444,15 +444,15 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	}
 	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
-		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	cert, err := client.ManagementClient.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	cert, err := client.ManagementClient.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	return utils.Bool(cert.ID != nil), nil
+	return pointer.To(cert.ID != nil), nil
 }
 
 func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -484,7 +484,7 @@ func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r KeyVaultCertificateResource) basicImportPFX(data acceptance.TestData) string {

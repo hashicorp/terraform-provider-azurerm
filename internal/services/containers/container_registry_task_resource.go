@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -1528,7 +1528,7 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 
 		if credential.UserName != "" {
 			usernameType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.UserName); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.UserName, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret); err == nil {
 				usernameType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.UserName = &tasks.SecretObject{
@@ -1538,7 +1538,7 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 		}
 		if credential.Password != "" {
 			passwordType := tasks.SecretObjectTypeOpaque
-			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
+			if _, err := keyvault.ParseNestedItemID(credential.Password, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret); err == nil {
 				passwordType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.Password = &tasks.SecretObject{

@@ -10,22 +10,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	mhsmParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
@@ -64,14 +60,15 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  keyVaultValidate.NestedItemId,
+				ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 				ConflictsWith: []string{"managed_hsm_key_id"},
 			},
 
+			// TODO: deprecate in favour of `key_vault_key_id`
 			"managed_hsm_key_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  validate.ManagedHSMDataPlaneVersionedKeyID,
+				ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 				ConflictsWith: []string{"key_vault_key_id"},
 			},
 
@@ -117,35 +114,29 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
 			Uri:                 &keyVaultKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 		}
 		serverKey.Properties = &serverKeyProperties
 
 		// Set the encryption protector properties
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
-		// Make sure it's a key, if not, throw an error
-		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			keyName := keyId.Name
-			keyVersion := keyId.Version
+		keyName := keyId.Name
+		keyVersion := keyId.Version
 
-			// Extract the vault name from the keyvault base url
-			idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseUrl)
-			if err != nil {
-				return fmt.Errorf("unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
-			}
-
-			hostParts := strings.Split(idURL.Host, ".")
-			vaultName := hostParts[0]
-
-			// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
-			serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
-		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
+		idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseURL)
+		if err != nil {
+			return fmt.Errorf("unable to parse key vault hostname: %s", keyId.KeyVaultBaseURL)
 		}
+
+		hostParts := strings.Split(idURL.Host, ".")
+		vaultName := hostParts[0]
+
+		// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
+		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, *keyVersion)
 	}
 
 	if v, ok := d.GetOk("managed_hsm_key_id"); ok {
@@ -157,27 +148,26 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
 			Uri:                 &mhsmKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 		}
 		serverKey.Properties = &serverKeyProperties
 
-		// Make sure it's a key, if not, throw an error
-		keyId, err := mhsmParser.ManagedHSMDataPlaneVersionedKeyID(mhsmKeyId, nil)
+		keyId, err := keyvault.ParseNestedItemID(mhsmKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("failed to parse '%s' as HSM key ID", mhsmKeyId)
 		}
 
 		// Extract the vault name from the keyvault base url
-		idURL, err := url.ParseRequestURI(keyId.BaseUri())
+		idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseURL)
 		if err != nil {
-			return fmt.Errorf("unable to parse key vault hostname: %s", keyId.BaseUri())
+			return fmt.Errorf("unable to parse key vault hostname: %s", keyId.KeyVaultBaseURL)
 		}
 
 		hostParts := strings.Split(idURL.Host, ".")
 		vaultName := hostParts[0]
 
 		// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
-		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyId.KeyName, keyId.KeyVersion)
+		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyId.Name, *keyId.Version)
 	}
 
 	keyType := encryptionprotectors.ServerKeyTypeServiceManaged
@@ -189,7 +179,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	encryptionProtectorProperties := encryptionprotectors.EncryptionProtectorProperties{
 		ServerKeyType:       keyType,
 		ServerKeyName:       &serverKeyName,
-		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+		AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 	}
 
 	keyId := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, serverKeyName)
@@ -222,7 +212,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
-	env := meta.(*clients.Client).Account.Environment
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,12 +252,12 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	hsmKey := ""
 	keyVaultKeyId := ""
 	if keyId != "" {
-		isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyId)
+		parsedKeyID, err := keyvault.ParseNestedItemID(keyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
 
-		if isHSMURI {
+		if parsedKeyID.IsManagedHSM() {
 			hsmKey = keyId
 		} else {
 			keyVaultKeyId = keyId

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -23,11 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cognitiveValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -136,14 +132,15 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 					},
 
+					// TODO: deprecate in favour of `key_vault_key_id`
 					"managed_hsm_key_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 					},
 
@@ -642,79 +639,52 @@ func expandCustomerManagedKey(input []CustomerManagedKey) (*cognitiveservicesacc
 	}
 
 	if v.KeyVaultKeyID != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v.KeyVaultKeyID)
-		if err != nil {
-			return nil, err
-		}
-		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(keyId.Version)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
-	} else {
-		hsmKyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(v.ManagedHsmKeyID, nil)
+		keyId, err := keyvault.ParseNestedItemID(v.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
-		encryption.KeyVaultProperties.KeyName = pointer.To(hsmKyId.KeyName)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(hsmKyId.KeyVersion)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
+		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
+		encryption.KeyVaultProperties.KeyVersion = keyId.Version
+		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseURL)
+	} else {
+		keyId, err := keyvault.ParseNestedItemID(v.ManagedHsmKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+		if err != nil {
+			return nil, err
+		}
+
+		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
+		encryption.KeyVaultProperties.KeyVersion = keyId.Version
+		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseURL)
 	}
 	return encryption, nil
 }
 
 func flattenCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]CustomerManagedKey, error) {
-	if input == nil || *input.KeySource == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return []CustomerManagedKey{}, nil
 	}
 
-	keyName := ""
-	keyVaultURI := ""
-	keyVersion := ""
-	customerManagerKey := CustomerManagedKey{}
+	customerManagedKey := CustomerManagedKey{}
 
 	if props := input.KeyVaultProperties; props != nil {
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-		if props.KeyVaultUri != nil {
-			keyVaultURI = *props.KeyVaultUri
-		}
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-
-		isHsmURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+		keyID, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), props.KeyVersion)
 		if err != nil {
 			return nil, err
 		}
 
 		if props.IdentityClientId != nil {
-			customerManagerKey.IdentityClientID = *props.IdentityClientId
+			customerManagedKey.IdentityClientID = *props.IdentityClientId
 		}
 
-		switch {
-		case isHsmURI && keyVersion == "":
-			{
-				keyVaultKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
-				customerManagerKey.ManagedHsmKeyID = keyVaultKeyId.ID()
-			}
-		case isHsmURI && keyVersion != "":
-			{
-				keyVaultKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
-				customerManagerKey.ManagedHsmKeyID = keyVaultKeyId.ID()
-			}
-		case !isHsmURI:
-			{
-				keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-				if err != nil {
-					return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
-				}
-				customerManagerKey.KeyVaultKeyID = keyVaultKeyId.ID()
-			}
+		if keyID.IsManagedHSM() {
+			customerManagedKey.ManagedHsmKeyID = keyID.ID()
+		} else {
+			customerManagedKey.KeyVaultKeyID = keyID.ID()
 		}
 	}
 
-	return []CustomerManagedKey{customerManagerKey}, nil
+	return []CustomerManagedKey{customerManagedKey}, nil
 }
 
 func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {

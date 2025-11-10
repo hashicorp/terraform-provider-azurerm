@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -24,8 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -494,7 +493,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"key_vault_user_assigned_identity_id": {
@@ -729,14 +728,14 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if keyVaultKeyId := d.Get("key_vault_key_id").(string); keyVaultKeyId != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 		}
 		containerGroup.Properties.EncryptionProperties = &containerinstance.EncryptionProperties{
-			VaultBaseURL: keyId.KeyVaultBaseUrl,
+			VaultBaseURL: keyId.KeyVaultBaseURL,
 			KeyName:      keyId.Name,
-			KeyVersion:   keyId.Version,
+			KeyVersion:   *keyId.Version,
 		}
 
 		if keyVaultUAI := d.Get("key_vault_user_assigned_identity_id").(string); keyVaultUAI != "" {
@@ -948,7 +947,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if kvProps := props.EncryptionProperties; kvProps != nil {
-			var keyVaultUri, keyName, keyVersion string
+			var keyVaultUri, keyName string
 			if kvProps.VaultBaseURL != "" {
 				keyVaultUri = kvProps.VaultBaseURL
 			} else {
@@ -959,8 +958,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			} else {
 				return fmt.Errorf("empty value returned for Key Vault Key Name")
 			}
-			keyVersion = kvProps.KeyVersion
-			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+			keyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, &kvProps.KeyVersion)
 			if err != nil {
 				return err
 			}

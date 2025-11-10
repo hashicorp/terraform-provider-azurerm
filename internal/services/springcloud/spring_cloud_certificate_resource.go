@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -85,7 +85,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate),
 			},
 
 			"thumbprint": {
@@ -119,19 +119,19 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 
 	cert := appplatform.CertificateResource{}
 	if value, ok := d.GetOk("key_vault_certificate_id"); ok {
-		keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(value.(string))
+		keyVaultCertificateId, err := keyvault.ParseNestedItemID(value.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 		if err != nil {
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:          utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
+			VaultURI:          pointer.To(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseURL, "/")),
 			KeyVaultCertName:  &keyVaultCertificateId.Name,
-			ExcludePrivateKey: utils.Bool(d.Get("exclude_private_key").(bool)),
+			ExcludePrivateKey: pointer.To(d.Get("exclude_private_key").(bool)),
 		}
 	}
 	if value, ok := d.GetOk("certificate_content"); ok {
 		cert.Properties = &appplatform.ContentCertificateProperties{
-			Content: utils.String(value.(string)),
+			Content: pointer.To(value.(string)),
 		}
 	}
 

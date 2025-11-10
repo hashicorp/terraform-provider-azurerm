@@ -9,8 +9,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
@@ -19,11 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
@@ -77,7 +77,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 			"database_credential_key_vault_secret_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			},
 		},
 	}
@@ -114,24 +114,24 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
 			DataSourceInfo: backupinstances.Datasource{
-				DatasourceType:   utils.String("Microsoft.DBforPostgreSQL/servers/databases"),
-				ObjectType:       utils.String("Datasource"),
+				DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/servers/databases"),
+				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       databaseId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(databaseId.DatabaseName),
-				ResourceType:     utils.String("Microsoft.DBforPostgreSQL/servers/databases"),
-				ResourceUri:      utils.String(""),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(databaseId.DatabaseName),
+				ResourceType:     pointer.To("Microsoft.DBforPostgreSQL/servers/databases"),
+				ResourceUri:      pointer.To(""),
 			},
 			DataSourceSetInfo: &backupinstances.DatasourceSet{
-				DatasourceType:   utils.String("Microsoft.DBForPostgreSQL/servers"),
-				ObjectType:       utils.String("DatasourceSet"),
+				DatasourceType:   pointer.To("Microsoft.DBForPostgreSQL/servers"),
+				ObjectType:       pointer.To("DatasourceSet"),
 				ResourceID:       serverId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(serverId.ServerName),
-				ResourceType:     utils.String("Microsoft.DBForPostgreSQL/servers"),
-				ResourceUri:      utils.String(""),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(serverId.ServerName),
+				ResourceType:     pointer.To("Microsoft.DBForPostgreSQL/servers"),
+				ResourceUri:      pointer.To(""),
 			},
-			FriendlyName: utils.String(id.BackupInstanceName),
+			FriendlyName: pointer.To(id.BackupInstanceName),
 			PolicyInfo: backupinstances.PolicyInfo{
 				PolicyId: policyId.ID(),
 			},
@@ -141,7 +141,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	if v, ok := d.GetOk("database_credential_key_vault_secret_id"); ok {
 		parameters.Properties.DatasourceAuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
 			SecretStoreResource: &backupinstances.SecretStoreResource{
-				Uri:             utils.String(v.(string)),
+				Uri:             pointer.To(v.(string)),
 				SecretStoreType: backupinstances.SecretStoreTypeAzureKeyVault,
 			},
 		}

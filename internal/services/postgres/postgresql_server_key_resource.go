@@ -9,18 +9,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLServerKey() *pluginsdk.Resource {
@@ -55,31 +54,31 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 		},
 	}
 }
 
 func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, subscriptionId string, keyVaultKeyURI string) (*string, error) {
-	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
+	keyVaultKeyID, err := keyvault.ParseNestedItemID(keyVaultKeyURI, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseURL)
 	if err != nil {
 		return nil, err
 	}
 	// function azure.GetKeyVaultIDFromBaseUrl returns nil with nil error when it does not find the keyvault by the keyvault URL
 	if keyVaultIDRaw == nil {
-		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseURL)
 	}
 	keyVaultID, err := commonids.ParseKeyVaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return pointer.To(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, *keyVaultKeyID.Version)), nil
 }
 
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -131,7 +130,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	param := serverkeys.ServerKey{
 		Properties: &serverkeys.ServerKeyProperties{
 			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
-			Uri:           utils.String(d.Get("key_vault_key_id").(string)),
+			Uri:           pointer.To(d.Get("key_vault_key_id").(string)),
 		},
 	}
 

@@ -24,17 +24,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	keyvaultSDK "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -46,7 +46,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 		Delete: resourceKeyVaultKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+			_, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny) // TODO: update this to parse specifically for key? Technically making the validation more restrictive
 			return err
 		}, nestedItemResourceImporter),
 
@@ -63,7 +63,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
@@ -75,10 +75,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.JSONWebKeyTypeEC),
-					string(keyvault.JSONWebKeyTypeECHSM),
-					string(keyvault.JSONWebKeyTypeRSA),
-					string(keyvault.JSONWebKeyTypeRSAHSM),
+					string(keyvaultSDK.JSONWebKeyTypeEC),
+					string(keyvaultSDK.JSONWebKeyTypeECHSM),
+					string(keyvaultSDK.JSONWebKeyTypeRSA),
+					string(keyvaultSDK.JSONWebKeyTypeRSAHSM),
 				}, false),
 			},
 
@@ -97,12 +97,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					// turns out Azure's *really* sensitive about the casing of these
 					// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 					ValidateFunc: validation.StringInSlice([]string{
-						string(keyvault.JSONWebKeyOperationDecrypt),
-						string(keyvault.JSONWebKeyOperationEncrypt),
-						string(keyvault.JSONWebKeyOperationSign),
-						string(keyvault.JSONWebKeyOperationUnwrapKey),
-						string(keyvault.JSONWebKeyOperationVerify),
-						string(keyvault.JSONWebKeyOperationWrapKey),
+						string(keyvaultSDK.JSONWebKeyOperationDecrypt),
+						string(keyvaultSDK.JSONWebKeyOperationEncrypt),
+						string(keyvaultSDK.JSONWebKeyOperationSign),
+						string(keyvaultSDK.JSONWebKeyOperationUnwrapKey),
+						string(keyvaultSDK.JSONWebKeyOperationVerify),
+						string(keyvaultSDK.JSONWebKeyOperationWrapKey),
 					}, false),
 				},
 			},
@@ -113,14 +113,14 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
+					return old == "SECP256K1" && new == string(keyvaultSDK.JSONWebKeyCurveNameP256K)
 				},
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
-						string(keyvault.JSONWebKeyCurveNameP256),
-						string(keyvault.JSONWebKeyCurveNameP256K),
-						string(keyvault.JSONWebKeyCurveNameP384),
-						string(keyvault.JSONWebKeyCurveNameP521),
+						string(keyvaultSDK.JSONWebKeyCurveNameP256),
+						string(keyvaultSDK.JSONWebKeyCurveNameP256K),
+						string(keyvaultSDK.JSONWebKeyCurveNameP384),
+						string(keyvaultSDK.JSONWebKeyCurveNameP521),
 					}
 					return validation.StringInSlice(out, false)
 				}(),
@@ -312,26 +312,26 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// TODO: support Importing Keys once this is fixed:
 	// https://github.com/Azure/azure-rest-api-specs/issues/1747
-	parameters := keyvault.KeyCreateParameters{
-		Kty:    keyvault.JSONWebKeyType(keyType),
+	parameters := keyvaultSDK.KeyCreateParameters{
+		Kty:    keyvaultSDK.JSONWebKeyType(keyType),
 		KeyOps: keyOptions,
-		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+		KeyAttributes: &keyvaultSDK.KeyAttributes{
+			Enabled: pointer.To(true),
 		},
 
 		Tags: tags.Expand(t),
 	}
 
 	switch parameters.Kty {
-	case keyvault.JSONWebKeyTypeEC, keyvault.JSONWebKeyTypeECHSM:
+	case keyvaultSDK.JSONWebKeyTypeEC, keyvaultSDK.JSONWebKeyTypeECHSM:
 		curveName := d.Get("curve").(string)
-		parameters.Curve = keyvault.JSONWebKeyCurveName(curveName)
-	case keyvault.JSONWebKeyTypeRSA, keyvault.JSONWebKeyTypeRSAHSM:
+		parameters.Curve = keyvaultSDK.JSONWebKeyCurveName(curveName)
+	case keyvaultSDK.JSONWebKeyTypeRSA, keyvaultSDK.JSONWebKeyTypeRSAHSM:
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
 			return errors.New("key_size is required when creating an RSA key")
 		}
-		parameters.KeySize = utils.Int32(int32(keySize.(int)))
+		parameters.KeySize = pointer.To(int32(keySize.(int)))
 	}
 	// TODO: support `oct` once this is fixed
 	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
@@ -394,7 +394,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if read.Key == nil || read.Key.Kid == nil {
 		return fmt.Errorf("cannot read KeyVault Key '%s' (in key vault '%s')", name, *keyVaultBaseUri)
 	}
-	keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+	keyId, err := keyvault.ParseNestedItemID(*read.Key.Kid, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
@@ -409,7 +409,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
@@ -419,14 +419,14 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
@@ -434,10 +434,10 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	keyOptions := expandKeyVaultKeyOptions(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := keyvault.KeyUpdateParameters{
+	parameters := keyvaultSDK.KeyUpdateParameters{
 		KeyOps: keyOptions,
-		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+		KeyAttributes: &keyvaultSDK.KeyAttributes{
+			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -454,14 +454,14 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
+	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseURL, id.Name, "", parameters); err != nil {
 		return err
 	}
 
 	if d.HasChange("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy").([]interface{}))); err != nil {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseURL, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy").([]interface{}))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
-				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseURL, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
 			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
@@ -477,18 +477,18 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
@@ -499,18 +499,18 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 		d.SetId("")
 		return nil
 	}
 
-	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
 		}
@@ -558,7 +558,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("versionless_id", id.VersionlessID())
 	if key := resp.Key; key != nil {
 		switch key.Kty {
-		case keyvault.JSONWebKeyTypeRSA, keyvault.JSONWebKeyTypeRSAHSM:
+		case keyvaultSDK.JSONWebKeyTypeRSA, keyvaultSDK.JSONWebKeyTypeRSAHSM:
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
 				return fmt.Errorf("failed to decode N: %+v", err)
@@ -575,7 +575,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err != nil {
 				return fmt.Errorf("failed to read public key: %+v", err)
 			}
-		case keyvault.JSONWebKeyTypeEC, keyvault.JSONWebKeyTypeECHSM:
+		case keyvaultSDK.JSONWebKeyTypeEC, keyvaultSDK.JSONWebKeyTypeECHSM:
 			// do ec keys
 			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 			if err != nil {
@@ -590,11 +590,11 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				Y: big.NewInt(0).SetBytes(yBytes),
 			}
 			switch key.Crv {
-			case keyvault.JSONWebKeyCurveNameP256:
+			case keyvaultSDK.JSONWebKeyCurveNameP256:
 				publicKey.Curve = elliptic.P256()
-			case keyvault.JSONWebKeyCurveNameP384:
+			case keyvaultSDK.JSONWebKeyCurveNameP384:
 				publicKey.Curve = elliptic.P384()
-			case keyvault.JSONWebKeyCurveNameP521:
+			case keyvaultSDK.JSONWebKeyCurveNameP521:
 				publicKey.Curve = elliptic.P521()
 			}
 			if publicKey.Curve != nil {
@@ -606,15 +606,15 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, *id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
-	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
+	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseURL, id.Name)
 	if err != nil {
 		switch {
 		case utils.ResponseWasForbidden(respPolicy.Response):
 			// If client is not authorized to access the policy:
-			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseURL, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 		case utils.ResponseWasNotFound(respPolicy.Response):
 			return tags.FlattenAndSet(d, resp.Tags)
 		default:
@@ -637,18 +637,18 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseURL)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -658,7 +658,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	kv, err := keyVaultsClient.VaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
 		}
@@ -671,10 +671,10 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		shouldPurge = false
 	}
 
-	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeKey{
 		client:      client,
-		keyVaultUri: id.KeyVaultBaseUrl,
+		keyVaultUri: id.KeyVaultBaseURL,
 		name:        id.Name,
 	}
 	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
@@ -687,7 +687,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
 
 type deleteAndPurgeKey struct {
-	client      *keyvault.BaseClient
+	client      *keyvaultSDK.BaseClient
 	keyVaultUri string
 	name        string
 }
@@ -711,48 +711,48 @@ func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autores
 	return resp.Response, err
 }
 
-func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyOperation {
+func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvaultSDK.JSONWebKeyOperation {
 	options := d.Get("key_opts").([]interface{})
-	results := make([]keyvault.JSONWebKeyOperation, 0, len(options))
+	results := make([]keyvaultSDK.JSONWebKeyOperation, 0, len(options))
 
 	for _, option := range options {
-		results = append(results, keyvault.JSONWebKeyOperation(option.(string)))
+		results = append(results, keyvaultSDK.JSONWebKeyOperation(option.(string)))
 	}
 
 	return &results
 }
 
-func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy {
+func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvaultSDK.KeyRotationPolicy {
 	if len(v) == 0 {
-		return keyvault.KeyRotationPolicy{LifetimeActions: &[]keyvault.LifetimeActions{}}
+		return keyvaultSDK.KeyRotationPolicy{LifetimeActions: &[]keyvaultSDK.LifetimeActions{}}
 	}
 
 	policy := v[0].(map[string]interface{})
 
 	var expiryTime *string = nil // needs to be set to nil if not set
 	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
-		expiryTime = utils.String(rawExpiryTime.(string))
+		expiryTime = pointer.To(rawExpiryTime.(string))
 	}
 
-	lifetimeActions := make([]keyvault.LifetimeActions, 0)
+	lifetimeActions := make([]keyvaultSDK.LifetimeActions, 0)
 	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
-		lifetimeActionNotify := keyvault.LifetimeActions{
-			Trigger: &keyvault.LifetimeActionsTrigger{
-				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
+		lifetimeActionNotify := keyvaultSDK.LifetimeActions{
+			Trigger: &keyvaultSDK.LifetimeActionsTrigger{
+				TimeBeforeExpiry: pointer.To(rawNotificationTime.(string)), // for Type: keyvaultSDK.Notify always TimeBeforeExpiry
 			},
-			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.ActionTypeNotify,
+			Action: &keyvaultSDK.LifetimeActionsType{
+				Type: keyvaultSDK.ActionTypeNotify,
 			},
 		}
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
 	}
 
 	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
-		lifetimeActionRotate := keyvault.LifetimeActions{
-			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.ActionTypeRotate,
+		lifetimeActionRotate := keyvaultSDK.LifetimeActions{
+			Action: &keyvaultSDK.LifetimeActionsType{
+				Type: keyvaultSDK.ActionTypeRotate,
 			},
-			Trigger: &keyvault.LifetimeActionsTrigger{},
+			Trigger: &keyvaultSDK.LifetimeActionsTrigger{},
 		}
 		autoRotationRaw := autoRotationList[0].(map[string]interface{})
 
@@ -769,9 +769,9 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
 	}
 
-	return keyvault.KeyRotationPolicy{
+	return keyvaultSDK.KeyRotationPolicy{
 		LifetimeActions: &lifetimeActions,
-		Attributes: &keyvault.KeyRotationPolicyAttributes{
+		Attributes: &keyvaultSDK.KeyRotationPolicyAttributes{
 			ExpiryTime: expiryTime,
 		},
 	}
@@ -787,7 +787,7 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	return results
 }
 
-func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interface{} {
+func flattenKeyVaultKeyRotationPolicy(input keyvaultSDK.KeyRotationPolicy) []interface{} {
 	if input.LifetimeActions == nil && input.Attributes == nil {
 		return []interface{}{}
 	}
@@ -802,7 +802,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvaultSDK.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				// Somehow a default is set after creation for notify_before_expiry
 				// Submitting this set value in the next run will not work though..
 				if policy["expire_after"] != nil {
@@ -810,7 +810,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 				}
 			}
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvaultSDK.ActionTypeRotate)) {
 				autoRotation := make(map[string]interface{})
 				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
 				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)

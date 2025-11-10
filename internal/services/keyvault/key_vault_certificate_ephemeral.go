@@ -18,12 +18,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"golang.org/x/crypto/pkcs12"
@@ -66,6 +66,7 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
+						// TODO: validate this as NestedItemName?
 						Func: validation.StringIsNotEmpty,
 					},
 				},
@@ -151,12 +152,12 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	id, err := parse.ParseNestedItemID(*response.ID)
+	id, err := keyvault.ParseNestedItemID(*response.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
 	}
-	data.Version = types.StringValue(id.Version)
+	data.Version = types.StringPointerValue(id.Version)
 
 	if attributes := response.Attributes; attributes != nil {
 		if expires := attributes.Expires; expires != nil {
@@ -175,7 +176,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 
 	data.Hex = types.StringValue(certificateData)
 
-	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version)
+	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, *id.Version)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving certificate %q from %s", data.Name.ValueString(), keyVaultID), err)
 		return

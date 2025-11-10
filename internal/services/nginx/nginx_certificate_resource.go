@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -59,9 +59,10 @@ func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_secret_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			// TODO: this seems like it should be a certificate, confirm, consider renaming arg for 5.0 unless both secret and cert are accepted?
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 	}
 }

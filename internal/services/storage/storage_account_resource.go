@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
@@ -32,10 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -267,14 +264,15 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 						},
 
+						// TODO: deprecate in favour of `key_vault_key_id`
 						"managed_hsm_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 						},
 
@@ -2489,18 +2487,18 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 
 	var keyName, keyVersion, keyVaultURI *string
 	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
+		keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseURL)
 		if err != nil {
 			return nil, err
 		}
 		if keyVaultIdRaw == nil {
-			return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseUrl, subscriptionResourceId)
+			return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseURL, subscriptionResourceId)
 		}
 		keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 		if err != nil {
@@ -2528,20 +2526,17 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		}
 
 		keyName = pointer.To(keyId.Name)
-		keyVersion = pointer.To(keyId.Version)
-		keyVaultURI = pointer.To(keyId.KeyVaultBaseUrl)
+		keyVersion = keyId.Version
+		keyVaultURI = pointer.To(keyId.KeyVaultBaseURL)
 	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
-		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = pointer.To(keyId.KeyName)
-			keyVersion = pointer.To(keyId.KeyVersion)
-			keyVaultURI = pointer.To(keyId.BaseUri())
-		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = utils.String(keyId.KeyName)
-			keyVersion = utils.String("")
-			keyVaultURI = utils.String(keyId.BaseUri())
-		} else {
-			return nil, fmt.Errorf("parsing %q as HSM key ID", managedHSMKeyId.(string))
+		keyId, err := keyvault.ParseNestedItemID(managedHSMKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+		if err != nil {
+			return nil, err
 		}
+
+		keyName = pointer.To(keyId.Name)
+		keyVersion = keyId.Version
+		keyVaultURI = pointer.To(keyId.KeyVaultBaseURL)
 	}
 
 	encryption := &storageaccounts.Encryption{
@@ -2562,7 +2557,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			},
 		},
 		Identity: &storageaccounts.EncryptionIdentity{
-			UserAssignedIdentity: utils.String(v["user_assigned_identity_id"].(string)),
+			UserAssignedIdentity: pointer.To(v["user_assigned_identity_id"].(string)),
 		},
 		KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 		Keyvaultproperties: &storageaccounts.KeyVaultProperties{
@@ -2602,7 +2597,7 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 
 	v := input[0].(map[string]interface{})
 	return &storageaccounts.ImmutableStorageAccount{
-		Enabled: utils.Bool(true),
+		Enabled: pointer.To(true),
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
@@ -2636,16 +2631,16 @@ func expandAccountActiveDirectoryProperties(input []interface{}) *storageaccount
 		DomainName: m["domain_name"].(string),
 	}
 	if v := m["storage_sid"]; v != "" {
-		output.AzureStorageSid = utils.String(v.(string))
+		output.AzureStorageSid = pointer.To(v.(string))
 	}
 	if v := m["domain_sid"]; v != "" {
-		output.DomainSid = utils.String(v.(string))
+		output.DomainSid = pointer.To(v.(string))
 	}
 	if v := m["forest_name"]; v != "" {
-		output.ForestName = utils.String(v.(string))
+		output.ForestName = pointer.To(v.(string))
 	}
 	if v := m["netbios_domain_name"]; v != "" {
-		output.NetBiosDomainName = utils.String(v.(string))
+		output.NetBiosDomainName = pointer.To(v.(string))
 	}
 	return output
 }
@@ -2757,7 +2752,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 			CorsRules: &[]blobservice.CorsRule{},
 		},
 		DeleteRetentionPolicy: &blobservice.DeleteRetentionPolicy{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		},
 	}
 

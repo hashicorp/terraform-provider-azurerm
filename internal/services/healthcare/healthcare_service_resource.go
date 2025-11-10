@@ -12,14 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -78,11 +77,12 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// TODO: remove diff suppress
 				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
+				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 			},
 
 			"access_policy_object_ids": {
@@ -443,7 +443,7 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}

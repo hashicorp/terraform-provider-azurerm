@@ -11,10 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,7 +51,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Arguments() map[string]*p
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"infrastructure_encryption_enabled": {
@@ -101,7 +100,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 
 			payload := resp.Model
 
-			keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+			keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
 			}
@@ -112,8 +111,8 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 				KeyVaultProperties: &[]namespaces.KeyVaultProperties{
 					{
 						KeyName:     pointer.To(keyId.Name),
-						KeyVersion:  pointer.To(keyId.Version),
-						KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+						KeyVersion:  keyId.Version,
+						KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 					},
 				},
 			}
@@ -154,7 +153,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil && props.Encryption != nil {
 					encryption := props.Encryption
 					if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) > 0 {
-						keyVaultKeyId, err := keyVaultParse.NewNestedItemID(pointer.From((*keyVaultProperties)[0].KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From((*keyVaultProperties)[0].KeyName), pointer.From((*keyVaultProperties)[0].KeyVersion))
+						keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From((*keyVaultProperties)[0].KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From((*keyVaultProperties)[0].KeyName), (*keyVaultProperties)[0].KeyVersion)
 						if err != nil {
 							return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 						}
@@ -207,14 +206,14 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Update() sdk.ResourceFunc
 			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("key_vault_key_id") {
-				keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+				keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 				if err != nil {
 					return err
 				}
 
 				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyName = pointer.To(keyId.Name)
-				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVersion = pointer.To(keyId.Version)
-				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
+				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVersion = keyId.Version
+				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVaultUri = pointer.To(keyId.KeyVaultBaseURL)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {

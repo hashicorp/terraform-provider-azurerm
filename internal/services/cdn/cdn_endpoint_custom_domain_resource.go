@@ -12,14 +12,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -105,10 +104,11 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		},
 	}
 
+	// TODO: figure out why this is out here? Was this meant to be inside the 5.0 feature flagged block?
 	schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"] = &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,
 		Required:     true,
-		ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+		ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 	}
 
 	if !features.FivePointOh() {
@@ -196,7 +196,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 	props := cdn.CustomDomainParameters{
 		CustomDomainPropertiesParameters: &cdn.CustomDomainPropertiesParameters{
-			HostName: utils.String(d.Get("host_name").(string)),
+			HostName: pointer.To(d.Get("host_name").(string)),
 		},
 	}
 
@@ -395,11 +395,11 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 
 				secretIdRaw := b["key_vault_secret_id"].(string)
 				if secretIdRaw != "" {
-					id, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(secretIdRaw)
+					id, err := keyvault.ParseNestedItemID(secretIdRaw, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret)
 					if err != nil {
 						return fmt.Errorf("parsing Key Vault Secret Id %q: %v", secretIdRaw, err)
 					}
-					isVersioned = id.Version != ""
+					isVersioned = id.Version != nil
 				}
 			}
 			settings, err := flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, params, keyVaultsClient, isVersioned)
@@ -447,7 +447,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	raw := input[0].(map[string]interface{})
 	output := &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
-			OdataType:       utils.String("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
+			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
@@ -467,40 +467,34 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 
 	idLiteral := raw["key_vault_secret_id"].(string)
 
-	keyVaultSecretId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(idLiteral)
+	keyVaultSecretId, err := keyvault.ParseNestedItemID(idLiteral, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
-	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyVaultSecretId.KeyVaultBaseUrl, subscriptionId)
+		return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyVaultSecretId.KeyVaultBaseURL, subscriptionId)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fix for issue #20772
-	var SecretVersion *string
-	if keyVaultSecretId.Version != "" {
-		SecretVersion = pointer.To(keyVaultSecretId.Version)
-	}
-
 	output := &cdn.UserManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.KeyVaultCertificateSourceParameters{
-			OdataType:         utils.String("#Microsoft.Azure.Cdn.Models.KeyVaultCertificateSourceParameters"),
+			OdataType:         pointer.To("#Microsoft.Azure.Cdn.Models.KeyVaultCertificateSourceParameters"),
 			SubscriptionID:    pointer.To(keyVaultId.SubscriptionId),
 			ResourceGroupName: pointer.To(keyVaultId.ResourceGroupName),
 			VaultName:         pointer.To(keyVaultId.VaultName),
 			SecretName:        pointer.To(keyVaultSecretId.Name),
-			SecretVersion:     SecretVersion,
-			UpdateRule:        utils.String("NoAction"),
-			DeleteRule:        utils.String("NoAction"),
+			SecretVersion:     keyVaultSecretId.Version,
+			UpdateRule:        pointer.To("NoAction"),
+			DeleteRule:        pointer.To("NoAction"),
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
 		ProtocolType:      cdn.ProtocolTypeServerNameIndication,
@@ -571,7 +565,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 		return nil, fmt.Errorf("unexpected null Key Vault Secret retrieved for Key Vault %s / Secret Name %s / Secret Version %s", keyVaultId, secretName, secretVersion)
 	}
 
-	secretId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(*secret.ID)
+	secretId, err := keyvault.ParseNestedItemID(*secret.ID, keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return nil, err
 	}

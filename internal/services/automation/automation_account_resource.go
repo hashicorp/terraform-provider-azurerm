@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
@@ -22,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -81,7 +80,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 					},
 				},
@@ -401,14 +400,14 @@ func expandEncryption(input []interface{}) (*automationaccount.EncryptionPropert
 	}
 
 	if keyIdStr := v["key_vault_key_id"].(string); keyIdStr != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
+		keyId, err := keyvault.ParseNestedItemID(keyIdStr, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 		prop.KeyVaultProperties = &automationaccount.KeyVaultProperties{
 			KeyName:     pointer.To(keyId.Name),
-			KeyVersion:  pointer.To(keyId.Version),
-			KeyvaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+			KeyVersion:  keyId.Version,
+			KeyvaultUri: pointer.To(keyId.KeyVaultBaseURL),
 		}
 	}
 	return prop, nil
@@ -423,7 +422,7 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 	userAssignedIdentityId := ""
 
 	if keyProp := encryption.KeyVaultProperties; keyProp != nil {
-		keyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, keyVaultParse.NestedItemTypeKey, *keyProp.KeyName, *keyProp.KeyVersion)
+		keyId, err := keyvault.NewNestedItemID(pointer.From(keyProp.KeyvaultUri), keyvault.NestedItemTypeKey, pointer.From(keyProp.KeyName), keyProp.KeyVersion)
 		if err == nil {
 			keyVaultKeyId = keyId.ID()
 		}
