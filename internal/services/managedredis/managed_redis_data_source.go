@@ -35,7 +35,7 @@ type ManagedRedisDataSourceModel struct {
 	Hostname                string                                     `tfschema:"hostname"`
 	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Location                string                                     `tfschema:"location"`
-	PublicNetworkAccess     string                                     `tfschema:"plugin_network_access"`
+	PublicNetworkAccess     string                                     `tfschema:"public_network_access"`
 	SkuName                 string                                     `tfschema:"sku_name"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 }
