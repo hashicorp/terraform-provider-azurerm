@@ -286,30 +286,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 			props := firewall.Properties
 
 			if metadata.ResourceData.HasChange("plan_id") {
-				// Updating the Azure Marketplace Plan along with other Cloud NGFW properties in a single UPDATE call is not supported
 				props.PlanData.PlanId = model.PlanId
-				firewall.Properties = props
-
-				if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
-					return fmt.Errorf("updating plan_id %s: %+v", *id, err)
-				}
-
-				if !metadata.ResourceData.HasChangeExcept("plan_id") {
-					return nil
-				}
-
-				// Re-fetch the resource after plan update to get the latest state
-				existing, err = client.Get(ctx, *id)
-				if err != nil {
-					return fmt.Errorf("re-reading %s after plan update: %+v", *id, err)
-				}
-
-				if existing.Model == nil {
-					return fmt.Errorf("re-retrieving %s after plan update: model was nil", *id)
-				}
-
-				firewall = *existing.Model
-				props = firewall.Properties
 			}
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {

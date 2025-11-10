@@ -30,7 +30,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -49,7 +49,7 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_requiresImport(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,21 +87,21 @@ func TestAccNextGenerationFirewallVNetStrataCloudManager_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "cloud-ngfw-payg-test"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data), // Skip plan_id update as it's only applicable when a new plan is introduced, thus it's not able to be tested
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "cloud-ngfw-for-msft"), // Have to use msft basic one, as it cannot go back to the old plan in the test subscription.
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,9 +127,8 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Exists(ctx context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) basic(data acceptance.TestData, planId string) string {
-  if planId == "" {
-    return fmt.Sprintf(`
+func (r NextGenerationFirewallVNetStrataCloudManagerResource) basic(data acceptance.TestData) string {
+  return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -160,43 +159,10 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
   depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
-  }
-  return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "test" {
-  name                             = "acctest-ngfwvnscm-%[2]d"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  strata_cloud_manager_tenant_name = "%[3]s"
-  plan_id                          = "%[4]s"
-
-  network_profile {
-    public_ip_address_ids = [azurerm_public_ip.test.id]
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_virtual_network.test.id
-      trusted_subnet_id   = azurerm_subnet.test1.id
-      untrusted_subnet_id = azurerm_subnet.test2.id
-    }
-  }
-
-  // tags is required in the test subscription account, otherwise it fails
-  tags = {
-    userid = "terraform-test"
-  }
-
-  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"), planId)
 }
 
 func (r NextGenerationFirewallVNetStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "")
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -235,7 +201,6 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
   name                             = "acctest-ngfwvnscm-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
-  plan_id                          = "cloud-ngfw-for-msft"
   strata_cloud_manager_tenant_name = "%[4]s"
 
   network_profile {
