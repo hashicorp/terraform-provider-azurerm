@@ -61,7 +61,14 @@ func TestAccMongoClusterFirewallRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -110,7 +117,7 @@ resource "azurerm_mongo_cluster_firewall_rule" "import" {
 `, r.basic(data))
 }
 
-func (r MongoClusterFirewallRuleResource) complete(data acceptance.TestData) string {
+func (r MongoClusterFirewallRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
