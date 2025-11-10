@@ -189,6 +189,21 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSEphemeralNVMeDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralNVMeDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -256,42 +271,6 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccWindowsVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -406,6 +385,74 @@ func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	// Ignoring Recreate as we're deliberately deleting the VM to leave behind a viable managed OS disk for import.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSBasicNoDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.osDiskImportTemplateWithProvider(data), // Remove the initial VM
+		},
+		{
+			Config: r.diskOSImportManagedDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
+			Config: r.diskOSImportManagedDiskUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	// Ignoring Recreate as we're deliberately deleting the VM to leave behind a viable managed OS disk for import.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSBasicNoDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.osDiskImportTemplateWithProvider(data), // Remove the initial VM
+		},
+		{
+			Config: r.diskOSImportManagedDiskWithSize(data, 130),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
+			Config: r.diskOSImportManagedDiskWithSize(data, 140),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WindowsVirtualMachineResource) diskOSBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -434,6 +481,147 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSBasicNoDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.osDiskImportTemplate(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSImportManagedDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching = "ReadWrite"
+  }
+}
+`, r.osDiskImportTemplate(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSImportManagedDiskWithSize(data acceptance.TestData, diskSize int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = "acctestvmi%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching      = "ReadWrite"
+    disk_size_gb = %[3]d
+  }
+}
+`, r.osDiskImportTemplate(data), data.RandomString, diskSize)
+}
+
+func (r WindowsVirtualMachineResource) diskOSImportManagedDiskUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching = "ReadOnly"
+  }
+}
+`, r.osDiskImportTemplate(data))
 }
 
 func (r WindowsVirtualMachineResource) diskOSCachingType(data acceptance.TestData, cachingType string) string {
@@ -560,6 +748,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
   enabled_for_disk_encryption = true
 }
 
@@ -840,6 +1029,42 @@ resource "azurerm_windows_virtual_machine" "test" {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2022-datacenter-smalldisk"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSEphemeralNVMeDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2ads_v6"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "NvmeDisk"
+    }
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core-smalldisk"
     version   = "latest"
   }
 }
@@ -1140,4 +1365,58 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
 `, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
+}
+
+func (r WindowsVirtualMachineResource) osDiskImportTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+locals {
+  vm_name = "acctestvm%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, data.RandomString, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r WindowsVirtualMachineResource) osDiskImportTemplateWithProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+ features {
+   virtual_machine {
+     delete_os_disk_on_deletion = false
+   }
+ }
+}
+
+%s
+
+`, r.osDiskImportTemplate(data))
 }

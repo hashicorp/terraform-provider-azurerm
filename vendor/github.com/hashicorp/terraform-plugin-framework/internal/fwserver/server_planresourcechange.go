@@ -30,9 +30,11 @@ type PlanResourceChangeRequest struct {
 	Config             *tfsdk.Config
 	PriorPrivate       *privatestate.Data
 	PriorState         *tfsdk.State
+	PriorIdentity      *tfsdk.ResourceIdentity
 	ProposedNewState   *tfsdk.Plan
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
+	IdentitySchema     fwschema.Schema
 	Resource           resource.Resource
 	ResourceBehavior   resource.ResourceBehavior
 }
@@ -44,6 +46,7 @@ type PlanResourceChangeResponse struct {
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
+	PlannedIdentity *tfsdk.ResourceIdentity
 	RequiresReplace path.Paths
 }
 
@@ -115,6 +118,24 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
+	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
+	if req.PriorIdentity == nil && req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.PriorIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	// Set the planned identity to the prior identity by default (can be modified later).
+	if req.PriorIdentity != nil {
+		resp.PlannedIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
+		}
+	}
+
 	// Ensure that resp.PlannedPrivate is never nil.
 	resp.PlannedPrivate = privatestate.EmptyData(ctx)
 
@@ -154,6 +175,18 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 		resp.PlannedState.Raw = data.TerraformValue
 	}
+
+	// Set any write-only attributes in the plan to null
+	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, resp.PlannedState.Schema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Planned State",
+			"There was an unexpected error modifying the PlannedState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+
+	resp.PlannedState.Raw = modifiedPlan
 
 	// After ensuring there are proposed changes, mark any computed attributes
 	// that are null in the config as unknown in the plan, so providers have
@@ -299,12 +332,24 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Private:         modifyPlanReq.Private,
 		}
 
+		if resp.PlannedIdentity != nil {
+			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+			modifyPlanResp.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+		}
+
 		logging.FrameworkTrace(ctx, "Calling provider defined Resource ModifyPlan")
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
+		resp.PlannedIdentity = modifyPlanResp.Identity
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 		resp.Deferred = modifyPlanResp.Deferred
@@ -326,6 +371,31 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
+	if resp.PlannedIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Plan Response",
+				"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
+		// If we're updating or deleting and we already have an identity stored, validate that the planned identity isn't changing
+		if !req.ResourceBehavior.MutableIdentity && !req.PriorState.Raw.IsNull() && !req.PriorIdentity.Raw.IsNull() && !req.PriorIdentity.Raw.Equal(resp.PlannedIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Prior Identity: %s\n\n", req.PriorIdentity.Raw.String())+
+					fmt.Sprintf("Planned Identity: %s", resp.PlannedIdentity.Raw.String()),
+			)
+
+			return
+		}
+	}
+
 	// Ensure deterministic RequiresReplace by sorting and deduplicating
 	resp.RequiresReplace = NormaliseRequiresReplace(ctx, resp.RequiresReplace)
 
@@ -337,6 +407,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n"+
 				"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
 		)
+		return
 	}
 }
 

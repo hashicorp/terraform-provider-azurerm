@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,16 +24,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip_prefix -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePublicIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpPrefixCreate,
-		Read:   resourcePublicIpPrefixRead,
-		Update: resourcePublicIpPrefixUpdate,
-		Delete: resourcePublicIpPrefixDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := publicipprefixes.ParsePublicIPPrefixID(id)
-			return err
-		}),
+		Create:   resourcePublicIpPrefixCreate,
+		Read:     resourcePublicIpPrefixRead,
+		Update:   resourcePublicIpPrefixUpdate,
+		Delete:   resourcePublicIpPrefixDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&publicipprefixes.PublicIPPrefixId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -52,6 +56,13 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"custom_ip_prefix_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
+			},
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -135,6 +146,12 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if customIpPrefixId := d.Get("custom_ip_prefix_id").(string); customIpPrefixId != "" {
+		publicIpPrefix.Properties.CustomIPPrefix = &publicipprefixes.SubResource{
+			Id: pointer.To(customIpPrefixId),
+		}
+	}
+
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		publicIpPrefix.Zones = &zones
@@ -208,10 +225,23 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if version := props.PublicIPAddressVersion; version != nil {
 				d.Set("ip_version", string(*version))
 			}
+
+			customIpPrefixId := ""
+			if props.CustomIPPrefix != nil {
+				id, err := customipprefixes.ParseCustomIPPrefixID(pointer.From(props.CustomIPPrefix.Id))
+				if err != nil {
+					return err
+				}
+				customIpPrefixId = id.ID()
+			}
+			d.Set("custom_ip_prefix_id", customIpPrefixId)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePublicIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) error {

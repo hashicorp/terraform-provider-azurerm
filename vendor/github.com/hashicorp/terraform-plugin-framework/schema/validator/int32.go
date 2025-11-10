@@ -35,6 +35,11 @@ type Int32Request struct {
 
 	// ConfigValue contains the value of the attribute for validation from the configuration.
 	ConfigValue types.Int32
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities ValidateSchemaClientCapabilities
 }
 
 // Int32Response is a response to a Int32Request.

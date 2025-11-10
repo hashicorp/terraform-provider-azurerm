@@ -10,13 +10,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsWebAppResource struct{}
@@ -257,6 +258,21 @@ func TestAccWindowsWebApp_withLogging(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebApp_alwaysOnFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alwaysOnFalse(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -538,7 +554,14 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.withAuthSettings(data),
+			Config: r.withAuthSettingsExplicitlyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withAuthSettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1609,6 +1632,28 @@ func TestAccWindowsWebApp_zipDeploy(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_zipDeployAppRecycle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file", "site_credential.0.password"),
+	})
+}
+
 // ASE based tests - Deliberately have longer prefix to make it possible to exclude from testing unrelated changes in the app resource
 // as they take a significant amount of time to execute (anything up to 6h)
 
@@ -1744,14 +1789,14 @@ func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Clien
 	resp, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r WindowsWebAppResource) basic(data acceptance.TestData) string {
@@ -2230,6 +2275,29 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r WindowsWebAppResource) withAuthSettingsExplicitlyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  auth_settings {
+    enabled = false
+  }
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) withDetailedLogging(data acceptance.TestData, detailedErrorLogging bool) string {
@@ -3447,6 +3515,21 @@ resource "azurerm_windows_web_app" "test" {
 
 // Note - this test omits the features block as the referenced template is a complete test on Service Plan
 func (r WindowsWebAppResource) withASEV3(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, ServicePlanResource{}.aseV3(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3457,6 +3540,8 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+
+  virtual_network_image_pull_enabled = true
 }
 `, ServicePlanResource{}.aseV3(data), data.RandomInteger)
 }
@@ -4143,6 +4228,8 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
   site_config {}
+
+  virtual_network_image_pull_enabled = true
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }
@@ -4197,4 +4284,34 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) alwaysOnFalse(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    always_on           = false
+    minimum_tls_version = "1.2"
+    ftps_state          = "FtpsOnly"
+    http2_enabled       = true
+    use_32_bit_worker   = false
+
+    application_stack {
+      current_stack  = "dotnet"
+      dotnet_version = "v6.0"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }

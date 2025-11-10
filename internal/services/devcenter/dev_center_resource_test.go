@@ -143,9 +143,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center" "test" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctestdc-${var.random_string}"
-  resource_group_name = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  name                              = "acctestdc-${var.random_string}"
+  resource_group_name               = azurerm_resource_group.test.name
+  project_catalog_item_sync_enabled = true
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"

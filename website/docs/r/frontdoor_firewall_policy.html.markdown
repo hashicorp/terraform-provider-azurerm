@@ -14,7 +14,7 @@ Manages an Azure Front Door (classic) Web Application Firewall Policy instance.
 
 !> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
-!> **Note:** On `1 April 2025`, Azure Front Door (classic) will be retired for the public cloud, existing Azure Front Door (classic) resources must be migrated out of Azure Front Door (classic) to Azure Front Door Standard/Premium before `1 October 2025` to avoid potential disruptions in service.
+!> **Note:** The creation of new Azure Front Door (classic) resources is no longer supported following its deprecation on `April 1, 2025`. However, modifications to existing Azure Front Door (classic) resources will continue to be supported until the API reaches full retirement on `March 31, 2027`.
 
 ## Example Usage
 
@@ -125,7 +125,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -241,11 +241,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Web Application Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Web Application Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Web Application Firewall Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Web Application Firewall Policy.
 
 ## Import

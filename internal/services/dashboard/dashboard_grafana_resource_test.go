@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +97,7 @@ func TestAccDashboardGrafana_withSku(t *testing.T) {
 }
 
 func (r DashboardGrafanaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := grafanaresource.ParseGrafanaID(state.ID)
+	id, err := managedgrafanas.ParseGrafanaID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 
   sku = "Essential"
 }
@@ -193,7 +193,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "10"
+  grafana_major_version             = "11"
   smtp {
     enabled          = true
     host             = "localhost:25"

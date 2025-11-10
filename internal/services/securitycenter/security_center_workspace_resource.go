@@ -98,10 +98,10 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if d.IsNewResource() {
 		if _, err = client.Create(ctx, id.WorkspaceSettingName, contact); err != nil {
-			return fmt.Errorf("Creating Security Center Workspace: %+v", err)
+			return fmt.Errorf("creating Security Center Workspace: %+v", err)
 		}
 	} else if _, err = client.Update(ctx, id.WorkspaceSettingName, contact); err != nil {
-		return fmt.Errorf("Updating Security Center Workspace: %+v", err)
+		return fmt.Errorf("updating Security Center Workspace: %+v", err)
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value
@@ -117,7 +117,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, id.WorkspaceSettingName)
 			if err2 != nil {
-				return resp, "Error", fmt.Errorf("Reading Security Center Workspace: %+v", err2)
+				return resp, "Error", fmt.Errorf("reading Security Center Workspace: %+v", err2)
 			}
 
 			if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -154,7 +154,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Reading Security Center Workspace: %+v", err)
+		return fmt.Errorf("retrieving Security Center Workspace: %+v", err)
 	}
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -163,7 +163,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		if properties.WorkspaceID != nil {
 			id, err := workspaces.ParseWorkspaceIDInsensitively(*properties.WorkspaceID)
 			if err != nil {
-				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+				return fmt.Errorf("retrieving Security Center Log Analytics Workspace ID: %+v", err)
 			}
 			workspaceId = id.ID()
 		}
@@ -185,7 +185,7 @@ func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Deleting Security Center Workspace: %+v", err)
+		return fmt.Errorf("deleting Security Center Workspace: %+v", err)
 	}
 
 	return nil

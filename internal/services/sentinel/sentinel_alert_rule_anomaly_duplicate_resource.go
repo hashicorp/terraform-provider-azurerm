@@ -404,7 +404,7 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
 			if err != nil {
@@ -563,7 +563,7 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
 			if err != nil {

@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -210,13 +210,14 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "anfakv%[2]d"
+  name                            = "acct%[2]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[3]s"
   sku_name                        = "standard"
 
@@ -322,13 +323,14 @@ resource "azurerm_netapp_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "anfakv%[2]d"
+  name                            = "acctest%[2]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[3]s"
   sku_name                        = "standard"
 
@@ -406,7 +408,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate2(data acceptance.TestData, tenantID string) string {
@@ -432,13 +434,14 @@ resource "azurerm_netapp_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "anfakv%[2]d"
+  name                            = "acctest%[2]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[3]s"
   sku_name                        = "standard"
 
@@ -520,7 +523,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test-new-key.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (NetAppAccountEncryptionResource) template(data acceptance.TestData) string {

@@ -214,6 +214,23 @@ func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *test
 	})
 }
 
+func TestAccFlexibleServerConfiguration_staticParameterWithReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+	name := "cron.max_running_jobs"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.staticParameterWithReplica(data, name, "5"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("value").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFlexibleServerConfiguration_doesNotRestartServer_whenFeatureIsDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
 	r := PostgresqlFlexibleServerConfigurationResource{}
@@ -274,6 +291,27 @@ resource "azurerm_postgresql_flexible_server_configuration" "test" {
   value     = "%s"
 }
 `, r.template(data), name, value)
+}
+
+func (r PostgresqlFlexibleServerConfigurationResource) staticParameterWithReplica(data acceptance.TestData, name, value string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server_configuration" "test" {
+  name      = "%s"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "%s"
+}
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = azurerm_postgresql_flexible_server.test.zone
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+}
+`, r.template(data), name, value, data.RandomInteger)
 }
 
 func (PostgresqlFlexibleServerConfigurationResource) multiplePostgresqlFlexibleServerConfigurations(data acceptance.TestData) string {

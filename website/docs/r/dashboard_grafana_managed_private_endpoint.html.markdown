@@ -10,7 +10,7 @@ description: |-
 
 Manages a Dashboard Grafana Managed Private Endpoint.
 
-~> **NOTE:** This resource will _not_ approve the managed private endpoint connection on the linked resource. This will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
+~> **Note:** This resource will _not_ approve the managed private endpoint connection on the linked resource. This will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
 
 ## Example Usage
 
@@ -69,6 +69,8 @@ The following arguments are supported:
 
 - `request_message` - (Optional) A message to provide in the request which will be seen by approvers.
 
+- `private_link_service_url` - (Optional) A domain name for this endpoint to be used within Grafana. Must be just a domain, without schema, and with at least three parts.
+
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
 
 ## Attributes Reference
@@ -79,12 +81,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana Managed Private Endpoint.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana Managed Private Endpoint.
-- `update` - (Defaults to 30 minutes) Used when updating the Dashboard Grafana Managed Private Endpoint.
-- `delete` - (Defaults to 5 minutes) Used when deleting the Dashboard Grafana Managed Private Endpoint.
+* `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana Managed Private Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana Managed Private Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Dashboard Grafana Managed Private Endpoint.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Dashboard Grafana Managed Private Endpoint.
 
 ## Import
 
@@ -93,3 +95,9 @@ Dashboard Grafana Managed Private Endpoint Examples can be imported using the `r
 ```shell
 terraform import azurerm_dashboard_grafana_managed_private_endpoint.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Dashboard/grafana/workspace1/managedPrivateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Dashboard` - 2025-08-01

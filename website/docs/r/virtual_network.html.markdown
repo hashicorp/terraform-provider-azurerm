@@ -11,10 +11,10 @@ description: |-
 Manages a virtual network including any configured subnets. Each subnet can
 optionally be configured with a security group to be associated with the subnet.
 
-~> **Note on Virtual Networks and Subnets:** Terraform currently provides both a standalone [Subnet resource](subnet.html), and allows for Subnets to be defined in-line within the [Virtual Network resource](virtual_network.html).
+~> **Note:** Terraform currently provides both a standalone [Subnet resource](subnet.html), and allows for Subnets to be defined in-line within the [Virtual Network resource](virtual_network.html).
 At this time you cannot use a Virtual Network with in-line Subnets in conjunction with any Subnet resources. Doing so will cause a conflict of Subnet configurations and will overwrite subnets.
 
-~> **Note on Virtual Networks and DNS Servers:** Terraform currently provides both a standalone [virtual network DNS Servers resource](virtual_network_dns_servers.html), and allows for DNS servers to be defined in-line within the [Virtual Network resource](virtual_network.html).
+~> **Note:** Terraform currently provides both a standalone [virtual network DNS Servers resource](virtual_network_dns_servers.html), and allows for DNS servers to be defined in-line within the [Virtual Network resource](virtual_network.html).
 At this time you cannot use a Virtual Network with in-line DNS servers in conjunction with any Virtual Network DNS Servers resources. Doing so will cause a conflict of Virtual Network DNS Servers configurations and will overwrite virtual networks DNS servers.
 
 ## Example Usage
@@ -55,7 +55,7 @@ resource "azurerm_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -63,11 +63,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network. Changing this forces a new resource to be created.
 
-* `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space.
-
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
 ---
+
+* `address_space` - (Optional) The address space that is used the virtual network. You can supply more than one address space.
+
+-> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
@@ -84,6 +86,10 @@ The following arguments are supported:
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network should exist. Changing this forces a new Virtual Network to be created.
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
+
+* `ip_address_pool` - (Optional) One or two `ip_address_pool` blocks as defined below. Only one association of each IP type(IPv4 or IPv6) is allowed.
+
+-> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
 * `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
@@ -108,6 +114,16 @@ A `encryption` block supports the following:
 * `enforcement` - (Required) Specifies if the encrypted Virtual Network allows VM that does not support encryption. Possible values are `DropUnencrypted` and `AllowUnencrypted`.
 
 -> **Note:** Currently `AllowUnencrypted` is the only supported value for the `enforcement` property as `DropUnencrypted` is not yet in public preview or general availability. Please see the [official documentation](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-encryption-overview#limitations) for more information.
+
+---
+
+An `ip_address_pool` block supports the following:
+
+* `id` - (Required) The ID of the Network Manager IP Address Management (IPAM) Pool.
+
+* `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
+
+-> **Note:** `number_of_ip_addresses` cannot be decreased.
 
 ---
 
@@ -165,19 +181,19 @@ A `service_delegation` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The virtual NetworkConfiguration ID.
+* `id` - The Virtual Network ID.
 
-* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
+* `guid` - The GUID of the Virtual Network.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
-
-* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
-
-* `address_space` - (Required) The list of address spaces used by the virtual network.
-
-* `guid` - The GUID of the virtual network.
+* `ip_address_pool` - One or more `ip_address_pool` blocks as defined below.
 
 * `subnet` - One or more `subnet` blocks as defined below.
+
+---
+
+The `ip_address_pool` block exports:
+
+* `allocated_ip_address_prefixes` - The list of IP address prefixes allocated to the Virtual Network.
 
 ---
 
@@ -187,7 +203,7 @@ The `subnet` block exports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.
@@ -201,3 +217,9 @@ Virtual Networks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

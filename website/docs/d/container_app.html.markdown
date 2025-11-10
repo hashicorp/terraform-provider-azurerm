@@ -19,7 +19,7 @@ data "azurerm_container_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `secret` block supports the following:
+A `secret` block exports the following:
 
 * `identity` - The identity used for accessing the Key Vault.
 
@@ -67,7 +67,7 @@ A `secret` block supports the following:
 
 ---
 
-A `template` block supports the following:
+A `template` block exports the following:
 
 * `init_container` - One or more `init_container` blocks as detailed below.
 
@@ -81,7 +81,7 @@ A `template` block supports the following:
 
 * `polling_interval` - The interval in seconds used for polling KEDA.
 
-* `revision_suffix` - The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
+* `revision_suffix` - The suffix for the revision.
 
 * `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
@@ -89,25 +89,25 @@ A `template` block supports the following:
 
 ---
 
-A `volume` block supports the following:
+A `volume` block exports the following:
 
 * `name` - The name of the volume.
 
 * `storage_name` - The name of the `AzureFile` storage.
 
-* `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+* `storage_type` - The type of storage volume.
 
 * `mount_options` - Mount options used while mounting the AzureFile.
 
 ---
 
-A `init_container` block supports the following:
+A `init_container` block exports the following:
 
-* `args` - A list of extra arguments to pass to the container.
+* `args` - A list of extra arguments passed to the container.
 
-* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `command` - A command passed to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - The amount of vCPU allocated to the container.
 
 * `env` - One or more `env` blocks as detailed below.
 
@@ -115,7 +115,7 @@ A `init_container` block supports the following:
 
 * `image` - The image to use to create the container.
 
-* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, and `4Gi`.
+* `memory` - The amount of memory allocated to the container.
 
 * `name` - The name of the container
 
@@ -123,13 +123,13 @@ A `init_container` block supports the following:
 
 ---
 
-A `container` block supports the following:
+A `container` block exports the following:
 
-* `args` - A list of extra arguments to pass to the container.
+* `args` - A list of extra arguments passed to the container.
 
-* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `command` - A command passed to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - The amount of vCPU allocated to the container.
 
 * `env` - One or more `env` blocks as detailed below.
 
@@ -139,7 +139,7 @@ A `container` block supports the following:
 
 * `liveness_probe` - A `liveness_probe` block as detailed below.
 
-* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, and `4Gi`.
+* `memory` - The amount of memory allocated to the container.
 
 * `name` - The name of the container
 
@@ -151,29 +151,29 @@ A `container` block supports the following:
 
 ---
 
-A `liveness_probe` block supports the following:
+A `liveness_probe` block exports the following:
 
-* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed.
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The probe hostname.
 
-* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
-* `interval_seconds` - How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
+* `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI used with the `host` for http type probes.
 
-* `port` - The port number on which to connect. Possible values are between `1` and `65535`.
+* `port` - The port number on which to connect.
 
-* `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
+* `timeout` - Time in seconds after which the probe times out.
 
-* `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+* `transport` - Type of probe.
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -181,7 +181,7 @@ A `header` block supports the following:
 
 ---
 
-An `env` block supports the following:
+An `env` block exports the following:
 
 * `name` - The name of the environment variable for the container.
 
@@ -191,31 +191,31 @@ An `env` block supports the following:
 
 ---
 
-A `readiness_probe` block supports the following:
+A `readiness_probe` block exports the following:
 
-* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed.
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The probe hostname.
 
-* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
-* `interval_seconds` - How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI to use for http type probes.
 
-* `port` - The port number on which to connect. Possible values are between `1` and `65535`.
+* `port` - The port number on which to connect.
 
-* `success_count_threshold` - The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.
+* `success_count_threshold` - The number of consecutive successful responses required to consider this probe as successful.
 
-* `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
+* `timeout` - Time in seconds after which the probe times out.
 
-* `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+* `transport` - Type of probe.
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -223,29 +223,29 @@ A `header` block supports the following:
 
 ---
 
-A `startup_probe` block supports the following:
+A `startup_probe` block exports the following:
 
-* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed.
 
 * `header` - A `header` block as detailed below.
 
-* `host` - The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+* `host` - The value for the host header which should be sent with this probe.
 
-* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated.
 
-* `interval_seconds` - How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - How often, in seconds, the probe should run.
 
-* `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
+* `path` - The URI to use with the `host` for http type probes.
 
-* `port` - The port number on which to connect. Possible values are between `1` and `65535`.
+* `port` - The port number on which to connect.
 
-* `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
+* `timeout` - Time in seconds after which the probe times out.
 
-* `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+* `transport` - Type of probe.
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -253,28 +253,31 @@ A `header` block supports the following:
 
 ---
 
-A `volume_mounts` block supports the following:
+A `volume_mounts` block exports the following:
 
 * `name` - The name of the Volume to be mounted in the container.
 
 * `path` - The path in the container at which to mount this volume.
 
 * `sub_path` - The sub path of the volume to be mounted in the container.
----
-
-An `identity` block supports the following:
-
-* `type` - The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
-
-* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
 
 ---
 
-An `ingress` block supports the following:
+An `identity` block exports the following:
+
+* `type` - The type of managed identity to assign.
+
+* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign.
+
+---
+
+An `ingress` block exports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
 
 * `client_certificate_mode` - The client certificate mode for the Ingress.
+
+* `cors` - A `cors` block as detailed below.
 
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
@@ -288,13 +291,29 @@ An `ingress` block supports the following:
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
 
-* `transport` - The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+* `transport` - The transport method for the Ingress.
 
 ---
 
-A `custom_domain` block supports the following:
+A `cors` block exports the following:
 
-* `certificate_binding_type` - The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
+* `allowed_origins` - The list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - Whether user credentials are allowed in the cross-origin request.
+
+* `allowed_headers` - The list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - The list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `exposed_headers` - The list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - The number of seconds that the browser can cache the results of a preflight request.
+
+---
+
+A `custom_domain` block exports the following:
+
+* `certificate_binding_type` - The Binding type.
 
 * `certificate_id` - The ID of the Container App Environment Certificate.
 
@@ -314,7 +333,7 @@ A `ip_security_restriction` block exports the following:
 
 ---
 
-A `traffic_weight` block supports the following:
+A `traffic_weight` block exports the following:
 
 * `label` - The label to apply to the revision as a name prefix for routing traffic.
 
@@ -326,28 +345,34 @@ A `traffic_weight` block supports the following:
 
 ---
 
-A `dapr` block supports the following:
+A `dapr` block exports the following:
 
 * `app_id` - The Dapr Application Identifier.
 
 * `app_port` - The port which the application is listening on. This is the same as the `ingress` port.
 
-* `app_protocol` - The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.
+* `app_protocol` - The protocol for the app.
 
 ---
 
-A `registry` block supports the following:
+A `registry` block exports the following:
 
 * `server` - The hostname for the Container Registry.
 
 * `identity` - Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 
-* `password_secret_name` - The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
+* `password_secret_name` - The name of the Secret Reference containing the password value for the user on the Container Registry.
 
-* `username` - The username to use for this Container Registry, `password_secret_name` must also be supplied..
+* `username` - The username used for this Container Registry.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-07-01

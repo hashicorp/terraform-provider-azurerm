@@ -38,6 +38,8 @@ type DevCenterProjectPoolResourceModel struct {
 	DevBoxDefinitionName               string            `tfschema:"dev_box_definition_name"`
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
 	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
+	ManagedVirtualNetworkRegions       []string          `tfschema:"managed_virtual_network_regions"`
+	SingleSignOnEnabled                bool              `tfschema:"single_sign_on_enabled"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -78,6 +80,24 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"managed_virtual_network_regions": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:             pluginsdk.TypeString,
+				ValidateFunc:     location.EnhancedValidate,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
+		},
+
+		"single_sign_on_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
@@ -126,18 +146,29 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 			parameters := pools.Pool{
 				Location: location.Normalize(model.Location),
 				Properties: &pools.PoolProperties{
-					DevBoxDefinitionName:  pointer.To(model.DevBoxDefinitionName),
-					NetworkConnectionName: pointer.To(model.DevCenterAttachedNetworkName),
-					LicenseType:           pointer.To(pools.LicenseTypeWindowsClient),
-					StopOnDisconnect:      expandDevCenterProjectPoolStopOnDisconnect(model.StopOnDisconnectGracePeriodMinutes),
+					DevBoxDefinitionName:         pointer.To(model.DevBoxDefinitionName),
+					NetworkConnectionName:        pointer.To(model.DevCenterAttachedNetworkName),
+					LicenseType:                  pointer.To(pools.LicenseTypeWindowsClient),
+					ManagedVirtualNetworkRegions: expandDevCenterProjectManagedVirtualNetworkRegions(model.ManagedVirtualNetworkRegions),
+					StopOnDisconnect:             expandDevCenterProjectPoolStopOnDisconnect(model.StopOnDisconnectGracePeriodMinutes),
 				},
 				Tags: pointer.To(model.Tags),
+			}
+
+			parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
+			if len(model.ManagedVirtualNetworkRegions) != 0 {
+				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
 			}
 
 			if model.LocalAdministratorEnabled {
 				parameters.Properties.LocalAdministrator = pointer.To(pools.LocalAdminStatusEnabled)
 			} else {
 				parameters.Properties.LocalAdministrator = pointer.To(pools.LocalAdminStatusDisabled)
+			}
+
+			parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+			if model.SingleSignOnEnabled {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -182,6 +213,8 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 					state.DevBoxDefinitionName = pointer.From(props.DevBoxDefinitionName)
 					state.LocalAdministratorEnabled = pointer.From(props.LocalAdministrator) == pools.LocalAdminStatusEnabled
 					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
+					state.ManagedVirtualNetworkRegions = flattenDevCenterProjectManagedVirtualNetworkRegions(props.ManagedVirtualNetworkRegions)
+					state.SingleSignOnEnabled = pointer.From(props.SingleSignOnStatus) == pools.SingleSignOnStatusEnabled
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnect(props.StopOnDisconnect)
 				}
 			}
@@ -225,6 +258,22 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("dev_center_attached_network_name") {
 				parameters.Properties.NetworkConnectionName = pointer.To(model.DevCenterAttachedNetworkName)
+				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
+			}
+
+			if metadata.ResourceData.HasChange("managed_virtual_network_regions") {
+				parameters.Properties.ManagedVirtualNetworkRegions = expandDevCenterProjectManagedVirtualNetworkRegions(model.ManagedVirtualNetworkRegions)
+
+				if len(model.ManagedVirtualNetworkRegions) != 0 {
+					parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("single_sign_on_enabled") {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+				if model.SingleSignOnEnabled {
+					parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("stop_on_disconnect_grace_period_minutes") {
@@ -285,4 +334,30 @@ func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectCo
 	}
 
 	return pointer.From(input.GracePeriodMinutes)
+}
+
+func expandDevCenterProjectManagedVirtualNetworkRegions(input []string) *[]string {
+	result := make([]string, 0)
+	if len(input) == 0 {
+		return &result
+	}
+
+	for _, v := range input {
+		result = append(result, location.Normalize(v))
+	}
+
+	return &result
+}
+
+func flattenDevCenterProjectManagedVirtualNetworkRegions(input *[]string) []string {
+	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, v := range *input {
+		result = append(result, location.Normalize(v))
+	}
+
+	return result
 }

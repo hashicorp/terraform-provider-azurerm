@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &GetBackupSecurityPINRequestId{}
 
-// GetBackupSecurityPINRequestId is a struct representing the Resource ID for a Get Backup Security P I N Request
+// GetBackupSecurityPINRequestId is a struct representing the Resource ID for a Get Backup Security PIN Request
 type GetBackupSecurityPINRequestId struct {
 	SubscriptionId                  string
 	ResourceGroupName               string
@@ -90,7 +90,7 @@ func (id *GetBackupSecurityPINRequestId) FromParseResult(input resourceids.Parse
 	return nil
 }
 
-// ValidateGetBackupSecurityPINRequestID checks that 'input' can be parsed as a Get Backup Security P I N Request ID
+// ValidateGetBackupSecurityPINRequestID checks that 'input' can be parsed as a Get Backup Security PIN Request ID
 func ValidateGetBackupSecurityPINRequestID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -105,13 +105,13 @@ func ValidateGetBackupSecurityPINRequestID(input interface{}, key string) (warni
 	return
 }
 
-// ID returns the formatted Get Backup Security P I N Request ID
+// ID returns the formatted Get Backup Security PIN Request ID
 func (id GetBackupSecurityPINRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/getBackupSecurityPINRequests/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.GetBackupSecurityPINRequestName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Get Backup Security P I N Request ID
+// Segments returns a slice of Resource ID Segments which comprise this Get Backup Security PIN Request ID
 func (id GetBackupSecurityPINRequestId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -127,13 +127,13 @@ func (id GetBackupSecurityPINRequestId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Get Backup Security P I N Request ID
+// String returns a human-readable description of this Get Backup Security PIN Request ID
 func (id GetBackupSecurityPINRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
-		fmt.Sprintf("Get Backup Security P I N Request Name: %q", id.GetBackupSecurityPINRequestName),
+		fmt.Sprintf("Get Backup Security PIN Request Name: %q", id.GetBackupSecurityPINRequestName),
 	}
-	return fmt.Sprintf("Get Backup Security P I N Request (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Get Backup Security PIN Request (%s)", strings.Join(components, "\n"))
 }
