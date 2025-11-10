@@ -388,18 +388,20 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
-			dataApiMode := mongoclusters.DataApiModeDisabled
-			if state.DataApiModeEnabled {
-				dataApiMode = mongoclusters.DataApiModeEnabled
-			}
-			parameter.Properties.DataApi = &mongoclusters.DataApiProperties{
-				Mode: pointer.To(dataApiMode),
+			// DataApi property is not supported when creating with PointInTimeRestore or GeoReplica mode
+			if state.CreateMode != string(mongoclusters.CreateModePointInTimeRestore) && state.CreateMode != string(mongoclusters.CreateModeGeoReplica) {
+				dataApiMode := mongoclusters.DataApiModeDisabled
+				if state.DataApiModeEnabled {
+					dataApiMode = mongoclusters.DataApiModeEnabled
+				}
+				parameter.Properties.DataApi = &mongoclusters.DataApiProperties{
+					Mode: pointer.To(dataApiMode),
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -446,6 +448,12 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// Set `identity` to `nil` to avoid schema validation errors returned by service API when identity type is `None`.
 			if payload.Identity != nil && payload.Identity.Type == identity.TypeNone {
 				payload.Identity = nil
+			}
+
+			// Clear DataApi for clusters created with PointInTimeRestore or GeoReplica mode to avoid schema validation errors
+			// The service API doesn't support the dataApi property for these create modes
+			if state.CreateMode == string(mongoclusters.CreateModePointInTimeRestore) || state.CreateMode == string(mongoclusters.CreateModeGeoReplica) {
+				payload.Properties.DataApi = nil
 			}
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
@@ -498,7 +506,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
 			}
 
-			if metadata.ResourceData.HasChange("data_api_mode_enabled") {
+			// Only set DataApi if the cluster was not created with PointInTimeRestore or GeoReplica mode
+			if metadata.ResourceData.HasChange("data_api_mode_enabled") &&
+				state.CreateMode != string(mongoclusters.CreateModePointInTimeRestore) &&
+				state.CreateMode != string(mongoclusters.CreateModeGeoReplica) {
 				dataApiMode := mongoclusters.DataApiModeDisabled
 				if state.DataApiModeEnabled {
 					dataApiMode = mongoclusters.DataApiModeEnabled
@@ -677,9 +688,15 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if state.SourceLocation == "" {
 					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
 				}
+				if state.DataApiModeEnabled {
+					return fmt.Errorf("`data_api_mode_enabled` cannot be set when `create_mode` is `GeoReplica`")
+				}
 			case string(mongoclusters.CreateModePointInTimeRestore):
 				if len(state.Restore) == 0 {
 					return fmt.Errorf("`restore` is required when `create_mode` is `PointInTimeRestore`")
+				}
+				if state.DataApiModeEnabled {
+					return fmt.Errorf("`data_api_mode_enabled` cannot be set when `create_mode` is `PointInTimeRestore`")
 				}
 			}
 
