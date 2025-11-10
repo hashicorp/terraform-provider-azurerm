@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RoleAssignmentResource struct{}
@@ -214,6 +215,23 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
+func TestAccRoleAssignment_implicitCondition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	id := uuid.New().String()
+
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.implicitConditionVersion(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
 func TestAccRoleAssignment_resourceScoped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
@@ -264,23 +282,29 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RoleAssignmentID(state.ID)
+	id, err := parse.ScopedRoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Role Assignment for role %q: %+v", id.Name, err)
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
 	}
-	return utils.Bool(true), nil
+
+	resp, err := client.Authorization.ScopedRoleAssignmentsClient.Get(ctx, id.ScopedId, options)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RoleAssignmentResource) emptyNameConfig() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -466,7 +490,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -494,7 +518,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -527,7 +551,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -576,8 +600,32 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Monitoring Reader"
   principal_id         = data.azurerm_client_config.test.object_id
   description          = "Monitoring Reader except "
-  condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'"
-  condition_version    = "1.0"
+  condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEqualsIgnoreCase 'foo_storage_container'"
+  condition_version    = "2.0"
+}
+`, groupId)
+}
+
+func (RoleAssignmentResource) implicitConditionVersion(groupId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+
+  name                 = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
+  description          = "Monitoring Reader except "
+  condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEqualsIgnoreCase 'foo_storage_container'"
 }
 `, groupId)
 }
@@ -596,7 +644,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {

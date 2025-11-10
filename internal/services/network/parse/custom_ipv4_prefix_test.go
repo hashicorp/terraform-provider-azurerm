@@ -27,7 +27,6 @@ func TestCustomIpv4PrefixID(t *testing.T) {
 		Error    bool
 		Expected *CustomIpv4PrefixId
 	}{
-
 		{
 			// empty
 			Input: "",

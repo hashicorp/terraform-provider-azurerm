@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,7 +43,7 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -77,7 +77,7 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,

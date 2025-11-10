@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -48,7 +49,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"managed_by": {
 				Type:         pluginsdk.TypeString,
@@ -146,7 +147,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// @tombuildsstuff: intentionally leaving this for now, since this'll need
 	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
 	// but needs to be fixed (resourcegroups -> resourceGroups)
-	d.SetId(*resp.ID)
+	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	return resourceResourceGroupRead(d, meta)
 }
@@ -190,16 +196,19 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
-		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
+		resourceClient := meta.(*clients.Client).Resource.LegacyResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
+				if response.WasNotFound(results.Response().Response.Response) {
+					return nil
+				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
-			for results.NotDone() {
-				val := results.Value()
+			for _, value := range results.Values() {
+				val := value
 				if val.ID != nil {
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
 				}
@@ -222,6 +231,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
+		if response.WasNotFound(deleteFuture.Response()) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

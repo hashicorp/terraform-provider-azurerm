@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultCertificateContactsResource struct{}
@@ -104,10 +103,6 @@ func TestAccKeyVaultCertificateContacts_nonExistentVault(t *testing.T) {
 }
 
 func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("Skippped as test is not valid in 3.x")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
 	r := KeyVaultCertificateContactsResource{}
 
@@ -149,7 +144,7 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	return utils.Bool(resp.ContactList != nil && len(*resp.ContactList) != 0), nil
+	return pointer.To(resp.ContactList != nil && len(*resp.ContactList) != 0), nil
 }
 
 func (r KeyVaultCertificateContactsResource) basic(data acceptance.TestData) string {
@@ -263,10 +258,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-
-  lifecycle {
-    ignore_changes = [contact]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

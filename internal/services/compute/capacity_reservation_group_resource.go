@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceCapacityReservationGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCapacityReservationGroupCreate,
@@ -37,10 +39,11 @@ func resourceCapacityReservationGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := capacityreservationgroups.ParseCapacityReservationGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&capacityreservationgroups.CapacityReservationGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&capacityreservationgroups.CapacityReservationGroupId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -127,7 +130,7 @@ func resourceCapacityReservationGroupRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -172,7 +175,7 @@ func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta inte
 			Refresh: func() (interface{}, string, error) {
 				res, err := client.Delete(ctx, *id)
 				if err != nil {
-					return res, "Deleting", nil
+					return res, "Deleting", nil // lint:ignore nilerr Returning nil error is intentional as we will retry the delete operation
 				}
 				return res, "Deleted", nil
 			},

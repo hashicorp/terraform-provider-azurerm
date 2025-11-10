@@ -16,7 +16,7 @@ import (
 
 type LinuxVirtualMachineResource struct{}
 
-func (t LinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
@@ -42,6 +42,35 @@ locals {
 }
 
 func (r LinuxVirtualMachineResource) templateBase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+`, r.templateBasePublicKey(), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) templateBaseWithOutProvider(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -82,4 +111,22 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, r.templateBase(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) templateWithOutProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.templateBaseWithOutProvider(data), data.RandomInteger)
 }

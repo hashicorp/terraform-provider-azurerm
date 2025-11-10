@@ -9,11 +9,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectionmonitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -542,71 +541,6 @@ resource "azurerm_network_connection_monitor" "test" {
 }
 
 func (r NetworkConnectionMonitorResource) outputWorkspaceResourceIdsRemoved(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctest-CM-%d"
-  network_watcher_id = azurerm_network_watcher.test.id
-  location           = azurerm_network_watcher.test.location
-
-  endpoint {
-    name               = "source"
-    target_resource_id = azurerm_virtual_machine.src.id
-
-    filter {
-      item {
-        address = azurerm_virtual_machine.src.id
-        type    = "AgentAddress"
-      }
-
-      type = "Include"
-    }
-  }
-
-  endpoint {
-    name    = "destination"
-    address = "pluginsdk.io"
-  }
-
-  test_configuration {
-    name                      = "tcp"
-    protocol                  = "Tcp"
-    test_frequency_in_seconds = 40
-    preferred_ip_version      = "IPv4"
-
-    tcp_configuration {
-      port                      = 80
-      destination_port_behavior = "ListenIfAvailable"
-    }
-
-    success_threshold {
-      checks_failed_percent = 50
-      round_trip_time_ms    = 40
-    }
-  }
-
-  test_group {
-    name                     = "testtg"
-    destination_endpoints    = ["destination"]
-    source_endpoints         = ["source"]
-    test_configuration_names = ["tcp"]
-    enabled                  = true
-  }
-
-  notes = "testNote"
-
-  output_workspace_resource_ids = []
-
-  tags = {
-    ENv = "Test"
-  }
-
-  depends_on = [azurerm_virtual_machine_extension.src]
-}
-`, r.baseConfig(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 

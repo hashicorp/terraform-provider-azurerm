@@ -64,6 +64,57 @@ func TestAccMsSqlManagedInstance_update(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_databaseFormat(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.databaseFormat(data, "SQLServer2022"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.databaseFormat(data, "AlwaysUpToDate"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_hybridSecondaryUsage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hybridSecondaryUsage(data, "Passive"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.hybridSecondaryUsage(data, "Active"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.hybridSecondaryUsage(data, "Passive"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlManagedInstance_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
@@ -143,6 +194,24 @@ func TestAccMsSqlManagedInstance_identity(t *testing.T) {
 			},
 			data.ImportStep("administrator_login_password"),
 		*/
+	})
+}
+
+func TestAccMsSqlManagedInstance_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAndUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -294,6 +363,28 @@ func TestAccMsSqlManagedInstance_backupRedundancyUpdated(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_subnetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.subnetUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlManagedInstanceID(state.ID)
 	if err != nil {
@@ -319,7 +410,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -353,7 +445,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MsSqlManagedInstanceResource) basicZRS(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceResource) databaseFormat(data acceptance.TestData, databaseFormat string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -363,6 +455,97 @@ provider "azurerm" {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
        deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  database_format = "%[3]s"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, databaseFormat)
+}
+
+func (r MsSqlManagedInstanceResource) hybridSecondaryUsage(data acceptance.TestData, hybridSecondaryUsage string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  hybrid_secondary_usage = "%[3]s"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, hybridSecondaryUsage)
+}
+
+func (r MsSqlManagedInstanceResource) basicZRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -406,7 +589,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -449,7 +633,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -484,6 +669,54 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, storageAccountType)
 }
 
+func (r MsSqlManagedInstanceResource) withoutAadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -493,7 +726,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -531,6 +765,63 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
+func (r MsSqlManagedInstanceResource) systemAndUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -540,7 +831,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -553,14 +845,13 @@ resource "azurerm_mssql_managed_instance" "test" {
   location            = azurerm_resource_group.test.location
 
   license_type                 = "BasePrice"
-  minimum_tls_version          = "1.0"
+  minimum_tls_version          = "1.2"
   proxy_override               = "Proxy"
   public_data_endpoint_enabled = true
   sku_name                     = "GP_Gen5"
   storage_account_type         = "ZRS"
   storage_size_in_gb           = 64
   subnet_id                    = azurerm_subnet.test.id
-  timezone_id                  = "Pacific Standard Time"
   vcores                       = 8
   zone_redundant_enabled       = true
 
@@ -588,7 +879,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -843,6 +1135,446 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
   }
 }
 `, r.basic(data), r.templateSecondary(data), r.templateExtraSecondary(data), data.RandomInteger)
+}
+
+func TestAccMsSqlManagedInstance_aadAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func TestAccMsSqlManagedInstance_aadAdminWithAadOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdminWithAadAuthOnlyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.setAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+		{
+			Config: r.withoutAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdminWithAadAuthOnlyEnabledUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func (r MsSqlManagedInstanceResource) aadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "random_password" "test" {
+  length  = 16
+  special = true
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = random_password.test.result
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username = azuread_user.test.user_principal_name
+    object_id      = azuread_user.test.object_id
+    principal_type = "User"
+    tenant_id      = data.azurerm_client_config.test.tenant_id
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) grantDirectoryReaderPermission(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+`, r.withoutAadAdmin(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test.user_principal_name
+    object_id                           = azuread_user.test.object_id
+    principal_type                      = "User"
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    azuread_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) setAadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username = azuread_user.test.user_principal_name
+    object_id      = azuread_user.test.object_id
+    principal_type = "User"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabledUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test.user_principal_name
+    object_id                           = azuread_user.test.object_id
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    principal_type                      = "User"
+    azuread_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
@@ -1562,7 +2294,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -1608,7 +2341,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -1652,7 +2386,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -1676,6 +2411,79 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) subnetUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "managedinstancedelegation"
+
+    service_delegation {
+      name    = "Microsoft.Sql/managedInstances"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "test2" {
+  subnet_id      = azurerm_subnet.test2.id
+  route_table_id = azurerm_route_table.test.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test2,
+    azurerm_subnet_route_table_association.test2,
   ]
 
   tags = {

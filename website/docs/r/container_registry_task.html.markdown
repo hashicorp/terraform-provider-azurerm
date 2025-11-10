@@ -55,13 +55,15 @@ The following arguments are supported:
 
 * `agent_setting` - (Optional) A `agent_setting` block as defined below.
 
+~> **Note:** Only one of `agent_pool_name` and `agent_setting` can be specified.
+
 * `enabled` - (Optional) Should this Container Registry Task be enabled? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `platform` - (Optional) A `platform` block as defined below.
 
-~> **NOTE:** The `platform` is required for non-system task (when `is_system_task` is set to `false`).
+~> **Note:** The `platform` is required for non-system task (when `is_system_task` is set to `false`).
 
 * `docker_step` - (Optional) A `docker_step` block as defined below.
 
@@ -69,7 +71,7 @@ The following arguments are supported:
 
 * `file_step` - (Optional) A `file_step` block as defined below.
 
-~> **NOTE:** For non-system task (when `is_system_task` is set to `false`), one and only one of the `docker_step`, `encoded_step` and `file_step` should be specified.
+~> **Note:** For non-system task (when `is_system_task` is set to `false`), one and only one of the `docker_step`, `encoded_step` and `file_step` should be specified.
 
 * `base_image_trigger` - (Optional) A `base_image_trigger` block as defined below.
 
@@ -79,7 +81,7 @@ The following arguments are supported:
 
 * `is_system_task` - (Optional) Whether this Container Registry Task is a system task. Changing this forces a new Container Registry Task to be created. Defaults to `false`.
 
-~> **NOTE:** For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_step`, `file_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
+~> **Note:** For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_step`, `file_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
 
 * `log_template` - (Optional) The template that describes the run log artifact.
 
@@ -93,7 +95,7 @@ The following arguments are supported:
 
 A `agent_setting` block supports the following:
 
-* `cpu` - (Required) The number of cores required for the Container Registry Task.
+* `cpu` - (Required) The number of cores required for the Container Registry Task. Possible value is `2`.
 
 ---
 
@@ -197,7 +199,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Registry Task.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -269,7 +271,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task.
@@ -283,3 +285,9 @@ Container Registry Tasks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_task.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/tasks/task1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview, 2019-06-01-preview

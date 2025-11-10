@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func importDataConnectorTyped(expectKind securityinsight.DataConnectorKind) func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -91,7 +91,7 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindThreatIntelligence
 	}
 	if expectKind != kind {
-		return fmt.Errorf("Sentinel Data Connector has mismatched kind, expected: %q, got %q", expectKind, kind)
+		return fmt.Errorf("'Sentinel Data Connector' has mismatched kind, expected: %q, got %q", expectKind, kind)
 	}
 	return nil
 }

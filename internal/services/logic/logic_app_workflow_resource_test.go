@@ -120,30 +120,6 @@ func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
-	t.Skip("skip as Integration Service Environment is being deprecated")
-
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
-	r := LogicAppWorkflowResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.integrationServiceEnvironment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.integrationServiceEnvironmentUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLogicAppWorkflow_parameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowResource{}
@@ -352,36 +328,6 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LogicAppWorkflowResource) integrationServiceEnvironment(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_workflow" "test" {
-  name                               = "acctestlaw-%d"
-  location                           = azurerm_resource_group.test.location
-  resource_group_name                = azurerm_resource_group.test.name
-  integration_service_environment_id = azurerm_integration_service_environment.test.id
-}
-`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
-}
-
-func (r LogicAppWorkflowResource) integrationServiceEnvironmentUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_workflow" "test" {
-  name                               = "acctestlaw-%d"
-  location                           = azurerm_resource_group.test.location
-  resource_group_name                = azurerm_resource_group.test.name
-  integration_service_environment_id = azurerm_integration_service_environment.test.id
-
-  tags = {
-    "Source" = "AcceptanceTests"
-  }
-}
-`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
-}
-
 func (LogicAppWorkflowResource) parameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -479,8 +425,6 @@ resource "azurerm_logic_app_workflow" "test" {
     }
 
     trigger {
-      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
-
       open_authentication_policy {
         name = "testpolicy1"
 

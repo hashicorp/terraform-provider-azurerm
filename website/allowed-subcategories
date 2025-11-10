@@ -1,3 +1,4 @@
+
 AAD B2C
 API Management
 Active Directory Domain Services
@@ -52,6 +53,7 @@ Dynatrace
 Elastic
 Elastic SAN
 Extended Location
+Fabric
 Fluid Relay
 Graph Services
 HDInsight
@@ -69,10 +71,10 @@ Logic App
 Machine Learning
 Maintenance
 Managed Applications
+Managed Redis
 Management
 Maps
 Messaging
-Mixed Reality
 Mobile Network
 Mongo Cluster
 Monitor
@@ -90,6 +92,7 @@ PowerBI
 Private DNS
 Private DNS Resolver
 Purview
+Qumulo
 Recovery Services
 Red Hat OpenShift
 Redis

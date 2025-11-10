@@ -9,11 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -193,39 +192,13 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	})
 }
 
-func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("This test can be removed since it will be a duplicate of the update test in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	r := NetworkSecurityGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.singleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.deleteRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.NetworkSecurityGroups.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkSecurityGroups.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -239,7 +212,7 @@ func (NetworkSecurityGroupResource) Destroy(ctx context.Context, client *clients
 		return nil, err
 	}
 
-	if err := client.Network.Client.NetworkSecurityGroups.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.NetworkSecurityGroups.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -515,24 +488,4 @@ resource "azurerm_network_security_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (NetworkSecurityGroupResource) deleteRule(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acceptanceTestSecurityGroup1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  security_rule       = []
-}
-`, data.RandomInteger, data.Locations.Primary)
 }

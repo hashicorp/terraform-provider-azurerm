@@ -164,18 +164,6 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T)
 	})
 }
 
-func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.wrongSettingsWithDeprecatedGroup(data),
-			ExpectError: regexp.MustCompile("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type."),
-		},
-	})
-}
-
 func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlan{}
@@ -682,34 +670,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
       fail_over_types           = ["TestFailover"]
       manual_action_instruction = "test instruction"
     }
-  }
-
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SiteRecoveryReplicationRecoveryPlan) wrongSettingsWithDeprecatedGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_site_recovery_replication_recovery_plan" "test" {
-  name                      = "acctest-%[2]d"
-  recovery_vault_id         = azurerm_recovery_services_vault.test.id
-  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
-  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-
-  recovery_group {
-    type                       = "Shutdown"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type                       = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
 }

@@ -8,8 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -22,27 +21,11 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 	}
 
 	eventhubEndpointId, ok := d.GetOk("eventhub_endpoint_id")
-	if !ok && !features.FourPointOhBeta() {
-		val, ok := d.GetOk("eventhub_endpoint")
-		if ok && len(val.([]interface{})) == 1 {
-			raw := val.([]interface{})
-			props := raw[0].(map[string]interface{})
-			eventhubEndpointId = props["eventhub_id"].(string)
-		}
-	}
 	if ok {
 		return expandEventSubscriptionDestinationEventHub(eventhubEndpointId.(string), deliveryMappings)
 	}
 
 	hybridConnectionEndpointId, ok := d.GetOk("hybrid_connection_endpoint_id")
-	if !ok && !features.FourPointOhBeta() {
-		val, ok := d.GetOk("hybrid_connection_endpoint")
-		if ok && len(val.([]interface{})) == 1 {
-			raw := val.([]interface{})
-			props := raw[0].(map[string]interface{})
-			hybridConnectionEndpointId = props["hybrid_connection_id"].(string)
-		}
-	}
 	if ok {
 		return expandEventSubscriptionDestinationHybridConnection(hybridConnectionEndpointId.(string), deliveryMappings)
 	}
@@ -244,7 +227,8 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 	for _, item := range input {
 		mappingBlock := item.(map[string]interface{})
 
-		if mappingBlock["type"].(string) == "Static" {
+		switch mappingBlock["type"].(string) {
+		case "Static":
 			output = append(output, eventsubscriptions.StaticDeliveryAttributeMapping{
 				Name: utils.String(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.StaticDeliveryAttributeMappingProperties{
@@ -252,7 +236,7 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
 				},
 			})
-		} else if mappingBlock["type"].(string) == "Dynamic" {
+		case "Dynamic":
 			output = append(output, eventsubscriptions.DynamicDeliveryAttributeMapping{
 				Name: utils.String(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.DynamicDeliveryAttributeMappingProperties{
@@ -750,7 +734,7 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Values: v,
 		}, nil
 	default:
-		return nil, fmt.Errorf("Invalid `advanced_filter` operator_type %q used", operatorType)
+		return nil, fmt.Errorf("invalid `advanced_filter` operator_type %q used", operatorType)
 	}
 }
 
@@ -810,7 +794,7 @@ func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
 	values := make([]any, 0)
 	if inputValues != nil {
 		for _, item := range *inputValues {
-			values = append(values, item...)
+			values = append(values, item) // nolint: asasalint
 		}
 	}
 

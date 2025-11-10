@@ -10,9 +10,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	managedvirtualnetwork "github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse"
-	accesscontrol "github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse"
-	artifacts "github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	managedvirtualnetwork "github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse"
+	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
+	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 type Client struct {
@@ -145,41 +145,41 @@ func NewClient(o *common.ClientOptions) *Client {
 
 func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, errors.New("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleDefinitionsClient := accesscontrol.NewRoleDefinitionsClient(endpoint)
-	roleDefinitionsClient.Client.Authorizer = client.synapseAuthorizer
+	roleDefinitionsClient.Authorizer = client.synapseAuthorizer
 	return &roleDefinitionsClient, nil
 }
 
 func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleAssignmentsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, errors.New("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
-	roleAssignmentsClient.Client.Authorizer = client.synapseAuthorizer
+	roleAssignmentsClient.Authorizer = client.synapseAuthorizer
 	return &roleAssignmentsClient, nil
 }
 
 func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, errors.New("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
-	managedPrivateEndpointsClient.Client.Authorizer = client.synapseAuthorizer
+	managedPrivateEndpointsClient.Authorizer = client.synapseAuthorizer
 	return &managedPrivateEndpointsClient, nil
 }
 
 func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, errors.New("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	linkedServiceClient := artifacts.NewLinkedServiceClient(endpoint)
-	linkedServiceClient.Client.Authorizer = client.synapseAuthorizer
+	linkedServiceClient.Authorizer = client.synapseAuthorizer
 	return &linkedServiceClient, nil
 }
 

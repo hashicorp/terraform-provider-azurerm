@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -228,28 +228,6 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
-	r := VirtualNetworkGatewayConnectionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.useLocalAzureIpAddressEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.useLocalAzureIpAddressEnabledUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccVirtualNetworkGatewayConnection_useCustomBgpAddresses(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
@@ -339,6 +317,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -417,6 +399,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -486,6 +472,10 @@ func (VirtualNetworkGatewayConnectionResource) expressRoute(data acceptance.Test
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -595,6 +585,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -694,7 +688,6 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   routing_weight                 = "0"
   express_route_gateway_bypass   = true
   private_link_fast_path_enabled = true
-  shared_key                     = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -717,6 +710,10 @@ resource "azurerm_virtual_network_gateway_connection" "import" {
 
 func (VirtualNetworkGatewayConnectionResource) vnetToVnet(data acceptance.TestData, rInt1 int, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 variable "random1" {
   default = "%d"
 }
@@ -849,6 +846,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -935,6 +936,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -1017,6 +1022,10 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (VirtualNetworkGatewayConnectionResource) connectionProtocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 variable "random" {
   default = "%d"
 }
@@ -1105,6 +1114,10 @@ func (VirtualNetworkGatewayConnectionResource) trafficSelectorPolicy(data accept
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1200,6 +1213,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -1292,150 +1309,12 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["3"]
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestgw-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  type                       = "Vpn"
-  vpn_type                   = "RouteBased"
-  sku                        = "VpnGw1AZ"
-  private_ip_address_enabled = true
-  ip_configuration {
-    name                          = "vnetGatewayConfig"
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-}
-
-resource "azurerm_local_network_gateway" "test" {
-  name                = "acctestlgw-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  gateway_address = "168.62.225.23"
-  address_space   = ["10.1.1.0/24"]
-}
-
-resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                           = "acctestgwc-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-  local_azure_ip_address_enabled = true
-
-  type                       = "IPsec"
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  local_network_gateway_id   = azurerm_local_network_gateway.test.id
-
-  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["3"]
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestgw-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "VpnGw1AZ"
-  ip_configuration {
-    name                          = "vnetGatewayConfig"
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-}
-
-resource "azurerm_local_network_gateway" "test" {
-  name                = "acctestlgw-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  gateway_address = "168.62.225.23"
-  address_space   = ["10.1.1.0/24"]
-}
-
-resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                           = "acctestgwc-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-  local_azure_ip_address_enabled = false
-
-  type                       = "IPsec"
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  local_network_gateway_id   = azurerm_local_network_gateway.test.id
-  dpd_timeout_seconds        = 30
-
-  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (VirtualNetworkGatewayConnectionResource) useCustomBgpAddresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

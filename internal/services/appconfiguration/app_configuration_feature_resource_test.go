@@ -77,6 +77,7 @@ func TestAccAppConfigurationFeature_percentFilter(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -261,7 +262,7 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response.StatusCode == 200), nil
+	return utils.Bool(res.StatusCode == 200), nil
 }
 
 func (t AppConfigurationFeatureResource) basic(data acceptance.TestData) string {

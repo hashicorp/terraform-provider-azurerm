@@ -13,8 +13,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = ConfigurationV0ToV1{}
 
-type ConfigurationV0ToV1 struct {
-}
+type ConfigurationV0ToV1 struct{}
 
 func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

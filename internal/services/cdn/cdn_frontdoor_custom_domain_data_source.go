@@ -60,7 +60,6 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,

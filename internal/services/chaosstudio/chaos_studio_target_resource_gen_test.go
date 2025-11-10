@@ -47,6 +47,7 @@ func TestAccChaosStudioTarget_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r ChaosStudioTargetTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseChaosStudioTargetID(state.ID)
 	if err != nil {
@@ -60,6 +61,7 @@ func (r ChaosStudioTargetTestResource) Exists(ctx context.Context, clients *clie
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r ChaosStudioTargetTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -19,8 +19,10 @@ import (
 
 type DataFactoryCredentialServicePrincipalResource struct{}
 
-var _ sdk.Resource = DataFactoryCredentialServicePrincipalResource{}
-var _ sdk.ResourceWithUpdate = DataFactoryCredentialServicePrincipalResource{}
+var (
+	_ sdk.Resource           = DataFactoryCredentialServicePrincipalResource{}
+	_ sdk.ResourceWithUpdate = DataFactoryCredentialServicePrincipalResource{}
+)
 
 func (DataFactoryCredentialServicePrincipalResource) ResourceType() string {
 	return "azurerm_data_factory_credential_service_principal"

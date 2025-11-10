@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -239,26 +239,22 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	shouldUpdate := false
 	update := netappaccounts.NetAppAccountPatch{
 		Properties: &netappaccounts.AccountProperties{},
 	}
 
 	if d.HasChange("active_directory") {
-		shouldUpdate = true
 		activeDirectoriesRaw := d.Get("active_directory").([]interface{})
 		activeDirectories := expandNetAppActiveDirectories(activeDirectoriesRaw)
 		update.Properties.ActiveDirectories = activeDirectories
 	}
 
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
 	if d.HasChange("identity") {
-		shouldUpdate = true
 		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
@@ -267,10 +263,8 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		update.Identity = anfAccountIdentity
 	}
 
-	if shouldUpdate {
-		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id.ID(), err)
-		}
+	if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id.ID(), err)
 	}
 
 	return resourceNetAppAccountRead(d, meta)

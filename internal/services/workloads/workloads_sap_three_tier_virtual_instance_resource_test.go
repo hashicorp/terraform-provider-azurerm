@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -177,10 +177,13 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.2.0/24"]
+  private_endpoint_network_policies             = "Disabled"
+  private_link_service_network_policies_enabled = true
+  service_endpoints                             = ["Microsoft.Storage"]
 }
 
 resource "azurerm_resource_group" "app" {
@@ -412,23 +415,16 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
-  name                        = "X%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG%d"
-  app_location                = azurerm_resource_group.app.location
-  sap_fqdn                    = "sap.bpaas.com"
+  name                                  = "X%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestManagedRG%d"
+  app_location                          = azurerm_resource_group.app.location
+  sap_fqdn                              = "sap.bpaas.com"
+  managed_resources_network_access_type = "Private"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -649,7 +645,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+`, r.template(data), sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
@@ -664,23 +660,16 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
-  name                        = "X%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG%d"
-  app_location                = azurerm_resource_group.app.location
-  sap_fqdn                    = "sap.bpaas.com"
+  name                                  = "X%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestManagedRG%d"
+  app_location                          = azurerm_resource_group.app.location
+  sap_fqdn                              = "sap.bpaas.com"
+  managed_resources_network_access_type = "Public"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -889,7 +878,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+`, r.template(data), sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func RandomInt() int {

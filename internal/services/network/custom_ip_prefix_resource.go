@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,9 +38,7 @@ type CustomIpPrefixModel struct {
 	Zones                       []string               `tfschema:"zones"`
 }
 
-var (
-	_ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
-)
+var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
 
 type CustomIpPrefixResource struct {
 	client *customipprefixes.CustomIPPrefixesClient
@@ -57,6 +55,7 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customipprefixes.ValidateCustomIPPrefixID
 }
+
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -149,7 +148,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			deadline, ok := ctx.Deadline()
@@ -278,7 +277,7 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -319,7 +318,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -381,7 +380,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -620,20 +619,24 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(customipprefixes.CustomIPPrefix)
+	resp, ok := result.(customipprefixes.GetOperationResponse)
 	if !ok {
 		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
 	}
 
-	if prefix.Properties == nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
+		return resp.Model.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
-	return prefix.Properties.CommissionedState, nil
+	return resp.Model.Properties.CommissionedState, nil
 }
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {

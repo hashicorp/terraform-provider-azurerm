@@ -148,7 +148,7 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 }
 
 func (ResourceGroupExampleDataSource) ModelObject() interface{} {
-	return &ResourceGroupExampleDataSourceModel
+	return &ResourceGroupExampleDataSourceModel{}
 }
 
 func (ResourceGroupExampleDataSource) ResourceType() string {
@@ -159,6 +159,14 @@ func (ResourceGroupExampleDataSource) ResourceType() string {
 > In this case we're using the resource type `azurerm_resource_group_example` as [an existing Data Source for `azurerm_resource_group` exists](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) and the names need to be unique.
 
 These functions define a Data Source called `azurerm_resource_group_example`, which has one Required argument called `name` and two Computed arguments called `location` and `tags`.
+
+Schema fields should be ordered as follows:
+
+1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name`, `resource_group_name`, or `name`, `parent_resource_id`)
+2. The `location` field.
+3. Required fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically.
+5. Computed fields, sorted alphabetically. (Although in a typed data source these are always added within the `Attributes` method)
 
 ---
 
@@ -192,7 +200,7 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			
 			id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
 			
-			// then retrieve the Resource Group by it's ID 
+			// then retrieve the Resource Group by its ID 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
@@ -557,7 +565,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
 ```

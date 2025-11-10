@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceencryptionprotectors"
@@ -17,6 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	mhsmParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	managedhsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,9 +56,17 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 				ValidateFunc: validate.ManagedInstanceID,
 			},
 			"key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  keyVaultValidate.NestedItemId,
+				ConflictsWith: []string{"managed_hsm_key_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  managedhsmValidate.ManagedHSMDataPlaneVersionedKeyID,
+				ConflictsWith: []string{"key_vault_key_id"},
 			},
 			"auto_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -89,10 +101,9 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 	managedInstanceKeyName := ""
 	managedInstanceKeyType := managedinstancekeys.ServerKeyTypeServiceManaged
 
-	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
-
 	// If it has content, then we assume it's a key vault key id
-	if keyVaultKeyId != "" {
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
+		keyVaultKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
 		managedInstanceKeyType = managedinstancekeys.ServerKeyTypeAzureKeyVault
 
@@ -100,7 +111,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		managedInstanceKeyProperties := managedinstancekeys.ManagedInstanceKeyProperties{
 			ServerKeyType:       managedInstanceKeyType,
 			Uri:                 &keyVaultKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 		}
 		managedInstanceKey.Properties = &managedInstanceKeyProperties
 
@@ -129,6 +140,38 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
 		}
+	}
+
+	if v, ok := d.GetOk("managed_hsm_key_id"); ok {
+		mhsmKeyId := strings.TrimSpace(v.(string))
+		// Update the server key type to AKV
+		managedInstanceKeyType = managedinstancekeys.ServerKeyTypeAzureKeyVault
+
+		// Set the SQL Server Key properties z
+		serverKeyProperties := managedinstancekeys.ManagedInstanceKeyProperties{
+			ServerKeyType:       managedInstanceKeyType,
+			Uri:                 &mhsmKeyId,
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
+		}
+		managedInstanceKey.Properties = &serverKeyProperties
+
+		// Make sure it's a key, if not, throw an error
+		keyId, err := mhsmParser.ManagedHSMDataPlaneVersionedKeyID(mhsmKeyId, nil)
+		if err != nil {
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", mhsmKeyId)
+		}
+
+		// Extract the vault name from the keyvault base url
+		idURL, err := url.ParseRequestURI(keyId.BaseUri())
+		if err != nil {
+			return fmt.Errorf("unable to parse key vault hostname: %s", keyId.BaseUri())
+		}
+
+		hostParts := strings.Split(idURL.Host, ".")
+		vaultName := hostParts[0]
+
+		// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
+		managedInstanceKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyId.KeyName, keyId.KeyVersion)
 	}
 
 	keyType := managedinstanceencryptionprotectors.ServerKeyTypeServiceManaged
@@ -171,6 +214,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
+	env := meta.(*clients.Client).Account.Environment
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,20 +240,39 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 	if resp.Model != nil && resp.Model.Properties != nil {
 		log.Printf("[INFO] Encryption protector key type is %s", resp.Model.Properties.ServerKeyType)
 
-		keyVaultKeyId := ""
+		keyId := ""
 		autoRotationEnabled := false
 
 		// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
 		if resp.Model.Properties.ServerKeyType == managedinstanceencryptionprotectors.ServerKeyTypeAzureKeyVault {
 			if resp.Model.Properties.Uri != nil {
 				log.Printf("[INFO] Setting Key Vault URI to %s", *resp.Model.Properties.Uri)
-				keyVaultKeyId = *resp.Model.Properties.Uri
+				keyId = *resp.Model.Properties.Uri
 			}
 
 			// autoRotation is only for AKV keys
 			if resp.Model.Properties.AutoRotationEnabled != nil {
 				autoRotationEnabled = *resp.Model.Properties.AutoRotationEnabled
 			}
+		}
+
+		hsmKey := ""
+		keyVaultKeyId := ""
+		if keyId != "" {
+			isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyId)
+			if err != nil {
+				return err
+			}
+
+			if isHSMURI {
+				hsmKey = keyId
+			} else {
+				keyVaultKeyId = keyId
+			}
+		}
+
+		if err := d.Set("managed_hsm_key_id", hsmKey); err != nil {
+			return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
 		}
 
 		if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
@@ -243,7 +306,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.Re
 
 	// Service managed doesn't require a key name
 	encryptionProtector := managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtector{
-
 		Properties: &managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorProperties{
 			ServerKeyType: managedinstanceencryptionprotectors.ServerKeyTypeServiceManaged,
 			ServerKeyName: &managedInstanceKeyName,

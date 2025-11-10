@@ -4,14 +4,17 @@
 package automation
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
@@ -21,16 +24,21 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
+	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
-		SoftwareUpdateConfigurationResource{},
 		SourceControlResource{},
 		WatcherResource{},
 		Python3PackageResource{},
 		PowerShell72ModuleResource{},
 	}
+
+	if !features.FivePointOh() {
+		resources = append(resources, SoftwareUpdateConfigurationResource{})
+	}
+
+	return resources
 }
 
 func (r Registration) AssociatedGitHubLabel() string {

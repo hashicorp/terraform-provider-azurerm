@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyDuplicateModel struct {
@@ -334,7 +334,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading built-in anomaly rule: %+v", err)
 			}
@@ -405,7 +404,7 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
 			if err != nil {
@@ -521,7 +520,6 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -565,7 +563,7 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `threshold_observation`: %+v", err)
 			}
 
-			param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = customizableObservations
+			param.CustomizableObservations = customizableObservations
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)
 			if err != nil {

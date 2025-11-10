@@ -52,6 +52,11 @@ service/application-insights:
   - any-glob-to-any-file:
     - internal/services/applicationinsights/**/*
 
+service/arc-kubernetes:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/arckubernetes/**/*
+
 service/arc-resource-bridge:
 - changed-files:
   - any-glob-to-any-file:
@@ -244,6 +249,11 @@ service/extended-location:
   - any-glob-to-any-file:
     - internal/services/extendedlocation/**/*
 
+service/fabric:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/fabric/**/*
+
 service/firewall:
 - changed-files:
   - any-glob-to-any-file:
@@ -359,11 +369,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/mixed-reality:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mixedreality/**/*
-
 service/mobile-network:
 - changed-files:
   - any-glob-to-any-file:
@@ -459,6 +464,11 @@ service/purview:
   - any-glob-to-any-file:
     - internal/services/purview/**/*
 
+service/qumulo:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
+
 service/recovery-services:
 - changed-files:
   - any-glob-to-any-file:
@@ -472,6 +482,7 @@ service/redhatopenshift:
 service/redis:
 - changed-files:
   - any-glob-to-any-file:
+    - internal/services/managedredis/**/*
     - internal/services/redis/**/*
     - internal/services/redisenterprise/**/*
 
@@ -479,6 +490,11 @@ service/relay:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/relay/**/*
+
+service/resource:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/resource/**/*
 
 service/search:
 - changed-files:

@@ -132,52 +132,59 @@ func TestAccDataSourceAzureRMServiceTags_AzureFrontDoorFirstParty(t *testing.T) 
 	})
 }
 
-func (NetworkServiceTagsDataSource) basic() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (NetworkServiceTagsDataSource) template() string {
+	return `provider "azurerm" {
+  features {}
+}
+`
+}
+
+func (d NetworkServiceTagsDataSource) basic() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location = "westcentralus"
   service  = "AzureKeyVault"
 }`
 }
 
-func (NetworkServiceTagsDataSource) region() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) region() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location        = "westcentralus"
   service         = "AzureKeyVault"
   location_filter = "australiacentral"
 }`
 }
 
-func (NetworkServiceTagsDataSource) tagName() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) tagName() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location        = "westus2"
   service         = "Storage"
   location_filter = "westus2"
 }`
 }
 
-func (NetworkServiceTagsDataSource) azureFrontDoor() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) azureFrontDoor() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location = "northeurope"
   service  = "AzureFrontDoor"
 }`
 }
 
-func (NetworkServiceTagsDataSource) azureFrontDoorBackend() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) azureFrontDoorBackend() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location = "northeurope"
   service  = "AzureFrontDoor.Backend"
 }`
 }
 
-func (NetworkServiceTagsDataSource) azureFrontDoorFrontend() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) azureFrontDoorFrontend() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location = "northeurope"
   service  = "AzureFrontDoor.Frontend"
 }`
 }
 
-func (NetworkServiceTagsDataSource) azureFrontDoorFirstParty() string {
-	return `data "azurerm_network_service_tags" "test" {
+func (d NetworkServiceTagsDataSource) azureFrontDoorFirstParty() string {
+	return d.template() + `data "azurerm_network_service_tags" "test" {
   location = "northeurope"
   service  = "AzureFrontDoor.FirstParty"
 }`

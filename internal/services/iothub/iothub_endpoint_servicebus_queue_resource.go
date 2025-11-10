@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -22,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
@@ -64,7 +65,7 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -119,6 +120,14 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{"identity_id"},
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
+
+		"subscription_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
+			Computed:     true,
+			ValidateFunc: validation.IsUUID,
+		},
 	}
 
 	return out
@@ -159,8 +168,16 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 	queueEndpoint := devices.RoutingServiceBusQueueEndpointProperties{
 		AuthenticationType: authenticationType,
 		Name:               utils.String(id.EndpointName),
-		SubscriptionID:     utils.String(subscriptionID),
 		ResourceGroup:      utils.String(endpointRG),
+	}
+
+	// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+	// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+	// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+	if v := d.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
+		queueEndpoint.SubscriptionID = pointer.To(subscriptionID)
+	} else {
+		queueEndpoint.SubscriptionID = pointer.To(d.Get("subscription_id").(string))
 	}
 
 	if authenticationType == devices.AuthenticationTypeKeyBased {
@@ -272,6 +289,7 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 					exist = true
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+					d.Set("subscription_id", pointer.From(endpoint.SubscriptionID))
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
 					if string(endpoint.AuthenticationType) != "" {

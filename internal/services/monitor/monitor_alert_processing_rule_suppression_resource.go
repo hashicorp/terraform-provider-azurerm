@@ -126,11 +126,6 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected null properties of %s", *id)
 			}
 
-			if metadata.ResourceData.HasChange("add_action_group_ids") {
-				model.Properties.Actions = []alertprocessingrules.Action{
-					alertprocessingrules.RemoveAllActionGroups{}}
-			}
-
 			if metadata.ResourceData.HasChange("condition") {
 				model.Properties.Conditions = expandAlertProcessingRuleConditions(resourceModel.Condition)
 			}
@@ -217,6 +212,7 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AlertProcessingRuleSuppressionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

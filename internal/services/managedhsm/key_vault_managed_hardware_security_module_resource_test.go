@@ -48,6 +48,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"purge":              testAccKeyVaultHSMKey_purge,
 			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
 			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
+			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
 		},
 	})
 }
@@ -233,7 +234,7 @@ provider "azurerm" {
 }
 %[1]s
 resource "azurerm_key_vault" "test" {
-  name                       = "acc%[2]d"
+  name                       = "acctest%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -310,7 +311,7 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[2]d"
+  name                     = "acctestkvHsm%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"

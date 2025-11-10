@@ -66,7 +66,6 @@ func (r SliceDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r SliceDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

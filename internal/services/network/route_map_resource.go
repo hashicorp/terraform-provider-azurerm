@@ -10,12 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
 
 type RouteMapModel struct {
 	Name         string `tfschema:"name"`
@@ -50,8 +53,15 @@ type Criterion struct {
 
 type RouteMapResource struct{}
 
-var _ sdk.ResourceWithUpdate = RouteMapResource{}
-var _ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+var (
+	_ sdk.ResourceWithIdentity      = RouteMapResource{}
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
+
+func (r RouteMapResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RouteMapId{}
+}
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
@@ -324,6 +334,10 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Rules = flattenRules(props.Rules)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-var (
-	testConfig = ProviderConfig{}
-)
+var testConfig = ProviderConfig{}
 
 func TestProviderConfig_LoadDefault(t *testing.T) {
 	if os.Getenv("ARM_CLIENT_ID") == "" {
@@ -29,7 +27,7 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	// Skip enhanced validation
-	_ = os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
+	t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
 
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),
@@ -153,10 +151,6 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected virtual_machine.detach_implicit_data_disk_on_deletion to be false")
 	}
 
-	if features.VirtualMachine.GracefulShutdown {
-		t.Errorf("expected virtual_machine.graceful_shutdown to be false")
-	}
-
 	if features.VirtualMachine.SkipShutdownAndForceDelete {
 		t.Errorf("expected virtual_machine.skip_shutdown_and_force_delete to be false")
 	}
@@ -194,11 +188,31 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	if features.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy {
-		t.Errorf("expected recver_services.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
+		t.Errorf("expected recovery_service.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
+	}
+
+	if features.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy {
+		t.Errorf("expected recovery_service.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
 	}
 
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
+		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if features.NetApp.DeleteBackupsOnBackupVaultDestroy {
+		t.Errorf("expected netapp.DeleteBackupsOnBackupVaultDestroy to be false")
+	}
+
+	if !features.NetApp.PreventVolumeDestruction {
+		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
+	}
+
+	if features.DatabricksWorkspace.ForceDelete {
+		t.Errorf("expected databricks_workspace.ForceDelete to be false")
 	}
 }
 
@@ -252,7 +266,6 @@ func defaultFeaturesList() types.List {
 
 	virtualMachine, _ := basetypes.NewObjectValueFrom(context.Background(), VirtualMachineAttributes, map[string]attr.Value{
 		"delete_os_disk_on_deletion":     basetypes.NewBoolNull(),
-		"graceful_shutdown":              basetypes.NewBoolNull(),
 		"skip_shutdown_and_force_delete": basetypes.NewBoolNull(),
 	})
 	virtualMachineList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes), []attr.Value{virtualMachine})
@@ -296,16 +309,29 @@ func defaultFeaturesList() types.List {
 	machineLearningList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes), []attr.Value{machineLearning})
 
 	recoveryServices, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes), []attr.Value{recoveryServices})
 
 	recoveryServicesVaults, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceVaultsAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesVaultsList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes), []attr.Value{recoveryServicesVaults})
+
+	netapp, _ := basetypes.NewObjectValueFrom(context.Background(), NetAppAttributes, map[string]attr.Value{
+		"delete_backups_on_backup_vault_destroy": basetypes.NewBoolNull(),
+		"prevent_volume_destruction":             basetypes.NewBoolNull(),
+	})
+	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
+
+	databricksWorkspace, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksWorkspaceAttributes, map[string]attr.Value{
+		"force_delete": basetypes.NewBoolNull(),
+	})
+	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"api_management":             apiManagementList,
@@ -325,6 +351,8 @@ func defaultFeaturesList() types.List {
 		"machine_learning":           machineLearningList,
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
+		"netapp":                     netappList,
+		"databricks_workspace":       databricksWorkspaceList,
 	})
 
 	fmt.Printf("%+v", d)

@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/api-management"
@@ -93,13 +96,22 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 }
 
+// DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ApiManagementSubscriptionDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApiManagementNotificationRecipientEmailResource{},
 		ApiManagementNotificationRecipientUserResource{},
+		ApiManagementWorkspaceResource{},
+		ApiManagementWorkspacePolicyResource{},
+		ApiManagementWorkspaceApiVersionSetResource{},
+		ApiManagementWorkspaceCertificateResource{},
+		ApiManagementWorkspacePolicyFragmentResource{},
+		ApiManagementStandaloneGatewayResource{},
 	}
 }

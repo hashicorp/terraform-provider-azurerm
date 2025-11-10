@@ -30,8 +30,10 @@ type SystemCenterVirtualMachineManagerVirtualNetworkModel struct {
 	Tags                                                   map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+)
 
 type SystemCenterVirtualMachineManagerVirtualNetworkResource struct{}
 

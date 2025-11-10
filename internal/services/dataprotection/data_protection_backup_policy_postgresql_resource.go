@@ -363,7 +363,6 @@ func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) ba
 
 func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]backuppolicies.TaggingCriteria, error) {
 	results := []backuppolicies.TaggingCriteria{
-
 		{
 			Criteria:        nil,
 			IsDefault:       true,

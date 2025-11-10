@@ -4,7 +4,7 @@
 package search
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -46,6 +47,11 @@ func resourceSearchService() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -60,7 +66,6 @@ func resourceSearchService() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.SkuNameFree),
 					string(services.SkuNameBasic),
@@ -116,13 +121,20 @@ func resourceSearchService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.HostingModeDefault),
 					string(services.HostingModeHighDensity),
-				}, false),
+				}, true),
+				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
+				DiffSuppressOnRefresh: true,
 			},
 
 			"customer_managed_key_enforcement_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"primary_key": {
@@ -182,7 +194,17 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(services.SearchBypassAzureServices),
+					string(services.SearchBypassNone),
+				}, false),
+				Default: string(services.SearchBypassNone),
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -218,6 +240,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	cmkEnforcementEnabled := d.Get("customer_managed_key_enforcement_enabled").(bool)
 	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
+	networkRuleBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
 
 	semanticSearchSku := services.SearchSemanticSearchDisabled
 	if v := d.Get("semantic_search_sku").(string); v != "" {
@@ -230,20 +253,26 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
-	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+	if skuName != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
 	}
 
-	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
+	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKU...
 	partitionCount := int64(d.Get("partition_count").(int))
 
-	if (skuName == services.SkuNameFree || skuName == services.SkuNameBasic) && partitionCount > 1 {
+	if (skuName == services.SkuNameFree) && partitionCount > 1 {
 		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+	}
+
+	// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKU...
+
+	if (skuName == services.SkuNameBasic) && partitionCount > 3 {
+		return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
 	}
 
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
 	// 'partition_count' must be between 1 and 3.
-	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+	if skuName == services.SkuNameStandardThree && partitionCount > 3 && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 	}
 
@@ -257,10 +286,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), skuName)
 	if err != nil {
 		return err
-	}
-
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
 	}
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
@@ -291,6 +316,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			NetworkRuleSet: pointer.To(services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(ipRulesRaw),
+				Bypass:  pointer.To(networkRuleBypassOptions),
 			}),
 			EncryptionWithCmk: pointer.To(services.EncryptionWithCmk{
 				Enforcement: pointer.To(cmkEnforcement),
@@ -305,7 +331,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -362,6 +388,12 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	model.Properties.Status = nil
 	model.Properties.StatusDetails = nil
 
+	if d.HasChange("sku") {
+		model.Sku = &services.Sku{
+			Name: pointer.ToEnum[services.SkuName](d.Get("sku").(string)),
+		}
+	}
+
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
@@ -379,7 +411,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("updating `hosting_mode` for %s: unable to validate the hosting_mode since `model.Sku` was nil", *id)
 		}
 
-		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
 		}
 
@@ -387,7 +419,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -407,9 +439,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
-		if !localAuthenticationEnabled && authenticationFailureMode != "" {
-			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-		}
 
 		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
 
@@ -447,9 +476,13 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("partition_count") {
 		partitionCount := int64(d.Get("partition_count").(int))
-		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
-		if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
+		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKUs...
+		if (pointer.From(model.Sku.Name) == services.SkuNameFree) && partitionCount > 1 {
 			return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
+		}
+		// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKUs...
+		if (pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 3 {
+			return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
 		}
 
 		// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
@@ -464,9 +497,18 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
-			IPRules: expandSearchServiceIPRules(ipRulesRaw),
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
 		}
+		model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
+	}
+
+	if d.HasChange("network_rule_bypass_option") {
+		networkBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
+		}
+		model.Properties.NetworkRuleSet.Bypass = pointer.To(networkBypassOptions)
 	}
 
 	if d.HasChange("semantic_search_sku") {
@@ -557,6 +599,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			if props.EncryptionWithCmk != nil {
 				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
 			// I am using 'DisableLocalAuth' here because when you are in
@@ -588,9 +631,17 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 			d.Set("semantic_search_sku", semanticSearchSku)
+
+			if props.NetworkRuleSet != nil {
+				d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleSet.Bypass)))
+			}
 		}
 
-		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err = d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
@@ -647,6 +698,40 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
+func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	// only validate if the resource already exists
+	if diff.Id() == "" {
+		return nil
+	}
+
+	old, new := diff.GetChange("sku")
+	if old == new {
+		return nil
+	}
+
+	oldSku := old.(string)
+	newSku := new.(string)
+
+	// Define SKU hierarchy for validation - excludes Free tier
+	skuHierarchy := map[string]int{
+		string(services.SkuNameBasic):         1, // basic
+		string(services.SkuNameStandard):      2, // standard (S1)
+		string(services.SkuNameStandardTwo):   3, // standard2 (S2)
+		string(services.SkuNameStandardThree): 4, // standard3 (S3)
+		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
+	}
+
+	oldLevel, oldExists := skuHierarchy[oldSku]
+	newLevel, newExists := skuHierarchy[newSku]
+
+	// If it's not a valid upgrade, force recreation instead of blocking the change
+	if !oldExists || !newExists || newLevel <= oldLevel {
+		return diff.ForceNew("sku")
+	}
+
+	return nil
+}
+
 func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
@@ -678,7 +763,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	result := make([]interface{}, 0)
-	if input != nil || input.IPRules != nil {
+	if input != nil && input.IPRules != nil {
 		for _, rule := range *input.IPRules {
 			result = append(result, rule.Value)
 		}
@@ -699,4 +784,15 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	}
 
 	return replicaCount, nil
+}
+
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	auth := diff.Get("local_authentication_enabled").(bool)
+	failureMode := diff.Get("authentication_failure_mode").(string)
+
+	if !auth && failureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+	}
+
+	return nil
 }

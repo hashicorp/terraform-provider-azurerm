@@ -30,8 +30,10 @@ type SystemCenterVirtualMachineManagerVirtualMachineTemplateModel struct {
 	Tags                                                   map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+)
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateResource struct{}
 

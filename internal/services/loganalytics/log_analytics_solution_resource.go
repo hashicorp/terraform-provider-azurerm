@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,8 +54,10 @@ type SolutionPlanModel struct {
 	Product       string `tfschema:"product"`
 }
 
-var _ sdk.ResourceWithUpdate = LogAnalyticsSolutionResource{}
-var _ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LogAnalyticsSolutionResource{}
+	_ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+)
 
 func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
 	return &SolutionResourceModel{}
@@ -126,13 +127,14 @@ func (s LogAnalyticsSolutionResource) Arguments() map[string]*schema.Schema {
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
 func (s LogAnalyticsSolutionResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

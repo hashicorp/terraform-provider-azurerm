@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,7 +26,6 @@ func TestAccNetworkDDoSProtectionPlan(t *testing.T) {
 			"basic":          testAccNetworkDDoSProtectionPlan_basic,
 			"requiresImport": testAccNetworkDDoSProtectionPlan_requiresImport,
 			"withTags":       testAccNetworkDDoSProtectionPlan_withTags,
-			"disappears":     testAccNetworkDDoSProtectionPlan_disappears,
 		},
 		"datasource": {
 			"basic": testAccNetworkDDoSProtectionPlanDataSource_basic,
@@ -101,18 +100,6 @@ func testAccNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func testAccNetworkDDoSProtectionPlan_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
-	r := NetworkDDoSProtectionPlanResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basicConfig,
-			TestResource: r,
-		}),
 	})
 }
 

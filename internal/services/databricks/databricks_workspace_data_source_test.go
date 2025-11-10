@@ -46,6 +46,50 @@ func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.enhancedSecurityCompliance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.#").HasValue("1"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.automatic_cluster_update_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("2"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspaceDataSource_customParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.customProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("custom_parameters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_parameters.0.no_public_ip").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.private_subnet_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.public_subnet_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.storage_account_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.storage_account_sku_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").IsNotEmpty(),
+			),
+		},
+	})
+}
+
 func (DatabricksWorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -194,4 +238,48 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID))
+}
+
+func (DatabricksWorkspaceDataSource) enhancedSecurityCompliance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
+
+  enhanced_security_compliance {
+    automatic_cluster_update_enabled      = true
+    compliance_security_profile_enabled   = true
+    compliance_security_profile_standards = ["PCI_DSS", "HIPAA"]
+    enhanced_security_monitoring_enabled  = true
+  }
+}
+
+data "azurerm_databricks_workspace" "test" {
+  name                = azurerm_databricks_workspace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (DatabricksWorkspaceDataSource) customProperties(data acceptance.TestData) string {
+	r := DatabricksWorkspaceResource{}
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_databricks_workspace" "test" {
+  name                = azurerm_databricks_workspace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+  `, r.complete(data))
 }

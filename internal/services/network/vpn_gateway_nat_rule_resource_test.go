@@ -9,11 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -123,25 +122,6 @@ func (r VPNGatewayNatRuleResource) Exists(ctx context.Context, clients *clients.
 }
 
 func (r VPNGatewayNatRuleResource) basic(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name           = "acctest-vpnnatrule-%d"
-  vpn_gateway_id = azurerm_vpn_gateway.test.id
-  external_mapping {
-    address_space = "192.168.21.0/26"
-  }
-
-  internal_mapping {
-    address_space = "10.4.0.0/26"
-  }
-
-}
-`, r.template(data), data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -161,28 +141,6 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 }
 
 func (r VPNGatewayNatRuleResource) complete(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name           = "acctest-vpnnatrule-%d"
-  vpn_gateway_id = azurerm_vpn_gateway.test.id
-  external_mapping {
-    address_space = "192.168.21.0/26"
-  }
-
-  internal_mapping {
-    address_space = "10.4.0.0/26"
-  }
-
-  mode                = "EgressSnat"
-  type                = "Dynamic"
-  ip_configuration_id = "Instance0"
-}
-`, r.template(data), data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -205,28 +163,6 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 }
 
 func (r VPNGatewayNatRuleResource) update(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name           = "acctest-vpnnatrule-%d"
-  vpn_gateway_id = azurerm_vpn_gateway.test.id
-  external_mapping {
-    address_space = "192.168.22.0/26"
-  }
-
-  internal_mapping {
-    address_space = "10.5.0.0/26"
-  }
-
-  mode                = "EgressSnat"
-  type                = "Dynamic"
-  ip_configuration_id = "Instance1"
-}
-`, r.template(data), data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -249,21 +185,6 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 }
 
 func (r VPNGatewayNatRuleResource) requiresImport(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_vpn_gateway_nat_rule" "import" {
-  name             = azurerm_vpn_gateway_nat_rule.test.name
-  vpn_gateway_id   = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
-  external_mapping = azurerm_vpn_gateway_nat_rule.test.external_address_space_mappings
-  internal_mapping = azurerm_vpn_gateway_nat_rule.test.internal_address_space_mappings
-  mode             = azurerm_vpn_gateway_nat_rule.test.mode
-  type             = azurerm_vpn_gateway_nat_rule.test.type
-}
-`, r.basic(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 

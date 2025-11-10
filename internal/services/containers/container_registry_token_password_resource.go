@@ -11,9 +11,10 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -119,7 +120,7 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview
+			client := metadata.Client.Containers.ContainerRegistryClient
 			var plan ContainerRegistryTokenPasswordModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -132,7 +133,7 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroupName, tokenId.RegistryName, tokenId.TokenName, "password")
 
-			pwds, err := r.readPassword(ctx, client, *tokenId)
+			pwds, _, err := r.readPassword(ctx, client, *tokenId)
 			if err != nil {
 				return err
 			}
@@ -173,7 +174,7 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview
+			client := metadata.Client.Containers.ContainerRegistryClient
 			id, err := parse.ContainerRegistryTokenPasswordID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -181,7 +182,10 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 
 			tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
-			pwds, err := r.readPassword(ctx, client, tokenId)
+			pwds, notFound, err := r.readPassword(ctx, client, tokenId)
+			if notFound || (pwds != nil && len(pwds) == 0) {
+				return metadata.MarkAsGone(id)
+			}
 			if err != nil {
 				return err
 			}
@@ -232,7 +236,7 @@ func (r ContainerRegistryTokenPasswordResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+			client := metadata.Client.Containers.ContainerRegistryClient.Tokens
 
 			id, err := parse.ContainerRegistryTokenPasswordID(metadata.ResourceData.Id())
 			if err != nil {
@@ -369,35 +373,35 @@ func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPas
 	return
 }
 
-func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containterregistry_v2021_08_01_preview.Client, id tokens.TokenId) ([]tokens.TokenPassword, error) {
+func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containterregistry_v2021_08_01_preview.Client, id tokens.TokenId) ([]tokens.TokenPassword, bool, error) {
 	existing, err := client.Tokens.Get(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, response.WasNotFound(existing.HttpResponse), fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	if existing.Model == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: model is nil", id)
+		return nil, false, fmt.Errorf("checking for presence of existing %s: model is nil", id)
 	}
 
 	if existing.Model.Properties == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: properties is nil", id)
+		return nil, false, fmt.Errorf("checking for presence of existing %s: properties is nil", id)
 	}
 
 	if existing.Model.Properties.Credentials == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: credentials is nil", id)
+		return nil, false, fmt.Errorf("checking for presence of existing %s: credentials is nil", id)
 	}
 
 	passwords := existing.Model.Properties.Credentials.Passwords
 	if passwords == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: passwords is nil", id)
+		return nil, false, fmt.Errorf("checking for presence of existing %s: passwords is nil", id)
 	}
 
-	return *passwords, nil
+	return *passwords, false, nil
 }
 
 func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Context, clients client.Client, id tokens.TokenId, passwords []tokens.TokenPassword) ([]tokens.TokenPassword, error) {
 	var genPasswords []tokens.TokenPassword
 
-	existingPasswords, err := r.readPassword(ctx, clients.ContainerRegistryClient_v2023_06_01_preview, id)
+	existingPasswords, _, err := r.readPassword(ctx, clients.ContainerRegistryClient, id)
 	if err != nil {
 		return nil, fmt.Errorf("reading existing passwords: %+v", err)
 	}
@@ -414,7 +418,7 @@ func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Con
 				},
 			},
 		}
-		if err := clients.ContainerRegistryClient_v2023_06_01_preview.Tokens.UpdateThenPoll(ctx, id, param); err != nil {
+		if err := clients.ContainerRegistryClient.Tokens.UpdateThenPoll(ctx, id, param); err != nil {
 			return nil, fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
@@ -454,7 +458,7 @@ PasswordGenLoop:
 
 		registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
 
-		result, err := clients.ContainerRegistryClient_v2023_06_01_preview.Registries.GenerateCredentials(ctx, registryId, param)
+		result, err := clients.ContainerRegistryClient.Registries.GenerateCredentials(ctx, registryId, param)
 		if err != nil {
 			return nil, fmt.Errorf("generating password credential %s: %v", string(*password.Name), err)
 		}

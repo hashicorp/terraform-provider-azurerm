@@ -189,6 +189,21 @@ func TestAccLinuxVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_diskOSEphemeralNvmeDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralNvmeDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -256,42 +271,6 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.diskOSStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-	r := LinuxVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.diskOSStorageAccountType(data, "StandardSSD_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.diskOSStorageAccountType(data, "Standard_LRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -398,6 +377,69 @@ func TestAccLinuxVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK(t
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	// Ignoring Recreate as we're deliberately deleting the VM to leave behind a viable managed OS disk for import.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSBasicNoDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osDiskImportTemplateWithProvider(data), // Remove the initial VM
+		},
+		{
+			Config: r.diskOSImportManagedDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
+			Config: r.diskOSImportManagedDiskCleanup(data),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	// Ignoring Recreate as we're deliberately deleting the VM to leave behind a viable managed OS disk for import.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSBasicNoDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osDiskImportTemplateWithProvider(data), // Remove the initial VM
+		},
+		{
+			Config: r.diskOSImportManagedDiskWithSize(data, 40),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSImportManagedDiskWithSize(data, 60),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -880,6 +922,45 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LinuxVirtualMachineResource) diskOSEphemeralNvmeDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2ads_v6"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "NvmeDisk"
+    }
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LinuxVirtualMachineResource) diskOSStorageAccountType(data acceptance.TestData, accountType string) string {
 	return fmt.Sprintf(`
 %s
@@ -1197,5 +1278,206 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
+}
+
+// diskOSBasicNoDelete - this test config sets up the import of an OS disk by creating the VM then deleting it, leaving the disk intact for the subsequent step to create with an imported managed_disk_id
+func (r LinuxVirtualMachineResource) diskOSBasicNoDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.osDiskImportTemplate(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxVirtualMachineResource) diskOSImportManagedDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVMimport-%[2]d" // Changing the name to trigger ForceNew and use the existing Managed OSDisk import path
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching = "ReadWrite"
+  }
+}
+`, r.osDiskImportTemplate(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxVirtualMachineResource) diskOSImportManagedDiskWithSize(data acceptance.TestData, diskSize int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVMimport-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching      = "ReadWrite"
+    disk_size_gb = %[3]d
+  }
+}
+`, r.osDiskImportTemplate(data), data.RandomInteger, diskSize)
+}
+
+func (r LinuxVirtualMachineResource) diskOSImportManagedDiskCleanup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_managed_disks" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVMimport-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  os_disk {
+    caching = "ReadWrite"
+  }
+}
+`, r.osDiskImportTemplate(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxVirtualMachineResource) osDiskImportTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.templateBasePublicKey(), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxVirtualMachineResource) osDiskImportTemplateWithProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion = false
+    }
+  }
+}
+
+%s
+
+`, r.osDiskImportTemplate(data))
 }

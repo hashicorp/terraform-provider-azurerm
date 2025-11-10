@@ -216,14 +216,14 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 	} else if f.Default != "" && !s.Computed {
 		// schema has no default, but the document has default value, then we need a diff item
 		// but if schema is a boolean type and the document has a false default value, it's fine
-		if !(s.Type == pluginsdk.TypeBool && f.Default == "false") {
+		if s.Type != pluginsdk.TypeBool || f.Default != "false" {
 			res = append(res, newDefaultDiff(base, f.Default, ""))
 		}
 	}
 
 	// check forceNew attribute
 	if s.ForceNew != f.ForceNew && f.Name != "resource_group_name" {
-		var forceNew = ForceNewDefault
+		forceNew := ForceNewDefault
 		if s.ForceNew && !f.ForceNew {
 			forceNew = ShouldBeForceNew
 		} else if f.ForceNew && !s.ForceNew {

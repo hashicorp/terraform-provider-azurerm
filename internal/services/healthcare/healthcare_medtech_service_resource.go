@@ -349,7 +349,6 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 func medTechServiceStateStatusCodeRefreshFunc(ctx context.Context, client *iotconnectors.IotConnectorsClient, id iotconnectors.IotConnectorId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
-
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
 				return res, "Deleted", nil

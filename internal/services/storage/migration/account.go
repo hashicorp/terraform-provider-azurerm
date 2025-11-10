@@ -843,7 +843,7 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"static_website": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

@@ -48,6 +48,35 @@ func TestAccArcMachineResource_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccArcMachineResource_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine", "test")
+	r := ArcMachineResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ArcMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := machines.ParseMachineID(state.ID)
 	if err != nil {
@@ -90,6 +119,31 @@ resource "azurerm_arc_machine" "import" {
   kind                = azurerm_arc_machine.test.kind
 }
 `, r.basic(data))
+}
+
+func (r ArcMachineResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_arc_machine" "test" {
+  name                = "acctest-hcm-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "SCVMM"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ArcMachineResource) template(data acceptance.TestData) string {

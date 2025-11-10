@@ -5,6 +5,7 @@ package signalr
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -113,7 +114,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
 	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(&expandedFeatures) {
-		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
+		return errors.New("upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
 	publicNetworkAcc := "Enabled"
@@ -139,7 +140,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceLogsData := expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
 	resourceType := signalr.SignalRResource{
-		Location: utils.String(location),
+		Location: location,
 		Identity: identity,
 		Properties: &signalr.SignalRProperties{
 			Cors:                     expandSignalRCors(cors),
@@ -166,7 +167,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
-	return resourceArmSignalRServiceUpdate(d, meta)
+	return resourceArmSignalRServiceRead(d, meta)
 }
 
 func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -199,7 +200,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if err = d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
@@ -337,6 +338,10 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model != nil {
+		resourceType.Location = existing.Model.Location
 	}
 
 	currentSku := ""
@@ -835,8 +840,10 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
-							300, 400, 500, 600, 700, 800, 900, 1000}),
+						ValidateFunc: validation.IntInSlice([]int{
+							1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+							300, 400, 500, 600, 700, 800, 900, 1000,
+						}),
 					},
 				},
 			},

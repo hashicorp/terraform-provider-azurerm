@@ -46,8 +46,7 @@ type ServiceRegionPropertiesModel struct {
 	EsrpAddresses                         []string `tfschema:"esrp_addresses"`
 }
 
-type PrimaryRegionPropertiesModel struct {
-}
+type PrimaryRegionPropertiesModel struct{}
 
 type CommunicationsGatewayResource struct{}
 

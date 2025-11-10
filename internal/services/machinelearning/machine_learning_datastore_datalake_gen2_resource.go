@@ -13,12 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -83,7 +84,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateStorageContainerID,
 		},
 
 		"tenant_id": {
@@ -176,9 +177,11 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 			}
 
 			props := &datastore.AzureDataLakeGen2Datastore{
+				SubscriptionId:                &containerId.SubscriptionId,
+				ResourceGroup:                 &containerId.ResourceGroupName,
 				AccountName:                   containerId.StorageAccountName,
-				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Filesystem:                    containerId.ContainerName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
 				Tags:                          pointer.To(model.Tags),
@@ -241,6 +244,8 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			}
 
 			props := &datastore.AzureDataLakeGen2Datastore{
+				SubscriptionId:                &containerId.SubscriptionId,
+				ResourceGroup:                 &containerId.ResourceGroupName,
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(state.Description),
@@ -311,13 +316,18 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				serviceDataIdentity = string(*v)
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
-
-			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
+			var storageAccount *storageAccountHelper.AccountDetails
+			// try to get storage account from the storage subscription if subscription exists otherwise delegate to the default subscription
+			if data.SubscriptionId != nil && *data.SubscriptionId != "" {
+				storageAccount, err = storageClient.FindAccount(ctx, *data.SubscriptionId, data.AccountName)
+			} else {
+				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
+			}
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}
 			if storageAccount == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()

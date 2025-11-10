@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +31,35 @@ func TestAccMachineLearningDataStoreBlobStorage_accountKey(t *testing.T) {
 			),
 		},
 		data.ImportStep("account_key"),
+	})
+}
+
+func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
+	r := MachineLearningDataStoreBlobStorage{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceDataAuthIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key", "shared_access_signature"),
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -111,15 +140,93 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageAccountKey(data acceptan
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.id
+  service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = true
+  }
+
+  start  = "2022-01-01T06:17:07Z"
+  expiry = "2024-12-23T06:17:07Z"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.id
+  service_data_auth_identity = "WorkspaceUserAssignedIdentity"
+  shared_access_signature    = data.azurerm_storage_account_sas.test.sas
+  account_key                = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }
@@ -131,7 +238,7 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageSas(data acceptance.Test
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -173,7 +280,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_container_id    = azurerm_storage_container.test.resource_manager_id
+  storage_container_id    = azurerm_storage_container.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, template, data.RandomInteger)
@@ -228,7 +335,8 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -245,7 +353,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -264,5 +372,5 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

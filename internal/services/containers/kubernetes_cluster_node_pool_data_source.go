@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -51,6 +51,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"gpu_driver": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -159,17 +164,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		dataSource.Schema["enable_auto_scaling"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-		dataSource.Schema["enable_node_public_ip"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
 	return dataSource
 }
 
@@ -214,16 +208,17 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 
-		if !features.FourPointOhBeta() {
-			d.Set("enable_auto_scaling", props.EnableAutoScaling)
-			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
-		}
-
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != nil && *props.ScaleSetEvictionPolicy != "" {
 			evictionPolicy = string(*props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
+
+		gpuDriver := ""
+		if props.GpuProfile != nil {
+			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
+		}
+		d.Set("gpu_driver", gpuDriver)
 
 		maxCount := 0
 		if props.MaxCount != nil {

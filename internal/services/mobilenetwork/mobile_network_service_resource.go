@@ -147,7 +147,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringMatch(
 													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
 													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
-												)},
+												),
+											},
 
 											"uplink": {
 												Type:     pluginsdk.TypeString,
@@ -155,7 +156,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringMatch(
 													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
 													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
-												)},
+												),
+											},
 										},
 									},
 								},
@@ -172,7 +174,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringMatch(
 													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
 													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
-												)},
+												),
+											},
 
 											"uplink": {
 												Type:     pluginsdk.TypeString,
@@ -180,7 +183,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringMatch(
 													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
 													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
-												)},
+												),
+											},
 										},
 									},
 								},
@@ -302,7 +306,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^\d+(\\.\\d+)?\s(bps|Kbps|Mbps|Gbps|Tbps)$`),
 										"The value must be a number followed by bps, Kbps, Mbps, Gbps or Tbps.",
-									)},
+									),
+								},
 
 								"uplink": {
 									Type:     pluginsdk.TypeString,
@@ -310,7 +315,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^\d+(\\.\\d+)?\s(bps|Kbps|Mbps|Gbps|Tbps)$`),
 										"The value must be a number followed by bps, Kbps, Mbps, Gbps or Tbps.",
-									)},
+									),
+								},
 							},
 						},
 					},

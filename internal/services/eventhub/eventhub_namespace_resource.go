@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -138,13 +137,11 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						// Returned value of the `virtual_network_rule` array does not honor the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
@@ -166,11 +163,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							},
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"ip_rule": {
 							Type:       pluginsdk.TypeList,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -205,8 +200,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.TlsVersionOnePointZero),
-					string(namespaces.TlsVersionOnePointOne),
 					string(namespaces.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -271,19 +264,11 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
-			ForceNew:   true,
-		}
-
+	if !features.FivePointOh() {
 		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(namespaces.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(namespaces.TlsVersionOnePointZero),
 				string(namespaces.TlsVersionOnePointOne),
@@ -291,7 +276,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			}, false),
 		}
 	}
-
 	return resource
 }
 
@@ -333,10 +317,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	parameters := namespaces.EHNamespace{
 		Location: &location,
@@ -346,26 +327,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 				v := namespaces.SkuTier(sku)
 				return &v
 			}(),
-			Capacity: utils.Int64(int64(capacity)),
+			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
-			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
+			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if !features.FourPointOhBeta() {
-		// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
-		if sku != string(namespaces.SkuNamePremium) {
-			parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
-		}
-	}
-
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
-		parameters.Properties.ClusterArmId = utils.String(v)
+		parameters.Properties.ClusterArmId = pointer.To(v)
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -374,7 +348,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -431,10 +405,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -449,23 +420,19 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 				v := namespaces.SkuTier(sku)
 				return &v
 			}(),
-			Capacity: utils.Int64(int64(capacity)),
+			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
-			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
+			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if !features.FourPointOhBeta() {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
-	}
-
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
-		parameters.Properties.ClusterArmId = utils.String(v)
+		parameters.Properties.ClusterArmId = pointer.To(v)
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -473,8 +440,8 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
-	if v, ok := d.GetOk("maximum_throughput_units"); ok {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+	if d.HasChange("maximum_throughput_units") {
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(d.Get("maximum_throughput_units").(int)))
 	}
 
 	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
@@ -483,7 +450,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/10244
 	//
 	if *parameters.Sku.Tier == namespaces.SkuTierBasic && !autoInflateEnabled {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(0))
 	}
 
 	if _, err = client.Update(ctx, id, parameters); err != nil {
@@ -573,10 +540,6 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
-
-			if !features.FourPointOhBeta() {
-				d.Set("zone_redundant", props.ZoneRedundant)
-			}
 
 			localAuthDisabled := false
 			if props.DisableLocalAuth != nil {
@@ -670,7 +633,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	}
 
 	if v, ok := block["trusted_service_access_enabled"]; ok {
-		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
+		ruleset.TrustedServiceAccessEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := block["virtual_network_rule"]; ok {
@@ -681,9 +644,9 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
-						Id: utils.String(rblock["subnet_id"].(string)),
+						Id: pointer.To(rblock["subnet_id"].(string)),
 					},
-					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
+					IgnoreMissingVnetServiceEndpoint: pointer.To(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
 				})
 			}
 
@@ -697,7 +660,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetIPRules{
-					IPMask: utils.String(rblock["ip_mask"].(string)),
+					IPMask: pointer.To(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
 						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
 						return &v
@@ -764,10 +727,8 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 	// TODO: fix this
 
-	publicNetworkAccess := true
-	if ruleset.Model.Properties.PublicNetworkAccess != nil && *ruleset.Model.Properties.PublicNetworkAccess == networkrulesets.PublicNetworkAccessFlagDisabled {
-		publicNetworkAccess = false
-	}
+	publicNetworkAccess := ruleset.Model.Properties.PublicNetworkAccess == nil || *ruleset.Model.Properties.PublicNetworkAccess != networkrulesets.PublicNetworkAccessFlagDisabled
+
 	return []interface{}{map[string]interface{}{
 		"default_action":                 string(*ruleset.Model.Properties.DefaultAction),
 		"public_network_access_enabled":  publicNetworkAccess,

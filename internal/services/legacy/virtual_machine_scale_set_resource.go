@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -285,7 +285,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -346,7 +346,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -381,7 +381,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"network_profile": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -540,7 +540,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -637,7 +637,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -674,7 +674,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"plan": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -699,7 +699,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -2127,8 +2127,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassNames(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentNames(component)),
+					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
+					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
 					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
 				}
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	storageClients "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
 var _ pollers.PollerType = &DataPlaneStaticWebsiteAvailabilityPoller{}
@@ -38,12 +38,12 @@ func NewDataPlaneStaticWebsiteAvailabilityPoller(ctx context.Context, client *st
 func (d *DataPlaneStaticWebsiteAvailabilityPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := d.client.GetServiceProperties(ctx, d.storageAccountId.StorageAccountName)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			if resp.HttpResponse == nil {
-				return nil, pollers.PollingDroppedConnectionError{
-					Message: err.Error(),
-				}
+		if resp.HttpResponse == nil {
+			return nil, pollers.PollingDroppedConnectionError{
+				Message: err.Error(),
 			}
+		}
+		if !response.WasNotFound(resp.HttpResponse) {
 			return nil, pollers.PollingFailedError{
 				Message: err.Error(),
 				HttpResponse: &client.Response{

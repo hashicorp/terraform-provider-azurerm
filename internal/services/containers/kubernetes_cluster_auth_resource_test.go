@@ -864,6 +864,10 @@ variable "tenant_id" {
   default = "%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -908,6 +912,10 @@ func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigOlderKube
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%[1]s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -957,6 +965,10 @@ variable "tenant_id" {
   default = "%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -1002,6 +1014,10 @@ func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigScale(dat
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1095,6 +1111,10 @@ func (KubernetesClusterResource) roleBasedAccessControlAzureConfig(data acceptan
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

@@ -15,11 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -39,9 +38,7 @@ type ContainerAppJobModel struct {
 	ReplicaRetryLimit         int64                                      `tfschema:"replica_retry_limit"`
 	ReplicaTimeoutInSeconds   int64                                      `tfschema:"replica_timeout_in_seconds"`
 	Secrets                   []helpers.Secret                           `tfschema:"secret"`
-	SecretsDeprecated         []helpers.Secret                           `tfschema:"secrets,removedInNextMajorVersion"`
 	Registries                []helpers.Registry                         `tfschema:"registry"`
-	RegistriesDeprecated      []helpers.Registry                         `tfschema:"registries,removedInNextMajorVersion"`
 	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
 	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
 	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
@@ -67,7 +64,7 @@ func (r ContainerAppJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -204,24 +201,6 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["secrets"] = helpers.SecretsSchema()
-		schema["secrets"].ConflictsWith = []string{"secret"}
-		schema["secrets"].Computed = true
-		schema["secrets"].Deprecated = "`secrets` has been renamed to `secret` and will be removed in version 4.0 of the AzureRM Provider."
-		schema["secret"].ConflictsWith = []string{"secrets"}
-		schema["secret"].Computed = true
-
-		schema["registries"] = helpers.ContainerAppRegistrySchema()
-		schema["registries"].ConflictsWith = []string{"registry"}
-		schema["registries"].Computed = true
-		schema["registries"].Deprecated = "`registries` has been renamed to `registry` and will be removed in version 4.0 of the AzureRM Provider."
-		schema["registry"].ConflictsWith = []string{"registries"}
-		schema["registry"].Computed = true
-	}
-
-	return schema
 }
 
 func (r ContainerAppJobResource) Attributes() map[string]*schema.Schema {
@@ -271,17 +250,6 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding registry config for %s: %v", id, err)
 			}
-			if !features.FourPointOhBeta() && len(model.RegistriesDeprecated) > 0 {
-				registries, err = helpers.ExpandContainerAppJobRegistries(model.RegistriesDeprecated)
-				if err != nil {
-					return fmt.Errorf("expanding registry config for %s: %v", id, err)
-				}
-			}
-
-			secrets := helpers.ExpandContainerAppJobSecrets(model.Secrets)
-			if !features.FourPointOhBeta() && len(model.SecretsDeprecated) > 0 {
-				secrets = helpers.ExpandContainerAppJobSecrets(model.SecretsDeprecated)
-			}
 
 			job := jobs.Job{
 				Location: location.Normalize(model.Location),
@@ -289,7 +257,7 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 					Configuration: &jobs.JobConfiguration{
 						ReplicaRetryLimit: pointer.To(model.ReplicaRetryLimit),
 						ReplicaTimeout:    model.ReplicaTimeoutInSeconds,
-						Secrets:           secrets,
+						Secrets:           helpers.ExpandContainerAppJobSecrets(model.Secrets),
 						Registries:        registries,
 					},
 					EnvironmentId: pointer.To(model.ContainerAppEnvironmentId),
@@ -380,9 +348,6 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppJobTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						state.Registries = helpers.FlattenContainerAppJobRegistries(config.Registries)
-						if !features.FourPointOhBeta() {
-							state.RegistriesDeprecated = helpers.FlattenContainerAppJobRegistries(config.Registries)
-						}
 						state.ReplicaTimeoutInSeconds = config.ReplicaTimeout
 						if config.ReplicaRetryLimit != nil {
 							state.ReplicaRetryLimit = pointer.From(config.ReplicaRetryLimit)
@@ -406,9 +371,6 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing secrets for %s: %+v", *id, err)
 			}
 			state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
-			if !features.FourPointOhBeta() {
-				state.SecretsDeprecated = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
-			}
 
 			return metadata.Encode(&state)
 		},
@@ -501,18 +463,6 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 
 			if d.HasChange("tags") {
 				model.Tags = tags.Expand(state.Tags)
-			}
-
-			if !features.FourPointOhBeta() {
-				if d.HasChange("secrets") {
-					model.Properties.Configuration.Secrets = helpers.ExpandContainerAppJobSecrets(state.SecretsDeprecated)
-				}
-				if d.HasChange("registries") {
-					model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.RegistriesDeprecated)
-					if err != nil {
-						return fmt.Errorf("invalid registry config for %s: %v", id, err)
-					}
-				}
 			}
 
 			model.Properties.Template = helpers.ExpandContainerAppJobTemplate(state.Template)

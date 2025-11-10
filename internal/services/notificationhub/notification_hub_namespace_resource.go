@@ -18,12 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
@@ -75,18 +73,34 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: features.FourPointOhBeta(),
+				ForceNew: true,
 				Default:  true,
 			},
 
 			"namespace_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: features.FourPointOhBeta(),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.NamespaceTypeMessaging),
 					string(namespaces.NamespaceTypeNotificationHub),
 				}, false),
+			},
+
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"replication_region": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          namespaces.ReplicationRegionDefault,
+				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), true),
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
 			"tags": commonschema.Tags(),
@@ -118,6 +132,11 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
 	}
 
+	zoneRedundancy := namespaces.ZoneRedundancyPreferenceDisabled
+	if v, ok := d.GetOk("zone_redundancy_enabled"); ok && v.(bool) {
+		zoneRedundancy = namespaces.ZoneRedundancyPreferenceEnabled
+	}
+
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
 	parameters := namespaces.NamespaceResource{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -125,11 +144,17 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: &namespaceType,
-			Enabled:       utils.Bool(d.Get("enabled").(bool)),
+			NamespaceType:  &namespaceType,
+			Enabled:        pointer.To(d.Get("enabled").(bool)),
+			ZoneRedundancy: pointer.To(zoneRedundancy),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("replication_region"); ok {
+		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(location.Normalize(v.(string))))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -170,13 +195,13 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if d.HasChanges("sku_name") {
+	if d.HasChange("sku_name") {
 		parameters.Sku = &namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		}
 	}
 
-	if d.HasChanges("tags") {
+	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
@@ -217,6 +242,12 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+			d.Set("zone_redundancy_enabled", pointer.From(props.ZoneRedundancy) == namespaces.ZoneRedundancyPreferenceEnabled)
+			replicationRegion := string(namespaces.ReplicationRegionDefault)
+			if v := pointer.FromEnum(props.ReplicationRegion); v != "" {
+				replicationRegion = v
+			}
+			d.Set("replication_region", location.Normalize(replicationRegion))
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

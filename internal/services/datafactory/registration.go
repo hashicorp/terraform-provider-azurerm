@@ -4,15 +4,16 @@
 package datafactory
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/data-factory"
@@ -42,6 +43,7 @@ func (Registration) Resources() []sdk.Resource {
 		DataFactoryDatasetAzureSQLTableResource{},
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
+		DataFactoryCustomerManagedKeyResource{},
 	}
 }
 
@@ -101,10 +103,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_trigger_custom_event":                  resourceDataFactoryTriggerCustomEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
 		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_data_factory_integration_runtime_managed"] = resourceDataFactoryIntegrationRuntimeManaged()
 	}
 
 	return resources

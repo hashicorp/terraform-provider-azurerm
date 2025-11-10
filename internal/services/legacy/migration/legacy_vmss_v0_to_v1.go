@@ -10,7 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -242,7 +242,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_windows_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -304,7 +304,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_linux_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -490,7 +490,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_os_disk": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
@@ -577,7 +577,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_image_reference": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -614,7 +614,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"plan": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,

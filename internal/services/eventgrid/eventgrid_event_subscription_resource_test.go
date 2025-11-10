@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventGridEventSubscriptionResource struct{}
@@ -49,6 +49,22 @@ func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_event_subscription"),
 		},
+	})
+}
+
+func TestAccEventGridEventSubscription_azureFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureFunction(data),
+
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -435,7 +451,7 @@ func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (EventGridEventSubscriptionResource) basic(data acceptance.TestData) string {
@@ -468,7 +484,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -548,7 +564,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -563,7 +579,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctest-eg-%[1]d"
+  name  = "acctesteg-%[1]d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
@@ -612,11 +628,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -627,6 +642,38 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   eventhub_endpoint_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (EventGridEventSubscriptionResource) azureFunction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                                 = "acctest-eges-%[1]d"
+  advanced_filtering_on_arrays_enabled = true
+  scope                                = azurerm_linux_function_app.test.id
+  event_delivery_schema                = "EventGridSchema"
+
+  azure_function_endpoint {
+    function_id                       = azurerm_function_app_function.test.id
+    max_events_per_batch              = 1
+    preferred_batch_size_in_kilobytes = 64
+  }
+
+  depends_on = [
+    azurerm_function_app_active_slot.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, azureFunctionTemplate(data))
 }
 
 func (EventGridEventSubscriptionResource) serviceBusQueueID(data acceptance.TestData) string {
@@ -991,7 +1038,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "dead-letter-destination"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1078,7 +1125,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "dead-letter-destination"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1379,11 +1426,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1444,6 +1490,116 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     type        = "Static"
     value       = "1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func azureFunctionTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_storage_account" "test" {
+  name                     = substr("acctestsa%[1]d", 0, 24)
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                       = "acctestLA-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  app_settings = {
+    WEBSITE_CONTENTSHARE                     = "testacc-content-app"
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.test.primary_blob_connection_string
+    AzureWebJobsSecretStorageType            = "Blob"
+  }
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+    cors {
+      allowed_origins     = ["https://portal.azure.com"]
+      support_credentials = false
+    }
+  }
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
+  }
+}
+
+resource "azurerm_function_app_function" "test" {
+  name            = "acctest-FnAppFn-%[1]d"
+  function_app_id = azurerm_linux_function_app.test.id
+  language        = "Python"
+  test_data = jsonencode({
+    "name" = "Azure"
+  })
+  config_json = jsonencode({
+    "bindings" = [
+      {
+        "authLevel" = "function"
+        "direction" = "in"
+        "methods" = [
+          "get",
+          "post",
+        ]
+        "name" = "req"
+        "type" = "EventGridTrigger"
+      },
+      {
+        "direction" = "out"
+        "name"      = "$return"
+        "type"      = "http"
+      },
+    ]
+  })
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[1]d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    WEBSITE_CONTENTSHARE                     = "testacc-content-appslot"
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.test.primary_blob_connection_string
+    AzureWebJobsSecretStorageType            = "Blob"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+
+    cors {
+      support_credentials = false
+      allowed_origins     = ["https://portal.azure.com"]
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_CONTENTSHARE"],
+    ]
+  }
+}
+
+resource "azurerm_function_app_active_slot" "test" {
+  slot_id = azurerm_linux_function_app_slot.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -14,9 +14,11 @@ import (
 )
 
 // cachedResourceProviders can be (validly) nil - as such this shouldn't be relied on
-var cachedResourceProviders *[]string
-var registeredResourceProviders map[string]struct{}
-var unregisteredResourceProviders map[string]struct{}
+var (
+	cachedResourceProviders       *[]string
+	registeredResourceProviders   map[string]struct{}
+	unregisteredResourceProviders map[string]struct{}
+)
 
 var cacheLock = &sync.Mutex{}
 

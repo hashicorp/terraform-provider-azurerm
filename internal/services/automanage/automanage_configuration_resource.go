@@ -90,8 +90,10 @@ type SchedulePolicyConfiguration struct {
 
 type AutoManageConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
-var _ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+var (
+	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+)
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -629,6 +631,7 @@ func (r AutoManageConfigurationResource) StateUpgraders() sdk.StateUpgradeData {
 		},
 	}
 }
+
 func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 	// building configuration profile in json format
 	jsonConfig := make(map[string]interface{})

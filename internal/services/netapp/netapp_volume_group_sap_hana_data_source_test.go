@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetAppVolumeGroupSapHanaDataSource struct{}
+type NetAppVolumeGroupSAPHanaDataSource struct{}
 
-func TestAccNetAppVolumeGroupSapHanaDataSource_basic(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHanaDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_group_sap_hana", "test")
-	d := NetAppVolumeGroupSapHanaDataSource{}
+	d := NetAppVolumeGroupSAPHanaDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -29,7 +29,7 @@ func TestAccNetAppVolumeGroupSapHanaDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d NetAppVolumeGroupSapHanaDataSource) basic(data acceptance.TestData) string {
+func (d NetAppVolumeGroupSAPHanaDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -38,5 +38,5 @@ data "azurerm_netapp_volume_group_sap_hana" "test" {
   resource_group_name = azurerm_netapp_volume_group_sap_hana.test.resource_group_name
   account_name        = azurerm_netapp_volume_group_sap_hana.test.account_name
 }
-`, NetAppVolumeGroupSapHanaResource{}.basic(data))
+`, NetAppVolumeGroupSAPHanaResource{}.basic(data))
 }

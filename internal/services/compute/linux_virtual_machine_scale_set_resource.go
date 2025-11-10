@@ -20,13 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -82,6 +81,25 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return false
 			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, v := range networkInterfaces {
+					raw := v.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
+
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+				}
+
+				return nil
+			}),
 		),
 	}
 }
@@ -94,7 +112,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
 	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(exists.HttpResponse) {
@@ -230,14 +247,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
-			virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
-				GalleryApplications: galleryApplications,
-			}
-		}
-	}
-
 	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
@@ -268,13 +277,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
-		if !features.FourPointOhBeta() {
-			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
-				virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
-			}
-		} else {
-			virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
-		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -382,12 +385,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("terminate_notification"); ok {
-			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
-		}
-	}
-
 	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
@@ -427,19 +424,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
-			Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
-			ForceDeletion: pointer.To(false),
-		}
-
-		if v, ok := d.GetOk("scale_in_policy"); ok {
-			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
-		}
-
-		props.Properties.ScaleInPolicy = scaleInPolicy
-	}
-
 	if v, ok := d.GetOk("scale_in"); ok {
 		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
 			props.Properties.ScaleInPolicy = v
@@ -456,6 +440,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
+
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -724,22 +710,10 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		if d.HasChange("scale_in_policy") {
-			updateScaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{}
-
-			if d.HasChange("scale_in_policy") {
-				scaleInPolicy := d.Get("scale_in_policy").(string)
-				updateScaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(scaleInPolicy)}
-			}
-
-			updateProps.ScaleInPolicy = updateScaleInPolicy
-		}
-
-		if d.HasChange("terminate_notification") {
-			notificationRaw := d.Get("terminate_notification").([]interface{})
-			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
-		}
+	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
 	if d.HasChange("termination_notification") {
@@ -793,7 +767,15 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		update.Identity = identityExpanded
+		existing.Model.Identity = identityExpanded
+		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
+		// 1. The go-azure-sdk for resource manager doesn't support at the moment
+		// 2. The expand identity function doesn't behave this way
+		// For the moment updating the identity with the PUT circumvents this API behaviour
+		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("plan") {
@@ -937,20 +919,13 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("zone_balance", props.ZoneBalance)
 			d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
 
-			if !features.FourPointOhBeta() {
-				rule := string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault)
-
-				if props.ScaleInPolicy != nil {
-					if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
-						rule = string((*rules)[0])
-					}
-				}
-				d.Set("scale_in_policy", rule)
-			}
-
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
@@ -974,10 +949,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
 					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
-
-					if !features.FourPointOhBeta() {
-						d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
-					}
 				}
 
 				// the service just return empty when this is not assigned when provisioned
@@ -1054,14 +1025,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 						healthProbeId = *nwProfile.HealthProbe.Id
 					}
 					d.Set("health_probe_id", healthProbeId)
-				}
-
-				if !features.FourPointOhBeta() {
-					if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-						if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-							return fmt.Errorf("setting `terminate_notification`: %+v", err)
-						}
-					}
 				}
 
 				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
@@ -1190,7 +1153,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
-	resourceSchema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1304,13 +1267,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default: func() interface{} {
-				if !features.FourPointOhBeta() {
-					return nil
-				}
-				return true
-			}(),
-			Computed: !features.FourPointOhBeta(),
+			Default:  true,
 			ForceNew: true,
 		},
 
@@ -1393,6 +1350,18 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"capacity_reservation_group_id",
 			},
+		},
+
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
@@ -1478,24 +1447,4 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
-		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
-
-		resourceSchema["scale_in_policy"] = &schema.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: !features.FourPointOhBeta(),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-			}, false),
-			Deprecated:    "`scale_in_policy` will be removed in favour of the `scale_in` code block in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"scale_in"},
-		}
-	}
-
-	return resourceSchema
 }

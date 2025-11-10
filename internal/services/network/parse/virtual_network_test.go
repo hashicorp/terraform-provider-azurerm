@@ -27,7 +27,6 @@ func TestVirtualNetworkID(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestVirtualNetworkIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkId
 	}{
-
 		{
 			// empty
 			Input: "",

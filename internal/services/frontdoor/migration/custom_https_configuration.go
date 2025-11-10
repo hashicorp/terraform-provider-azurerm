@@ -28,7 +28,7 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"custom_https_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

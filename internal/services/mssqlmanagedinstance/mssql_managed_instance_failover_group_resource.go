@@ -28,6 +28,7 @@ type MsSqlManagedInstanceFailoverGroupModel struct {
 	ManagedInstanceId                     string `tfschema:"managed_instance_id"`
 	PartnerManagedInstanceId              string `tfschema:"partner_managed_instance_id"`
 	ReadOnlyEndpointFailoverPolicyEnabled bool   `tfschema:"readonly_endpoint_failover_policy_enabled"`
+	SecondaryType                         string `tfschema:"secondary_type"`
 
 	ReadWriteEndpointFailurePolicy []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
 
@@ -45,8 +46,10 @@ type MsSqlManagedInstancePartnerRegionModel struct {
 	Role     string `tfschema:"role"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+)
 
 type MsSqlManagedInstanceFailoverGroupResource struct{}
 
@@ -115,6 +118,13 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 					},
 				},
 			},
+		},
+
+		"secondary_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(instancefailovergroups.SecondaryInstanceTypeGeo),
+			ValidateFunc: validation.StringInSlice(instancefailovergroups.PossibleValuesForSecondaryInstanceType(), false),
 		},
 	}
 }
@@ -205,6 +215,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 							PartnerManagedInstanceId: utils.String(partnerId.ID()),
 						},
 					},
+					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(model.SecondaryType)),
 				},
 			}
 
@@ -284,6 +295,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 							PartnerManagedInstanceId: utils.String(partnerId.ID()),
 						},
 					},
+					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(state.SecondaryType)),
 				},
 			}
 
@@ -377,6 +389,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 							model.ReadOnlyEndpointFailoverPolicyEnabled = true
 						}
 					}
+
+					model.SecondaryType = string(pointer.From(props.SecondaryType))
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{

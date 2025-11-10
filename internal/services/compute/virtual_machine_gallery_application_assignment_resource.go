@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -23,9 +24,7 @@ import (
 
 type VirtualMachineGalleryApplicationAssignmentResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = VirtualMachineGalleryApplicationAssignmentResource{}
-)
+var _ sdk.ResourceWithUpdate = VirtualMachineGalleryApplicationAssignmentResource{}
 
 type VirtualMachineGalleryApplicationAssignmentResourceResourceModel struct {
 	GalleryApplicationVersionId string `tfschema:"gallery_application_version_id"`
@@ -62,7 +61,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Arguments() map[stri
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
-			ValidateFunc: validation.IntBetween(0, 2147483647),
+			ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 		},
 
 		"tag": {

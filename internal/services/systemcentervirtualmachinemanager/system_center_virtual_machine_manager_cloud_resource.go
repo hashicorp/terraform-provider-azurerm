@@ -30,8 +30,10 @@ type SystemCenterVirtualMachineManagerCloudModel struct {
 	Tags                                                   map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerCloudResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerCloudResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerCloudResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerCloudResource{}
+)
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 

@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
 )
 
 type StorageShareDirectoryResource struct{}
@@ -42,60 +41,6 @@ func TestAccStorageShareDirectory_basicAzureADAuth(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAzureADAuth(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccStorageShareDirectory_basicDeprecated(t *testing.T) {
-	// TODO: remove test in v4.0
-	if features.FourPointOhBeta() {
-		t.Skip("test not applicable in v4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccStorageShareDirectory_migrateStorageShareId(t *testing.T) {
-	// TODO: remove test in v4.0
-	if features.FourPointOhBeta() {
-		t.Skip("test not applicable in v4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -275,20 +220,6 @@ resource "azurerm_storage_share_directory" "test" {
   storage_share_id = azurerm_storage_share.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r StorageShareDirectoryResource) basicDeprecated(data acceptance.TestData) string {
-	// TODO: remove in v4.0
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_share_directory" "test" {
-  name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
-}
-`, template)
 }
 
 func (r StorageShareDirectoryResource) uppercase(data acceptance.TestData) string {

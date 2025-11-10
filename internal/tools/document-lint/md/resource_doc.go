@@ -97,8 +97,10 @@ func extractFieldFromLine(line string) (field *model.Field) {
 
 	possibleValueSep := func(line string) int {
 		line = strings.ToLower(line)
-		for _, sep := range []string{"possible value", "must be one of", "be one of", "allowed value", "valid value",
-			"supported value", "valid option", "accepted value"} {
+		for _, sep := range []string{
+			"possible value", "must be one of", "be one of", "allowed value", "valid value",
+			"supported value", "valid option", "accepted value",
+		} {
 			if sepIdx := strings.Index(line, sep); sepIdx >= 0 {
 				return sepIdx
 			}
@@ -181,9 +183,7 @@ func guessBlockProperty(line string) bool {
 	return strings.Contains(line, "A block to")
 }
 
-var (
-	blockTypeReg = blockPropRegs[0]
-)
+var blockTypeReg = blockPropRegs[0]
 
 func newFieldFromLine(line string) *model.Field {
 	f := extractFieldFromLine(line)

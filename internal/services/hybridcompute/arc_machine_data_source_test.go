@@ -16,9 +16,11 @@ import (
 
 type ArcMachineDataSource struct{}
 
-const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const NumberBytes = "1234567890"
-const SpecialBytes = "!@#$%^()"
+const (
+	LetterBytes  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NumberBytes  = "1234567890"
+	SpecialBytes = "!@#$%^()"
+)
 
 func generateRandomPassword(n int) string {
 	b := make([]byte, n)

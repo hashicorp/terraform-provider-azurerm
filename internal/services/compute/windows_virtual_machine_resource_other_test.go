@@ -76,37 +76,6 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
-		{
-			Config: r.otherPatchModeManual(data), // this update requires force replacement actually
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccWindowsVirtualMachine_otherVmAgentPlatformUpdates(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherVmAgentPlatformUpdatesEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherVmAgentPlatformUpdatesDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1313,72 +1282,6 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), patchMode)
 }
 
-func (r WindowsVirtualMachineResource) otherVmAgentPlatformUpdatesEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  vm_agent_platform_updates_enabled = true
-}
-`, r.template(data))
-}
-
-func (r WindowsVirtualMachineResource) otherVmAgentPlatformUpdatesDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  vm_agent_platform_updates_enabled = false
-}
-`, r.template(data))
-}
-
 func (r WindowsVirtualMachineResource) otherPatchModeAutomaticByOS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1473,8 +1376,8 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  enable_automatic_updates = false
-  patch_mode               = "Manual"
+  automatic_updates_enabled = false
+  patch_mode                = "Manual"
 }
 `, r.template(data))
 }
@@ -1973,6 +1876,10 @@ func (r WindowsVirtualMachineResource) otherEdgeZone(data acceptance.TestData) s
 	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
   location = "%[1]s"
@@ -1991,10 +1898,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -2342,7 +2250,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data))
+`, r.templateWithOutProvider(data))
 }
 
 func (r WindowsVirtualMachineResource) otherLicenseTypeDefault(data acceptance.TestData) string {

@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccPluginSDKAndDecoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -64,7 +64,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -216,7 +216,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 }
 
 func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -264,7 +264,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -340,7 +340,7 @@ resource "validator_decoder_unspecified" "test" {}
 }
 
 func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -350,7 +350,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -444,7 +444,7 @@ resource "validator_decoder_override" "test" {
 }
 
 func TestAccPluginSDKAndDecoderSets(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		SetOfStrings []string  `tfschema:"set_of_strings"`
@@ -456,7 +456,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -624,7 +624,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 }
 
 func TestAccPluginSDKAndEncoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -649,7 +649,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -863,7 +863,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 }
 
 func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"
 	// lintignore:AT001

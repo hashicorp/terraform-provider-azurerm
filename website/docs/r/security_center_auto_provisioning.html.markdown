@@ -10,7 +10,9 @@ description: |-
 
 Enables or disables the Security Center Auto Provisioning feature for the subscription
 
-~> **NOTE:** There is no resource name required, it will always be "default"
+~> **Note:** The `azurerm_security_center_auto_provisioning` resource has been deprecated because [the auto provisioning capability will be deprecated by end of Novemember of 2024](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan) and will be removed in v5.0 of the AzureRM Provider.
+
+~> **Note:** There is no resource name required, it will always be "default"
 
 ## Example Usage
 
@@ -34,7 +36,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Security Center Auto Provisioning.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Auto Provisioning.

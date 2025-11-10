@@ -25,7 +25,7 @@ output "netapp_volume_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,13 +59,19 @@ The following attributes are exported:
 
 * `security_style` - Volume security style
 
-* `data_protection_replication` - Volume data protection block
-  
+* `data_protection_replication` - Volume data protection replication block
+
+* `data_protection_backup_policy` - A data protecion backup policy block
+
 * `volume_path` - The unique file path of the volume.
 
 * `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.
 
 * `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
+
+* `large_volume_enabled` - Indicates if the volume is a large volume.
+
+* `accept_grow_capacity_pool_for_short_term_clone_split` - The accept grow capacity pool for short term clone split property.
 
 ---
 
@@ -81,8 +87,24 @@ A `data_protection_replication` block exports the following:
 
 ---
 
+A `data_protection_backup_policy` block supports the following:
+
+* `backup_vault_id` - The Resource ID of the backup backup vault.
+
+* `backup_policy_id` - The Resource ID of the backup policy.
+
+* `policy_enabled` - Backup policy is enabled or not.
+
+---
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.NetApp` - 2025-06-01

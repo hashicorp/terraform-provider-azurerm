@@ -27,7 +27,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
-		//lintignore:R001
+		// lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
@@ -60,12 +60,12 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 		}
 
 		if structTags != nil {
-			if structTags.removedInNextMajorVersion && features.FourPointOhBeta() {
+			if structTags.removedInNextMajorVersion && features.FivePointOh() {
 				debugLogger.Infof("The HCL Path %q is marked as removed - skipping", structTags.hclPath)
 				continue
 			}
 
-			if structTags.addedInNextMajorVersion && !features.FourPointOhBeta() {
+			if structTags.addedInNextMajorVersion && !features.FivePointOh() {
 				debugLogger.Infof("The HCL Path %q is marked as not yet present - skipping", structTags.hclPath)
 				continue
 			}

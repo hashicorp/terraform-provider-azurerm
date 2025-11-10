@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = CommunicationServiceResource{}
-var _ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+var (
+	_ sdk.ResourceWithUpdate         = CommunicationServiceResource{}
+	_ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+)
 
 type CommunicationServiceResource struct{}
 
@@ -35,6 +37,7 @@ type CommunicationServiceResourceModel struct {
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
 	PrimaryKey                string `tfschema:"primary_key"`
 	SecondaryKey              string `tfschema:"secondary_key"`
+	HostName                  string `tfschema:"hostname"`
 }
 
 func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
@@ -112,6 +115,11 @@ func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
+		},
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -244,6 +252,7 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DataLocation = props.DataLocation
+					state.HostName = pointer.From(props.HostName)
 				}
 
 				state.Tags = pointer.From(model.Tags)
