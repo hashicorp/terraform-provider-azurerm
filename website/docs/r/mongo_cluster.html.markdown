@@ -32,6 +32,28 @@ resource "azurerm_mongo_cluster" "example" {
 
 ```
 
+## Example Usage (with Microsoft Entra ID Authentication)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "East US"
+}
+
+resource "azurerm_mongo_cluster" "example" {
+  name                      = "example-mc"
+  resource_group_name       = azurerm_resource_group.example.name
+  location                  = azurerm_resource_group.example.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  high_availability_mode    = "ZoneRedundantPreferred"
+  storage_size_in_gb        = "64"
+  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
+}
+```
+
 ## Example Usage (Preview feature GeoReplicas)
 
 ```hcl
@@ -98,6 +120,8 @@ The following arguments are supported:
 * `source_server_id` - (Optional) The ID of the replication source MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_username` for the MongoDB Cluster.
+
+* `auth_config_allowed_modes` - (Optional) A list of allowed authentication modes for the MongoDB Cluster. Possible values are `NativeAuth` and `MicrosoftEntraID`.
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 

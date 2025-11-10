@@ -246,6 +246,7 @@ resource "azurerm_mongo_cluster" "test" {
   compute_tier           = "M30"
   storage_size_in_gb     = "64"
   version                = "8.0"
+  auth_config_allowed_modes = ["NativeAuth"]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
@@ -324,6 +325,8 @@ resource "azurerm_mongo_cluster" "point_in_time_restore" {
     source_id         = azurerm_mongo_cluster.test.id
     point_in_time_utc = timeadd(timestamp(), "-1s")
   }
+
+  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
 
   // As "point_in_time_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
