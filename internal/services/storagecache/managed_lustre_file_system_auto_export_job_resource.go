@@ -177,7 +177,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Read() sdk.ResourceFunc {
 
 func (r ManagedLustreFileSystemAutoExportJobResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StorageCache.AutoExportJobs
 			id, err := autoexportjobs.ParseAutoExportJobID(metadata.ResourceData.Id())
