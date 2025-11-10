@@ -78,7 +78,7 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 			result.DisplayName = pointer.From(account.Name)
 			id, err := commonids.ParseStorageAccountID(*account.Id)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "parsing storage account id", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Storage Account ID", err)
 				return
 			}
 
@@ -89,30 +89,28 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 			rd.SetId(id.ID())
 
 			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client); err != nil {
-				sdk.SetResponseWarningDiagnostic(stream, "encoding resource data", err)
-				// Not erroring here as best effort on additional API call(s) made by the flatten function can error out
-				// when we have enough data to perform the import.
+				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Identity State", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting identity data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Resource State data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting resource data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
 				return
 			}
 
