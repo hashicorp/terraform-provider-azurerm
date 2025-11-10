@@ -70,7 +70,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AIServices",
 					"Academic",
@@ -375,7 +374,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						return err
 					}
 				}
-			} else if d.HasChange("project_management_enabled") {
+			} else if d.HasChange("project_management_enabled") && kind != "OpenAI" {
 				if err := d.ForceNew("project_management_enabled"); err != nil {
 					return err
 				}
@@ -404,6 +403,19 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					}
 				}
 			}
+
+			if d.HasChange("kind") {
+				_, new := d.GetChange("kind")
+				newKind := new.(string)
+
+				// Only allow changing kind to OpenAI or AIServices, force new for all others
+				if !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, newKind) {
+					if err := d.ForceNew("kind"); err != nil {
+						return err
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -539,7 +551,8 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Sku: &sku,
+		Sku:  &sku,
+		Kind: utils.String(d.Get("kind").(string)),
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
@@ -652,7 +665,12 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
 
-			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
+			// Azure API issue: `AllowProjectManagement` not reset during the rollback, see: https://github.com/Azure/azure-rest-api-specs/issues/38678
+			if pointer.From(model.Kind) == "OpenAI" {
+				d.Set("project_management_enabled", false)
+			} else {
+				d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
+			}
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {

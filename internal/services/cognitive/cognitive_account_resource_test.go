@@ -563,6 +563,38 @@ func TestAccCognitiveAccount_textAnalytics_networkAclsVirtualNetworkRulesWithByp
 	})
 }
 
+func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.openAI_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("OpenAI"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aiServices_fromOpenAI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.openAI_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("OpenAI"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
@@ -1632,6 +1664,55 @@ resource "azurerm_cognitive_account" "test" {
   network_injection {
     scenario  = "agent"
     subnet_id = azurerm_subnet.subnet_agent.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) openAI_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                       = "acctestopenai-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "OpenAI"
+  sku_name                   = "S0"
+  custom_subdomain_name      = "acctestopenai-%[1]d"
+  project_management_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) aiServices_fromOpenAI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                       = "acctestopenai-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "AIServices"
+  sku_name                   = "S0"
+  custom_subdomain_name      = "acctestopenai-%[1]d"
+  project_management_enabled = true
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
