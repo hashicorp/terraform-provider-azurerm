@@ -35,53 +35,23 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `custom_question_answering_search_service_id` - The ID of the search service. This is only available when the `kind` is `TextAnalytics`.
-
-* `custom_subdomain_name` - The subdomain name used for Entra ID token-based authentication.
-
-* `customer_managed_key` - A `customer_managed_key` block as defined below.
-
-* `dynamic_throttling_enabled` - Whether dynamic throttling is enabled for this Cognitive Services Account.
-
-* `endpoint` - The endpoint of the Cognitive Services Account.
-
-* `fqdns` - List of FQDNs allowed for the Cognitive Services Account.
-
 * `identity` - A `identity` block as defined below.
 
-* `kind` - The type of the Cognitive Services Account.
+* `location` - The Azure location where the Cognitive Services Account exists
 
-* `local_auth_enabled` - Whether local authentication methods are enabled for the Cognitive Services Account.
+* `local_auth_enabled` - Whether local authentication methods is enabled for the Cognitive Account.
 
-* `location` - The Azure location where the Cognitive Services Account exists.
+* `kind` - The kind of the Cognitive Services Account
 
-* `metrics_advisor_aad_client_id` - The Microsoft Entra Application (client) ID. This is only available when the kind is `MetricsAdvisor`.
+* `sku_name` - The SKU name of the Cognitive Services Account
 
-* `metrics_advisor_aad_tenant_id` - The Microsoft Entra Tenant ID. This is only available when the kind is `MetricsAdvisor`.
+* `endpoint` - The endpoint of the Cognitive Services Account
 
-* `metrics_advisor_super_user_name` - The super user of Metrics Advisor. This is only available when the kind is `MetricsAdvisor`.
+* `qna_runtime_endpoint` - If `kind` is `QnAMaker` the link to the QNA runtime.
 
-* `metrics_advisor_website_name` - The website name of Metrics Advisor. This is only available when the kind is `MetricsAdvisor`.
+* `primary_access_key` - The primary access key of the Cognitive Services Account
 
-* `network_acls` -  A `network_acls` block as defined below.
-
-* `network_injection` -  A `network_injection` block as defined below.
-
-* `outbound_network_access_restricted` - Whether outbound network access is restricted for the Cognitive Services Account.
-
-* `project_management_enabled` -  Whether project management is enabled.
-
-* `public_network_access_enabled` - Whether public network access is allowed for the Cognitive Services Account.
-
-* `qna_runtime_endpoint` - The link to the QNA runtime. This is only available when the `kind` is `QnAMaker`.
-
-* `sku_name` - The SKU name of the Cognitive Services Account.
-
-* `storage` - A `storage` block as defined below.
-
-* `primary_access_key` - The primary access key of the Cognitive Services Account.
-
-* `secondary_access_key` - The secondary access key of the Cognitive Services Account.
+* `secondary_access_key` - The secondary access key of the Cognitive Services Account
 
 -> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_auth_enabled` is `true`.
 
@@ -89,59 +59,15 @@ The following attributes are exported:
 
 ---
 
-A `customer_managed_key` block exports the following:
-
-* `key_vault_key_id` - The ID of the Key Vault Key which is used to Encrypt the data in this Cognitive Services Account.
-
-* `identity_client_id` - The Client ID of the User Assigned Identity that has access to the key.
-
----
-
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Cognitive Services Account.
+* `type` - The type of Managed Service Identity that is configured on this Cognitive Account.
 
-* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Cognitive Services Account.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Cognitive Account.
 
-* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Cognitive Services Account.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Cognitive Account.
 
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Cognitive Services Account.
-
----
-
-A `network_acls` block exports the following:
-
-* `bypass` - Whether to allow trusted Azure Services to access the service.
-
-* `default_action` - The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`.
-
-* `ip_rules` - One or more IP Addresses, or CIDR Blocks to be able to access the Cognitive Services Account.
-
-* `virtual_network_rules` - A `virtual_network_rules` block as defined below.
-
----
-
-A `network_injection` block exports the following:
-
-* `scenario` - The feature that network injection applied to.
-
-* `subnet_id` - The ID of the subnet which the Agent Client is injected into.
-
----
-
-A `virtual_network_rules` block exports the following:
-
-* `subnet_id` - The ID of the subnet which is able to access this Cognitive Services Account.
-
-* `ignore_missing_vnet_service_endpoint` - Whether missing vnet service endpoint is ignored or not.
-
----
-
-A `storage` block exports the following:
-
-* `storage_account_id` - The ID of the Storage Account resource associated to this Cognitive Services Account.
-
-* `identity_client_id` - The client ID of the managed identity associated with the storage resource.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Cognitive Account.
 
 ## Timeouts
 
