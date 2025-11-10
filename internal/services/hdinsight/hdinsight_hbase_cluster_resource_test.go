@@ -1604,6 +1604,58 @@ func (r HDInsightHBaseClusterResource) diskEncryption(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
+}
+
+resource "azurerm_role_assignment" "service-principal" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "test-key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_role_assignment.service-principal"]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test-identity"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_hdinsight_hbase_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1628,31 +1680,40 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   disk_encryption {
-    encryption_at_host_enabled = true
+    encryption_at_host_enabled    = true
+    encryption_algorithm          = "RSA-OAEP"
+    key_vault_key_id              = azurerm_key_vault_key.test.id
+    key_vault_managed_identity_id = azurerm_user_assigned_identity.test.id
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D4a_V4"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4a_V4"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D4a_V4"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
   }
+
+  lifecycle {
+    ignore_changes = [disk_encryption[0].key_vault_managed_identity_id]
+  }
+
+  depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r HDInsightHBaseClusterResource) allMetastores(data acceptance.TestData) string {
