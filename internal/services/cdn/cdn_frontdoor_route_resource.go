@@ -290,7 +290,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
-		props.RouteProperties.OriginPath = utils.String(originPath)
+		props.OriginPath = utils.String(originPath)
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -457,9 +457,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: You need to always pass these three on update else you will
 	// disable your cache, disassociate your custom domains or remove your origin path...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
-		OriginPath:         existing.RouteProperties.OriginPath,
+		CustomDomains:      existing.CustomDomains,
+		CacheConfiguration: existing.CacheConfiguration,
+		OriginPath:         existing.OriginPath,
 	}
 
 	if d.HasChange("cache") {

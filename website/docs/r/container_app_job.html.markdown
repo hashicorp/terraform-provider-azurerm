@@ -82,7 +82,7 @@ resource "azurerm_container_app_job" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below.
 
-~> ** NOTE **: Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
+~> **Note:** Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
@@ -134,13 +134,13 @@ A `container` block supports the following:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - (Required) The amount of vCPU to allocate to the container.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+* `memory` - (Required) The amount of memory to allocate to the container.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `image` - (Required) The image to use to create the container.
 
@@ -152,7 +152,7 @@ A `container` block supports the following:
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
@@ -168,13 +168,13 @@ An `init_container` block supports:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - (Required) The amount of vCPU to allocate to the container.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+* `memory` - (Required) The amount of memory to allocate to the container.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `image` - (Required) The image to use to create the container.
 
@@ -186,7 +186,7 @@ An `init_container` block supports:
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 
@@ -295,6 +295,8 @@ A `volume_mounts` block supports the following:
 * `name` - (Required) The name of the volume to mount. This must match the name of a volume defined in the `volume` block.
 
 * `path` - (Required) The path within the container at which the volume should be mounted. Must not contain `:`.
+
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
 
 ---
 
@@ -428,12 +430,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to `30 minutes`) Used when creating the Container App Job.
-* `update` - (Defaults to `30 minutes`) Used when updating the Container App Job.
-* `read` - (Defaults to `5 minutes`) Used when retrieving the Container App Job.
-* `delete` - (Defaults to `30 minutes`) Used when deleting the Container App Job.
+* `create` - (Defaults to 30 minutes) Used when creating the Container App Job.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container App Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Job.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container App Job.
 
 ## Import
 
@@ -442,3 +444,9 @@ A Container App Job can be imported using the resource id, e.g.
 ```shell
 terraform import azurerm_container_app_job.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.App/jobs/example-container-app-job"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-07-01

@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -66,6 +65,7 @@ type LinuxWebAppSlotModel struct {
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -173,6 +173,12 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"vnet_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
@@ -214,7 +220,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -360,6 +366,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
 					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					VnetImagePullEnabled:     pointer.To(webAppSlot.VnetImagePullEnabled),
 				},
 			}
 
@@ -613,7 +620,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
@@ -834,6 +841,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			}
+
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
 			}
@@ -872,17 +883,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
@@ -969,6 +970,41 @@ func (r LinuxWebAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.LinuxWebAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r LinuxWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			appClient := metadata.Client.AppService.WebAppsClient
+			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				appId := rd.Get("app_service_id")
+				if appId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				if newValue.(bool) {
+					return nil
+				}
+				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
+				if err != nil {
+					return err
+				}
+
+				webApp, err := appClient.Get(ctx, *functionAppId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
+				}
+				if webAppModel := webApp.Model; webAppModel != nil && webAppModel.Properties != nil {
+					if ase := webAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
+					}
+				}
+			}
+			return nil
 		},
 	}
 }

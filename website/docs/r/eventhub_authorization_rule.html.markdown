@@ -49,7 +49,7 @@ resource "azurerm_eventhub_authorization_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub Namespace exists. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Does this Authorization Rule have permissions to Listen to the Event Hub? Defaults to `false`.
 
@@ -89,11 +89,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Authorization Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the EventHub Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Authorization Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Authorization Rule.
 
 ## Import
@@ -103,3 +103,9 @@ EventHub Authorization Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventhub_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1/authorizationRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

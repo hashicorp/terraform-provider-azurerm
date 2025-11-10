@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -251,7 +251,7 @@ func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	if err := client.Network.Client.LocalNetworkGateways.DeleteThenPoll(ctx2, *id); err != nil {
+	if err := client.Network.LocalNetworkGateways.DeleteThenPoll(ctx2, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

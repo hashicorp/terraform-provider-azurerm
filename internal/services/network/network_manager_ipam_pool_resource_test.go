@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,7 +133,6 @@ resource "azurerm_network_manager_ipam_pool" "test" {
   name               = "acctest-ipampool-%[2]d"
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
-  display_name       = "ipampool1"
   address_prefixes   = ["10.0.0.0/27"]
 }
 `, r.template(data), data.RandomInteger)
@@ -151,7 +150,6 @@ resource "azurerm_network_manager_ipam_pool" "test" {
   name               = "acctest-ipampool-%[2]d"
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
-  display_name       = "ipampool1"
   address_prefixes   = ["2001:db8::/46"]
 }
 `, r.template(data), data.RandomInteger)
@@ -165,7 +163,6 @@ resource "azurerm_network_manager_ipam_pool" "import" {
   name               = azurerm_network_manager_ipam_pool.test.name
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
-  display_name       = azurerm_network_manager_ipam_pool.test.display_name
   address_prefixes   = azurerm_network_manager_ipam_pool.test.address_prefixes
 }
 `, r.basic(data))

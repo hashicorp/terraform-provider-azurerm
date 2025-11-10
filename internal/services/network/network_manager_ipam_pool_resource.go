@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
@@ -64,15 +64,6 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
-			),
-		},
-
 		"address_prefixes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -81,6 +72,15 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+			),
 		},
 
 		"parent_pool_name": {
@@ -146,7 +146,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateThenPoll(ctx, id, payload, ipampools.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -231,7 +231,7 @@ func (r ManagerIpamPoolResource) Update() sdk.ResourceFunc {
 				parameters.Properties.DisplayName = pointer.To(model.DisplayName)
 			}
 
-			if _, err := client.Update(ctx, *id, parameters); err != nil {
+			if _, err := client.Update(ctx, *id, parameters, ipampools.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -250,7 +250,7 @@ func (r ManagerIpamPoolResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, ipampools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

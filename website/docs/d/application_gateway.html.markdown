@@ -149,6 +149,8 @@ A `backend_http_settings` block exports the following:
 
 * `affinity_cookie_name` - The name of the affinity cookie.
 
+* `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
+
 * `name` - The name of the Backend HTTP Settings Collection.
 
 * `path` - The path which is used as a prefix for all HTTP requests.
@@ -633,6 +635,12 @@ A `url` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

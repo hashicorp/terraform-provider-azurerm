@@ -52,7 +52,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -182,11 +182,11 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the VPN Server Configuration.
-* `update` - (Defaults to 90 minutes) Used when updating the VPN Server Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Server Configuration.
+* `update` - (Defaults to 90 minutes) Used when updating the VPN Server Configuration.
 * `delete` - (Defaults to 90 minutes) Used when deleting the VPN Server Configuration.
 
 ## Import
@@ -196,3 +196,9 @@ VPN Server Configurations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vpn_server_configuration.config1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/vpnServerConfigurations/config1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

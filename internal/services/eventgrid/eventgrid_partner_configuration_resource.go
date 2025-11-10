@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventgrid
 
 import (
@@ -9,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnerconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -67,7 +69,7 @@ func (EventGridPartnerConfigurationResource) Arguments() map[string]*pluginsdk.S
 				},
 			},
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -97,7 +99,7 @@ func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			// Uses resource group ID as it has 1-1 mapping with resource group
-			// See the SDK sample usage: https://github.com/hashicorp/go-azure-sdk/tree/main/resource-manager/eventgrid/2022-06-15/partnerconfigurations
+			// See the SDK sample usage: https://github.com/hashicorp/go-azure-sdk/tree/main/resource-manager/eventgrid/2025-02-15/partnerconfigurations
 			id := commonids.NewResourceGroupID(subscriptionId, config.ResourceGroup)
 
 			existing, err := client.Get(ctx, id)

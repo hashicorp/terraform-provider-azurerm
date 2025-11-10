@@ -32,7 +32,7 @@ resource "azurerm_netapp_backup_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,14 +46,20 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the NetApp Backup Vault.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the NetApp Backup Vault.
-* `update` - (Defaults to 120 minutes) Used when updating the NetApp Backup Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Backup Vault.
-* `delete` - (Defaults to 120 minutes) Used when deleting the NetApp Backup Vault.
+* `update` - (Defaults to 2 hours) Used when updating the NetApp Backup Vault.
+* `delete` - (Defaults to 2 hours) Used when deleting the NetApp Backup Vault.
 
 ## Import
 
@@ -62,3 +68,9 @@ NetApp Backup Vault can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_backup_vault.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/backupVaults/backupVault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp` - 2025-06-01

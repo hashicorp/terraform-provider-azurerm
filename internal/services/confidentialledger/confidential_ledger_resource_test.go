@@ -18,11 +18,22 @@ import (
 
 type ConfidentialLedgerResource struct{}
 
-func TestAccConfidentialLedger_public(t *testing.T) {
+func TestAccConfidentialLedgerSequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"confidentialLedger": {
+			"public":         testAccConfidentialLedger_public,
+			"private":        testAccConfidentialLedger_private,
+			"requiresImport": testAccConfidentialLedger_requiresImport,
+			"certBased":      testAccConfidentialLedger_certBased,
+		},
+	})
+}
+
+func testAccConfidentialLedger_public(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,11 +58,11 @@ func TestAccConfidentialLedger_public(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_private(t *testing.T) {
+func testAccConfidentialLedger_private(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -76,11 +87,11 @@ func TestAccConfidentialLedger_private(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_requiresImport(t *testing.T) {
+func testAccConfidentialLedger_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,11 +102,11 @@ func TestAccConfidentialLedger_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_certBased(t *testing.T) {
+func testAccConfidentialLedger_certBased(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			// add it
 			Config: r.certBased(data),
@@ -367,5 +378,5 @@ resource "azurerm_user_assigned_identity" "second" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }

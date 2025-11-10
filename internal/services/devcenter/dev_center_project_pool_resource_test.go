@@ -99,6 +99,35 @@ func TestAccDevCenterProjectPool_update(t *testing.T) {
 	})
 }
 
+func TestAccDevCenterProjectPool_managedNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
+	r := DevCenterProjectPoolTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNetwork(data, data.Locations.Primary),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedNetwork(data, data.Locations.Secondary),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DevCenterProjectPoolTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
@@ -162,6 +191,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled             = true
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test.name
+  single_sign_on_enabled                  = true
   stop_on_disconnect_grace_period_minutes = 60
 
   tags = {
@@ -186,6 +216,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
   local_administrator_enabled             = false
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test2.name
+  single_sign_on_enabled                  = false
   stop_on_disconnect_grace_period_minutes = 80
 
   tags = {
@@ -193,6 +224,54 @@ resource "azurerm_dev_center_project_pool" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r DevCenterProjectPoolTestResource) managedNetwork(data acceptance.TestData, managedVNetRegion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-dcet-%d"
+  location = "%s"
+}
+
+resource "azurerm_dev_center" "test" {
+  name                = "acctest-dc-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_dev_center_dev_box_definition" "test" {
+  name               = "acctest-dcet-%d"
+  location           = azurerm_resource_group.test.location
+  dev_center_id      = azurerm_dev_center.test.id
+  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
+  sku_name           = "general_i_8c32gb256ssd_v2"
+}
+
+resource "azurerm_dev_center_project" "test" {
+  name                = "acctest-dcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dev_center_id       = azurerm_dev_center.test.id
+}
+
+resource "azurerm_dev_center_project_pool" "test" {
+  name                             = "acctest-dcpl-%d"
+  location                         = azurerm_resource_group.test.location
+  dev_center_project_id            = azurerm_dev_center_project.test.id
+  dev_box_definition_name          = azurerm_dev_center_dev_box_definition.test.name
+  local_administrator_enabled      = false
+  dev_center_attached_network_name = "managedNetwork"
+  managed_virtual_network_regions  = ["%s"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, managedVNetRegion)
 }
 
 func (r DevCenterProjectPoolTestResource) template(data acceptance.TestData) string {

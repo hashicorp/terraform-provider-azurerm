@@ -193,7 +193,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Default:  "~1",
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed Only
 
@@ -332,11 +332,11 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if clientCertMode != "" {
-		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+		siteEnvelope.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -472,11 +472,11 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if clientCertMode != "" {
-		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+		siteEnvelope.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -522,7 +522,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		scmType = siteConfig.ScmType
 		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
 		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
-			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
+			siteConfigResource.ScmType = web.ScmTypeNone
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {

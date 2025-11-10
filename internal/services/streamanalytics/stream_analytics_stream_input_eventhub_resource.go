@@ -208,12 +208,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			streamInput, ok := input.(inputs.StreamInputProperties)
+			streamInput, ok := props.(inputs.StreamInputProperties)
 			if !ok {
 				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}

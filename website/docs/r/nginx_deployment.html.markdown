@@ -87,13 +87,13 @@ The following arguments are supported:
 
 * `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
 
--> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **Note:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to the `capacity` field.
 
 ---
 
 * `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
 
--> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
+-> **Note:** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
 
@@ -123,7 +123,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -157,7 +157,7 @@ An `auto_scale_profile` block supports the following:
 
 * `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
 
--> **NOTE:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **Note:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to the `capacity` field.
 
 ---
 
@@ -193,7 +193,7 @@ A `web_application_firewall.status` - block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NGINX Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Deployment.
@@ -207,3 +207,9 @@ NGINX Deployments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_nginx_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/dep1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus` - 2024-11-01-preview
