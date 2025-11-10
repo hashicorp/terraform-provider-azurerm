@@ -120,7 +120,7 @@ func (r ApiManagementWorkspaceGroupResource) Create() sdk.ResourceFunc {
 			properties := group.GroupCreateParameters{
 				Properties: &group.GroupCreateParametersProperties{
 					DisplayName: model.DisplayName,
-					Type:        pointer.To(group.GroupType(model.Type)),
+					Type:        pointer.ToEnum[group.GroupType](model.Type),
 				},
 			}
 
@@ -171,7 +171,7 @@ func (r ApiManagementWorkspaceGroupResource) Read() sdk.ResourceFunc {
 					state.DisplayName = props.DisplayName
 					state.Description = pointer.From(props.Description)
 					state.ExternalId = pointer.From(props.ExternalId)
-					state.Type = string(pointer.From(props.Type))
+					state.Type = pointer.FromEnum(props.Type)
 				}
 			}
 
