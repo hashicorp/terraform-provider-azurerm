@@ -13,6 +13,8 @@ FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
 
 BUG FIXES:
+* `azurerm_dynatrace_tag_rules` - the `log_rule.filtering_tag` property is no longer required [GH-31065]
+* `azurerm_dynatrace_tag_rules` - the `metric_rule.filtering_tag` property is no longer required [GH-31065]
 
 ## 4.52.0 (November 06, 2025)
 
