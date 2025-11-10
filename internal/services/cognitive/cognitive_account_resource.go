@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCognitiveAccount() *pluginsdk.Resource {
@@ -405,11 +406,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			}
 
 			if d.HasChange("kind") {
-				_, new := d.GetChange("kind")
+				old, new := d.GetChange("kind")
+				oldKind := old.(string)
 				newKind := new.(string)
 
-				// Only allow changing kind to OpenAI or AIServices, force new for all others
-				if !slices.Contains([]string{"OpenAI", "AIServices"}, newKind) {
+				// Only allow changing `kind` from/to `OpenAI` or `AIServices`, force new for all others
+				if !slices.Contains([]string{"OpenAI", "AIServices"}, newKind) || !slices.Contains([]string{"OpenAI", "AIServices"}, oldKind) {
 					if err := d.ForceNew("kind"); err != nil {
 						return err
 					}
@@ -485,7 +487,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               pointer.To(d.Get("fqdns").([]string)),
+			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -555,7 +557,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               pointer.To(d.Get("fqdns").([]string)),
+			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
