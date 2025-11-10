@@ -62,9 +62,9 @@ func TestAccEventGridEventSubscription_azureActionGroupMonitor(t *testing.T) {
 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
 				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.severity").HasValue("Sev4"),
 				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.description").HasValue("Secret or Certificate about to expire"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
 			),
 		},
 		data.ImportStep(),

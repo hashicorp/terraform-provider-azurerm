@@ -92,17 +92,13 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 
 func expandEventGridEventSubscriptionAzureAlertMonitor(input []interface{}) eventsubscriptions.MonitorAlertEventSubscriptionDestination {
 	item := input[0].(map[string]interface{})
-	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{}
-
-	// if v, ok := item["severity"].(eventsubscriptions.MonitorAlertSeverity); ok {
-	// 	props.Severity = pointer.To(v)
-	// }
-	props.Severity = pointer.To(eventsubscriptions.MonitorAlertSeveritySevFour)
-	if v, ok := item["description"].(string); ok && v != "" {
-		props.Description = pointer.To(v)
+	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{
+		Description: pointer.To(item["description"].(string)),
+		Severity:    pointer.To(eventsubscriptions.MonitorAlertSeverity(item["severity"].(string))),
 	}
-	if v, ok := item["action_groups"].([]string); ok && v != nil {
-		props.ActionGroups = pointer.To(v)
+
+	if v, ok := item["action_groups"]; ok && v != nil {
+		props.ActionGroups = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	return eventsubscriptions.MonitorAlertEventSubscriptionDestination{
