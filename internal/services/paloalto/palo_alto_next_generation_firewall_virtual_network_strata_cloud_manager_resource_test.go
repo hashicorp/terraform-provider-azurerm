@@ -128,7 +128,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Exists(ctx context
 }
 
 func (r NextGenerationFirewallVNetStrataCloudManagerResource) basic(data acceptance.TestData) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
