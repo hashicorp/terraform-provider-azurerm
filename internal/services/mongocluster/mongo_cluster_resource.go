@@ -37,6 +37,7 @@ type MongoClusterResourceModel struct {
 	AdministratorPassword string                         `tfschema:"administrator_password"`
 	CreateMode            string                         `tfschema:"create_mode"`
 	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
+	DataApiModeEnabled    bool                           `tfschema:"data_api_mode_enabled"`
 	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
 	Restore               []Restore                      `tfschema:"restore"`
 	ShardCount            int64                          `tfschema:"shard_count"`
@@ -136,6 +137,12 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"data_api_mode_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
@@ -381,6 +388,14 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
+			dataApiMode := mongoclusters.DataApiModeDisabled
+			if state.DataApiModeEnabled {
+				dataApiMode = mongoclusters.DataApiModeEnabled
+			}
+			parameter.Properties.DataApi = &mongoclusters.DataApiProperties{
+				Mode: pointer.To(dataApiMode),
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -483,6 +498,16 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
 			}
 
+			if metadata.ResourceData.HasChange("data_api_mode_enabled") {
+				dataApiMode := mongoclusters.DataApiModeDisabled
+				if state.DataApiModeEnabled {
+					dataApiMode = mongoclusters.DataApiModeEnabled
+				}
+				payload.Properties.DataApi = &mongoclusters.DataApiProperties{
+					Mode: pointer.To(dataApiMode),
+				}
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -572,6 +597,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 						state.PreviewFeatures = flattenMongoClusterPreviewFeatures(v)
 					}
 					state.Version = pointer.From(props.ServerVersion)
+
+					if v := props.DataApi; v != nil {
+						state.DataApiModeEnabled = pointer.From(v.Mode) == mongoclusters.DataApiModeEnabled
+					}
 				}
 
 				state.Tags = pointer.From(model.Tags)
@@ -680,6 +709,14 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return err
 				}
 			}
+
+			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) {
+				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
