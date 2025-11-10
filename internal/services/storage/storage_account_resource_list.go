@@ -90,6 +90,7 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 
 			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
+				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
