@@ -196,7 +196,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 1 hour) Used when creating the Azure Managed Lustre File System Auto Export Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System Auto Export Job.
 * `update` - (Defaults to 1 hour) Used when updating the Azure Managed Lustre File System Auto Export Job.
-* `delete` - (Defaults to 1 hour) Used when deleting the Azure Managed Lustre File System Auto Export Job.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Azure Managed Lustre File System Auto Export Job.
 
 ## Import
 
