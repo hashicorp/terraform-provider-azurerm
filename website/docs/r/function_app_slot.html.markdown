@@ -60,7 +60,7 @@ resource "azurerm_function_app_slot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -32,7 +32,7 @@ resource "azurerm_netapp_backup_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -45,6 +45,12 @@ The following arguments are supported:
 * `account_name` - (Required) The name of the NetApp account in which the NetApp Vault should be created under. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the NetApp Backup Vault.
 
 ## Timeouts
 

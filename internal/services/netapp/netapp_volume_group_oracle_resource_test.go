@@ -1010,7 +1010,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 }
-`, data.RandomInteger, tenantID, data.Locations.Primary)
+`, data.RandomIntOfLength(17), tenantID, data.Locations.Primary)
 }
 
 func (NetAppVolumeGroupOracleResource) templatePpgOracle(data acceptance.TestData) string {

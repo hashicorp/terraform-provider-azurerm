@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
@@ -107,7 +106,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -270,9 +269,12 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
 
-		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		identity, err := flattenBackupVaultDppIdentityDetails(model.Identity)
+		if err != nil {
+			return err
 		}
+		d.Set("identity", identity)
+
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
@@ -301,33 +303,46 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaults.DppIdentityDetails, error) {
-	config, err := identity.ExpandSystemAssigned(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &backupvaults.DppIdentityDetails{
-		Type: utils.String(string(config.Type)),
-	}, nil
+	identity := backupvaults.DppIdentityDetails{
+		Type: pointer.To(string(config.Type)),
+	}
+
+	if len(config.IdentityIds) > 0 {
+		identityIds := make(map[string]backupvaults.UserAssignedIdentity, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = backupvaults.UserAssignedIdentity{}
+		}
+		identity.UserAssignedIdentities = pointer.To(identityIds)
+	}
+
+	return &identity, nil
 }
 
-func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) []interface{} {
-	var config *identity.SystemAssigned
+func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		principalId := ""
-		if input.PrincipalId != nil {
-			principalId = *input.PrincipalId
+		config = &identity.SystemAndUserAssignedMap{
+			Type: identity.Type(*input.Type),
 		}
 
-		tenantId := ""
-		if input.TenantId != nil {
-			tenantId = *input.TenantId
-		}
-		config = &identity.SystemAssigned{
-			Type:        identity.Type(*input.Type),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+		config.PrincipalId = pointer.From(input.PrincipalId)
+		config.TenantId = pointer.From(input.TenantId)
+
+		if len(pointer.From(input.UserAssignedIdentities)) > 0 {
+			config.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails, len(pointer.From(input.UserAssignedIdentities)))
+			for k, v := range *input.UserAssignedIdentities {
+				config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
 		}
 	}
-	return identity.FlattenSystemAssigned(config)
+
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }
