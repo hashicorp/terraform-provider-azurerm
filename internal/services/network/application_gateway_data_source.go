@@ -17,13 +17,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceApplicationGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceApplicationGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -122,24 +123,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 						"request_timeout": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
-						},
-
-						"authentication_certificate": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 
 						"trusted_root_certificate_names": {
@@ -646,24 +629,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 						"capacity": {
 							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"authentication_certificate": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"id": {
-							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -1321,6 +1286,48 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema["authentication_certificate"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Deprecated: "`backend_http_settings.authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider.",
+		}
+
+		resource.Schema["authentication_certificate"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Deprecated: "`authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider.",
+		}
+	}
+
+	return resource
 }
 
 func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1357,8 +1364,10 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		if props := model.Properties; props != nil {
-			if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-				return fmt.Errorf("setting `authentication_certificate`: %+v", err)
+			if !features.FivePointOh() {
+				if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
+					return fmt.Errorf("setting `authentication_certificate`: %+v", err)
+				}
 			}
 
 			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {

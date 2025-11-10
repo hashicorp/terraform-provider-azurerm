@@ -156,8 +156,6 @@ The following arguments are supported:
 
 * `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
 * `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
@@ -185,14 +183,6 @@ The following arguments are supported:
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
-
----
-
-An `authentication_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Authentication Certificate to use.
-
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
 
 ---
 
@@ -234,8 +224,6 @@ A `backend_http_settings` block supports the following:
  
 * `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
-
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
 * `dedicated_backend_connection_enabled` - (Optional) Whether to use a dedicated backend connection. Defaults to `false`.
@@ -251,12 +239,6 @@ A `backend_http_settings` block supports the following:
 * `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
----
-
-A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
 
 ---
 
@@ -683,8 +665,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
-* `authentication_certificate` - A list of `authentication_certificate` blocks as defined below.
-
 * `backend_address_pool` - A list of `backend_address_pool` blocks as defined below.
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
@@ -712,18 +692,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 * `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
-
----
-
-A `authentication_certificate` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
----
-
-A `authentication_certificate` block, within the `backend_http_settings` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
 
 ---
 
