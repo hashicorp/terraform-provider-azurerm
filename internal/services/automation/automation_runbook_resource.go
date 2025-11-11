@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbookdraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -197,6 +197,11 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 
 			"publish_content_link": contentLinkSchema(false),
 
+			"runtime_environment": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"draft": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
@@ -313,11 +318,12 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
-				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:      pointer.To(d.Get("description").(string)),
-				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -399,9 +405,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", azure.NormalizeLocation(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {
@@ -410,6 +414,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment", props.RuntimeEnvironment)
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
