@@ -99,6 +99,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 

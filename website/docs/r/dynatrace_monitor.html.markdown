@@ -81,7 +81,7 @@ A `identity` block supports the following:
 
 A `plan` block supports the following:
 
-* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY` and `WEEKLY`.
+* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY`, `WEEKLY` and `YEARLY`.
 
 * `effective_date` - (Required) Date when plan was applied.
 
