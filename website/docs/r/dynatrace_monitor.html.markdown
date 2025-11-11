@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created. Changing this forces a new resource to be created.
+* `user` - (Required) User's information. A `user` block as defined below. Changing this forces a new resource to be created.
 
 * `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`. Changing this forces a new resource to be created.
 

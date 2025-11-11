@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
 
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 

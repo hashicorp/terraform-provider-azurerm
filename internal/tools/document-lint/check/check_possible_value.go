@@ -6,10 +6,13 @@ package check
 import (
 	"fmt"
 	"log"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
@@ -154,12 +157,21 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 
 	// if end property
 	if mdField.Subs == nil {
-		want := r.PossibleValues[fullPath]
+		wanted := r.PossibleValues[fullPath]
 		docVal := mdField.PossibleValues()
-		if missed, spare := SliceDiff(want, docVal, true); len(missed)+len(spare) > 0 {
-			if !mayExistsInDoc(mdField.Content, want) {
+		if missed, spare := SliceDiff(wanted, docVal, true); len(missed)+len(spare) > 0 {
+			// Check if this property has version changes before reporting error
+			// Skip possible value diff if this property has changes in new version upgrade.
+			// This is because it's not consistent whether possible values change should be documented or not when it's in the upgrade feature flag
+			if hasVersionChanges(r.ResourceType, fullPath) {
+				log.Printf("[SKIP] %s.%s: Skipping possible values validation due to version changes detected in upgrade guide (missed: %v, spare: %v)",
+					r.ResourceType, fullPath, missed, spare)
+				return
+			}
+
+			if !mayExistsInDoc(mdField.Content, wanted) {
 				base := newCheckBase(mdField.Line, fullPath, mdField)
-				res = append(res, newPossibleValueDiff(base, want, docVal, missed, spare))
+				res = append(res, newPossibleValueDiff(base, wanted, docVal, missed, spare))
 			}
 		}
 		return
@@ -219,4 +231,116 @@ func mayExistsInDoc(docLine string, want []string) bool {
 		}
 	}
 	return true
+}
+
+// hasVersionChanges checks if the field has version-related changes by parsing the upgrade guide
+func hasVersionChanges(resourceType, fieldPath string) bool {
+	upgradeGuideContent := getUpgradeGuideContent()
+	if upgradeGuideContent == "" {
+		return false
+	}
+
+	// Look for the resource section
+	resourceSectionPattern := fmt.Sprintf("### `%s`", resourceType)
+
+	// Find the resource section
+	lines := strings.Split(upgradeGuideContent, "\n")
+	resourceSectionStart := -1
+
+	for i, line := range lines {
+		if strings.Contains(line, resourceSectionPattern) {
+			resourceSectionStart = i
+			break
+		}
+	}
+
+	// Resource not found in upgrade guide
+	if resourceSectionStart == -1 {
+		return false
+	}
+
+	// Find the end of this resource section (next resource or major section)
+	resourceSectionEnd := len(lines)
+	for i := resourceSectionStart + 1; i < len(lines); i++ {
+		line := lines[i]
+		if strings.HasPrefix(line, "### `azurerm_") || strings.HasPrefix(line, "## ") {
+			resourceSectionEnd = i
+			break
+		}
+	}
+
+	// Get the content of this resource section
+	resourceSection := strings.Join(lines[resourceSectionStart:resourceSectionEnd], "\n")
+
+	// Check if the property is mentioned in this resource section
+	propertyPatterns := []string{
+		fmt.Sprintf("`%s`", fieldPath), // `property_name`
+		fmt.Sprintf(" %s ", fieldPath), // property_name with spaces
+		fmt.Sprintf(".%s ", fieldPath), // .property_name
+		fmt.Sprintf("`%s.", fieldPath), // `property_name.
+	}
+
+	// For nested properties like "site_config.remote_debugging_version", also check the last part
+	if strings.Contains(fieldPath, ".") {
+		parts := strings.Split(fieldPath, ".")
+		lastPart := parts[len(parts)-1]
+		propertyPatterns = append(propertyPatterns,
+			fmt.Sprintf("`%s`", lastPart), // `last_part`
+			fmt.Sprintf(" %s ", lastPart), // last_part with spaces
+		)
+	}
+
+	// Check if any pattern is found in the resource section
+	for _, pattern := range propertyPatterns {
+		if strings.Contains(resourceSection, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+var upgradeGuideContent string
+var upgradeGuideLoaded bool
+
+// getUpgradeGuideContent loads and caches the upgrade guide content using the same logic as resource docs
+func getUpgradeGuideContent() string {
+	if upgradeGuideLoaded {
+		return upgradeGuideContent
+	}
+
+	upgradeGuideLoaded = true
+
+	// Use the same base directory logic as MDPathFor()
+	docsDir := md.DocDir() // This uses the same docDir() function as resource lookup
+
+	if upgradeFile := findUpgradeGuide(docsDir); upgradeFile != "" {
+		if content, err := os.ReadFile(upgradeFile); err == nil {
+			upgradeGuideContent = string(content)
+			log.Printf("Loaded upgrade guide from: %s", upgradeFile)
+			return upgradeGuideContent
+		}
+	}
+
+	log.Printf("Warning: Could not find any *-upgrade-guide.html.markdown file in docs directory: %s", docsDir)
+	upgradeGuideContent = ""
+	return upgradeGuideContent
+}
+
+// findUpgradeGuide searches for upgrade guide files in the given directory
+func findUpgradeGuide(dir string) string {
+	// Quick check if directory exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return ""
+	}
+
+	// Use filepath.Glob for efficient pattern matching
+	pattern := filepath.Join(dir, "*-upgrade-guide.html.markdown")
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		return ""
+	}
+
+	// Return the first match (there should typically be only one)
+	return matches[0]
 }
