@@ -79,7 +79,7 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 				continue
 			}
 			
-			// Skip deprecated resources
+			// Skip deprecated resources, as some of these don't have documents
 			sch := schema.NewResource(svc, svc.ResourceType())
 			if sch.IsDeprecated() {
 				continue
@@ -102,7 +102,7 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 				continue
 			}
 			
-			// Skip deprecated resources
+			// Skip deprecated resources, as some of these don't have documents
 			sch := schema.NewResource(svc, name)
 			if sch.IsDeprecated() {
 				continue

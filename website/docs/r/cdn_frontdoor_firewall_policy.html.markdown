@@ -254,7 +254,7 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible vaules are `Allow`, `Log`, `Block`, `Redirect`, `AnomalyScoring` and `JSChallenge`.
+* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible vaules are `Allow`, `CAPTCHA`, `Log`, `Block`, `Redirect`, `AnomalyScoring` and `JSChallenge`.
 
 ~> **Note:** Possible values for `DefaultRuleSet 1.1` and below are `Allow`, `Log`, `Block`, or `Redirect`.
 
