@@ -138,19 +138,19 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The sku's pricing tier for this Front Door Firewall Policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
 
--> **Note:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy sku's may contain both `custom` and `managed` rules.
+~> **Note:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy sku's may contain both `custom` and `managed` rules.
 
 * `enabled` - (Optional) Is the Front Door Firewall Policy enabled? Defaults to `true`.
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie lifetime in minutes, after which the user will be revalidated. Possible values are between `5` to `1440` minutes. Defaults to `30` minutes.
 
--> **Note:** The `js_challenge_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/waf-javascript-challenge) for more information.
+~> **Note:** The `js_challenge_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/waf-javascript-challenge) for more information.
 
 ~> **Note:** When you remove the `js_challenge_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
 
 * `captcha_cookie_expiration_in_minutes` - (Optional) Specifies the Captcha cookie lifetime in minutes. Possible values are between `5` and `1440`. Defaults to`30` minutes.
 
--> **Note:** The `captcha_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/captcha-challenge) for more information.
+~> **Note:** The `captcha_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/captcha-challenge) for more information.
 
 ~> **Note:** When you remove the `captcha_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
 
@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `request_body_check_enabled` - (Optional) Should policy managed rules inspect the request body content? Defaults to `true`.
 
--> **Note:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
+~> **Note:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -236,7 +236,7 @@ A `log_scrubbing` block supports the following:
 
 * `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
 
--> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+~> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
 
 ---
 
@@ -254,11 +254,17 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values for `DefaultRuleSet 1.1` and below are `Allow`, `Log`, `Block`, or `Redirect`. Possible values for `DefaultRuleSet 2.0` and above are `Log` or `AnomalyScoring`. Possible values for `Microsoft_BotManagerRuleSet` are `Allow`, `Log`, `Block`, `Redirect`, or `JSChallenge`.
+* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible vaules are `Allow`, `Log`, `Block`, `Redirect`, `AnomalyScoring` and `JSChallenge`.
 
--> **Note:** Please see the `DefaultRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) or the `Microsoft_BotManagerRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview) for more information.
+~> **Note:** Possible values for `DefaultRuleSet 1.1` and below are `Allow`, `Log`, `Block`, or `Redirect`.
 
-!> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+~> **Note:** Possible values for `DefaultRuleSet 2.0` and above are `Log` or `AnomalyScoring`.
+
+~> **Note:**  Possible values for `Microsoft_BotManagerRuleSet` are `Allow`, `Log`, `Block`, `Redirect`, or `JSChallenge`.
+
+~> **Note:** Please see the `DefaultRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) or the `Microsoft_BotManagerRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview) for more information.
+
+~> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 
@@ -270,13 +276,13 @@ An `exclusion` block supports the following:
 
 * `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestBodyJsonArgNames`
 
--> **Note:** `RequestBodyJsonArgNames` is only available on Default Rule Set (DRS) 2.0 or later
+~> **Note:** `RequestBodyJsonArgNames` is only available on Default Rule Set (DRS) 2.0 or later
 
 * `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, or `EqualsAny`.
 
 * `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
--> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
+~> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
 
 ---
 
@@ -284,11 +290,11 @@ A `scrubbing_rule` block supports the following:
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
 
--> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
+~> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
 
 * `selector` - (Optional) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
 
--> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
+~> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
 
 * `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
 
