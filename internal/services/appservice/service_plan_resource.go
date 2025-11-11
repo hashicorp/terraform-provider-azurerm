@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -77,6 +78,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
 				false),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"os_type": {
@@ -248,11 +250,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				// sku read
 				if sku := model.Sku; sku != nil {
 					if sku.Name != nil {
-						for _, item := range helpers.AllKnownServicePlanSkus() {
-							if strings.EqualFold(*sku.Name, item) {
-								state.Sku = item
-							}
-						}
+						state.Sku = *sku.Name
 						if sku.Capacity != nil {
 							state.WorkerCount = *sku.Capacity
 						}
