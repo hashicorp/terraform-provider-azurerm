@@ -447,6 +447,8 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
+* `virtual_machine_profile` - (Optional) A `virtual_machine_profile` block as defined below.
+
 * `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
@@ -979,6 +981,26 @@ A `http_proxy_config` block supports the following:
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
 * `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
+---
+
+A `virtual_machine_profile` block supports the following:
+
+* `scale` - (Optional) A `scale` block as defined below.
+
+---
+
+A `scale` block supports the following:
+
+* `manual` - (Optional) A list of `manual` blocks as defined below.
+
+---
+
+A `manual` block supports the following:
+
+* `size` - (Required) The size of the virtual machine.
+
+* `count` - (Required) The count of virtual machines.
 
 ---
 
