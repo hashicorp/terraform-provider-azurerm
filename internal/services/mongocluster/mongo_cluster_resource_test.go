@@ -165,6 +165,13 @@ func TestAccMongoCluster_customerManagedKey(t *testing.T) {
 	r := MongoClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+		{
 			Config: r.customerManagedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -193,16 +200,17 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123basic"
-  shard_count            = "1"
-  compute_tier           = "Free"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123basic"
+  shard_count               = "1"
+  compute_tier              = "Free"
+  high_availability_mode    = "Disabled"
+  storage_size_in_gb        = "32"
+  version                   = "7.0"
+  auth_config_allowed_modes = ["NativeAuth"]
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
@@ -212,17 +220,18 @@ func (r MongoClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123update"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "ZoneRedundantPreferred"
-  public_network_access  = "Disabled"
-  storage_size_in_gb     = "64"
-  version                = "8.0"
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123update"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  high_availability_mode    = "ZoneRedundantPreferred"
+  public_network_access     = "Disabled"
+  storage_size_in_gb        = "64"
+  version                   = "8.0"
+  auth_config_allowed_modes = ["NativeAuth"]
 
   tags = {
     environment = "test"
@@ -236,16 +245,16 @@ func (r MongoClusterResource) source(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123update"
-  high_availability_mode = "ZoneRedundantPreferred"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  storage_size_in_gb     = "64"
-  version                = "8.0"
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123update"
+  high_availability_mode    = "ZoneRedundantPreferred"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  storage_size_in_gb        = "64"
+  version                   = "8.0"
   auth_config_allowed_modes = ["NativeAuth"]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -256,16 +265,17 @@ func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "import" {
-  name                   = azurerm_mongo_cluster.test.name
-  resource_group_name    = azurerm_mongo_cluster.test.resource_group_name
-  location               = azurerm_mongo_cluster.test.location
-  administrator_username = azurerm_mongo_cluster.test.administrator_username
-  administrator_password = azurerm_mongo_cluster.test.administrator_password
-  shard_count            = azurerm_mongo_cluster.test.shard_count
-  compute_tier           = azurerm_mongo_cluster.test.compute_tier
-  high_availability_mode = azurerm_mongo_cluster.test.high_availability_mode
-  storage_size_in_gb     = azurerm_mongo_cluster.test.storage_size_in_gb
-  version                = azurerm_mongo_cluster.test.version
+  name                      = azurerm_mongo_cluster.test.name
+  resource_group_name       = azurerm_mongo_cluster.test.resource_group_name
+  location                  = azurerm_mongo_cluster.test.location
+  administrator_username    = azurerm_mongo_cluster.test.administrator_username
+  administrator_password    = azurerm_mongo_cluster.test.administrator_password
+  shard_count               = azurerm_mongo_cluster.test.shard_count
+  compute_tier              = azurerm_mongo_cluster.test.compute_tier
+  high_availability_mode    = azurerm_mongo_cluster.test.high_availability_mode
+  storage_size_in_gb        = azurerm_mongo_cluster.test.storage_size_in_gb
+  version                   = azurerm_mongo_cluster.test.version
+  auth_config_allowed_modes = azurerm_mongo_cluster.test.auth_config_allowed_modes
 }
 `, r.basic(data))
 }
@@ -275,17 +285,18 @@ func (r MongoClusterResource) previewFeature(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "testQAZwsx123"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "ZoneRedundantPreferred"
-  storage_size_in_gb     = "64"
-  preview_features       = ["GeoReplicas"]
-  version                = "8.0"
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "testQAZwsx123"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  high_availability_mode    = "ZoneRedundantPreferred"
+  storage_size_in_gb        = "64"
+  preview_features          = ["GeoReplicas"]
+  version                   = "8.0"
+  auth_config_allowed_modes = ["NativeAuth"]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
@@ -295,12 +306,13 @@ func (r MongoClusterResource) geoReplica(data acceptance.TestData, source string
 %s
 
 resource "azurerm_mongo_cluster" "geo_replica" {
-  name                = "acctest-mc-replica%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  source_server_id    = azurerm_mongo_cluster.test.id
-  source_location     = azurerm_mongo_cluster.test.location
-  create_mode         = "GeoReplica"
+  name                      = "acctest-mc-replica%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = "%s"
+  source_server_id          = azurerm_mongo_cluster.test.id
+  source_location           = azurerm_mongo_cluster.test.location
+  create_mode               = "GeoReplica"
+  auth_config_allowed_modes = ["NativeAuth"]
 
   lifecycle {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
@@ -314,19 +326,18 @@ func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) strin
 %s
 
 resource "azurerm_mongo_cluster" "point_in_time_restore" {
-  name                   = "acctest-mc-restore%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  create_mode            = "PointInTimeRestore"
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123update"
+  name                      = "acctest-mc-restore%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  create_mode               = "PointInTimeRestore"
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123update"
+  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
 
   restore {
     source_id         = azurerm_mongo_cluster.test.id
     point_in_time_utc = timeadd(timestamp(), "-1s")
   }
-
-  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
 
   // As "point_in_time_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
@@ -404,16 +415,17 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123basic"
-  shard_count            = "1"
-  compute_tier           = "Free"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123basic"
+  shard_count               = "1"
+  compute_tier              = "Free"
+  high_availability_mode    = "Disabled"
+  storage_size_in_gb        = "32"
+  version                   = "7.0"
+  auth_config_allowed_modes = ["NativeAuth"]
 
   identity {
     type         = "UserAssigned"
@@ -446,17 +458,18 @@ func (r MongoClusterResource) dataApiMode(data acceptance.TestData, dataApiMode 
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123basic"
-  shard_count            = "1"
-  compute_tier           = "Free"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
-  data_api_mode_enabled  = %t
+  name                      = "acctest-mc%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123basic"
+  shard_count               = "1"
+  compute_tier              = "Free"
+  high_availability_mode    = "Disabled"
+  storage_size_in_gb        = "32"
+  version                   = "7.0"
+  auth_config_allowed_modes = ["NativeAuth"]
+  data_api_mode_enabled     = %t
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, dataApiMode)
 }

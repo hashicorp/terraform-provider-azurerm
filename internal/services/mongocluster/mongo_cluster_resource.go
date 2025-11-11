@@ -146,7 +146,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"preview_features": {
 			Type:     pluginsdk.TypeList,
@@ -456,8 +456,9 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
-			// Set `identity` to `nil` to avoid schema validation errors returned by service API when identity type is `None`.
+			// Set `identity` to `nil` to avoid schema validation errors returned by service API when `identity` type is `None`.
 			if payload.Identity != nil && payload.Identity.Type == identity.TypeNone {
+				// Setting the `identity` to nil is equivalent to setting the `identity` to `None`.
 				payload.Identity = nil
 			}
 
@@ -532,6 +533,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.DataApi = &mongoclusters.DataApiProperties{
 					Mode: pointer.To(dataApiMode),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				payload.Identity = expandMongoClusterIdentity(state.Identity)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -746,6 +751,13 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
+					return err
+				}
+			}
+
+			// When the identity type is set to None, the go-azure-sdk always sets identity.userAssignedIdentities to nil in the request payload. But since the service API does not allow explicitly setting identity.userAssignedIdentities to nil when the identity type is None, otherwise it will throw a schema validation error, Terraform can only dynamically treat this change as forceNew when updating from UserAssigned to None.
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
 				}
 			}

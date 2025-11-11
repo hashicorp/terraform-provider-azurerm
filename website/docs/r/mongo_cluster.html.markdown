@@ -107,7 +107,9 @@ The following arguments are supported:
 
 * `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Defaults to `false`. Once enabled, changing this back to `false` will force a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as detailed below. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as detailed below.
+
+-> **Note:** When removing `identity`, a resource recreation will be triggered.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -147,9 +149,9 @@ A `customer_managed_key` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`. Changing this forces a new resource to be created.
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
 
 ---
 
