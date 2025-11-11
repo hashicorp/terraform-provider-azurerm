@@ -306,11 +306,11 @@ The following arguments are supported:
 
 * `api_key` - (Optional) The API key for authentication. This field is sensitive. Must be set with `auth_type` of `ApiKey`. Cannot be used with `managed_identity`, `oauth2`, or `custom_keys`.
 
+* `custom_keys` - (Optional) A mapping of custom keys for authentication. Must be set with `auth_type` of `CustomKeys`. All values in this map are sensitive. Cannot be used with `api_key`, `managed_identity`, or `oauth2`.
+
 * `managed_identity` - (Optional) A `managed_identity` block as defined below. Must be set with `auth_type` of `ManagedIdentity`. Cannot be used with `api_key`, `oauth2`, or `custom_keys`.
 
 * `oauth2` - (Optional) An `oauth2` block as defined below. Must be set with `auth_type` of `OAuth2`. Cannot be used with `api_key`, `managed_identity`, or `custom_keys`.
-
-* `custom_keys` - (Optional) A mapping of custom keys for authentication. Must be set with `auth_type` of `CustomKeys`. All values in this map are sensitive. Cannot be used with `api_key`, `managed_identity`, or `oauth2`.
 
 ---
 

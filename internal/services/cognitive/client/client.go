@@ -25,7 +25,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountConnectionResourceClient, err := accountconnectionresource.NewAccountConnectionResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Account Connection Resource client: %+v", err)
+		return nil, fmt.Errorf("building Account Connection client: %+v", err)
 	}
 	o.Configure(accountConnectionResourceClient.Client, o.Authorizers.ResourceManager)
 
