@@ -173,67 +173,6 @@ resource "azurerm_cognitive_account_connection" "example" {
 }
 ```
 
-### Managed Identity Authentication
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_user_assigned_identity" "example" {
-  name                = "example-identity"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_cognitive_account" "example" {
-  name                       = "example-aiservices"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  kind                       = "AIServices"
-  sku_name                   = "S0"
-  project_management_enabled = true
-  custom_subdomain_name      = "exampleaiservices"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "example" {
-  name                  = "examplecsc"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "private"
-}
-
-resource "azurerm_cognitive_account_connection" "example" {
-  name                 = "example-connection"
-  cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "ManagedIdentity"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.example.primary_blob_endpoint
-
-  metadata = {
-    containerName = azurerm_storage_container.example.name
-    accountName   = azurerm_storage_account.example.name
-  }
-
-  managed_identity {
-    client_id   = azurerm_user_assigned_identity.example.client_id
-    resource_id = azurerm_user_assigned_identity.example.id
-  }
-}
-```
-
 ### Custom Keys Authentication
 
 ```hcl
@@ -296,7 +235,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `auth_type` - (Required) The authentication type for the connection. Possible values are `AAD`, `ApiKey`, `CustomKeys`, `ManagedIdentity`, and `OAuth2`.
+* `auth_type` - (Required) The authentication type for the connection. Possible values are `AAD`, `ApiKey`, `CustomKeys`, and `OAuth2`.
 
 * `category` - (Required) The category of the connection. Possible values are `ADLSGen2`, `AIServices`, `AmazonMws`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3Compatible`, `ApiKey`, `AzureBlob`, `AzureDataExplorer`, `AzureDatabricksDeltaLake`, `AzureMariaDb`, `AzureMySqlDb`, `AzureOneLake`, `AzureOpenAI`, `AzurePostgresDb`, `AzureSqlDb`, `AzureSqlMi`, `AzureSynapseAnalytics`, `AzureTableStorage`, `BingLLMSearch`, `Cassandra`, `CognitiveSearch`, `CognitiveService`, `Concur`, `ContainerRegistry`, `CosmosDb`, `CosmosDbMongoDbApi`, `Couchbase`, `CustomKeys`, `Db2`, `Drill`, `Dynamics`, `DynamicsAx`, `DynamicsCrm`, `Elasticsearch`, `Eloqua`, `FileServer`, `FtpServer`, `GenericContainerRegistry`, `GenericHttp`, `GenericRest`, `Git`, `GoogleAdWords`, `GoogleBigQuery`, `GoogleCloudStorage`, `Greenplum`, `Hbase`, `Hdfs`, `Hive`, `Hubspot`, `Impala`, `Informix`, `Jira`, `Magento`, `ManagedOnlineEndpoint`, `MariaDb`, `Marketo`, `MicrosoftAccess`, `MongoDbAtlas`, `MongoDbV2`, `MySql`, `Netezza`, `ODataRest`, `Odbc`, `Office365`, `OpenAI`, `Oracle`, `OracleCloudStorage`, `OracleServiceCloud`, `PayPal`, `Phoenix`, `Pinecone`, `PostgreSql`, `Presto`, `PythonFeed`, `QuickBooks`, `Redis`, `Responsys`, `S3`, `Salesforce`, `SalesforceMarketingCloud`, `SalesforceServiceCloud`, `SapBw`, `SapCloudForCustomer`, `SapEcc`, `SapHana`, `SapOpenHub`, `SapTable`, `Serp`, `Serverless`, `ServiceNow`, `Sftp`, `SharePointOnlineList`, `Shopify`, `Snowflake`, `Spark`, `SqlServer`, `Square`, `Sybase`, `Teradata`, `Vertica`, `WebTable`, `Xero`, and `Zoho`. Changing this forces a new resource to be created.
 
@@ -304,21 +243,11 @@ The following arguments are supported:
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-* `api_key` - (Optional) The API key for authentication. This field is sensitive. Must be set with `auth_type` of `ApiKey`. Cannot be used with `managed_identity`, `oauth2`, or `custom_keys`.
+* `api_key` - (Optional) The API key for authentication. This field is sensitive. Must be set with `auth_type` of `ApiKey`. Cannot be used with `oauth2` or `custom_keys`.
 
-* `custom_keys` - (Optional) A mapping of custom keys for authentication. Must be set with `auth_type` of `CustomKeys`. All values in this map are sensitive. Cannot be used with `api_key`, `managed_identity`, or `oauth2`.
+* `custom_keys` - (Optional) A mapping of custom keys for authentication. Must be set with `auth_type` of `CustomKeys`. All values in this map are sensitive. Cannot be used with `api_key` or `oauth2`.
 
-* `managed_identity` - (Optional) A `managed_identity` block as defined below. Must be set with `auth_type` of `ManagedIdentity`. Cannot be used with `api_key`, `oauth2`, or `custom_keys`.
-
-* `oauth2` - (Optional) An `oauth2` block as defined below. Must be set with `auth_type` of `OAuth2`. Cannot be used with `api_key`, `managed_identity`, or `custom_keys`.
-
----
-
-A `managed_identity` block supports the following:
-
-* `client_id` - (Required) The client ID of the managed identity.
-
-* `resource_id` - (Required) The resource ID of the managed identity.
+* `oauth2` - (Optional) An `oauth2` block as defined below. Must be set with `auth_type` of `OAuth2`. Cannot be used with `api_key` or `custom_keys`.
 
 ---
 
