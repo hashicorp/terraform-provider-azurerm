@@ -104,10 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. 
-  An active-standby gateway requires exactly one `ip_configuration` block,
-  an active-active gateway requires exactly two `ip_configuration` blocks whereas
-  an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. An active-standby gateway requires exactly one `ip_configuration` block, an active-active gateway requires exactly two `ip_configuration` blocks whereas an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 

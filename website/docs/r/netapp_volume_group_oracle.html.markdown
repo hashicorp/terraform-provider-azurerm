@@ -374,11 +374,11 @@ A `volume` block supports the following:
 
 * `volume_path` - (Required) A unique file path for the volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1` through `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-backup` and `ora-binary`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1`, `ora-data2`, `ora-data3`, `ora-data4`, `ora-data5`, `ora-data6`, `ora-data7`, `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-binary` and `ora-backup`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Application Volume Group.
 
-* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
+* `network_features` - (Optional) Indicates which network feature to use, Possible values are `Basic`, `Basic_Standard`, `Standard` and `Standard_Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
 
 * `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
 
@@ -395,7 +395,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
