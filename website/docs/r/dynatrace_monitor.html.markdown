@@ -93,7 +93,7 @@ A `plan` block supports the following:
 
 A `user` block supports the following:
 
-* `country` - (Required) Country of the user.
+* `country` - (Optional) Country of the user.
 
 * `email` - (Required) Email of the user used by Dynatrace for contacting them if needed.
 
@@ -101,7 +101,7 @@ A `user` block supports the following:
 
 * `last_name` - (Required) Last name of the user.
 
-* `phone_number` - (Required) phone number of the user by Dynatrace for contacting them if needed.
+* `phone_number` - (Optional) phone number of the user by Dynatrace for contacting them if needed.
 
 ---
 
