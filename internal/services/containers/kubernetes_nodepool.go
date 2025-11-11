@@ -30,6 +30,46 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func schemaVirtualMachineProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"scale": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"manual": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								MinItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"size": {
+											Type:        pluginsdk.TypeString,
+											Required:    true,
+											Description: "The size of the virtual machine.",
+										},
+										"count": {
+											Type:        pluginsdk.TypeInt,
+											Required:    true,
+											Description: "The count of virtual machines.",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -249,39 +289,41 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.HostGroupID,
-					},
+				ValidateFunc: computeValidate.HostGroupID,
+			},
 
-					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
+			"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
 
-					"workload_runtime": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.WorkloadRuntimeOCIContainer),
-						}, false),
-					},
+			"workload_runtime": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(managedclusters.WorkloadRuntimeOCIContainer),
+					}, false),
+				},
 
-					"zones": commonschema.ZonesMultipleOptional(),
+				"zones": commonschema.ZonesMultipleOptional(),
 
-					"auto_scaling_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
+				"auto_scaling_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 
-					"node_public_ip_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
+				"node_public_ip_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 
-					"host_encryption_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-				}
-			}(),
-		},
+				"host_encryption_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+			"virtual_machine_profile": schemaVirtualMachineProfile(),
+		}
+	}(),
+	},
 	}
 }
 
@@ -1039,6 +1081,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
+	if virtualMachineProfile := raw["virtual_machine_profile"].([]interface{}); len(virtualMachineProfile) > 0 {
+		profile.VirtualMachinesProfile = expandManagedClusterVirtualMachinesProfile(virtualMachineProfile)
+	}
+
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
 		profile,
 	}, nil
@@ -1397,6 +1443,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	virtualMachineProfile := flattenManagedClusterVirtualMachinesProfile(agentPool.VirtualMachinesProfile)
 
 	out := map[string]interface{}{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1424,6 +1471,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"temporary_name_for_rotation":   temporaryName,
 		"type":                          agentPoolType,
 		"ultra_ssd_enabled":             enableUltraSSD,
+		"virtual_machine_profile":       virtualMachineProfile,
 		"vm_size":                       vmSize,
 		"workload_runtime":              workloadRunTime,
 		"pod_subnet_id":                 podSubnetId,
@@ -1947,4 +1995,81 @@ func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.I
 	}
 
 	return out
+}
+
+func expandManagedClusterVirtualMachinesProfile(input []interface{}) *managedclusters.VirtualMachinesProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &managedclusters.VirtualMachinesProfile{}
+
+	if scale := v["scale"].([]interface{}); len(scale) > 0 {
+		result.Scale = expandManagedClusterScaleProfile(scale)
+	}
+
+	return result
+}
+
+func expandManagedClusterScaleProfile(input []interface{}) *managedclusters.ScaleProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &managedclusters.ScaleProfile{}
+
+	if manual := v["manual"].([]interface{}); len(manual) > 0 {
+		manualProfiles := make([]managedclusters.ManualScaleProfile, 0)
+		for _, item := range manual {
+			itemMap := item.(map[string]interface{})
+			manualProfiles = append(manualProfiles, managedclusters.ManualScaleProfile{
+				Size:  pointer.To(itemMap["size"].(string)),
+				Count: pointer.To(int64(itemMap["count"].(int))),
+			})
+		}
+		result.Manual = &manualProfiles
+	}
+
+	return result
+}
+
+func flattenManagedClusterVirtualMachinesProfile(input *managedclusters.VirtualMachinesProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	scale := []interface{}{}
+	if input.Scale != nil {
+		scale = flattenManagedClusterScaleProfile(input.Scale)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"scale": scale,
+		},
+	}
+}
+
+func flattenManagedClusterScaleProfile(input *managedclusters.ScaleProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	manual := []interface{}{}
+	if input.Manual != nil {
+		for _, item := range *input.Manual {
+			manual = append(manual, map[string]interface{}{
+				"size":  pointer.From(item.Size),
+				"count": pointer.From(item.Count),
+			})
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"manual": manual,
+		},
+	}
 }
