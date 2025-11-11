@@ -23,21 +23,15 @@ import (
 var _ sdk.ResourceWithUpdate = CognitiveAccountConnectionResource{}
 
 type CognitiveAccountConnectionModel struct {
-	ApiKey             string                 `tfschema:"api_key"`
-	AuthType           string                 `tfschema:"auth_type"`
-	Category           string                 `tfschema:"category"`
-	CognitiveAccountId string                 `tfschema:"cognitive_account_id"`
-	CustomKeys         map[string]string      `tfschema:"custom_keys"`
-	ManagedIdentity    []ManagedIdentityModel `tfschema:"managed_identity"`
-	Metadata           map[string]string      `tfschema:"metadata"`
-	Name               string                 `tfschema:"name"`
-	OAuth2             []OAuth2AuthModel      `tfschema:"oauth2"`
-	Target             string                 `tfschema:"target"`
-}
-
-type ManagedIdentityModel struct {
-	ClientId   string `tfschema:"client_id"`
-	ResourceId string `tfschema:"resource_id"`
+	ApiKey             string            `tfschema:"api_key"`
+	AuthType           string            `tfschema:"auth_type"`
+	Category           string            `tfschema:"category"`
+	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
+	CustomKeys         map[string]string `tfschema:"custom_keys"`
+	Metadata           map[string]string `tfschema:"metadata"`
+	Name               string            `tfschema:"name"`
+	OAuth2             []OAuth2AuthModel `tfschema:"oauth2"`
+	Target             string            `tfschema:"target"`
 }
 
 type OAuth2AuthModel struct {
@@ -86,7 +80,6 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 				string(accountconnectionresource.ConnectionAuthTypeAAD),
 				string(accountconnectionresource.ConnectionAuthTypeApiKey),
 				string(accountconnectionresource.ConnectionAuthTypeCustomKeys),
-				string(accountconnectionresource.ConnectionAuthTypeManagedIdentity),
 				string(accountconnectionresource.ConnectionAuthTypeOAuthTwo),
 			}, false),
 		},
@@ -120,35 +113,14 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"managed_identity", "oauth2", "custom_keys"},
-		},
-
-		"managed_identity": {
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			MaxItems:      1,
-			ConflictsWith: []string{"api_key", "oauth2", "custom_keys"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"resource_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
+			ConflictsWith: []string{"oauth2", "custom_keys"},
 		},
 
 		"oauth2": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
 			MaxItems:      1,
-			ConflictsWith: []string{"api_key", "managed_identity", "custom_keys"},
+			ConflictsWith: []string{"api_key", "custom_keys"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"auth_url": {
@@ -203,7 +175,7 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:          pluginsdk.TypeMap,
 			Optional:      true,
 			Sensitive:     true,
-			ConflictsWith: []string{"api_key", "managed_identity", "oauth2"},
+			ConflictsWith: []string{"api_key", "oauth2"},
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -320,14 +292,6 @@ func (r CognitiveAccountConnectionResource) Read() sdk.ResourceFunc {
 				case accountconnectionresource.ApiKeyAuthConnectionProperties:
 					state.ApiKey = currentState.ApiKey
 
-				case accountconnectionresource.ManagedIdentityAuthTypeConnectionProperties:
-					if len(currentState.ManagedIdentity) > 0 {
-						state.ManagedIdentity = []ManagedIdentityModel{{
-							ClientId:   currentState.ManagedIdentity[0].ClientId,
-							ResourceId: currentState.ManagedIdentity[0].ResourceId,
-						}}
-					}
-
 				case accountconnectionresource.OAuth2AuthTypeConnectionProperties:
 					if len(currentState.OAuth2) > 0 {
 						state.OAuth2 = []OAuth2AuthModel{{
@@ -388,11 +352,6 @@ func (r CognitiveAccountConnectionResource) Update() sdk.ResourceFunc {
 					props.Credentials = nil
 				}
 
-			case accountconnectionresource.ManagedIdentityAuthTypeConnectionProperties:
-				if !metadata.ResourceData.HasChange("managed_identity") {
-					props.Credentials = nil
-				}
-
 			case accountconnectionresource.OAuth2AuthTypeConnectionProperties:
 				if !metadata.ResourceData.HasChange("oauth2") {
 					props.Credentials = nil
@@ -448,33 +407,6 @@ func expandConnectionProperties(model CognitiveAccountConnectionModel) (accountc
 			AuthType: authType,
 			Credentials: &accountconnectionresource.ConnectionApiKey{
 				Key: pointer.To(model.ApiKey),
-			},
-		}
-
-		if model.Category != "" {
-			props.Category = pointer.To(accountconnectionresource.ConnectionCategory(model.Category))
-		}
-
-		if model.Target != "" {
-			props.Target = pointer.To(model.Target)
-		}
-
-		if len(model.Metadata) > 0 {
-			props.Metadata = pointer.To(model.Metadata)
-		}
-
-		return props, nil
-
-	case accountconnectionresource.ConnectionAuthTypeManagedIdentity:
-		if len(model.ManagedIdentity) == 0 {
-			return nil, errors.New("when `auth_type` is `ManagedIdentity`, `managed_identity` block must be specified")
-		}
-
-		props := accountconnectionresource.ManagedIdentityAuthTypeConnectionProperties{
-			AuthType: authType,
-			Credentials: &accountconnectionresource.ConnectionManagedIdentity{
-				ClientId:   pointer.To(model.ManagedIdentity[0].ClientId),
-				ResourceId: pointer.To(model.ManagedIdentity[0].ResourceId),
 			},
 		}
 
@@ -552,7 +484,7 @@ func expandConnectionProperties(model CognitiveAccountConnectionModel) (accountc
 		return props, nil
 
 	case accountconnectionresource.ConnectionAuthTypeAAD:
-		if model.ApiKey != "" || len(model.ManagedIdentity) > 0 || len(model.OAuth2) > 0 || len(model.CustomKeys) > 0 {
+		if model.ApiKey != "" || len(model.OAuth2) > 0 || len(model.CustomKeys) > 0 {
 			return nil, errors.New("when `auth_type` is `AAD`, no other auth configuration blocks should be specified")
 		}
 

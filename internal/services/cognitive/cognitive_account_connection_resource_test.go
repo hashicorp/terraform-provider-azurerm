@@ -64,21 +64,6 @@ func TestAccCognitiveAccountConnection_apiKey(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountConnection_managedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.managedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("managed_identity", "metadata"),
-	})
-}
-
 func TestAccCognitiveAccountConnection_oauth2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
 	r := CognitiveAccountConnectionTestResource{}
@@ -152,13 +137,6 @@ func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("managed_identity", "metadata"),
-		{
 			Config: r.oauth2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -190,10 +168,6 @@ func TestAccCognitiveAccountConnection_authTypeValidation(t *testing.T) {
 		{
 			Config:      r.invalidAuthTypeApiKeyMismatch(data),
 			ExpectError: regexp.MustCompile("when `auth_type` is `ApiKey`, `api_key` must be specified"),
-		},
-		{
-			Config:      r.invalidAuthTypeManagedIdentityMismatch(data),
-			ExpectError: regexp.MustCompile("when `auth_type` is `ManagedIdentity`, `managed_identity` block must be specified"),
 		},
 		{
 			Config:      r.invalidAuthTypeAADWithOtherAuth(data),
@@ -355,32 +329,6 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) managedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ManagedIdentity"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.test.primary_blob_endpoint
-  metadata = {
-    containerName = azurerm_storage_container.test.name
-    accountName   = azurerm_storage_account.test.name
-  }
-  managed_identity {
-    client_id   = azurerm_user_assigned_identity.test.client_id
-    resource_id = azurerm_user_assigned_identity.test.id
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r CognitiveAccountConnectionTestResource) oauth2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -512,30 +460,6 @@ resource "azurerm_cognitive_account_connection" "test" {
   }
 
   # Missing api_key field - should cause validation error
-}
-`, r.template(data))
-}
-
-func (r CognitiveAccountConnectionTestResource) invalidAuthTypeManagedIdentityMismatch(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-invalid"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ManagedIdentity"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.test.primary_blob_endpoint
-  metadata = {
-    containerName = azurerm_storage_container.test.name
-    accountName   = azurerm_storage_account.test.name
-  }
-
-  # Missing managed_identity block - should cause validation error
 }
 `, r.template(data))
 }
