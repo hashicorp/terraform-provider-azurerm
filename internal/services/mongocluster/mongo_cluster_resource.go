@@ -755,8 +755,12 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// When the identity type is set to None, the go-azure-sdk always sets identity.userAssignedIdentities to nil in the request payload. But since the service API does not allow explicitly setting identity.userAssignedIdentities to nil when the identity type is None, otherwise it will throw a schema validation error, Terraform can only dynamically treat this change as forceNew when updating from UserAssigned to None.
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+			// When identity is added or removed from the configuration, it should trigger ForceNew.
+			// 1. When identity type is changed from `UserAssigned` to `None`, go-azure-sdk always sets `identity.userAssignedIdentities` to `nil` in the request payload.
+			// But since service API does not allow explicitly setting `identity.userAssignedIdentities` to `nil` when the identity type is `None`,
+			// otherwise it will throw a schema validation error, Terraform can only dynamically treat this change as forceNew.
+			// 2. Service API will fail when identity type is changed from `None` to `UserAssigned`.
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); (len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0) || (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) > 0) {
 				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
 				}

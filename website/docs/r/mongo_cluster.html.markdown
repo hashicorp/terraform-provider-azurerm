@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as detailed below.
 
--> **Note:** When removing `identity`, a resource recreation will be triggered.
+-> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
