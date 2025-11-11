@@ -138,6 +138,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `public_network_access` - (Optional) The public network access setting for the Managed Redis instance. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed Redis instance.
 
 ---
@@ -231,4 +233,4 @@ terraform import azurerm_managed_redis.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cache` - 2025-04-01
+* `Microsoft.Cache` - 2025-07-01
