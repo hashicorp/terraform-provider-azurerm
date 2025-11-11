@@ -19,7 +19,8 @@ import (
 type Client struct {
 	*automation_2024_10_23.Client
 
-	// Legacy module client for PowerShell72Module resources
+	// Legacy module client for PowerShell72Module resources, which is deprecated in the latest API version
+	// Should look into deprecate PowerShell72Module resource
 	ModuleClientV2023 *module.ModuleClient
 
 	AgentRegistrationInfoClient *agentregistrationinformation.AgentRegistrationInformationClient

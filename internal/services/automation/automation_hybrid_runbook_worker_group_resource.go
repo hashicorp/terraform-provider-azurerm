@@ -188,6 +188,7 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 			// NOTE: Due to incorrect tags in Azure Swagger, the delete operation is only available
 			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the
 			// main HybridRunbookWorkerGroup client where it logically belongs
+			// Issue tracked in: https://github.com/Azure/azure-rest-api-specs/issues/38703
 			client := meta.Client.Automation.ListAllHybridRunbookWorkerGroupInAutomationAccount
 
 			// Convert the ID to the listallhybridrunbookworkergroupinautomationaccount package format
