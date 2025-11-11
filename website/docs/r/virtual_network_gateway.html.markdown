@@ -100,7 +100,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -343,7 +343,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
 * `update` - (Defaults to 1 hour) Used when updating the Virtual Network Gateway.
-* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Network Gateway.
+* `delete` - (Defaults to 2 hours) Used when deleting the Virtual Network Gateway.
 
 ## Import
 
@@ -357,4 +357,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

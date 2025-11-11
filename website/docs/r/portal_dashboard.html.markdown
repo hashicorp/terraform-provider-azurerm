@@ -238,7 +238,7 @@ resource "azurerm_dashboard" "my-board" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

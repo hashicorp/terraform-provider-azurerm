@@ -110,6 +110,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_redis_enterprise_cluster`
+
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-remove-tls-10-11).
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -188,6 +192,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_automation_account`
 
 * The `encryption.key_source` property has been removed.
+
+### `azurerm_bot_channel_ms_teams`
+
+* The deprecated `enable_calling` property has been removed in favour of the `calling_enabled` property.
 
 ### `azurerm_cdn_endpoint_custom_domain`
 
@@ -448,13 +456,19 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_windows_virtual_machine`
+
+* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 

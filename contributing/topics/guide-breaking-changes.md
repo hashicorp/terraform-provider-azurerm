@@ -178,7 +178,6 @@ The following example follows a fictional resource that will have the following 
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"scaling_enabled"},
             Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
          }
@@ -188,7 +187,6 @@ The following example follows a fictional resource that will have the following 
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"enable_scaling"},
          }
          
@@ -200,7 +198,23 @@ The following example follows a fictional resource that will have the following 
    ```
    > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
-2. Update the Create/Read/Update methods if necessary.
+2. Update the Create/Read/Update methods.
+
+For Create function, you can do: 
+```go
+
+payload := example.Payload{
+  // ...
+  EnableScaling: pointer.To(model.ScalingEnabled),
+  // ...
+}
+
+if !features.FivePointOh() {
+  if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
+    payload.EnableScaling = pointer.To(model.EnableScaling);
+  }
+}
+```
 
 3. Update the test configurations.
 
