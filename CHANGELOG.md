@@ -1,6 +1,7 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_dynatrace_monitor` - support for the `YEARLY` value in the `billing_cycle` property [GH-31078]
 * `azurerm_storage_table_entity` - resource is now removed from state if it no longer exists in Azure [GH-31064]
 * `azurerm_api_management_backend` - add support for the `circuit_breaker_rule` block  [GH-30471]
 * dependencies: `mongocluster` - update to API version `2025-09-01` [GH-30982]
