@@ -37,7 +37,7 @@ Here are some general guidelines you can turn to when naming properties:
 * Booleans named `disableSomething` in the API should be flipped and exposed as `something_enabled` in the provider.
 
 * Do note that the above is not a hard requirement, there are cases where appending `_enabled` leads to odd and/or inaccurate naming, e.g.
-> `requireMtls` being named `require_mtls_enabled`, in this scenario it would be preferable to name the property `mtls_required`.
+> a property like `requireMtls` should be named `mtls_required` rather than `mtls_required_enabled`.
 
 * Similarly, properties that indicate a state of something likely make more sense without appending `_enabled`, e.g.
 > `acceptedTermsOfService` becomes `terms_of_service_accepted`.
