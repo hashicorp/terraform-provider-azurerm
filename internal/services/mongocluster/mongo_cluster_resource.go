@@ -49,6 +49,7 @@ type MongoClusterResourceModel struct {
 	PublicNetworkAccess    string                         `tfschema:"public_network_access"`
 	PreviewFeatures        []string                       `tfschema:"preview_features"`
 	StorageSizeInGb        int64                          `tfschema:"storage_size_in_gb"`
+	StorageType            string                         `tfschema:"storage_type"`
 	ConnectionStrings      []MongoClusterConnectionString `tfschema:"connection_strings"`
 	Tags                   map[string]string              `tfschema:"tags"`
 	Version                string                         `tfschema:"version"`
@@ -262,6 +263,13 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(32, 16384),
 		},
 
+		"storage_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(mongoclusters.StorageTypePremiumSSD),
+			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 
 		"version": {
@@ -384,9 +392,13 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 
-			if state.StorageSizeInGb != 0 {
-				parameter.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
+			if state.StorageSizeInGb != 0 || state.StorageType != "" {
+				parameter.Properties.Storage = &mongoclusters.StorageProperties{}
+				if state.StorageSizeInGb != 0 {
+					parameter.Properties.Storage.SizeGb = pointer.To(state.StorageSizeInGb)
+				}
+				if state.StorageType != "" {
+					parameter.Properties.Storage.Type = pointer.To(mongoclusters.StorageType(state.StorageType))
 				}
 			}
 
@@ -500,9 +512,13 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 			}
 
-			if metadata.ResourceData.HasChange("storage_size_in_gb") {
-				payload.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
+			if metadata.ResourceData.HasChange("storage_size_in_gb") || metadata.ResourceData.HasChange("storage_type") {
+				payload.Properties.Storage = &mongoclusters.StorageProperties{}
+				if state.StorageSizeInGb != 0 {
+					payload.Properties.Storage.SizeGb = pointer.To(state.StorageSizeInGb)
+				}
+				if state.StorageType != "" {
+					payload.Properties.Storage.Type = pointer.To(mongoclusters.StorageType(state.StorageType))
 				}
 			}
 
@@ -625,6 +641,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)
+						state.StorageType = string(pointer.From(v.Type))
 					}
 					if v := props.PreviewFeatures; v != nil {
 						state.PreviewFeatures = flattenMongoClusterPreviewFeatures(v)

@@ -223,6 +223,7 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode    = "ZoneRedundantPreferred"
   public_network_access     = "Disabled"
   storage_size_in_gb        = "64"
+  storage_type              = "PremiumSSDv2"
   version                   = "8.0"
   auth_config_allowed_modes = ["NativeAuth"]
 
