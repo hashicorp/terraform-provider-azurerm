@@ -194,7 +194,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The `id` of the HPC Cache.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 * `mount_addresses` - A list of IP Addresses where the HPC Cache can be mounted.
 

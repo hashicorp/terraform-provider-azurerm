@@ -38,13 +38,13 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
-* `aci_connector_linux` - An `aci_connector_linux` block as documented below.
+* `aci_connector_linux` - An `aci_connector_linux` block as defined below.
 
-* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
+* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as defined below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
-* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
+* `agent_pool_profile` - An `agent_pool_profile` block as defined below.
 
 * `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
 
@@ -56,11 +56,11 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
-* `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
 
-* `key_management_service` - A `key_management_service` block as documented below.
+* `key_management_service` - A `key_management_service` block as defined below.
 
-* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
+* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as defined below.
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
@@ -86,17 +86,17 @@ The following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `oms_agent` - An `oms_agent` block as documented below.
+* `oms_agent` - An `oms_agent` block as defined below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
 
 * `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
-* `linux_profile` - A `linux_profile` block as documented below.
+* `linux_profile` - A `linux_profile` block as defined below.
 
-* `windows_profile` - A `windows_profile` block as documented below.
+* `windows_profile` - A `windows_profile` block as defined below.
 
-* `network_profile` - A `network_profile` block as documented below.
+* `network_profile` - A `network_profile` block as defined below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
@@ -104,13 +104,13 @@ The following attributes are exported:
 
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
-* `service_principal` - A `service_principal` block as documented below.
+* `service_principal` - A `service_principal` block as defined below.
 
-* `storage_profile` - A `storage_profile` block as documented below.
+* `storage_profile` - A `storage_profile` block as defined below.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
-* `kubelet_identity` - A `kubelet_identity` block as documented below.
+* `kubelet_identity` - A `kubelet_identity` block as defined below.
 
 * `tags` - A mapping of tags assigned to this resource.
 
@@ -152,7 +152,7 @@ An `agent_pool_profile` block exports the following:
 
 * `orchestrator_version` - Kubernetes version used for the Agents.
 
-* `upgrade_settings` - A `upgrade_settings` block as documented below.
+* `upgrade_settings` - A `upgrade_settings` block as defined below.
 
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
@@ -196,7 +196,7 @@ A `key_vault_secrets_provider` block exports the following:
 
 * `secret_rotation_interval` - The interval to poll for secret rotation.
 
-* `secret_identity` - A `secret_identity` block as documented below.
+* `secret_identity` - A `secret_identity` block as defined below.
 
 ---
 
@@ -378,7 +378,7 @@ A `service_mesh_profile` block exports the following:
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
-* `certificate_authority` - A `certificate_authority` block as documented below.
+* `certificate_authority` - A `certificate_authority` block as defined below.
 
 ---
 

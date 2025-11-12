@@ -267,19 +267,19 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `network_profile` - (Required) A collection of `network_profile` blocks as documented below.
+* `network_profile` - (Required) A collection of `network_profile` blocks as defined below.
 
-* `os_profile` - (Required) A `os_profile` block as documented below.
+* `os_profile` - (Required) A `os_profile` block as defined below.
 
-* `os_profile_windows_config` - (Optional) A `os_profile_windows_config` block as documented below.
+* `os_profile_windows_config` - (Optional) A `os_profile_windows_config` block as defined below.
 
-* `os_profile_linux_config` - (Optional) A `os_profile_linux_config` block as documented below.
+* `os_profile_linux_config` - (Optional) A `os_profile_linux_config` block as defined below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as defined below.
 
-* `storage_profile_os_disk` - (Required) A `storage_profile_os_disk` block as documented below.
+* `storage_profile_os_disk` - (Required) A `storage_profile_os_disk` block as defined below.
 
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
 
@@ -291,7 +291,7 @@ The following arguments are supported:
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as referenced below.
 
-* `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+* `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields defined below.
 
 * `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -301,11 +301,11 @@ The following arguments are supported:
 
 * `license_type` - (Optional) (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 
-* `os_profile_secrets` - (Optional) A collection of `os_profile_secrets` blocks as documented below.
+* `os_profile_secrets` - (Optional) A collection of `os_profile_secrets` blocks as defined below.
 
 * `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
 
-* `plan` - (Optional) A `plan` block as documented below.
+* `plan` - (Optional) A `plan` block as defined below.
 
 * `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
@@ -313,9 +313,9 @@ The following arguments are supported:
 
 * `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Changing this forces a new resource to be created. See [documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information. Defaults to `true`.
 
-* `storage_profile_data_disk` - (Optional) A `storage_profile_data_disk` block as documented below.
+* `storage_profile_data_disk` - (Optional) A `storage_profile_data_disk` block as defined below.
 
-* `storage_profile_image_reference` - (Optional) A `storage_profile_image_reference` block as documented below.
+* `storage_profile_image_reference` - (Optional) A `storage_profile_image_reference` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -408,8 +408,8 @@ The `os_profile_windows_config` block supports the following:
 
 * `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
 * `enable_automatic_upgrades` - (Optional) Indicates whether virtual machines in the scale set are enabled for automatic updates.
-* `winrm` - (Optional) A collection of `winrm` blocks as documented below.
-* `additional_unattend_config` - (Optional) An `additional_unattend_config` block as documented below.
+* `winrm` - (Optional) A collection of `winrm` blocks as defined below.
+* `additional_unattend_config` - (Optional) An `additional_unattend_config` block as defined below.
 
 ---
 
@@ -445,9 +445,9 @@ The `network_profile` block supports the following:
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - (Required) An `ip_configuration` block as documented below.
+* `ip_configuration` - (Required) An `ip_configuration` block as defined below.
 * `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not.
-* `dns_settings` - (Optional) A `dns_settings` block as documented below.
+* `dns_settings` - (Optional) A `dns_settings` block as defined below.
 * `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
@@ -474,7 +474,7 @@ The `ip_configuration` block supports the following:
 
 * `primary` - (Required) Specifies if this ip_configuration is the primary one.
 * `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
-* `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` block is documented below.
+* `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` block is defined below.
 
 ---
 

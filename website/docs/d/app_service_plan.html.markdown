@@ -38,7 +38,7 @@ output "app_service_plan_id" {
 
 * `kind` - The Operating System type of the App Service Plan
 
-* `sku` - A `sku` block as documented below.
+* `sku` - A `sku` block as defined below.
 
 * `app_service_environment_id` - The ID of the App Service Environment where the App Service Plan is located.
 

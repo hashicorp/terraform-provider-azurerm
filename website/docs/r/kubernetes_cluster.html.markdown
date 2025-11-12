@@ -237,7 +237,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `run_command_enabled` - (Optional) Whether to enable run command for the cluster or not. Defaults to `true`.
 
-* `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified.
+* `service_principal` - (Optional) A `service_principal` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
@@ -401,7 +401,7 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+* `node_network_profile` - (Optional) A `node_network_profile` block as defined below.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
@@ -439,7 +439,7 @@ A `default_node_pool` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as defined below.
 
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
 

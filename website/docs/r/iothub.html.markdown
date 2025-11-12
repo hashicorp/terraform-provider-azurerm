@@ -351,7 +351,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - The hostname of the IotHub Resource.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
 

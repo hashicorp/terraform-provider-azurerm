@@ -67,7 +67,7 @@ output "api_management_id" {
 
 * `scm_url` - The SCM (Source Code Management) endpoint.
 
-* `sku` - A `sku` block as documented below.
+* `sku` - A `sku` block as defined below.
 
 * `tenant_access` - A `tenant_access` block as defined below.
 

@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists. Changing this forces a new resource to be created.
 
-* `target_region` - (Required) One or more `target_region` blocks as documented below.
+* `target_region` - (Required) One or more `target_region` blocks as defined below.
 
 * `blob_uri` - (Optional) URI of the Azure Storage Blob used to create the Image Version. Changing this forces a new resource to be created.
 

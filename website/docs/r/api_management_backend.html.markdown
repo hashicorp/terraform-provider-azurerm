@@ -53,19 +53,19 @@ The following arguments are supported:
 
 ---
 
-* `credentials` - (Optional) A `credentials` block as documented below.
+* `credentials` - (Optional) A `credentials` block as defined below.
 
 * `description` - (Optional) The description of the backend.
 
-* `proxy` - (Optional) A `proxy` block as documented below.
+* `proxy` - (Optional) A `proxy` block as defined below.
 
 * `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster.
 
-* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below.
+* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as defined below.
 
 * `title` - (Optional) The title of the backend.
 
-* `tls` - (Optional) A `tls` block as documented below.
+* `tls` - (Optional) A `tls` block as defined below.
 
 ---
 
@@ -113,7 +113,7 @@ A `service_fabric_cluster` block supports the following:
 
 * `server_certificate_thumbprints` - (Optional) A list of thumbprints of the server certificates of the Service Fabric cluster.
 
-* `server_x509_name` - (Optional) One or more `server_x509_name` blocks as documented below.
+* `server_x509_name` - (Optional) One or more `server_x509_name` blocks as defined below.
 
 ---
 

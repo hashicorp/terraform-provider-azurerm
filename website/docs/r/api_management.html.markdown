@@ -151,15 +151,15 @@ A `delegation` block supports the following:
 
 A `hostname_configuration` block supports the following:
 
-* `management` - (Optional) One or more `management` blocks as documented below.
+* `management` - (Optional) One or more `management` blocks as defined below.
 
-* `portal` - (Optional) One or more `portal` blocks as documented below.
+* `portal` - (Optional) One or more `portal` blocks as defined below.
 
-* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+* `developer_portal` - (Optional) One or more `developer_portal` blocks as defined below.
 
-* `proxy` - (Optional) One or more `proxy` blocks as documented below.
+* `proxy` - (Optional) One or more `proxy` blocks as defined below.
 
-* `scm` - (Optional) One or more `scm` blocks as documented below.
+* `scm` - (Optional) One or more `scm` blocks as defined below.
 
 ---
 
@@ -335,7 +335,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the API Management Service.
 
-* `additional_location` - Zero or more `additional_location` blocks as documented below.
+* `additional_location` - Zero or more `additional_location` blocks as defined below.
 
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
@@ -357,7 +357,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `tenant_access` - The `tenant_access` block as documented below.
+* `tenant_access` - The `tenant_access` block as defined below.
 
 ---
 

@@ -97,7 +97,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the eviction_policy. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
 
-* `plan` - (Optional) A `plan` block as documented below. Changing this forces a new resource to be created.
+* `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
@@ -155,9 +155,9 @@ An `os_profile` block supports the following:
 
 -> **Note:** When Custom Data has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
 
-* `windows_configuration` - (Optional) A `windows_configuration` block as documented below.
+* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
 
-* `linux_configuration` - (Optional) A `linux_configuration` block as documented below.
+* `linux_configuration` - (Optional) A `linux_configuration` block as defined below.
 
 ---
 
@@ -201,7 +201,7 @@ A `linux_configuration` block supports the following:
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-* `admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
+* `admin_ssh_key` - (Optional) A `admin_ssh_key` block as defined below.
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`. Changing this forces a new resource to be created.
 

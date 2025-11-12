@@ -82,11 +82,11 @@ The following arguments are supported:
 
 * `content` - (Required) The content of the Logic App Integration Account Agreement.
 
-* `guest_identity` - (Required) A `guest_identity` block as documented below.
+* `guest_identity` - (Required) A `guest_identity` block as defined below.
 
 * `guest_partner_name` - (Required) The name of the guest Logic App Integration Account Partner.
 
-* `host_identity` - (Required) A `host_identity` block as documented below.
+* `host_identity` - (Required) A `host_identity` block as defined below.
 
 * `host_partner_name` - (Required) The name of the host Logic App Integration Account Partner.
 
