@@ -85,6 +85,17 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway
+				mode := d.Get("mode").(string)
+				gatewayPublicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int)
+
+				if gatewayPublicIPPrefixSize != 0 && mode != string(agentpools.AgentPoolModeGateway) {
+					return fmt.Errorf("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+				}
+
+				return nil
+			}),
 		),
 	}
 
