@@ -143,7 +143,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"data_api_mode_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
@@ -399,8 +398,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
-			// DataApi property is not supported when creating with PointInTimeRestore or GeoReplica mode
-			if state.CreateMode != string(mongoclusters.CreateModePointInTimeRestore) && state.CreateMode != string(mongoclusters.CreateModeGeoReplica) {
+			if state.CreateMode == string(mongoclusters.CreateModeDefault) {
 				dataApiMode := mongoclusters.DataApiModeDisabled
 				if state.DataApiModeEnabled {
 					dataApiMode = mongoclusters.DataApiModeEnabled
@@ -408,6 +406,8 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.DataApi = &mongoclusters.DataApiProperties{
 					Mode: pointer.To(dataApiMode),
 				}
+			} else {
+				return fmt.Errorf("`data_api_mode_enabled` is only supported for `Default` create mode")
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
@@ -463,8 +463,8 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			// Clear DataApi for clusters created with PointInTimeRestore or GeoReplica mode to avoid schema validation errors
-			// The service API doesn't support the dataApi property for these create modes
-			if state.CreateMode == string(mongoclusters.CreateModePointInTimeRestore) || state.CreateMode == string(mongoclusters.CreateModeGeoReplica) {
+			// `data_api_mode_enabled` is only supported for `Default` create mode
+			if state.CreateMode != string(mongoclusters.CreateModeDefault) {
 				payload.Properties.DataApi = nil
 			}
 
@@ -523,15 +523,17 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			// Only set DataApi if the cluster was not created with PointInTimeRestore or GeoReplica mode
-			if metadata.ResourceData.HasChange("data_api_mode_enabled") &&
-				state.CreateMode != string(mongoclusters.CreateModePointInTimeRestore) &&
-				state.CreateMode != string(mongoclusters.CreateModeGeoReplica) {
-				dataApiMode := mongoclusters.DataApiModeDisabled
-				if state.DataApiModeEnabled {
-					dataApiMode = mongoclusters.DataApiModeEnabled
-				}
-				payload.Properties.DataApi = &mongoclusters.DataApiProperties{
-					Mode: pointer.To(dataApiMode),
+			if metadata.ResourceData.HasChange("data_api_mode_enabled") {
+				if state.CreateMode == string(mongoclusters.CreateModeDefault) {
+					dataApiMode := mongoclusters.DataApiModeDisabled
+					if state.DataApiModeEnabled {
+						dataApiMode = mongoclusters.DataApiModeEnabled
+					}
+					payload.Properties.DataApi = &mongoclusters.DataApiProperties{
+						Mode: pointer.To(dataApiMode),
+					}
+				} else {
+					return fmt.Errorf("`data_api_mode_enabled` is only supported for `Default` create mode")
 				}
 			}
 
@@ -709,15 +711,9 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if state.SourceLocation == "" {
 					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
 				}
-				if state.DataApiModeEnabled {
-					return fmt.Errorf("`data_api_mode_enabled` cannot be set when `create_mode` is `GeoReplica`")
-				}
 			case string(mongoclusters.CreateModePointInTimeRestore):
 				if len(state.Restore) == 0 {
 					return fmt.Errorf("`restore` is required when `create_mode` is `PointInTimeRestore`")
-				}
-				if state.DataApiModeEnabled {
-					return fmt.Errorf("`data_api_mode_enabled` cannot be set when `create_mode` is `PointInTimeRestore`")
 				}
 			}
 
@@ -749,7 +745,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) && state.CreateMode == string(mongoclusters.CreateModeDefault) {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
 					return err
 				}
