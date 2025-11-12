@@ -11,14 +11,15 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30563]
 * dependencies: `go-azure-sdk` - update to `v0.20251029.1173336` [GH-31051]
 * dependencies: `managedredis` - update to API Version `2025-07-01` [GH-31051]
-* `azurerm_managed_redis` - Add support for `public_network_access` [GH-31051]
+* `azurerm_managed_redis` - add support for `public_network_access` [GH-31051]
 
 FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
 
 BUG FIXES:
+* `azurerm_virtual_network_gateway` - fix validation for `policy_group.name` and `vpn_client_configuration.virtual_network_gateway_client_connection.policy_group_names` [GH-30454]
 * `azurerm_logic_app_workflow` - fix inaccurate error messages [GH-30963]
-`azurerm_dynatrace_monitor` -  the `phone_number` and `country` properties are no longer Required [GH-31077]
+* `azurerm_dynatrace_monitor` -  the `phone_number` and `country` properties are no longer Required [GH-31077]
 * `azurerm_dynatrace_tag_rules` - the `log_rule.filtering_tag` property is no longer required [GH-31065]
 * `azurerm_dynatrace_tag_rules` - the `metric_rule.filtering_tag` property is no longer required [GH-31065]
 
