@@ -1248,9 +1248,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		if props.PodIPAllocationMode != nil {
-			d.Set("pod_ip_allocation_mode", string(*props.PodIPAllocationMode))
-		}
+		d.Set("pod_ip_allocation_mode", string(pointer.From(props.PodIPAllocationMode)))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
