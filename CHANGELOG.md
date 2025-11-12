@@ -17,6 +17,7 @@ FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
 
 BUG FIXES:
+* `azurerm_logic_app_workflow` - fix inaccurate error messages [GH-30963]
 `azurerm_dynatrace_monitor` -  the `phone_number` and `country` properties are no longer Required [GH-31077]
 * `azurerm_dynatrace_tag_rules` - the `log_rule.filtering_tag` property is no longer required [GH-31065]
 * `azurerm_dynatrace_tag_rules` - the `metric_rule.filtering_tag` property is no longer required [GH-31065]
