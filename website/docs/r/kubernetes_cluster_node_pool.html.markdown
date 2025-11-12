@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `mode` - (Optional) Should this Node Pool be used for System, User or Gateway resources? Possible values are `System`, `User` and `Gateway`. Defaults to `User`.
 
--> **Note:** `Gateway` mode creates a node pool configured to host static egress gateways. For more information about this feature, see the Azure documentation.
+-> **Note:** `Gateway` mode creates a node pool configured to host static egress gateways. For more information about this feature, see [the Azure documentation](https://learn.microsoft.com/en-us/rest/api/aks/agent-pools/create-or-update?view=rest-aks-2025-07-01&tabs=HTTP#agentpoolgatewayprofile).
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
