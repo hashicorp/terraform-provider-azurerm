@@ -36,6 +36,8 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"location": commonschema.LocationComputed(),
+
 			"custom_question_answering_search_service_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -93,8 +95,6 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
-
-			"location": commonschema.LocationComputed(),
 
 			"metrics_advisor_aad_client_id": {
 				Type:     pluginsdk.TypeString,
@@ -238,42 +238,6 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 	}
 }
 
-func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	ipRules := make([]interface{}, 0)
-	if input.IPRules != nil {
-		for _, v := range *input.IPRules {
-			ipRules = append(ipRules, v.Value)
-		}
-	}
-
-	virtualNetworkRules := make([]interface{}, 0)
-	if input.VirtualNetworkRules != nil {
-		for _, v := range *input.VirtualNetworkRules {
-			id := v.Id
-			subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
-			if err == nil {
-				id = subnetId.ID()
-			}
-
-			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
-				"subnet_id":                            id,
-				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
-			})
-		}
-	}
-
-	return []interface{}{map[string]interface{}{
-		"bypass":                input.Bypass,
-		"default_action":        input.DefaultAction,
-		"ip_rules":              ipRules,
-		"virtual_network_rules": virtualNetworkRules,
-	}}
-}
-
 func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -379,4 +343,40 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 	return nil
+}
+
+func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ipRules := make([]interface{}, 0)
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
+			ipRules = append(ipRules, v.Value)
+		}
+	}
+
+	virtualNetworkRules := make([]interface{}, 0)
+	if input.VirtualNetworkRules != nil {
+		for _, v := range *input.VirtualNetworkRules {
+			id := v.Id
+			subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
+			if err == nil {
+				id = subnetId.ID()
+			}
+
+			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
+				"subnet_id":                            id,
+				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
+			})
+		}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"bypass":                input.Bypass,
+		"default_action":        input.DefaultAction,
+		"ip_rules":              ipRules,
+		"virtual_network_rules": virtualNetworkRules,
+	}}
 }

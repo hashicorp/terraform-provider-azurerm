@@ -35,7 +35,9 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `custom_question_answering_search_service_id` - The ID of the search service. This is only available when the `kind` is `TextAnalytics`.
+* `id` - The ID of the Cognitive Services Account.
+
+* `custom_question_answering_search_service_id` - The ID of the search service.
 
 * `custom_subdomain_name` - The subdomain name used for Entra ID token-based authentication.
 
@@ -55,13 +57,13 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Cognitive Services Account exists.
 
-* `metrics_advisor_aad_client_id` - The Microsoft Entra Application (client) ID. This is only available when the kind is `MetricsAdvisor`.
+* `metrics_advisor_aad_client_id` - The Microsoft Entra Application (client) ID.
 
-* `metrics_advisor_aad_tenant_id` - The Microsoft Entra Tenant ID. This is only available when the kind is `MetricsAdvisor`.
+* `metrics_advisor_aad_tenant_id` - The Microsoft Entra Tenant ID.
 
-* `metrics_advisor_super_user_name` - The super user of Metrics Advisor. This is only available when the kind is `MetricsAdvisor`.
+* `metrics_advisor_super_user_name` - The super user of Metrics Advisor.
 
-* `metrics_advisor_website_name` - The website name of Metrics Advisor. This is only available when the kind is `MetricsAdvisor`.
+* `metrics_advisor_website_name` - The website name of Metrics Advisor.
 
 * `network_acls` -  A `network_acls` block as defined below.
 
@@ -82,8 +84,6 @@ The following attributes are exported:
 * `primary_access_key` - The primary access key of the Cognitive Services Account.
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account.
-
--> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_auth_enabled` is `true`.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
