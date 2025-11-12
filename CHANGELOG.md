@@ -1,6 +1,7 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_managed_disk` - support expanding Ultra Disks and Premium SSD v2 disk without downtime [GH-30593]
 * `data.azurerm_postgresql_flexible_server` - add support for `zone` and `high_availability` [GH-31034]
 `azurerm_dynatrace_monitor` - support for the `YEARLY` value in the `billing_cycle` property [GH-31078]
 * `azurerm_storage_table_entity` - resource is now removed from state if it no longer exists in Azure [GH-31064]
