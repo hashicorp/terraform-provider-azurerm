@@ -84,7 +84,7 @@ func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Automation.Module.PowerShell72ModuleGet(ctx, *id)
+	resp, err := clients.Automation.ModuleClientV2023.PowerShell72ModuleGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

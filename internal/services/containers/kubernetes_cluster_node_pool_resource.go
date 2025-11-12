@@ -85,6 +85,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway
 				mode := d.Get("mode").(string)
@@ -405,7 +408,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"upgrade_settings": upgradeSettingsSchema(),
+		"upgrade_settings": upgradeSettingsSchemaNodePoolResource(),
 
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
@@ -1286,7 +1289,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func upgradeSettingsSchema() *pluginsdk.Schema {
+func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1294,17 +1297,31 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+				"max_unavailable": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
 				},
 			},
 		},
@@ -1321,12 +1338,20 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+				"max_unavailable": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"undrainable_node_behavior": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -1384,26 +1409,38 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
 	}
+	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
+		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
+	}
+
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
+	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
+		setting.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
+	}
 	return setting
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
 	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
+	if input == nil || (input.MaxSurge == nil && input.MaxUnavailable == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
 		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
 
-	if input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
+	}
+	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" && *input.MaxUnavailable != "0" && *input.MaxUnavailable != "0%" {
+		values["max_unavailable"] = *input.MaxUnavailable
 	}
 
 	if input.DrainTimeoutInMinutes != nil {
@@ -1412,6 +1449,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
