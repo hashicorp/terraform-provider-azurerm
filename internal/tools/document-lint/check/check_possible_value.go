@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/fatih/color"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
@@ -301,30 +302,27 @@ func hasVersionChanges(resourceType, fieldPath string) bool {
 }
 
 var (
-	upgradeGuideContent string
-	upgradeGuideLoaded  bool
+	upgradeGuideContent  string
+	loadUpgradeGuideOnce sync.Once
 )
 
 // getUpgradeGuideContent loads and caches the upgrade guide content
 func getUpgradeGuideContent() string {
-	if upgradeGuideLoaded {
-		return upgradeGuideContent
-	}
+	loadUpgradeGuideOnce.Do(func() {
+		docsDir := md.DocDir()
 
-	upgradeGuideLoaded = true
-
-	docsDir := md.DocDir()
-
-	if upgradeFile := findUpgradeGuide(docsDir); upgradeFile != "" {
-		if content, err := os.ReadFile(upgradeFile); err == nil {
-			upgradeGuideContent = string(content)
-			log.Printf("Loaded upgrade guide from: %s", upgradeFile)
-			return upgradeGuideContent
+		if upgradeFile := findUpgradeGuide(docsDir); upgradeFile != "" {
+			if content, err := os.ReadFile(upgradeFile); err == nil {
+				upgradeGuideContent = string(content)
+				log.Printf("Loaded upgrade guide from: %s", upgradeFile)
+				return
+			}
 		}
-	}
 
-	log.Printf("Warning: Could not find any *-upgrade-guide.html.markdown file in docs directory: %s", docsDir)
-	upgradeGuideContent = ""
+		log.Printf("Warning: Could not find any *-upgrade-guide.html.markdown file in docs directory: %s", docsDir)
+		upgradeGuideContent = ""
+	})
+
 	return upgradeGuideContent
 }
 
