@@ -18,10 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-const StopProtection = "stop_protection"
-const ResumeProtection = "resume_protection"
-const SuspendBackups = "suspend_backups"
-const ResumeBackups = "resume_backups"
+const (
+	StopProtection   = "stop_protection"
+	ResumeProtection = "resume_protection"
+	SuspendBackups   = "suspend_backups"
+	ResumeBackups    = "resume_backups"
+)
 
 type DataProtectionBackupInstanceProtectAction struct {
 	sdk.ActionMetadata
