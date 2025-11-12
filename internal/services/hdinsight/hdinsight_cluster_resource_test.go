@@ -60,8 +60,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
+}
+
+# This data source is the only way to get the data plane IDs of the containers without using the deprecated
+# storage_account_name argument in azurerm_storage_container
+data "azurerm_storage_containers" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  depends_on         = [azurerm_storage_container.test]
 }
 
 resource "azurerm_virtual_network" "test" {

@@ -4,6 +4,7 @@
 package hdinsight
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -853,7 +855,7 @@ func FlattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
 }
 
 func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -869,10 +871,9 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.IsURLWithPath,
 				},
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -886,18 +887,37 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["storage_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+			Deprecated:   "`storage_resource_id` has been deprecated in favour of the `storage_account_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return schema
 }
 
 func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		// HDInsight doesn't seem to allow adding more than one gen2 cluster right now.
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -909,8 +929,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				// TODO: this should become `user_assigned_identity_id` in 4.0
-				"managed_identity_resource_id": {
+				"user_assigned_identity_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -924,6 +943,72 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["storage_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+			Deprecated:   "`storage_resource_id` has been deprecated in favour of the `storage_account_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["user_assigned_identity_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			Deprecated:   "`managed_identity_resource_id` has been deprecated in favour of the `user_assigned_identity_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return schema
+}
+
+func GetStorageAccountDiffShim() schema.CustomizeDiffFunc {
+	return pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		if features.FivePointOh() {
+			return nil
+		}
+		for _, v := range diff.GetRawConfig().AsValueMap()["storage_account"].AsValueSlice() {
+			values := v.AsValueMap()
+			sai := values["storage_account_id"]
+			sri := values["storage_resource_id"]
+			if !sai.IsNull() && !sri.IsNull() {
+				return fmt.Errorf("at most one of `storage_account_id` or `storage_resource_id` may be specified in `storage_account` block")
+			}
+		}
+		for _, v := range diff.GetRawConfig().AsValueMap()["storage_account_gen2"].AsValueSlice() {
+			values := v.AsValueMap()
+			sai := values["storage_account_id"]
+			sri := values["storage_resource_id"]
+			if !sai.IsNull() && !sri.IsNull() {
+				return fmt.Errorf("at most one of `storage_account_id` or `storage_resource_id` may be specified in `storage_account_gen2` block")
+			}
+			uaii := values["user_assigned_identity_id"]
+			miri := values["managed_identity_resource_id"]
+			if (uaii.IsNull() && miri.IsNull()) || (!uaii.IsNull() && !miri.IsNull()) {
+				return fmt.Errorf("exactly one of `user_assigned_identity_id` or `managed_identity_resource_id` must be specified in `storage_account_gen2` block")
+			}
+		}
+
+		return nil
+	})
 }
 
 func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
@@ -1092,20 +1177,25 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerID := v["storage_container_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
+		storageAccountId := v["storage_account_id"].(string) // Optional property, Azure API accepts an empty string
 		isDefault := v["is_default"].(bool)
 
+		if !features.FivePointOh() {
+			if v["storage_resource_id"].(string) != "" {
+				storageAccountId = v["storage_resource_id"].(string)
+			}
+		}
 		uri, err := url.Parse(storageContainerID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerID, err)
 		}
 
 		result := clusters.StorageAccount{
-			Name:       utils.String(uri.Host),
-			ResourceId: utils.String(storageResourceID),
-			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
-			Key:        utils.String(storageAccountKey),
-			IsDefault:  utils.Bool(isDefault),
+			Name:       pointer.To(uri.Host),
+			ResourceId: pointer.To(storageAccountId),
+			Container:  pointer.To(strings.TrimPrefix(uri.Path, "/")),
+			Key:        pointer.To(storageAccountKey),
+			IsDefault:  pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -1113,15 +1203,24 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 	for _, vs := range gen2storageAccounts {
 		v := vs.(map[string]interface{})
 
-		fileSystemID := v["filesystem_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
-		managedIdentityResourceID := v["managed_identity_resource_id"].(string)
+		filesystemID := v["filesystem_id"].(string)
+		storageAccountID := v["storage_account_id"].(string) // Optional property, Azure API accepts an empty string
+		userAssignedIdentityID := v["user_assigned_identity_id"].(string)
+
+		if !features.FivePointOh() {
+			if v["storage_resource_id"].(string) != "" {
+				storageAccountID = v["storage_resource_id"].(string)
+			}
+			if v["managed_identity_resource_id"].(string) != "" {
+				userAssignedIdentityID = v["managed_identity_resource_id"].(string)
+			}
+		}
 
 		isDefault := v["is_default"].(bool)
 
-		uri, err := url.Parse(fileSystemID)
+		uri, err := url.Parse(filesystemID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parsing %q: %s", fileSystemID, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", filesystemID, err)
 		}
 
 		if clusterIdentity == nil {
@@ -1131,16 +1230,16 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			}
 		}
 
-		clusterIdentity.IdentityIds[managedIdentityResourceID] = identity.UserAssignedIdentityDetails{
+		clusterIdentity.IdentityIds[userAssignedIdentityID] = identity.UserAssignedIdentityDetails{
 			// intentionally empty
 		}
 
 		result := clusters.StorageAccount{
-			Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
-			ResourceId:    utils.String(storageResourceID),
-			FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-			MsiResourceId: utils.String(managedIdentityResourceID),
-			IsDefault:     utils.Bool(isDefault),
+			Name:          pointer.To(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
+			ResourceId:    pointer.To(storageAccountID),
+			FileSystem:    pointer.To(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+			MsiResourceId: pointer.To(userAssignedIdentityID),
+			IsDefault:     pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -1545,9 +1644,9 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	scriptActions := v["script_actions"].([]interface{})
 
 	role := clusters.Role{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		HardwareProfile: &clusters.HardwareProfile{
-			VMSize: utils.String(vmSize),
+			VMSize: pointer.To(vmSize),
 		},
 		OsProfile: &clusters.OsProfile{
 			LinuxOperatingSystemProfile: &clusters.LinuxOperatingSystemProfile{},
@@ -1556,32 +1655,32 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if name != "kafkamanagementnode" {
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(username)
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To(username)
 	} else {
 		// kafkamanagementnode generates a username and discards the value sent, however, the API has `Username` marked
 		// as required non-empty, so we'll send a dummy one avoiding the Portal's default value, which is reserved/invalid.
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("sshadmin")
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To("sshadmin")
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
 	subnetSpecified := subnetId != ""
 	if virtualNetworkSpecified && subnetSpecified {
 		role.VirtualNetworkProfile = &clusters.VirtualNetworkProfile{
-			Id:     utils.String(virtualNetworkId),
-			Subnet: utils.String(subnetId),
+			Id:     pointer.To(virtualNetworkId),
+			Subnet: pointer.To(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
 		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
-		role.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(password)
+		role.OsProfile.LinuxOperatingSystemProfile.Password = pointer.To(password)
 	} else {
 		sshKeysRaw := v["ssh_keys"].(*pluginsdk.Set).List()
 		sshKeys := make([]clusters.SshPublicKey, 0)
 		for _, v := range sshKeysRaw {
 			sshKeys = append(sshKeys, clusters.SshPublicKey{
-				CertificateData: utils.String(v.(string)),
+				CertificateData: pointer.To(v.(string)),
 			})
 		}
 
@@ -1689,7 +1788,7 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		schedules = append(schedules, clusters.AutoscaleSchedule{
 			Days: &expandedWeekDays,
 			TimeAndCapacity: &clusters.AutoscaleTimeAndCapacity{
-				Time: utils.String(val["time"].(string)),
+				Time: pointer.To(val["time"].(string)),
 				// SDK supports min and max, but server side always overrides max to be equal to min
 				MinInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
 				MaxInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
@@ -1698,7 +1797,7 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 	}
 
 	result := &clusters.AutoscaleRecurrence{
-		TimeZone: utils.String(vs["timezone"].(string)),
+		TimeZone: pointer.To(vs["timezone"].(string)),
 		Schedule: &schedules,
 	}
 
@@ -1714,12 +1813,12 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
-		Domain:             utils.String(v["domain_name"].(string)),
+		Domain:             pointer.To(v["domain_name"].(string)),
 		LdapsURLs:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
-		DomainUsername:     utils.String(v["domain_username"].(string)),
-		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
-		AaddsResourceId:    utils.String(v["aadds_resource_id"].(string)),
-		MsiResourceId:      utils.String(v["msi_resource_id"].(string)),
+		DomainUsername:     pointer.To(v["domain_username"].(string)),
+		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
+		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
+		MsiResourceId:      pointer.To(v["msi_resource_id"].(string)),
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
