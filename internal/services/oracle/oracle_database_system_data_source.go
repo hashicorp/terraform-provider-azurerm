@@ -29,7 +29,7 @@ type DatabaseSystemDataModel struct {
 	ComputeCount                 int64                        `tfschema:"compute_count"`
 	ComputeModel                 string                       `tfschema:"compute_model"`
 	DatabaseEdition              string                       `tfschema:"database_edition"`
-	DataStorageSizeInGbs         int64                        `tfschema:"data_storage_size_in_gbs"`
+	DataStorageSizeInGb          int64                        `tfschema:"data_storage_size_in_gb"`
 	DatabaseSystemOptions        []DatabaseSystemOptionsModel `tfschema:"database_system_options"`
 	DatabaseVersion              string                       `tfschema:"database_version"`
 	DiskRedundancy               string                       `tfschema:"disk_redundancy"`
@@ -41,7 +41,7 @@ type DatabaseSystemDataModel struct {
 	LifecycleDetails             string                       `tfschema:"lifecycle_details"`
 	LifecycleState               string                       `tfschema:"lifecycle_state"`
 	ListenerPort                 int64                        `tfschema:"listener_port"`
-	MemorySizeInGbs              int64                        `tfschema:"memory_size_in_gbs"`
+	MemorySizeInGb               int64                        `tfschema:"memory_size_in_gb"`
 	NetworkAnchorId              string                       `tfschema:"network_anchor_id"`
 	NodeCount                    int64                        `tfschema:"node_count"`
 	OciUrl                       string                       `tfschema:"oci_url"`
@@ -97,7 +97,7 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"data_storage_size_in_gbs": {
+		"data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -165,7 +165,8 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"memory_size_in_gbs": {
+		"memory_size_in_gb" +
+			"": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -291,18 +292,18 @@ func (d DatabaseSystemDataSource) Read() sdk.ResourceFunc {
 					state.ComputeCount = pointer.From(databaseSystemProps.ComputeCount)
 					state.ComputeModel = pointer.FromEnum(databaseSystemProps.ComputeModel)
 					state.ClusterName = pointer.From(databaseSystemProps.ClusterName)
-					state.DataStorageSizeInGbs = pointer.From(databaseSystemProps.DataStorageSizeInGbs)
+					state.DataStorageSizeInGb = pointer.From(databaseSystemProps.DataStorageSizeInGbs)
 					state.DatabaseSystemOptions = FlattenDbSystemOptions(databaseSystemProps.DbSystemOptions)
-					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
+					state.DiskRedundancy = pointer.FromEnum(props.DiskRedundancy)
 					state.DisplayName = pointer.From(databaseSystemProps.DisplayName)
 					state.Domain = pointer.From(databaseSystemProps.Domain)
 					state.GridImageOcid = pointer.From(databaseSystemProps.GridImageOcid)
 					state.Hostname = databaseSystemProps.Hostname
-					state.LicenseModel = string(pointer.From(databaseSystemProps.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(databaseSystemProps.LicenseModel)
 					state.LifecycleDetails = pointer.From(databaseSystemProps.LifecycleDetails)
-					state.LifecycleState = string(*databaseSystemProps.LifecycleState)
+					state.LifecycleState = pointer.FromEnum(databaseSystemProps.LifecycleState)
 					state.ListenerPort = pointer.From(databaseSystemProps.ListenerPort)
-					state.MemorySizeInGbs = pointer.From(databaseSystemProps.MemorySizeInGbs)
+					state.MemorySizeInGb = pointer.From(databaseSystemProps.MemorySizeInGbs)
 					state.NetworkAnchorId = databaseSystemProps.NetworkAnchorId
 					state.NodeCount = pointer.From(databaseSystemProps.NodeCount)
 					state.OciUrl = pointer.From(databaseSystemProps.OciURL)
@@ -313,7 +314,7 @@ func (d DatabaseSystemDataSource) Read() sdk.ResourceFunc {
 					state.Shape = databaseSystemProps.Shape
 					state.Source = string(databaseSystemProps.Source)
 					state.SshPublicKeys = databaseSystemProps.SshPublicKeys
-					state.StorageVolumePerformanceMode = string(pointer.From(databaseSystemProps.StorageVolumePerformanceMode))
+					state.StorageVolumePerformanceMode = pointer.FromEnum(databaseSystemProps.StorageVolumePerformanceMode)
 					state.TimeZone = pointer.From(databaseSystemProps.TimeZone)
 					state.Version = pointer.From(databaseSystemProps.Version)
 				}

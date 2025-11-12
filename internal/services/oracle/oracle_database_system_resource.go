@@ -82,7 +82,7 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"compute_count": {
-			Type:         pluginsdk.TypeInt,
+			Type:         pluginsdk.TypeFloat,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.FloatBetween(1.0, 512.0),

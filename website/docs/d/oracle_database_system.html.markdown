@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_model` - The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy.
 
-* `data_storage_size_in_gbs` - The data storage size, in gigabytes, that is currently available to the Database system. Applies only for virtual machine Database systems.
+* `data_storage_size_in_gb` - The data storage size, in gigabytes, that is currently available to the Database system. Applies only for virtual machine Database systems.
 
 * `database_edition` - The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance.
 
@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Database System exists.
 
-* `memory_size_in_gbs` - Memory allocated to the Database system, in gigabytes.
+* `memory_size_in_gb` - Memory allocated to the Database system, in gigabytes.
 
 * `network_anchor_id` - The ID of the Azure Network Anchor.
 

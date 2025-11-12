@@ -13,9 +13,55 @@ Manages a Database System.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "eastus"
+}
+
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-virtual-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      actions = [
+        "Microsoft.Network/networkinterfaces/*",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Oracle.Database/networkAttachments"
+    }
+  }
+}
+
+resource "azurerm_oracle_resource_anchor" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_oracle_network_anchor" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "eastus"
+  resource_anchor_id  = azurerm_oracle_resource_anchor.example.id
+  subnet_id           = azurerm_subnet.example.id
+  zones               = ["2"]
+}
+
 resource "azurerm_oracle_database_system" "example" {
-  name                = "example-database-system"
-  resource_group_name = "example-resources"
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
   location            = "eastus"
   zones               = ["1"]
   cpu_core_count      = 4
@@ -23,10 +69,10 @@ resource "azurerm_oracle_database_system" "example" {
   database_edition    = "StandardEdition"
   database_version    = "19.27.0.0"
   hostname            = "hostname"
-  network_anchor_id   = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/networkAnchors/NetworkAnchorRegion1"
-  resource_anchor_id  = "/subscriptions/7a481e15-0e3c-420f-8dc7-4d183bd8d0f8/resourceGroups/wen_rg_eastus2euap/providers/Oracle.Database/resourceAnchors/ResourceAnchorRegion1"
+  network_anchor_id   = azurerm_oracle_network_anchor.example.id
+  resource_anchor_id  = azurerm_oracle_resource_anchor.example.id
   shape               = "VM.Standard.x86"
-  ssh_public_keys     = [file("~/.ssh/id_rsa.pub")]
+  ssh_public_keys     = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
 }
 ```
 
@@ -78,7 +124,7 @@ The following arguments are supported:
 
 * `domain` - (Optional) The domain name for the Database system. Changing this forces a new Database system to be created.
 
-* `initial_data_storage_size_in_gb` - (Optional) "Size in GB of the initial data volume that will be created and attached to a virtual machine Database system. You can scale up storage after provisioning, as needed. Note that the total storage size attached will be more than the amount you specify to allow for REDO/RECO space and software volume. Changing this forces a new Database system to be created.
+* `initial_data_storage_size_in_gb` - (Optional) Size in GB of the initial data volume that will be created and attached to a virtual machine Database system. You can scale up storage after provisioning, as needed. Note that the total storage size attached will be more than the amount you specify to allow for REDO/RECO space and software volume. Changing this forces a new Database system to be created.
 
 * `node_count` - (Optional) The number of nodes in the Database system. For RAC Database systems, the value is greater than 1. Changing this forces a new Database system to be created.
 
@@ -118,7 +164,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Database Systems can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracle_database_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/dbsystems/example
+terraform import azurerm_oracle_database_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/dbSystems/example
 ```
 
 ## API Providers
