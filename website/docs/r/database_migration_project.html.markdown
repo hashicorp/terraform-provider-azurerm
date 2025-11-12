@@ -52,7 +52,7 @@ resource "azurerm_database_migration_project" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

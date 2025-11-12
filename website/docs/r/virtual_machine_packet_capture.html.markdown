@@ -115,7 +115,7 @@ resource "azurerm_virtual_machine_packet_capture" "example" {
 
 ~> **Note:** This Resource requires that [the Network Watcher Virtual Machine Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -193,4 +193,4 @@ terraform import azurerm_virtual_machine_packet_capture.capture1 /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

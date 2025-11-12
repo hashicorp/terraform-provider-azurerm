@@ -94,9 +94,9 @@ import (
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
@@ -232,8 +232,8 @@ type Client struct {
 	ManagedApplication                *managedapplication.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
+	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
-	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
 	MobileNetwork                     *mobilenetwork.Client
 	MongoCluster                      *mongocluster.Client
@@ -518,11 +518,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
 	}
+	if client.ManagedRedis, err = managedredis.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Redis: %+v", err)
+	}
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
-	}
-	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
 	}
 	if client.Monitor, err = monitor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Monitor: %+v", err)
