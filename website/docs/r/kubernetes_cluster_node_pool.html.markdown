@@ -96,7 +96,9 @@ The following arguments are supported:
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
-* `gateway_profile` - (Optional) A `gateway_profile` block as defined below. Only valid when `mode` is set to `Gateway`.
+* `gateway_public_ip_prefix_size` - (Optional) The size of the public IP prefix for the node pool when `mode` is set to `Gateway`. Valid values are between `28` and `31`. Defaults to `31`.
+
+-> **Note:** `gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`.
 
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
@@ -241,14 +243,6 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
-
----
-
-A `gateway_profile` block supports the following:
-
-* `public_ip_prefix_size` - (Optional) Specifies the public IP prefix size for the gateway node pool. Must be between `28` and `31`. Defaults to `31`.
-
--> **Note:** The `gateway_profile` block can only be configured when the node pool `mode` is set to `Gateway`. This configuration determines the size of the public IP prefix allocated to the gateway nodes. For more information about static egress gateways, see the [Azure documentation](https://learn.microsoft.com/en-us/azure/aks/configure-static-egress-gateway).
 
 ---
 

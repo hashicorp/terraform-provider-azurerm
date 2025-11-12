@@ -204,20 +204,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
 
-		"gateway_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"public_ip_prefix_size": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      31,
-						ValidateFunc: validation.IntBetween(28, 31),
-					},
-				},
-			},
+		"gateway_public_ip_prefix_size": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      31,
+			ValidateFunc: validation.IntBetween(28, 31),
 		},
 
 		"kubelet_disk_type": {
@@ -567,8 +558,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if gatewayProfileRaw := d.Get("gateway_profile").([]interface{}); len(gatewayProfileRaw) > 0 {
-		profile.GatewayProfile = expandAgentPoolGatewayProfile(gatewayProfileRaw)
+	if publicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int); publicIPPrefixSize != 0 {
+		profile.GatewayProfile = expandAgentPoolGatewayProfile(publicIPPrefixSize)
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
@@ -810,9 +801,9 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string)))
 	}
 
-	if d.HasChange("gateway_profile") {
-		gatewayProfileRaw := d.Get("gateway_profile").([]interface{})
-		props.GatewayProfile = expandAgentPoolGatewayProfile(gatewayProfileRaw)
+	if d.HasChange("gateway_public_ip_prefix_size") {
+		publicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int)
+		props.GatewayProfile = expandAgentPoolGatewayProfile(publicIPPrefixSize)
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -1127,7 +1118,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
-		if err := d.Set("gateway_profile", flattenAgentPoolGatewayProfile(props.GatewayProfile)); err != nil {
+		if err := d.Set("gateway_public_ip_prefix_size", flattenAgentPoolGatewayProfile(props.GatewayProfile)); err != nil {
 			return fmt.Errorf("setting `gateway_profile`: %+v", err)
 		}
 
@@ -1882,31 +1873,19 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	return out
 }
 
-func expandAgentPoolGatewayProfile(input []interface{}) *agentpools.AgentPoolGatewayProfile {
-	if len(input) == 0 || input[0] == nil {
+func expandAgentPoolGatewayProfile(publicIPPrefixSize int) *agentpools.AgentPoolGatewayProfile {
+	if publicIPPrefixSize == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
-
 	return &agentpools.AgentPoolGatewayProfile{
-		PublicIPPrefixSize: pointer.To(int64(raw["public_ip_prefix_size"].(int))),
+		PublicIPPrefixSize: pointer.To(int64(publicIPPrefixSize)),
 	}
 }
 
-func flattenAgentPoolGatewayProfile(input *agentpools.AgentPoolGatewayProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenAgentPoolGatewayProfile(input *agentpools.AgentPoolGatewayProfile) int {
+	if input == nil || input.PublicIPPrefixSize == nil {
+		return 31
 	}
-
-	publicIPPrefixSize := 31
-	if input.PublicIPPrefixSize != nil {
-		publicIPPrefixSize = int(*input.PublicIPPrefixSize)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"public_ip_prefix_size": publicIPPrefixSize,
-		},
-	}
+	return int(*input.PublicIPPrefixSize)
 }

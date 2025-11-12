@@ -3517,7 +3517,7 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mode").HasValue("Gateway"),
-				check.That(data.ResourceName).Key("gateway_profile.0.public_ip_prefix_size").HasValue("30"),
+				check.That(data.ResourceName).Key("gateway_public_ip_prefix_size").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -3540,10 +3540,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   mode                  = "Gateway"
   vnet_subnet_id        = azurerm_subnet.test.id
 
-  gateway_profile {
-    public_ip_prefix_size = 30
-  }
-	
+  gateway_public_ip_prefix_size = 30
+
 	node_taints = [
 		"kubernetes.azure.com/mode=gateway:NoSchedule",
 	]
@@ -3590,9 +3588,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin = "azure"
-    static_egress_gateway_profile {
-      enabled = true
-    }
+    static_egress_gateway_profile_enabled = true
   }
 
   identity {
