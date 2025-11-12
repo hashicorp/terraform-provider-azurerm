@@ -25,9 +25,7 @@ The AKS Egress Gateway feature provides:
 ```hcl
 network_profile {
   network_plugin = "azure"
-  static_egress_gateway_profile {
-    enabled = true
-  }
+  static_egress_gateway_profile_enabled = true
 }
 ```
 

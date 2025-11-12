@@ -32,9 +32,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   # Enable static egress gateway for the cluster
   network_profile {
     network_plugin = "azure"
-    static_egress_gateway_profile {
-      enabled = true
-    }
+    static_egress_gateway_profile_enabled = true
   }
 
   identity {

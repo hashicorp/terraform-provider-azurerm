@@ -1321,19 +1321,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 						},
 
-						"static_egress_gateway_profile": {
-							Type:     pluginsdk.TypeList,
+						"static_egress_gateway_profile_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-								},
-							},
+							Default:  false,
 						},
 					},
 				},
@@ -2325,9 +2316,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(d.Get("network_profile.0.advanced_networking").([]interface{}), d)
 		}
 
-		if key := "network_profile.0.static_egress_gateway_profile"; d.HasChange(key) {
-			staticEgressGatewayProfileRaw := d.Get(key).([]interface{})
-			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(staticEgressGatewayProfileRaw)
+		if d.HasChange("network_profile.0.static_egress_gateway_profile_enabled") {
+			enabled := d.Get("network_profile.0.static_egress_gateway_profile_enabled").(bool)
+			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(enabled)
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -3579,8 +3570,8 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.Res
 		networkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(v.([]interface{}), d)
 	}
 
-	if staticEgressGatewayProfileRaw := config["static_egress_gateway_profile"].([]interface{}); len(staticEgressGatewayProfileRaw) > 0 {
-		networkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(staticEgressGatewayProfileRaw)
+	if enabled := config["static_egress_gateway_profile_enabled"].(bool); enabled {
+		networkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(enabled)
 	}
 
 	return &networkProfile, nil
@@ -3906,23 +3897,23 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	advancedNetworking := flattenKubernetesClusterAdvancedNetworking(profile.AdvancedNetworking)
 
 	result := map[string]interface{}{
-		"dns_service_ip":                dnsServiceIP,
-		"network_data_plane":            networkDataPlane,
-		"load_balancer_sku":             string(*sku),
-		"load_balancer_profile":         lbProfiles,
-		"nat_gateway_profile":           ngwProfiles,
-		"ip_versions":                   ipVersions,
-		"network_plugin":                networkPlugin,
-		"network_plugin_mode":           networkPluginMode,
-		"network_mode":                  networkMode,
-		"network_policy":                networkPolicy,
-		"pod_cidr":                      podCidr,
-		"pod_cidrs":                     utils.FlattenStringSlice(profile.PodCidrs),
-		"service_cidr":                  serviceCidr,
-		"service_cidrs":                 utils.FlattenStringSlice(profile.ServiceCidrs),
-		"static_egress_gateway_profile": flattenStaticEgressGatewayProfile(profile.StaticEgressGatewayProfile),
-		"outbound_type":                 outboundType,
-		"advanced_networking":           advancedNetworking,
+		"dns_service_ip":                        dnsServiceIP,
+		"network_data_plane":                    networkDataPlane,
+		"load_balancer_sku":                     string(*sku),
+		"load_balancer_profile":                 lbProfiles,
+		"nat_gateway_profile":                   ngwProfiles,
+		"ip_versions":                           ipVersions,
+		"network_plugin":                        networkPlugin,
+		"network_plugin_mode":                   networkPluginMode,
+		"network_mode":                          networkMode,
+		"network_policy":                        networkPolicy,
+		"pod_cidr":                              podCidr,
+		"pod_cidrs":                             utils.FlattenStringSlice(profile.PodCidrs),
+		"service_cidr":                          serviceCidr,
+		"service_cidrs":                         utils.FlattenStringSlice(profile.ServiceCidrs),
+		"static_egress_gateway_profile_enabled": flattenStaticEgressGatewayProfile(profile.StaticEgressGatewayProfile),
+		"outbound_type":                         outboundType,
+		"advanced_networking":                   advancedNetworking,
 	}
 
 	return []interface{}{result}
@@ -4690,33 +4681,17 @@ func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterSt
 	return &profile
 }
 
-func expandStaticEgressGatewayProfile(input []interface{}) *managedclusters.ManagedClusterStaticEgressGatewayProfile {
-	if (input == nil) || len(input) == 0 {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
+func expandStaticEgressGatewayProfile(enabled bool) *managedclusters.ManagedClusterStaticEgressGatewayProfile {
 	return &managedclusters.ManagedClusterStaticEgressGatewayProfile{
-		Enabled: pointer.To(raw["enabled"].(bool)),
+		Enabled: pointer.To(enabled),
 	}
 }
 
-func flattenStaticEgressGatewayProfile(profile *managedclusters.ManagedClusterStaticEgressGatewayProfile) []interface{} {
-	if profile == nil {
-		return []interface{}{}
+func flattenStaticEgressGatewayProfile(profile *managedclusters.ManagedClusterStaticEgressGatewayProfile) bool {
+	if profile == nil || profile.Enabled == nil {
+		return false
 	}
-
-	enabled := false
-	if profile.Enabled != nil {
-		enabled = *profile.Enabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled": enabled,
-		},
-	}
+	return *profile.Enabled
 }
 
 func expandEdgeZone(input string) *edgezones.Model {
