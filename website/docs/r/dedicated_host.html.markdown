@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `auto_replace_on_failure` - (Optional) Should the Dedicated Host automatically be replaced in case of a Hardware Failure? Defaults to `true`.
 
-* `license_type` - (Optional) Specifies the software license type that will be applied to the VMs deployed on the Dedicated Host. Possible values are `None`, `Windows_Server_Hybrid` and `Windows_Server_Perpetual`. Defaults to `None`.
+* `license_type` - (Optional) Specifies the software licence type that will be applied to the VMs deployed on the Dedicated Host. Possible values are `Windows_Server_Hybrid` and `Windows_Server_Perpetual`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

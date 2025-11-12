@@ -770,11 +770,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      patch_mode = "%[3]s"
+      computer_name_prefix      = "testvm"
+      admin_username            = "myadmin"
+      admin_password            = "Passwword1234"
+      automatic_updates_enabled = true
+      patch_mode                = "%[3]s"
     }
   }
 
@@ -852,9 +852,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
+      computer_name_prefix      = "testvm"
+      admin_username            = "myadmin"
+      admin_password            = "Passwword1234"
+      automatic_updates_enabled = true
     }
   }
 

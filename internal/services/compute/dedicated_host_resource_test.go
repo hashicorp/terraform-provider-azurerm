@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DedicatedHostResource struct{}
@@ -180,7 +181,7 @@ func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("retrieving Compute Dedicated Host %q", id.String())
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DedicatedHostResource) basic(data acceptance.TestData) string {
@@ -227,6 +228,34 @@ resource "azurerm_dedicated_host" "test" {
 }
 
 func (r DedicatedHostResource) licenceType(data acceptance.TestData, licenseType string) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "FSv2-Type2"
+  platform_fault_domain   = 1
+  license_type            = %q
+}
+`, r.template(data), data.RandomInteger, licenseType)
+	}
+	if licenseType == "None" {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "FSv2-Type2"
+  platform_fault_domain   = 1
+}
+`, r.template(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 %s
 

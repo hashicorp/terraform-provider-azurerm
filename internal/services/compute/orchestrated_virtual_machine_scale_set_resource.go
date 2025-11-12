@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -105,7 +104,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			// For sku I will create a format like: tier_sku name.
-			// NOTE: all of the exposed vm sku tier's are Standard so this will continue to be hardcoded
+			// NOTE: all of the exposed vm sku tiers are Standard so this will continue to be hardcoded
 			// Examples: Standard_HC44rs_4, Standard_D48_v3_6, Standard_M64s_20, Standard_HB120-96rs_v3_8
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
@@ -570,7 +569,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
-			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
+			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(d, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
@@ -902,6 +901,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		if len(osProfileRaw) > 0 && osProfileRaw[0] != nil {
 			osProfile := osProfileRaw[0].(map[string]interface{})
 			winConfigRaw := osProfile["windows_configuration"].([]interface{})
+
 			linConfigRaw := osProfile["linux_configuration"].([]interface{})
 
 			if d.HasChange("os_profile.0.custom_data") {
@@ -1530,7 +1530,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	if resp.Model != nil && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
@@ -1604,7 +1604,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(capacity)),
 	}
 
 	if input != SkuNameMix {

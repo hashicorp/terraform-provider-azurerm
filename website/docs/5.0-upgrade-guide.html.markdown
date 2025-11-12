@@ -236,6 +236,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
+### `azurerm_dedicated_host`
+
+* The `license_type` property no longer accepts `None` as a value. Instead, simply omit the argument.
+
+### `azurerm_orchestrated_virtual_machine_scale_set`
+
+* The deprecated `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+
 ### `azurerm_eventgrid_event_subscription`
 
 * Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.

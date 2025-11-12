@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -170,7 +171,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
+	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(d)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
@@ -290,8 +291,13 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && (healthProbeId == "" && !hasHealthExtension) {
 		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
+	enableAutomaticUpdates := d.Get("automatic_updates_enabled").(bool)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_automatic_updates"); ok {
+			enableAutomaticUpdates = v.(bool)
+		}
+	}
 
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = pointer.To(enableAutomaticUpdates)
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -553,8 +559,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
-			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(d)
 
 			// however if this block has been changed then we need to pull it
 			if upgradePolicy.AutomaticOSUpgradePolicy != nil && upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
@@ -594,54 +599,38 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 	}
 
-	if d.HasChange("enable_automatic_updates") ||
-		d.HasChange("custom_data") ||
-		d.HasChange("provision_vm_agent") ||
-		d.HasChange("secret") ||
-		d.HasChange("timezone") {
-		osProfile := virtualmachinescalesets.VirtualMachineScaleSetUpdateOSProfile{}
+	updateProps.VirtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateOSProfile{}
 
-		if d.HasChange("enable_automatic_updates") || d.HasChange("provision_vm_agent") || d.HasChange("timezone") {
-			windowsConfig := virtualmachinescalesets.WindowsConfiguration{}
-
-			if d.HasChange("enable_automatic_updates") {
-				if upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic {
-					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
-				}
-
-				windowsConfig.EnableAutomaticUpdates = pointer.To(d.Get("enable_automatic_updates").(bool))
+	if !features.FivePointOh() {
+		if d.HasChange("enable_automatic_updates") {
+			if upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic {
+				return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
 			}
-
-			if d.HasChange("provision_vm_agent") {
-				windowsConfig.ProvisionVMAgent = pointer.To(d.Get("provision_vm_agent").(bool))
-			}
-
-			if d.HasChange("timezone") {
-				windowsConfig.TimeZone = pointer.To(d.Get("timezone").(string))
-			}
-
-			osProfile.WindowsConfiguration = &windowsConfig
+			updateProps.VirtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = pointer.To(d.Get("enable_automatic_updates").(bool))
 		}
-
-		if d.HasChange("custom_data") {
-			updateInstances = true
-
-			// customData can only be sent if it's a base64 encoded string,
-			// so it's not possible to remove this without tainting the resource
-			if v, ok := d.GetOk("custom_data"); ok {
-				osProfile.CustomData = pointer.To(v.(string))
-			}
-		}
-
-		if d.HasChange("secret") {
-			secretsRaw := d.Get("secret").([]interface{})
-			osProfile.Secrets = expandWindowsSecretsVMSS(secretsRaw)
-		}
-
-		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+	if d.HasChange("automatic_updates_enabled") {
+		if upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic {
+			return fmt.Errorf("`automatic_updates_enabled` cannot be changed for when `upgrade_mode` is `Automatic`")
+		}
+		updateProps.VirtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = pointer.To(d.Get("automatic_updates_enabled").(bool))
+	}
+
+	if d.HasChange("provision_vm_agent") {
+		updateProps.VirtualMachineProfile.OsProfile.WindowsConfiguration.ProvisionVMAgent = pointer.To(d.Get("provision_vm_agent").(bool))
+	}
+
+	if d.HasChange("timezone") {
+		updateProps.VirtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = pointer.To(d.Get("timezone").(string))
+	}
+
+	if d.HasChange("secret") {
+		secretsRaw := d.Get("secret").([]interface{})
+		updateProps.VirtualMachineProfile.OsProfile.Secrets = expandWindowsSecretsVMSS(secretsRaw)
+	}
+
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
@@ -1048,7 +1037,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 						// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 						// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
 						if upgradeMode != virtualmachinescalesets.UpgradeModeAutomatic {
-							d.Set("enable_automatic_updates", enableAutomaticUpdates)
+							if !features.FivePointOh() {
+								d.Set("enable_automatic_updates", enableAutomaticUpdates)
+							}
+							d.Set("automatic_updates_enabled", enableAutomaticUpdates)
 						}
 
 						d.Set("provision_vm_agent", windows.ProvisionVMAgent)
@@ -1180,7 +1172,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 }
 
 func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1267,8 +1259,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_automatic_updates": {
+		"automatic_updates_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -1497,4 +1488,22 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema["enable_automatic_updates"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"automatic_updates_enabled"},
+			Deprecated:    "This field is deprecated in favor of `automatic_updates_enabled` and will be removed in version 5.0 of the AzureRM Provider. ",
+		}
+		schema["automatic_updates_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_automatic_updates"},
+		}
+	}
+
+	return schema
 }

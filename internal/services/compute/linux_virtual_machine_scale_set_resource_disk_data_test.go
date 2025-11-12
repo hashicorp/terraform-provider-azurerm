@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
@@ -847,7 +848,8 @@ func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypePrem
 	// Limited regional availability for `PremiumV2_LRS`
 	// `PremiumV2_LRS` disks can only be can only be attached to zonal VMs currently
 	data.Locations.Primary = "westeurope"
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -881,6 +883,55 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     lun                            = 10
     ultra_ssd_disk_iops_read_write = %d
     ultra_ssd_disk_mbps_read_write = %d
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, iops, mbps)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2s_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type = "PremiumV2_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = %d
+    disk_mbps_read_write = %d
   }
 
   network_interface {
@@ -979,11 +1030,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_iops_read_write = 101
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -1033,11 +1084,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_mbps_read_write = 11
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -1087,12 +1138,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_iops_read_write = 101
-    ultra_ssd_disk_mbps_read_write = 11
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = 101
+    disk_mbps_read_write = 11
   }
 
   additional_capabilities {

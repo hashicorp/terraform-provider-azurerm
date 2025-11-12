@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,6 +31,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
+			"enable_automatic_updates",
 			"enable_automatic_updates",
 		),
 		{
@@ -59,6 +61,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "2019-Datacenter"),
@@ -69,6 +72,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -206,6 +210,117 @@ func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesAutomaticUpdate(data acceptance.TestData, version string) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+
+resource "azurerm_lb_probe" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  health_probe_id     = azurerm_lb_probe.test.id
+  upgrade_mode        = "Automatic"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "%s"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback   = true
+    automatic_os_upgrade_enabled = true
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
+  automatic_updates_enabled = false
+
+  depends_on = ["azurerm_lb_rule.test"]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, version)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -298,8 +413,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    disable_automatic_rollback   = true
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -309,7 +424,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
-  enable_automatic_updates = false
+  automatic_updates_enabled = false
 
   depends_on = ["azurerm_lb_rule.test"]
 }
@@ -353,8 +468,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = false
-    enable_automatic_os_upgrade = false
+    disable_automatic_rollback   = false
+    automatic_os_upgrade_enabled = false
   }
 
   rolling_upgrade_policy {
@@ -403,7 +518,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
