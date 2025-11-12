@@ -99,7 +99,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_resumeBackups(t *testing.T
 
 			{
 				RefreshState: true,
-				Check:        check.That("azurerm_data_protection_backup_instance_postgresql_flexible_server.test").Key("protection_state").HasValue("BackupsResumed"),
+				Check:        check.That("azurerm_data_protection_backup_instance_postgresql_flexible_server.test").Key("protection_state").HasValue("ProtectionConfigured"),
 			},
 		},
 	})
