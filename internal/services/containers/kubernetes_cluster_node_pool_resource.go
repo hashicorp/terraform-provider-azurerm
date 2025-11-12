@@ -434,43 +434,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"virtual_machine_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"scale": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"manual": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"size": {
-												Type:        pluginsdk.TypeString,
-												Required:    true,
-												Description: "The size of the virtual machine.",
-											},
-											"count": {
-												Type:        pluginsdk.TypeInt,
-												Required:    true,
-												Description: "The count of virtual machines.",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		"virtual_machine_profile": schemaVirtualMachineProfile(),
 	}
 
 	return s
