@@ -1229,11 +1229,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			var (
-				storageConnStringForFCApp,
-				storageConnStringForFcAppValue,
-				deploymentSaName,
+				backendStorageString,
 				deploymentSaKey,
-				backendStorageString string
+				deploymentSaName,
+				storageConnStringForFCApp,
+				storageConnStringForFcAppValue string
 			)
 			deploymentSaEndpoint := state.DeploymentStorageContainerEndpoint
 			if !features.FivePointOh() && deploymentSaEndpoint == "" {
