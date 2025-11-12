@@ -17,7 +17,7 @@ import (
 
 type DataProtectionBackupInstanceProtectAction struct{}
 
-func TestAccDataProtectionBackupInstanceProtectAction_stop(t *testing.T) {
+func TestAccDataProtectionBackupInstanceProtectAction_stopProtection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
@@ -39,7 +39,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_stop(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupInstanceProtectAction_resume(t *testing.T) {
+func TestAccDataProtectionBackupInstanceProtectAction_resumeProtection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
