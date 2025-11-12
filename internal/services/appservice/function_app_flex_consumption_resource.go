@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -442,6 +443,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"deployment_storage_access_key",
 				"deployment_storage_user_assigned_identity_id",
 			},
+			Deprecated:  "`storage_container_type` has been deprecated in favour of the `deployment_storage_container_type` property and will be removed in v5.0 of the AzureRM Provider.",
 			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
 		}
 
@@ -459,6 +461,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"deployment_storage_access_key",
 				"deployment_storage_user_assigned_identity_id",
 			},
+			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage_container_endpoint` property and will be removed in v5.0 of the AzureRM Provider.",
 			Description: "The endpoint of the storage container where the function app's code is hosted.",
 		}
 
@@ -481,6 +484,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"deployment_storage_access_key",
 				"deployment_storage_user_assigned_identity_id",
 			},
+			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage_authentication_type` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_access_key"] = &pluginsdk.Schema{
@@ -496,6 +500,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"deployment_storage_user_assigned_identity_id",
 			},
 			ValidateFunc: validation.StringIsNotEmpty,
+			Deprecated:   "`storage_access_key` has been deprecated in favour of the `deployment_storage_access_key` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_user_assigned_identity_id"] = &pluginsdk.Schema{
@@ -510,6 +515,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"deployment_storage_user_assigned_identity_id",
 			},
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Deprecated:   "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage_user_assigned_identity_id` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
 		schema["deployment_storage_container_type"] = &pluginsdk.Schema{
@@ -743,15 +749,15 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					storageUai = functionAppFlexConsumption.StorageUserAssignedIdentityID
 				}
 				if functionAppStorageAccountString == "" {
-					endpoint := strings.TrimPrefix(deploymentSaEndpoint, "https://")
-					if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-						storageName := endpoint[:storageNameIndex]
+					endpoint, err := url.Parse(deploymentSaEndpoint)
+					if storageName := strings.Split(endpoint.Host, ".")[0]; storageName != "" {
 						if functionAppFlexConsumption.StorageAccountUsesMSI {
 							functionAppStorageAccountString = storageName
 						} else {
 							functionAppStorageAccountString = fmt.Sprintf(StorageStringFmt, storageName, deploymentSaKey, *storageDomainSuffix)
 						}
-					} else {
+					}
+					if err != nil {
 						return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 					}
 				}
@@ -779,10 +785,10 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 
 			endpoint := strings.TrimPrefix(deploymentSaEndpoint, "https://")
-			var deploymentSaConncString string
+			var deploymentSaConnString string
 			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
 				storageName := endpoint[:storageNameIndex]
-				deploymentSaConncString = fmt.Sprintf(StorageStringFmt, storageName, deploymentSaKey, *storageDomainSuffix)
+				deploymentSaConnString = fmt.Sprintf(StorageStringFmt, storageName, deploymentSaKey, *storageDomainSuffix)
 			} else {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 			}
@@ -795,7 +801,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			} else {
 				storageConnStringForFCApp = ""
-				deploymentSaConncString = ""
+				deploymentSaConnString = ""
 				if storageAuthType == webapps.AuthenticationTypeUserAssignedIdentity {
 					if storageUai == "" {
 						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
@@ -836,7 +842,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, functionAppFlexConsumption.StorageAccountUsesMSI, functionAppStorageAccountString, storageConnStringForFCApp, deploymentSaConncString)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, functionAppFlexConsumption.StorageAccountUsesMSI, functionAppStorageAccountString, storageConnStringForFCApp, deploymentSaConnString)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -953,11 +959,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, *id)
@@ -1094,6 +1095,11 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 				}
 
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
+				}
+
 				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
 				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
@@ -1222,9 +1228,13 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			storageConnStringForFCApp := ""
-			storageConnStringForFcAppValue := ""
-			var deploymentSaName, deploymentSaKey, backendStorageString string
+			var (
+				storageConnStringForFCApp,
+				storageConnStringForFcAppValue,
+				deploymentSaName,
+				deploymentSaKey,
+				backendStorageString string
+			)
 			deploymentSaEndpoint := state.DeploymentStorageContainerEndpoint
 			if !features.FivePointOh() && deploymentSaEndpoint == "" {
 				deploymentSaEndpoint = state.StorageContainerEndpoint
@@ -1263,10 +1273,9 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				deploymentSaKey = state.DeploymentStorageAccessKey
 			}
 
-			endpoint := strings.TrimPrefix(deploymentSaEndpoint, "https://")
-			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-				deploymentSaName = endpoint[:storageNameIndex]
-			} else {
+			endpoint, err := url.Parse(deploymentSaEndpoint)
+			deploymentSaName = strings.Split(endpoint.Host, ".")[0]
+			if err != nil {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.DeploymentStorageContainerEndpoint)
 			}
 

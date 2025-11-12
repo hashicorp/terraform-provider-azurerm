@@ -2056,8 +2056,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, functionAppStorageUsesMSI bool, functionAppStorageString string, storageConnStringForFCApp string, storageConnStringForFCAppValue string) (*webapps.SiteConfig, error) {
-	if len(siteConfigFlexConsumption) == 0 {
+func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageString string, storageConnStringForFCApp, storageConnStringForFCAppValue string) (*webapps.SiteConfig, error) {
+	if len(input) == 0 {
 		return nil, nil
 	}
 
@@ -2072,10 +2072,10 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		appSettings = *existing.AppSettings
 	}
 
-	if functionAppStorageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", functionAppStorageString, false)
+	if storageUsesMSI {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", functionAppStorageString, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
 	if storageConnStringForFCApp != "" {
@@ -2084,7 +2084,7 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnStringForFCAppValue, true)
 	}
 
-	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
+	FlexConsumptionSiteConfig := input[0]
 
 	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {
