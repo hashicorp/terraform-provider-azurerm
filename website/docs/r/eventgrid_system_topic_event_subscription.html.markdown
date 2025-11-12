@@ -125,9 +125,9 @@ An `azure_alert_monitor_endpoint` block supports the following:
 
 * `action_groups` - (Optional) Specifies a list of action groups ids to submit the alerts to.
 
-* `severity` - (Required) Specifies the severity of the event alert. Possible values are `Sev0`, `Sev1`, `Sev2`, `Sev3` or `Sev4`.
+* `description` - (Required) Specifies a description for the alert.
 
-* `alert_description` - (Required) Specifies a description for the alert.
+* `severity` - (Required) Specifies the severity of the event alert. Possible values are `Sev0`, `Sev1`, `Sev2`, `Sev3` or `Sev4`.
 
 ---
 
