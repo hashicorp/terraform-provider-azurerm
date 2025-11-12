@@ -31,9 +31,12 @@ type CognitiveAccountProjectModel struct {
 	Tags               map[string]string                          `tfschema:"tags"`
 }
 
-type CognitiveAccountProjectResource struct{}
+var (
+	_ sdk.ResourceWithUpdate        = CognitiveAccountProjectResource{}
+	_ sdk.ResourceWithCustomizeDiff = CognitiveAccountProjectResource{}
+)
 
-var _ sdk.ResourceWithUpdate = CognitiveAccountProjectResource{}
+type CognitiveAccountProjectResource struct{}
 
 func (r CognitiveAccountProjectResource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
