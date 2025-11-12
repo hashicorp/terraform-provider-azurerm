@@ -18,6 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
+const StopProtection = "stop_protection"
+const ResumeProtection = "resume_protection"
+const SuspendBackups = "suspend_backups"
+const ResumeBackups = "resume_backups"
+
 type DataProtectionBackupInstanceProtectAction struct {
 	sdk.ActionMetadata
 }
@@ -53,10 +58,10 @@ func (v *DataProtectionBackupInstanceProtectAction) Schema(_ context.Context, _ 
 				MarkdownDescription: "The protect state action to take on this backup instance. Possible values include `stop_protection`,`resume_protection`, `suspend_backups`, and `resume_backups`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"stop_protection",
-						"resume_protection",
-						"suspend_backups",
-						"resume_backups",
+						StopProtection,
+						ResumeProtection,
+						SuspendBackups,
+						ResumeBackups,
 					),
 				},
 			},
@@ -94,22 +99,22 @@ func (v *DataProtectionBackupInstanceProtectAction) Invoke(ctx context.Context, 
 	})
 
 	switch protectAction {
-	case "stop_protection":
+	case StopProtection:
 		if err := client.StopProtectionThenPoll(ctx, *id, backupinstances.StopProtectionRequest{}, backupinstances.DefaultStopProtectionOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping protection %s: %+v", id, err))
 		}
 
-	case "resume_protection":
+	case ResumeProtection:
 		if err := client.ResumeProtectionThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming protection %s: %+v", id, err))
 		}
 
-	case "suspend_backups":
+	case SuspendBackups:
 		if err := client.SuspendBackupsThenPoll(ctx, *id, backupinstances.SuspendBackupRequest{}, backupinstances.DefaultSuspendBackupsOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("suspending backups %s: %+v", id, err))
 		}
 
-	case "resume_backups":
+	case ResumeBackups:
 		if err := client.ResumeBackupsThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming backups %s: %+v", id, err))
 		}

@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -78,6 +79,11 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			},
+
+			"protection_state": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -200,6 +206,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			d.Set("database_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
+			d.Set("protection_state", string(pointer.From(props.CurrentProtectionState)))
 
 			if props.DatasourceAuthCredentials != nil {
 				credential := props.DatasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials)

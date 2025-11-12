@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -98,6 +99,11 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 
 					return false
 				},
+			},
+
+			"protection_state": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -219,6 +225,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			d.Set("disk_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 
+			d.Set("protection_state", string(pointer.From(props.CurrentProtectionState)))
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			if props.PolicyInfo.PolicyParameters != nil && props.PolicyInfo.PolicyParameters.DataStoreParametersList != nil && len(*props.PolicyInfo.PolicyParameters.DataStoreParametersList) > 0 {
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)
