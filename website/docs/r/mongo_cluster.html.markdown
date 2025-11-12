@@ -105,7 +105,9 @@ The following arguments are supported:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
-* `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Once enabled, changing this back to `false` will force a new resource to be created.
+* `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Defaults to `false`. 
+
+~> **Note:** `data_api_mode_enabled` can only be set when `create_mode` is `Default`. Once enabled, it can only be disabled by recreating the resource.
 
 * `identity` - (Optional) An `identity` block as detailed below.
 
