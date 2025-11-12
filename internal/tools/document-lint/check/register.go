@@ -78,13 +78,13 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(svc.ResourceType()) {
 				continue
 			}
-			
+
 			// Skip deprecated resources, as some of these don't have documents
 			sch := schema.NewResource(svc, svc.ResourceType())
 			if sch.IsDeprecated() {
 				continue
 			}
-			
+
 			res.resources = append(res.resources, resource{
 				name:   svc.ResourceType(),
 				schema: svc,
@@ -101,13 +101,13 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(name) {
 				continue
 			}
-			
+
 			// Skip deprecated resources, as some of these don't have documents
 			sch := schema.NewResource(svc, name)
 			if sch.IsDeprecated() {
 				continue
 			}
-			
+
 			res.resources = append(res.resources, resource{
 				name:   name,
 				schema: svc,

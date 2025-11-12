@@ -300,10 +300,12 @@ func hasVersionChanges(resourceType, fieldPath string) bool {
 	return false
 }
 
-var upgradeGuideContent string
-var upgradeGuideLoaded bool
+var (
+	upgradeGuideContent string
+	upgradeGuideLoaded  bool
+)
 
-// getUpgradeGuideContent loads and caches the upgrade guide content using the same logic as resource docs
+// getUpgradeGuideContent loads and caches the upgrade guide content
 func getUpgradeGuideContent() string {
 	if upgradeGuideLoaded {
 		return upgradeGuideContent
@@ -311,8 +313,7 @@ func getUpgradeGuideContent() string {
 
 	upgradeGuideLoaded = true
 
-	// Use the same base directory logic as MDPathFor()
-	docsDir := md.DocDir() // This uses the same docDir() function as resource lookup
+	docsDir := md.DocDir()
 
 	if upgradeFile := findUpgradeGuide(docsDir); upgradeFile != "" {
 		if content, err := os.ReadFile(upgradeFile); err == nil {
@@ -329,18 +330,15 @@ func getUpgradeGuideContent() string {
 
 // findUpgradeGuide searches for upgrade guide files in the given directory
 func findUpgradeGuide(dir string) string {
-	// Quick check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		return ""
 	}
 
-	// Use filepath.Glob for efficient pattern matching
 	pattern := filepath.Join(dir, "*-upgrade-guide.html.markdown")
 	matches, err := filepath.Glob(pattern)
 	if err != nil || len(matches) == 0 {
 		return ""
 	}
 
-	// Return the first match (there should typically be only one)
 	return matches[0]
 }
