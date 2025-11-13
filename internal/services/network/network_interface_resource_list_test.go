@@ -28,7 +28,12 @@ func TestAccNetworkInterface_list_basic(t *testing.T) {
 			},
 			{
 				Query:             true,
-				Config:            r.basicListQuery(data),
+				Config:            r.basicQuery(),
+				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+			},
+			{
+				Query:             true,
+				Config:            r.basicQueryByResourceGroupName(data),
 				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
 			},
 		},
@@ -98,7 +103,16 @@ resource "azurerm_network_interface" "test3" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NetworkInterfaceResource) basicListQuery(data acceptance.TestData) string {
+func (r NetworkInterfaceResource) basicQuery() string {
+	return fmt.Sprintf(`
+list "azurerm_network_interface" "list" {
+  provider = azurerm
+  config {}
+}
+`)
+}
+
+func (r NetworkInterfaceResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_network_interface" "list" {
   provider = azurerm

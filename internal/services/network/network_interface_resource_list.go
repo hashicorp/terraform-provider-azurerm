@@ -79,7 +79,7 @@ func (r NetworkInterfaceListResource) List(ctx context.Context, request list.Lis
 
 			id, err := commonids.ParseNetworkInterfaceID(pointer.From(ni.Id))
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "parsing Network Interface ID", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Interface ID", err)
 				return
 			}
 
@@ -87,29 +87,29 @@ func (r NetworkInterfaceListResource) List(ctx context.Context, request list.Lis
 			rd.SetId(id.ID())
 
 			if err := resourceNetworkInterfaceFlatten(rd, id, &ni); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("encoding `%s` resource data", networkInterfaceResourceName), err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", networkInterfaceResourceName), err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Identity State", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting Identity Data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
 				return
 			}
 
 			tfTypeResourceState, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Resource State", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting Resource Data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
 				return
 			}
 
