@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,7 +92,7 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.Identities
 
 			var config UserAssignedIdentityResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -113,7 +113,7 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var payload managedidentities.Identity
+			var payload identities.Identity
 			if err := r.mapUserAssignedIdentityResourceSchemaToIdentity(config, &payload); err != nil {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
@@ -132,7 +132,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.Identities
 			schema := UserAssignedIdentityResourceSchema{}
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
@@ -165,7 +165,7 @@ func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.Identities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -185,7 +185,7 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.Identities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -197,7 +197,7 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var payload managedidentities.IdentityUpdate
+			var payload identities.IdentityUpdate
 			if err := r.mapUserAssignedIdentityResourceSchemaToIdentityUpdate(config, &payload); err != nil {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
@@ -211,12 +211,12 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentity(input UserAssignedIdentityResourceSchema, output *managedidentities.Identity) error {
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentity(input UserAssignedIdentityResourceSchema, output *identities.Identity) error {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Expand(input.Tags)
 
 	if output.Properties == nil {
-		output.Properties = &managedidentities.UserAssignedIdentityProperties{}
+		output.Properties = &identities.UserAssignedIdentityProperties{}
 	}
 	if err := r.mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input, output.Properties); err != nil {
 		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "UserAssignedIdentityProperties", "Properties", err)
@@ -225,12 +225,12 @@ func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIde
 	return nil
 }
 
-func (r UserAssignedIdentityResource) mapIdentityToUserAssignedIdentityResourceSchema(input managedidentities.Identity, output *UserAssignedIdentityResourceSchema) error {
+func (r UserAssignedIdentityResource) mapIdentityToUserAssignedIdentityResourceSchema(input identities.Identity, output *UserAssignedIdentityResourceSchema) error {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
 
 	if input.Properties == nil {
-		input.Properties = &managedidentities.UserAssignedIdentityProperties{}
+		input.Properties = &identities.UserAssignedIdentityProperties{}
 	}
 	if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
@@ -239,11 +239,11 @@ func (r UserAssignedIdentityResource) mapIdentityToUserAssignedIdentityResourceS
 	return nil
 }
 
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentityUpdate(input UserAssignedIdentityResourceSchema, output *managedidentities.IdentityUpdate) error {
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentityUpdate(input UserAssignedIdentityResourceSchema, output *identities.IdentityUpdate) error {
 	output.Tags = tags.Expand(input.Tags)
 
 	if output.Properties == nil {
-		output.Properties = &managedidentities.UserAssignedIdentityProperties{}
+		output.Properties = &identities.UserAssignedIdentityProperties{}
 	}
 	if err := r.mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input, output.Properties); err != nil {
 		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "UserAssignedIdentityProperties", "Properties", err)
@@ -252,11 +252,11 @@ func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIde
 	return nil
 }
 
-func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityResourceSchema(input managedidentities.IdentityUpdate, output *UserAssignedIdentityResourceSchema) error {
+func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityResourceSchema(input identities.IdentityUpdate, output *UserAssignedIdentityResourceSchema) error {
 	output.Tags = tags.Flatten(input.Tags)
 
 	if input.Properties == nil {
-		input.Properties = &managedidentities.UserAssignedIdentityProperties{}
+		input.Properties = &identities.UserAssignedIdentityProperties{}
 	}
 	if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
@@ -265,11 +265,11 @@ func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityRes
 	return nil
 }
 
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input UserAssignedIdentityResourceSchema, output *managedidentities.UserAssignedIdentityProperties) error {
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input UserAssignedIdentityResourceSchema, output *identities.UserAssignedIdentityProperties) error {
 	return nil
 }
 
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(input managedidentities.UserAssignedIdentityProperties, output *UserAssignedIdentityResourceSchema) error {
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(input identities.UserAssignedIdentityProperties, output *UserAssignedIdentityResourceSchema) error {
 	output.ClientId = pointer.From(input.ClientId)
 	output.PrincipalId = pointer.From(input.PrincipalId)
 	output.TenantId = pointer.From(input.TenantId)

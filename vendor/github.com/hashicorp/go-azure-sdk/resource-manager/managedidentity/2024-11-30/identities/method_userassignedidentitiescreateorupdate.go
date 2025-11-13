@@ -1,9 +1,10 @@
-package managedidentities
+package identities
 
 import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -11,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type FederatedIdentityCredentialsCreateOrUpdateOperationResponse struct {
+type UserAssignedIdentitiesCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *FederatedIdentityCredential
+	Model        *Identity
 }
 
-// FederatedIdentityCredentialsCreateOrUpdate ...
-func (c ManagedIdentitiesClient) FederatedIdentityCredentialsCreateOrUpdate(ctx context.Context, id FederatedIdentityCredentialId, input FederatedIdentityCredential) (result FederatedIdentityCredentialsCreateOrUpdateOperationResponse, err error) {
+// UserAssignedIdentitiesCreateOrUpdate ...
+func (c IdentitiesClient) UserAssignedIdentitiesCreateOrUpdate(ctx context.Context, id commonids.UserAssignedIdentityId, input Identity) (result UserAssignedIdentitiesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -48,7 +49,7 @@ func (c ManagedIdentitiesClient) FederatedIdentityCredentialsCreateOrUpdate(ctx 
 		return
 	}
 
-	var model FederatedIdentityCredential
+	var model Identity
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

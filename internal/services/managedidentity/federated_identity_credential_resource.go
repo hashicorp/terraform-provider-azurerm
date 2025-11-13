@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/federatedidentitycredentials"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,7 +35,7 @@ type FederatedIdentityCredentialResourceSchema struct {
 }
 
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return managedidentities.ValidateFederatedIdentityCredentialID
+	return federatedidentitycredentials.ValidateFederatedIdentityCredentialID
 }
 
 func (r FederatedIdentityCredentialResource) ResourceType() string {
@@ -87,7 +87,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -103,9 +103,9 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
+			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
 			if metadata.ResourceData.IsNewResource() {
-				existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
+				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
@@ -116,10 +116,10 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			var payload managedidentities.FederatedIdentityCredential
+			var payload federatedidentitycredentials.FederatedIdentityCredential
 			r.mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(config, &payload)
 
-			if _, err := client.FederatedIdentityCredentialsCreateOrUpdate(ctx, id, payload); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -133,15 +133,15 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
 			schema := FederatedIdentityCredentialResourceSchema{}
 
-			id, err := managedidentities.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
+			id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.FederatedIdentityCredentialsGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -170,7 +170,7 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20241130.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -185,12 +185,12 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id, err := managedidentities.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
+			id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.FederatedIdentityCredentialsDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -199,28 +199,28 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredentialProperties(input FederatedIdentityCredentialResourceSchema, output *managedidentities.FederatedIdentityCredentialProperties) {
+func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredentialProperties(input FederatedIdentityCredentialResourceSchema, output *federatedidentitycredentials.FederatedIdentityCredentialProperties) {
 	output.Audiences = input.Audience
 	output.Issuer = input.Issuer
 	output.Subject = input.Subject
 }
 
-func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialPropertiesToFederatedIdentityCredentialResourceSchema(input managedidentities.FederatedIdentityCredentialProperties, output *FederatedIdentityCredentialResourceSchema) {
+func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialPropertiesToFederatedIdentityCredentialResourceSchema(input federatedidentitycredentials.FederatedIdentityCredentialProperties, output *FederatedIdentityCredentialResourceSchema) {
 	output.Audience = input.Audiences
 	output.Issuer = input.Issuer
 	output.Subject = input.Subject
 }
 
-func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(input FederatedIdentityCredentialResourceSchema, output *managedidentities.FederatedIdentityCredential) {
+func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(input FederatedIdentityCredentialResourceSchema, output *federatedidentitycredentials.FederatedIdentityCredential) {
 	if output.Properties == nil {
-		output.Properties = &managedidentities.FederatedIdentityCredentialProperties{}
+		output.Properties = &federatedidentitycredentials.FederatedIdentityCredentialProperties{}
 	}
 	r.mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredentialProperties(input, output.Properties)
 }
 
-func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(input managedidentities.FederatedIdentityCredential, output *FederatedIdentityCredentialResourceSchema) {
+func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(input federatedidentitycredentials.FederatedIdentityCredential, output *FederatedIdentityCredentialResourceSchema) {
 	if input.Properties == nil {
-		input.Properties = &managedidentities.FederatedIdentityCredentialProperties{}
+		input.Properties = &federatedidentitycredentials.FederatedIdentityCredentialProperties{}
 	}
 	r.mapFederatedIdentityCredentialPropertiesToFederatedIdentityCredentialResourceSchema(*input.Properties, output)
 }

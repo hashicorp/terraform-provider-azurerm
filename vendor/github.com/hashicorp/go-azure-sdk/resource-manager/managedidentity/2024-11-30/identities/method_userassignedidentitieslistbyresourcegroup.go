@@ -1,4 +1,4 @@
-package managedidentities
+package identities
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func (p *UserAssignedIdentitiesListByResourceGroupCustomPager) NextPageLink() *o
 }
 
 // UserAssignedIdentitiesListByResourceGroup ...
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,12 +76,12 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroup(ctx c
 }
 
 // UserAssignedIdentitiesListByResourceGroupComplete retrieves all the results into a single object
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
 	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
 }
 
 // UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate IdentityOperationPredicate) (result UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate IdentityOperationPredicate) (result UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
 	items := make([]Identity, 0)
 
 	resp, err := c.UserAssignedIdentitiesListByResourceGroup(ctx, id)

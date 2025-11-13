@@ -1,4 +1,4 @@
-package managedidentities
+package systemassignedidentities
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type SystemAssignedIdentitiesGetByScopeOperationResponse struct {
+type GetByScopeOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *SystemAssignedIdentity
 }
 
-// SystemAssignedIdentitiesGetByScope ...
-func (c ManagedIdentitiesClient) SystemAssignedIdentitiesGetByScope(ctx context.Context, id commonids.ScopeId) (result SystemAssignedIdentitiesGetByScopeOperationResponse, err error) {
+// GetByScope ...
+func (c SystemAssignedIdentitiesClient) GetByScope(ctx context.Context, id commonids.ScopeId) (result GetByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

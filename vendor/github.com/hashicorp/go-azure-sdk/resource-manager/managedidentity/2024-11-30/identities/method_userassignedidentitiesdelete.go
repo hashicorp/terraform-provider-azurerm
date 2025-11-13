@@ -1,4 +1,4 @@
-package managedidentities
+package identities
 
 import (
 	"context"
@@ -12,29 +12,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type UserAssignedIdentitiesUpdateOperationResponse struct {
+type UserAssignedIdentitiesDeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Identity
 }
 
-// UserAssignedIdentitiesUpdate ...
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesUpdate(ctx context.Context, id commonids.UserAssignedIdentityId, input IdentityUpdate) (result UserAssignedIdentitiesUpdateOperationResponse, err error) {
+// UserAssignedIdentitiesDelete ...
+func (c IdentitiesClient) UserAssignedIdentitiesDelete(ctx context.Context, id commonids.UserAssignedIdentityId) (result UserAssignedIdentitiesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPatch,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -45,12 +41,6 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesUpdate(ctx context.Contex
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
-	}
-
-	var model Identity
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,4 +1,4 @@
-package managedidentities
+package identities
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func (p *UserAssignedIdentitiesListBySubscriptionCustomPager) NextPageLink() *od
 }
 
 // UserAssignedIdentitiesListBySubscription ...
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,12 +76,12 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscription(ctx co
 }
 
 // UserAssignedIdentitiesListBySubscriptionComplete retrieves all the results into a single object
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
 	return c.UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
 }
 
 // UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate IdentityOperationPredicate) (result UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
+func (c IdentitiesClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate IdentityOperationPredicate) (result UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
 	items := make([]Identity, 0)
 
 	resp, err := c.UserAssignedIdentitiesListBySubscription(ctx, id)

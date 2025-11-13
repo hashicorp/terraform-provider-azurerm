@@ -1,4 +1,4 @@
-package managedidentities
+package identities
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
@@ -7,9 +7,9 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type IdentityUpdate struct {
+type Identity struct {
 	Id         *string                         `json:"id,omitempty"`
-	Location   *string                         `json:"location,omitempty"`
+	Location   string                          `json:"location"`
 	Name       *string                         `json:"name,omitempty"`
 	Properties *UserAssignedIdentityProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData          `json:"systemData,omitempty"`

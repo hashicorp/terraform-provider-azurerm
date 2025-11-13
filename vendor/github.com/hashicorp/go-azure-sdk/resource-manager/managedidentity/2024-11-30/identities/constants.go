@@ -1,4 +1,4 @@
-package managedidentities
+package identities
 
 import (
 	"encoding/json"

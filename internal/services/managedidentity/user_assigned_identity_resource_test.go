@@ -1,7 +1,8 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package managedidentity_test
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"
@@ -97,7 +98,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.V20241130.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := clients.ManagedIdentity.V20241130.Identities.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

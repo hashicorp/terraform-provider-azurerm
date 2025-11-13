@@ -1,4 +1,4 @@
-package managedidentities
+package federatedidentitycredentials
 
 import (
 	"fmt"

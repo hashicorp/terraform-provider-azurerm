@@ -1,4 +1,4 @@
-package managedidentities
+package federatedidentitycredentials
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -6,5 +6,5 @@ package managedidentities
 const defaultApiVersion = "2024-11-30"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/managedidentities/2024-11-30"
+	return "hashicorp/go-azure-sdk/federatedidentitycredentials/2024-11-30"
 }

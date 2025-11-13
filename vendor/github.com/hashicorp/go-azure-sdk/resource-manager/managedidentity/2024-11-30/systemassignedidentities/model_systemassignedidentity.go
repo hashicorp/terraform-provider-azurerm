@@ -1,4 +1,4 @@
-package managedidentities
+package systemassignedidentities
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"

@@ -1,4 +1,4 @@
-package managedidentities
+package federatedidentitycredentials
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type FederatedIdentityCredentialsGetOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *FederatedIdentityCredential
 }
 
-// FederatedIdentityCredentialsGet ...
-func (c ManagedIdentitiesClient) FederatedIdentityCredentialsGet(ctx context.Context, id FederatedIdentityCredentialId) (result FederatedIdentityCredentialsGetOperationResponse, err error) {
+// Get ...
+func (c FederatedIdentityCredentialsClient) Get(ctx context.Context, id FederatedIdentityCredentialId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
