@@ -124,7 +124,7 @@ func TestAccIotHubEndpointCosmosDBAccount_partitionKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithPartitionKey(data, "keyName1", "{deviceid}-{YYYY}-{MM}"),
+			Config: r.basicWithPartitionKey(data, "/definition/id", "{deviceid}-{YYYY}-{MM}"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -138,7 +138,7 @@ func TestAccIotHubEndpointCosmosDBAccount_partitionKey(t *testing.T) {
 		},
 		data.ImportStep("primary_key", "secondary_key"),
 		{
-			Config: r.basicWithPartitionKey(data, "keyName2", "{deviceid}-{MM}-{YYYY}"),
+			Config: r.basicWithPartitionKey(data, "/definition/id", "{deviceid}-{MM}-{YYYY}"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
