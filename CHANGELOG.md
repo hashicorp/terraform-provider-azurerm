@@ -1,6 +1,7 @@
 ## 4.53.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_synapse_spark_pool` - add support for `spark_version` `3.5` [GH-30900]
 * dependencies: `automation` - update to API version `2024-10-23` [GH-30890]
 * `azurerm_managed_disk` - support expanding Ultra Disks and Premium SSD v2 disk without downtime [GH-30593]
 * `data.azurerm_postgresql_flexible_server` - add support for `zone` and `high_availability` [GH-31034]
