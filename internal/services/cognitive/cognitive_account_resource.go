@@ -407,11 +407,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 
 			if d.HasChange("kind") {
 				old, new := d.GetChange("kind")
-				oldKind := old.(string)
-				newKind := new.(string)
 
 				// Only allow changing `kind` from/to `OpenAI` or `AIServices`, force new for all others
-				if !slices.Contains([]string{"OpenAI", "AIServices"}, newKind) || !slices.Contains([]string{"OpenAI", "AIServices"}, oldKind) {
+				if !slices.Contains([]string{"OpenAI", "AIServices"}, new.(string)) || !slices.Contains([]string{"OpenAI", "AIServices"}, old.(string)) {
 					if err := d.ForceNew("kind"); err != nil {
 						return err
 					}

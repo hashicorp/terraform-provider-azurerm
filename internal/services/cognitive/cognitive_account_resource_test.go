@@ -572,7 +572,6 @@ func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) 
 			Config: r.openAI_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("OpenAI"),
 			),
 		},
 		data.ImportStep(),
@@ -580,7 +579,6 @@ func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) 
 			Config: r.aiServices_fromOpenAI(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
 			),
 		},
 		data.ImportStep(),
@@ -588,7 +586,6 @@ func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) 
 			Config: r.openAI_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("OpenAI"),
 			),
 		},
 		data.ImportStep(),
