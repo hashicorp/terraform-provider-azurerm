@@ -8,19 +8,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type AutoClient struct {
+type Client struct {
 	V20241130 managedidentityV20241130.Client
 }
 
-func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	v20241130Client, err := managedidentityV20241130.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building client for managedidentity V20230131: %+v", err)
+		return nil, fmt.Errorf("building client for managedidentity: %+v", err)
 	}
 
-	return &AutoClient{
+	return &Client{
 		V20241130: *v20241130Client,
 	}, nil
 }
