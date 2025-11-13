@@ -49,7 +49,7 @@ resource "azurerm_spring_cloud_configuration_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -93,7 +93,7 @@ A `repository` block supports the following:
 
 * `username` - (Optional) Specifies the username of git repository basic auth.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

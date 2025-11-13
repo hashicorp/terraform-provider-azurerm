@@ -19,7 +19,7 @@ data "azurerm_mssql_managed_instance" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the SQL Managed Instance exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

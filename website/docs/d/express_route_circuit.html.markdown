@@ -27,12 +27,12 @@ output "service_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the ExpressRoute circuit.
 * `resource_group_name` - The Name of the Resource Group where the ExpressRoute circuit exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the ExpressRoute circuit.
 

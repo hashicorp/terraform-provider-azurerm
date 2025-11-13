@@ -66,7 +66,7 @@ resource "azurerm_custom_ip_prefix" "regional" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 -> **Note:** In regions with [availability zones](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview), the Custom IP Prefix must be specified as either `Zone-redundant` or assigned to a specific zone. It can't be created with no zone specified in these regions. All IPs from the prefix must have the same zonal properties.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

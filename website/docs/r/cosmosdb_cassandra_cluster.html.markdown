@@ -63,7 +63,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cassandra Cluster. The only possible value is `SystemAssigned`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

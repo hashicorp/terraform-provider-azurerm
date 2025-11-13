@@ -43,7 +43,7 @@ resource "azurerm_mysql_flexible_server_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `value` - (Required) Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

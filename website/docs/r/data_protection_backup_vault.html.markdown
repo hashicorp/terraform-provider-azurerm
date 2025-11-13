@@ -27,7 +27,7 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. The only possible value is `SystemAssigned`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -61,7 +61,7 @@ resource "azurerm_signalr_shared_private_link_resource" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `request_message` - (Optional) The request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

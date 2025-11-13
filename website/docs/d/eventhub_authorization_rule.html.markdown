@@ -21,7 +21,7 @@ data "azurerm_eventhub_authorization_rule" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the EventHub Authorization Rule resource. be created.
 
@@ -31,7 +31,7 @@ data "azurerm_eventhub_authorization_rule" "test" {
 
 * `resource_group_name` - The name of the resource group in which the EventHub Authorization Rule's grandparent Namespace exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

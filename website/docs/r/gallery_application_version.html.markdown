@@ -74,7 +74,7 @@ resource "azurerm_gallery_application_version" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -134,7 +134,7 @@ A `target_region` block supports the following:
 
 * `storage_account_type` - (Optional) The storage account type for the Gallery Application Version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

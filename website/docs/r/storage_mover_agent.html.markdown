@@ -32,7 +32,7 @@ resource "azurerm_storage_mover_agent" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies a description for this Storage Mover Agent.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

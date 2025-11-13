@@ -68,7 +68,7 @@ resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Private DNS Resolver Dns Forwarding Ruleset.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

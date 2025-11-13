@@ -34,7 +34,7 @@ resource "azurerm_oracle_autonomous_database_backup" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 The following arguments are supported:
 
 * `name` - (Required) The display name of the Autonomous Database Backup. Changing this forces a new resource to be created.
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `type` - (Optional) The type of backup to create.Currently, only `LongTerm` backup operations are supported through the Oracle database At azure service.
 
-## Attribute Reference
+## Attributes Reference
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database Backup.

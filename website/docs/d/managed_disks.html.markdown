@@ -22,11 +22,11 @@ output "first_disk_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `resource_group_name` - Specifies the name of the Resource Group where this Managed Disk exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `disk` - a `disk` block as detailed below.
 

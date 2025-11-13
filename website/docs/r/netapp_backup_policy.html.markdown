@@ -33,7 +33,7 @@ resource "azurerm_netapp_backup_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

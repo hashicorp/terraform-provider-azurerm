@@ -34,7 +34,7 @@ resource "azurerm_storage_sync_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `storage_sync_id` - (Required) The resource ID of the Storage Sync where this Storage Sync Group is. Changing this forces a new Storage Sync Group to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

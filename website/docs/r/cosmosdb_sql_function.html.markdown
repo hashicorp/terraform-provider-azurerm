@@ -40,7 +40,7 @@ resource "azurerm_cosmosdb_sql_function" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `body` - (Required) Body of the User Defined Function.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

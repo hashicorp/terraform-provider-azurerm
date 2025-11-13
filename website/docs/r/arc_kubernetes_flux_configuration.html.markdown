@@ -60,7 +60,7 @@ resource "azurerm_arc_kubernetes_flux_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -182,7 +182,7 @@ A `git_repository` block supports the following:
 
 * `timeout_in_seconds` - (Optional) Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote. Defaults to `600`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

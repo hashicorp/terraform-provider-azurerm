@@ -32,7 +32,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel Alert Rule belongs to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

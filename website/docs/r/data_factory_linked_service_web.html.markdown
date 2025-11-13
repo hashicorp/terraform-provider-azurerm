@@ -34,7 +34,7 @@ resource "azurerm_data_factory_linked_service_web" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -62,7 +62,7 @@ The following supported arguments are specific to Web Linked Service:
 
 * `username` - (Optional) The username for Basic authentication. Required if `authentication_type` sets to `Basic`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

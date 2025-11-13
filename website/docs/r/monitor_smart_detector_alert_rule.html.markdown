@@ -45,7 +45,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ The `action_group` block supports the following:
 
 * `webhook_payload` - (Optional) A JSON String which Specifies the custom webhook payload if Webhook Receiver is specified in Monitor Action Group resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

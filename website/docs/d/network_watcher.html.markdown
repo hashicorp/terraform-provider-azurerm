@@ -23,12 +23,12 @@ output "network_watcher_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the Network Watcher.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Network Watcher exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Network Watcher.
 

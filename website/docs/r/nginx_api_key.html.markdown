@@ -82,7 +82,7 @@ resource "azurerm_nginx_api_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -99,7 +99,7 @@ The following arguments are supported:
   - [Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)
   - [Protect sensitive input variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables)
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -24,13 +24,13 @@ output "traffic_routing_method" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Traffic Manager Profile.
 
 * `resource_group_name` - Specifies the name of the resource group the Traffic Manager Profile is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Traffic Manager Profile.
 

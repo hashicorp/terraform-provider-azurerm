@@ -42,7 +42,7 @@ resource "azurerm_bot_channel_line" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The `line_channel` block supports the following:
 
 * `secret` - (Required) The secret which is used to access the Line Channel.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

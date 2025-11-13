@@ -52,7 +52,7 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -118,7 +118,7 @@ A `custom_header` block supports the following:
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

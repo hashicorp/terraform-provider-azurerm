@@ -83,7 +83,7 @@ resource "azurerm_network_function_collector_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ An `ipfx_ingestion` block supports the following:
 
 * `source_resource_ids` - (Required) A list of ingestion source resource IDs. Changing this forces a new Network Function Collector Policy to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

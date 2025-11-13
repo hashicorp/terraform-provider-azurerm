@@ -25,7 +25,7 @@ output "api_management_api_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the API Management API.
 
@@ -35,7 +35,7 @@ output "api_management_api_id" {
 
 * `revision` - The Revision of the API Management API.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the API Management API.
 

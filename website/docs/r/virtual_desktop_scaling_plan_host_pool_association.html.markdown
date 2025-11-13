@@ -86,7 +86,7 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "example" 
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 - `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

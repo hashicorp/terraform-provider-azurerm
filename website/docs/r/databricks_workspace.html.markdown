@@ -32,7 +32,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 -> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -155,7 +155,7 @@ An `enhanced_security_compliance` block supports the following:
 * [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
 * [Databricks Workspace with Customer Managed Keys for Managed Services with Key Vault and Key in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services-cross-subscription)
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

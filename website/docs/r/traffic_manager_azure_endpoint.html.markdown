@@ -60,7 +60,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `subnet` block supports the following:
 
 * `scope` - (Optional) The block size (number of leading bits in the subnet mask).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

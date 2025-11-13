@@ -239,7 +239,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   }
 }
 ```
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -265,7 +265,7 @@ The following arguments are supported:
 
 * `audit_actions_and_groups` - (Optional) A list of Actions-Groups and Actions to audit.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -25,13 +25,13 @@ output "postgresql_server_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the PostgreSQL Server.
 
 * `resource_group_name` - Specifies the name of the Resource Group where the PostgreSQL Server exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the PostgreSQL Server.
 

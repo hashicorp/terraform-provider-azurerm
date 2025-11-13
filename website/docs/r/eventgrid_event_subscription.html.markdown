@@ -47,7 +47,7 @@ resource "azurerm_eventgrid_event_subscription" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -225,7 +225,7 @@ A `retry_policy` block supports the following:
 
 * `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

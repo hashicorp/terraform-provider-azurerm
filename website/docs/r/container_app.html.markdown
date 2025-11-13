@@ -50,7 +50,7 @@ resource "azurerm_container_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -478,7 +478,7 @@ The authentication details must also be supplied, `identity` and `username`/`pas
 
 * `username` - (Optional) The username to use for this Container Registry, `password_secret_name` must also be supplied..
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

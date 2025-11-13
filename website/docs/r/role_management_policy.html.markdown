@@ -112,7 +112,7 @@ resource "azurerm_role_management_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `activation_rules` - (Optional) An `activation_rules` block as defined below.
 * `active_assignment_rules` - (Optional) An `active_assignment_rules` block as defined below.
@@ -195,7 +195,7 @@ A `primary_approver` block supports the following:
 * `object_id` - (Required) The ID of the object which will act as an approver.
 * `type` - (Required) The type of object acting as an approver. Possible options are `User` and `Group`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

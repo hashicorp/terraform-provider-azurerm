@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group for the MySQL Flexible Server.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the MySQL Flexible Server.
 

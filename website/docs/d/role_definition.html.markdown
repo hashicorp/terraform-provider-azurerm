@@ -46,7 +46,7 @@ output "contributor_role_definition_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Optional) Specifies the Name of either a built-in or custom Role Definition.
 
@@ -58,7 +58,7 @@ output "contributor_role_definition_id" {
 
 ~> **Note:** One of `name` or `role_definition_id` must be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the built-in Role Definition.
 

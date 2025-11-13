@@ -19,7 +19,7 @@ data "azurerm_private_dns_resolver_dns_forwarding_ruleset" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Name of the Resource Group where the Private DNS Resolver Dns Forwarding Ruleset exists.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

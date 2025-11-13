@@ -32,7 +32,7 @@ resource "azurerm_lighthouse_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -108,7 +108,7 @@ A `plan` block supports the following:
 
 * `version` - (Required) The version of the plan.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

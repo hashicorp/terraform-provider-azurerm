@@ -19,7 +19,7 @@ data "azurerm_images" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `tags_filter` - A mapping of tags to filter the list of images against.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

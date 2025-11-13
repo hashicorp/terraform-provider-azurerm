@@ -31,7 +31,7 @@ resource "azurerm_iothub_dps" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -89,7 +89,7 @@ An `ip_filter_rule` block supports the following:
 
 * `target` - (Optional) Target for requests captured by this rule. Possible values are `all`, `deviceApi` and `serviceApi`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

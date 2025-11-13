@@ -23,14 +23,14 @@ output "private_endpoint_status" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - Specifies the Name of the private endpoint.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the private endpoint exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

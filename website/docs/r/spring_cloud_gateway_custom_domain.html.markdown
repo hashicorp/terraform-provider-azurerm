@@ -44,7 +44,7 @@ resource "azurerm_spring_cloud_gateway_custom_domain" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `thumbprint` - (Optional) Specifies the thumbprint of the Spring Cloud Certificate that binds to the Spring Cloud Gateway Custom Domain.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

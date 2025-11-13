@@ -82,7 +82,7 @@ resource "azurerm_private_link_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -128,7 +128,7 @@ The `nat_ip_configuration` block supports the following:
 
 * `private_ip_address_version` - (Optional) The version of the IP Protocol which should be used. At this time the only supported value is `IPv4`. Defaults to `IPv4`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

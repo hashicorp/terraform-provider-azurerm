@@ -61,7 +61,7 @@ resource "azurerm_api_management_gateway_host_name_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `tls11_enabled` - (Optional) Whether TLS 1.1 is supported.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -67,7 +67,7 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -103,7 +103,7 @@ The following supported arguments are specific to Azure Kusto Linked Service:
 
 ~> **Note:** One of Managed Identity authentication and Service Principal authentication must be set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

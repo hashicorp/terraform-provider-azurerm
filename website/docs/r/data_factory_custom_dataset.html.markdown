@@ -115,7 +115,7 @@ JSON
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
@@ -147,7 +147,7 @@ A `linked_service` block supports the following:
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

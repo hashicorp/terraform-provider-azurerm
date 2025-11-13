@@ -64,7 +64,7 @@ resource "azurerm_dns_cname_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 ~> **Note:** either `record` OR `target_resource_id` must be specified, but not both.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

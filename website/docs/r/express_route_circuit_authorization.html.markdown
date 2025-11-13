@@ -45,7 +45,7 @@ resource "azurerm_express_route_circuit_authorization" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `express_route_circuit_name` - (Required) The name of the Express Route Circuit in which to create the Authorization. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

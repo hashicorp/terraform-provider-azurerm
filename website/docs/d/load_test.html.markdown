@@ -23,7 +23,7 @@ output "load_test_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the Resource Group in which the Load Test Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

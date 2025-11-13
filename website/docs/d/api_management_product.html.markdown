@@ -24,7 +24,7 @@ output "product_terms" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `api_management_name` - The Name of the API Management Service in which this Product exists.
 
@@ -32,7 +32,7 @@ output "product_terms" {
 
 * `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the API Management Product.
 

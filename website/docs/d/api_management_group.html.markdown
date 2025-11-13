@@ -24,7 +24,7 @@ output "group_type" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `api_management_name` - The Name of the API Management Service in which this Group exists.
 
@@ -32,7 +32,7 @@ output "group_type" {
 
 * `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the API Management Group.
 

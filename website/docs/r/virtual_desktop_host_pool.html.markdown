@@ -42,7 +42,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -106,7 +106,7 @@ A `schedule` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

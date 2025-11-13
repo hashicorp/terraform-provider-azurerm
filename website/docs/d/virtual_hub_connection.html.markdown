@@ -24,7 +24,7 @@ output "virtual_hub_connection_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 *  `virtual_hub_name` - The name of the Virtual Hub where this Connection exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -37,7 +37,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

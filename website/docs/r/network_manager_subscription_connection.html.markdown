@@ -39,7 +39,7 @@ resource "azurerm_network_manager_subscription_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of the Network Manager Subscription Connection.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -45,7 +45,7 @@ resource "azurerm_private_dns_mx_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ A `record` block supports the following:
 
 * `exchange` - (Required) The FQDN of the exchange to MX record points to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

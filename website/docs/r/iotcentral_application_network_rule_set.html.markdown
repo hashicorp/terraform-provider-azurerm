@@ -47,7 +47,7 @@ resource "azurerm_iotcentral_application_network_rule_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ A `ip_rule` block supports the following:
 
 * `ip_mask` - (Required) The IP address range in CIDR notation for the IP Rule.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

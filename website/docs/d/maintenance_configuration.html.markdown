@@ -23,13 +23,13 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Maintenance Configuration.
 
 * `resource_group_name` - Specifies the name of the Resource Group where this Maintenance Configuration exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `location` - The Azure location where the resource exists.
 

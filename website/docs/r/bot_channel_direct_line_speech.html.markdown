@@ -45,7 +45,7 @@ resource "azurerm_bot_channel_direct_line_speech" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `custom_voice_deployment_id` - (Optional) The custom voice deployment id for the Direct Line Speech Channel.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -52,7 +52,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
@@ -158,7 +158,7 @@ A `http_server_location` block supports the following:
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -30,7 +30,7 @@ resource "azurerm_ai_services" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -114,7 +114,7 @@ A `storage` block supports the following:
 
 * `identity_client_id` - (Optional) The client ID of the Managed Identity associated with the Storage Account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -168,7 +168,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -290,7 +290,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Single Node Virtual Instance.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

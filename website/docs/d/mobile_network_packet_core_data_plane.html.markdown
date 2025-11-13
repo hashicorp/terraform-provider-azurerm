@@ -24,7 +24,7 @@ data "azurerm_mobile_network_packet_core_data_plane" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `mobile_network_packet_core_control_plane_id` - (Required) The ID of the Mobile Network Packet Core Data Plane.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -94,7 +94,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 -> **Note:** Self assigned certificate is not supported and the provisioning status will fail.
 
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

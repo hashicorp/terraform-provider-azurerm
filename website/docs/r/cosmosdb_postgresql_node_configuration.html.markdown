@@ -37,7 +37,7 @@ resource "azurerm_cosmosdb_postgresql_node_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `value` - (Required) The value of the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

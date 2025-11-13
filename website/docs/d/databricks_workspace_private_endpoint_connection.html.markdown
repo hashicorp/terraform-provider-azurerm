@@ -23,12 +23,12 @@ output "databricks_workspace_private_endpoint_connection_status" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Databricks Workspace.
 * `resource_group_name` - The Name of the Resource Group where the Databricks Workspace exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `workspace_id` - The resource ID of the Databricks Workspace.
 

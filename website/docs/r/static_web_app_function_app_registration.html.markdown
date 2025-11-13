@@ -65,7 +65,7 @@ resource "azurerm_static_web_app_function_app_registration" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

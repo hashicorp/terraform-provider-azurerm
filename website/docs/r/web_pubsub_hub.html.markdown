@@ -80,7 +80,7 @@ resource "azurerm_web_pubsub_hub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -131,7 +131,7 @@ An `auth` block supports the following:
 
 -> **Note:** `managed_identity_id` is required if the auth block is defined
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

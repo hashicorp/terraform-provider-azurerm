@@ -47,7 +47,7 @@ resource "azurerm_dynatrace_monitor" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ An `environment_info` block supports the following:
 
 * `environment_id` - (Required) The ID of the Dynatrace environment to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

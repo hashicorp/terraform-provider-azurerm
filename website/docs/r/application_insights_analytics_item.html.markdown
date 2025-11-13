@@ -34,7 +34,7 @@ resource "azurerm_application_insights_analytics_item" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `function_alias` - (Optional) The alias to use for the function. Required when `type` is `function`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

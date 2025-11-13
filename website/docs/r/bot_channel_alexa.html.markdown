@@ -38,7 +38,7 @@ resource "azurerm_bot_channel_alexa" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `skill_id` - (Required) The Alexa skill ID for the Alexa Channel.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -67,7 +67,7 @@ resource "azurerm_key_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -153,7 +153,7 @@ A `contact` block supports the following:
 
 * `phone` - (Optional) Phone number of the contact.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -49,7 +49,7 @@ resource "azurerm_storage_mover_target_endpoint" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies a description for the Storage Mover Target Endpoint.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

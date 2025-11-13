@@ -45,7 +45,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Credential. Changing this forces a new resource to be created.
 
@@ -63,7 +63,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

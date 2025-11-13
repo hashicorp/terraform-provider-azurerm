@@ -38,7 +38,7 @@ resource "azurerm_key_vault_certificate_issuer" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ An `admin` block supports the following:
 
 * `phone` - (Optional) Phone number of the admin.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

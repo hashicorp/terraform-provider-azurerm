@@ -51,7 +51,7 @@ resource "azurerm_resource_group_cost_management_view" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -127,7 +127,7 @@ A `sorting` block supports the following:
 
 * `name` - (Required) The name of the column to sort.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -25,7 +25,7 @@ resource "azurerm_security_center_contact" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `phone` - (Optional) The phone number of the Security Center Contact.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

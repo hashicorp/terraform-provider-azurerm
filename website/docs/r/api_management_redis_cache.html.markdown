@@ -51,7 +51,7 @@ resource "azurerm_api_management_redis_cache" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `cache_location` - (Optional) The location where to use cache from. Possible values are `default` and valid Azure regions. Defaults to `default`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -43,7 +43,7 @@ resource "azurerm_resource_provider_registration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

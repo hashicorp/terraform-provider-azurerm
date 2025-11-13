@@ -34,7 +34,7 @@ resource "azurerm_site_recovery_hyperv_replication_policy" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `replication_interval_in_seconds` - (Required) Specifies how frequently data should be synchronized between source and target locations. Possible values are `30` and `300`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

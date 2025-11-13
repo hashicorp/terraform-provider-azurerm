@@ -149,7 +149,7 @@ resource "azurerm_network_connection_monitor" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -291,7 +291,7 @@ A `test_group` block supports the following:
 
 * `enabled` - (Optional) Should the test group be enabled? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

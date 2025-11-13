@@ -34,7 +34,7 @@ resource "azurerm_storage_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ A `access_policy` block supports the following:
 
 * `start` - (Required) The ISO8061 UTC time at which this Access Policy should be valid from.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -52,7 +52,7 @@ resource "azurerm_postgresql_flexible_server_active_directory_administrator" "ex
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `principal_type` - (Required) The type of Azure Active Directory principal. Possible values are `Group`, `ServicePrincipal` and `User`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -56,7 +56,7 @@ resource "azurerm_bastion_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -120,7 +120,7 @@ A `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

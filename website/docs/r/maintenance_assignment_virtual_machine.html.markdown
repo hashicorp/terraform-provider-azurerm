@@ -90,7 +90,7 @@ resource "azurerm_maintenance_assignment_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) Specifies the Virtual Machine ID to which the Maintenance Configuration will be assigned. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

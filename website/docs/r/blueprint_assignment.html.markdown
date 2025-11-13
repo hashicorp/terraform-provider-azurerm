@@ -104,7 +104,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
@@ -138,7 +138,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Blueprint Assignment
 

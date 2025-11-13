@@ -50,7 +50,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "work
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

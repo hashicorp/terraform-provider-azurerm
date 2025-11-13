@@ -24,7 +24,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the shared Azure Portal Dashboard.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

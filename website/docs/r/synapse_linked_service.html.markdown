@@ -80,7 +80,7 @@ JSON
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -120,7 +120,7 @@ A `integration_runtime` block supports the following:
 
 * `parameters` - (Optional) A map of parameters to associate with the integration runtime.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

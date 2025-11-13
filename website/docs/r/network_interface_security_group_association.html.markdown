@@ -57,7 +57,7 @@ resource "azurerm_network_interface_security_group_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `network_security_group_id` - (Required) The ID of the Network Security Group which should be attached to the Network Interface. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

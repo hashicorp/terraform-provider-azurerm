@@ -52,7 +52,7 @@ resource "azurerm_redis_enterprise_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -88,7 +88,7 @@ An `module` block exports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -31,11 +31,11 @@ data "azurerm_web_pubsub_private_link_resource" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `web_pubsub_id` - The ID of an existing Web Pubsub Resource which Private Link Resource should be retrieved for.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of an existing Web Pubsub Resource which supports the retrieved Private Link Resource list.
 

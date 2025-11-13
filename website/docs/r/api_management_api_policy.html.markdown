@@ -35,7 +35,7 @@ XML
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -28,7 +28,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `elastic_san_id` - The Elastic SAN ID within which the Elastic SAN Volume Group exists.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

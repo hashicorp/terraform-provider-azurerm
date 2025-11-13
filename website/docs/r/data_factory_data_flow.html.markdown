@@ -191,7 +191,7 @@ EOT
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -307,7 +307,7 @@ A `transformation` block supports the following:
 
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

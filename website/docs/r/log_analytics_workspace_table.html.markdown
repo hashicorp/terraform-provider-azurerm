@@ -34,7 +34,7 @@ resource "azurerm_log_analytics_workspace_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 -> **Note:** The `retention_in_days` cannot be specified when `plan` is `Basic` because the retention is fixed at eight days.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

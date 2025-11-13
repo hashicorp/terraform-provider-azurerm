@@ -29,7 +29,7 @@ resource "azurerm_static_site" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,7 +57,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Site resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

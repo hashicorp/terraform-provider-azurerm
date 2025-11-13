@@ -23,7 +23,7 @@ output "custom_location_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Custom Location exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Custom Location.
 

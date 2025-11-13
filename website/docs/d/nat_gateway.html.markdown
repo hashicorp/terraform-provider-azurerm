@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing NAT Gateway.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -18,7 +18,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the Resource Group where the NAT Gateway exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

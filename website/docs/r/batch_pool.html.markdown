@@ -111,7 +111,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -559,7 +559,7 @@ Windows operating system settings on the virtual machine. This property must not
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

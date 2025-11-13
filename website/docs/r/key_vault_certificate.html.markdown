@@ -228,7 +228,7 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -342,7 +342,7 @@ The `subject_alternative_names` block supports the following:
 * `emails` - (Optional) A list of email addresses identified by this Certificate.
 * `upns` - (Optional) A list of User Principal Names identified by the Certificate.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

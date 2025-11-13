@@ -43,7 +43,7 @@ resource "azurerm_storage_data_lake_gen2_path" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,7 +79,7 @@ More details on ACLs can be found here: <https://docs.microsoft.com/azure/storag
 
 ~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

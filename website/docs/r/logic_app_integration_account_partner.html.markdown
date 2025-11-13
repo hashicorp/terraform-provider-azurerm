@@ -37,7 +37,7 @@ resource "azurerm_logic_app_integration_account_partner" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ A `business_identity` block exports the following:
 
 * `value` - (Required) The value that identifies the documents that your logic apps receive.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

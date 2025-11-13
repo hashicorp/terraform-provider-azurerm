@@ -65,7 +65,7 @@ resource "azurerm_backup_policy_vm_workload" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -169,7 +169,7 @@ The `retention_yearly` block supports the following:
 
 * `weeks` - (Optional) The weeks of the month to retain backups of. Possible values are `First`, `Second`, `Third`, `Fourth`, `Last`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

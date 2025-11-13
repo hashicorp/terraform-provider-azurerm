@@ -24,7 +24,7 @@ output "backup_policy_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `account_name` - The name of the NetApp Account in which the NetApp Policy exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

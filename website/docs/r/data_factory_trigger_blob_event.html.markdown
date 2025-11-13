@@ -63,7 +63,7 @@ resource "azurerm_data_factory_trigger_blob_event" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,7 +101,7 @@ A `pipeline` block supports the following:
 
 * `parameters` - (Optional) The Data Factory Pipeline parameters that the trigger will act on.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

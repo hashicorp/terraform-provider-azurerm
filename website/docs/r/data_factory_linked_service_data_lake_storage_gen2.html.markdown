@@ -39,7 +39,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -75,7 +75,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 ~> **Note:** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

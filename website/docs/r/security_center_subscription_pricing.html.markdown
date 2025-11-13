@@ -51,7 +51,7 @@ resource "azurerm_security_center_subscription_pricing" "example1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ A `extension` block supports the following:
 
 ~> **Note:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

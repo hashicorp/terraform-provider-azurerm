@@ -44,7 +44,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Optional) The name of the SingleSignOn configuration. Defaults to `default`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -37,13 +37,13 @@ output "database_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the MS SQL Database.
 
 * `server_id` - The id of the MS SQL Server on which to read the database.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the database.
 

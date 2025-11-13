@@ -32,7 +32,7 @@ resource "azurerm_automation_hybrid_runbook_worker_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `credential_name` - (Optional) The name of resource type `azurerm_automation_credential` to use for hybrid worker.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

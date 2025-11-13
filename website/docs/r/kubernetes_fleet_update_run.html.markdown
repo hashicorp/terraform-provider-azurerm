@@ -70,7 +70,7 @@ resource "azurerm_kubernetes_fleet_update_run" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -122,7 +122,7 @@ A `group` block supports the following:
 
 * `name` - (Required) The name which should be used for this group.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

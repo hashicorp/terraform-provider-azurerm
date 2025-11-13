@@ -36,7 +36,7 @@ resource "azurerm_cosmosdb_postgresql_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `start_ip_address` - (Required) The start IP address of the Azure Cosmos DB for PostgreSQL Firewall Rule.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

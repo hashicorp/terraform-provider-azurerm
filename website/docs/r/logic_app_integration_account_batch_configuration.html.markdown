@@ -37,7 +37,7 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,7 +101,7 @@ A `monthly` block exports the following:
 
 * `week` - (Required) The occurrence of the week within the month.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -54,7 +54,7 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `alias_authorization_rule_id` - (Optional) The Shared access policies used to access the connection string for the alias.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

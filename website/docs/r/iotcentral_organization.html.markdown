@@ -45,7 +45,7 @@ resource "azurerm_iotcentral_organization" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `parent_organization_id` - (Optional) The `organization_id` of the parent organization. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

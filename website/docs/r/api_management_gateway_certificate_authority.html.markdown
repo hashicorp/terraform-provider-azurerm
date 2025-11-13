@@ -55,7 +55,7 @@ resource "azurerm_api_management_gateway_certificate_authority" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `is_trusted` - (Optional) Whether the API Management Gateway Certificate Authority is trusted.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

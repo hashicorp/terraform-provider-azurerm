@@ -66,7 +66,7 @@ resource "azurerm_spring_cloud_build_pack_binding" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -88,7 +88,7 @@ A `launch` block supports the following:
 
 * `secrets` - (Optional) Specifies a map of sensitive properties for launchProperties.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -61,7 +61,7 @@ resource "azurerm_network_manager_management_group_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 * `description` - (Optional) A description of the Network Manager Management Group Connection.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

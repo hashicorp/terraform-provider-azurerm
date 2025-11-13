@@ -33,7 +33,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -205,7 +205,7 @@ A `vnet_integration` block supports the following:
 
 * `public_ips` - (Optional) Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

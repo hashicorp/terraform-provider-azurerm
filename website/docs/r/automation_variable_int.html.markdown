@@ -33,7 +33,7 @@ resource "azurerm_automation_variable_int" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of the Automation Variable as a `integer`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

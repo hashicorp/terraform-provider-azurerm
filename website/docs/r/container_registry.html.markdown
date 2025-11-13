@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -236,7 +236,7 @@ The `encryption` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

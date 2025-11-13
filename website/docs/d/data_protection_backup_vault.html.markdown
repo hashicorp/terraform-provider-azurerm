@@ -27,13 +27,13 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Backup Vault.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Backup Vault exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Backup Vault.
 

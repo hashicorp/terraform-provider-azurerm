@@ -61,7 +61,7 @@ resource "azurerm_dns_caa_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -87,7 +87,7 @@ The `record` block supports:
 
 * `value` - (Required) A property value such as a registrar domain.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

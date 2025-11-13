@@ -53,7 +53,7 @@ resource "azurerm_container_registry_token_password" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ A `password` block supports the following:
 
 * `expiry` - (Optional) The expiration date of the password in RFC3339 format. If not specified, the password never expires. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -43,7 +43,7 @@ resource "azurerm_api_management_api" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -163,7 +163,7 @@ A `wsdl_selector` block supports the following:
 
 * `endpoint_name` - (Required) The name of endpoint (port) to import from WSDL.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

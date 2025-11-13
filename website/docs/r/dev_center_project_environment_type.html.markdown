@@ -56,7 +56,7 @@ resource "azurerm_dev_center_project_environment_type" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,7 +94,7 @@ A `user_role_assignment` block supports the following:
 
 * `roles` - (Required) A list of roles to assign to the `user_id`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

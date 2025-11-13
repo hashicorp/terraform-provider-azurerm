@@ -23,12 +23,12 @@ output "application_insights_instrumentation_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Application Insights component.
 * `resource_group_name` - Specifies the name of the resource group the Application Insights component is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Application Insights component.
 * `app_id` - The App ID associated with this Application Insights component.

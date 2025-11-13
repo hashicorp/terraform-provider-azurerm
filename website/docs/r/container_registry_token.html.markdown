@@ -52,7 +52,7 @@ resource "azurerm_container_registry_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -52,7 +52,7 @@ resource "azurerm_lb_nat_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 * `floating_ip_enabled` - (Optional) Are the floating IPs enabled for this Load Balancer Rule? A floating IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.
 * `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

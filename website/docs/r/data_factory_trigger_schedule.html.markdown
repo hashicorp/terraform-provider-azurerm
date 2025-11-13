@@ -39,7 +39,7 @@ resource "azurerm_data_factory_trigger_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,7 +101,7 @@ A `pipeline` block supports the following:
 
 * `parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

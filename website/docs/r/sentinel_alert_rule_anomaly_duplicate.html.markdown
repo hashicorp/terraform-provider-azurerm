@@ -48,7 +48,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -122,7 +122,7 @@ A `threshold_observation` block exports the following:
 
 * `value` - (Required) The value of the threshold observation.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

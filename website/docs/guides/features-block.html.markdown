@@ -113,7 +113,7 @@ provider "azurerm" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The `features` block supports the following:
 

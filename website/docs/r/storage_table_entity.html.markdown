@@ -43,7 +43,7 @@ resource "azurerm_storage_table_entity" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `entity` - (Required) A map of key/value pairs that describe the entity to be inserted/merged in to the storage table.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -79,7 +79,7 @@ resource "azurerm_private_dns_resolver_forwarding_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ A `target_dns_servers` block supports the following:
 
 * `port` - (Optional) DNS server port.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

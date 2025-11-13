@@ -171,7 +171,7 @@ EOT
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -207,7 +207,7 @@ The following arguments are supported:
 
 ~> **Note:** If it is not a `Service Principal` identity it will cause the role assignment to fail.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

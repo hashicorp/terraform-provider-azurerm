@@ -59,7 +59,7 @@ resource "azurerm_mobile_network_sim_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -86,7 +86,7 @@ An `identity` block supports the following:
 * `identity_ids` - (Required) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

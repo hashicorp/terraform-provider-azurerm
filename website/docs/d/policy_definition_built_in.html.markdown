@@ -22,7 +22,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Policy Definition. Conflicts with `display_name`.
 
@@ -32,7 +32,7 @@ output "id" {
 
 * `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Policy Definition.
 

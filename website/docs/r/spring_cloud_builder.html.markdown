@@ -49,7 +49,7 @@ resource "azurerm_spring_cloud_builder" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ A `stack` block supports the following:
 
 * `version` - (Required) Specifies the version of the ClusterStack
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -39,7 +39,7 @@ resource "azurerm_api_management_user" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 -> **Note:** the State can be changed from Pending -> Active/Blocked but not from Active/Blocked -> Pending.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

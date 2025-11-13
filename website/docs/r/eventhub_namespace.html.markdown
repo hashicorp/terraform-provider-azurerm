@@ -31,7 +31,7 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ A `ip_rule` block supports the following:
 
 * `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`. Defaults to `Allow`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -73,7 +73,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ An `sharing` block exports the following:
 
 * `tables_to_include` - (Optional) List of tables to include in the follower database.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -103,7 +103,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -135,7 +135,7 @@ A `ip_traffic` block supports the following:
 
 * `source_ports` - (Required) Specifies a list of ports or ranges of the source you want to verify. To specify any port, use `["*"]`. Changing this forces a new Network Manager Verifier Workspace Reachability Analysis Intent to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

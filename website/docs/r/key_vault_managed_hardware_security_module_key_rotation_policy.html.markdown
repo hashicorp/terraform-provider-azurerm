@@ -28,7 +28,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `time_before_expiry` - (Optional) Rotate automatically at a duration before key expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

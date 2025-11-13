@@ -24,7 +24,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `invoice_section_name` - (Required) The Invoice Section Name in the above Billing Profile.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

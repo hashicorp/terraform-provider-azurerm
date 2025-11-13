@@ -20,7 +20,7 @@ data "azurerm_storage_blob" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `storage_container_name` - The name of the Storage Container where the Blob exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the storage blob.
 

@@ -28,7 +28,7 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `monitoring` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -24,13 +24,13 @@ output "rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Data Collection Rule.
 
 * `resource_group_name` - Specifies the name of the resource group the Data Collection Rule is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Resource.
 

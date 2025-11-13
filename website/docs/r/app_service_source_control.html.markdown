@@ -46,7 +46,7 @@ resource "azurerm_app_service_source_control" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `github_action_configuration` block supports the following:
 
 * `generate_workflow_file` - (Optional) Whether to generate the GitHub work flow file. Defaults to `true`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -44,7 +44,7 @@ resource "azurerm_lb_backend_address_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,7 +72,7 @@ The `tunnel_interface` block supports the following:
 
 * `port` - (Required) The port number that this Gateway Load Balancer Tunnel Interface listens to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

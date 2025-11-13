@@ -41,7 +41,7 @@ resource "azurerm_container_registry_task" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -253,7 +253,7 @@ A `timer_trigger` block supports the following:
 
 * `enabled` - (Optional) Should the trigger be enabled? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

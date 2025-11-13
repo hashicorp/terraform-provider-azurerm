@@ -20,7 +20,7 @@ data "azurerm_kusto_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) The name of the Kusto Cluster this database is added to.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

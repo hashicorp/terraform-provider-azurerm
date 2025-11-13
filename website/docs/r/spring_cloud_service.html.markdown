@@ -54,7 +54,7 @@ resource "azurerm_spring_cloud_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -200,7 +200,7 @@ The `trace` block supports the following:
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -28,7 +28,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) Name of the database migration service where resource belongs to.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

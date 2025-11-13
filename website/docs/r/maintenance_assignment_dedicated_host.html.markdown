@@ -51,7 +51,7 @@ resource "azurerm_maintenance_assignment_dedicated_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `dedicated_host_id` - (Required) Specifies the Dedicated Host ID to which the Maintenance Configuration will be assigned. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

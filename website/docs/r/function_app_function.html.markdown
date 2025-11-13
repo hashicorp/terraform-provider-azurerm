@@ -155,7 +155,7 @@ resource "azurerm_function_app_function" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -185,7 +185,7 @@ A `file` block supports the following:
 
 * `content` - (Required) The content of the file. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -41,7 +41,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -69,7 +69,7 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

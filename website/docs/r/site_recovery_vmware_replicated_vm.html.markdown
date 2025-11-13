@@ -84,7 +84,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -181,7 +181,7 @@ A `network_interface` block supports the following:
 
 * `test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

@@ -24,13 +24,13 @@ output "job_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Stream Analytics Job.
 
 * `resource_group_name` - Specifies the name of the resource group the Stream Analytics Job is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Stream Analytics Job.
 

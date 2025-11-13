@@ -28,7 +28,7 @@ output "azurerm_marketplace_agreement_accepted" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `publisher` - The Publisher of the Marketplace Image.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

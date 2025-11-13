@@ -39,7 +39,7 @@ resource "azurerm_storage_encryption_scope" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The ID of the Key Vault Key. Required when `source` is `Microsoft.KeyVault`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

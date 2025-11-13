@@ -57,7 +57,7 @@ resource "azurerm_dev_center_attached_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `network_connection_id` - (Required) The ID of the Dev Center Network Connection you want to attach. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

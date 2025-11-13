@@ -425,7 +425,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -587,7 +587,7 @@ A `predictive` block supports the following:
 
 * `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between `PT1M` and `PT1H` in ISO 8601 format.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

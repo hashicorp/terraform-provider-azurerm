@@ -32,7 +32,7 @@ resource "azurerm_storage_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

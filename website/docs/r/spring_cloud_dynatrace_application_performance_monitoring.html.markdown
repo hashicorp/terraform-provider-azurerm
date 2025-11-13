@@ -46,7 +46,7 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "ex
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `environment_id` - (Optional) Specifies the Dynatrace environment ID.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

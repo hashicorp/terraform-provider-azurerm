@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the Resource Group in which the managed Kubernetes Cluster exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

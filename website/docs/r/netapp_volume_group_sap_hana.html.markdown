@@ -240,7 +240,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -337,7 +337,7 @@ A `export_policy_rule` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

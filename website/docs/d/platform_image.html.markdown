@@ -25,7 +25,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - (Required) Specifies the Location to pull information about this Platform Image from.
 
@@ -37,7 +37,7 @@ output "id" {
 
 * `version` - (Optional) The version of the Platform Image.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Platform Image.
 

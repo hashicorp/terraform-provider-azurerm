@@ -195,7 +195,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "example" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -231,7 +231,7 @@ A `backup_datasource_parameters` block supports the following:
 
 * `volume_snapshot_enabled` - (Optional) Whether to take volume snapshots during backup. Default to `false`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

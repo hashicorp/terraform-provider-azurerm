@@ -30,7 +30,7 @@ resource "azurerm_eventgrid_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -105,7 +105,7 @@ A `static_routing_enrichment` block supports the following:
 * `value` - (Required) The enrichment value.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

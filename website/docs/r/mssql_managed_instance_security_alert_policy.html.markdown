@@ -215,7 +215,7 @@ resource "azurerm_mssql_managed_instance_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -239,7 +239,7 @@ The following arguments are supported:
 
 -> **Note:** Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_managed_instance_security_alert_policy` with `storage_endpoint` for now.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

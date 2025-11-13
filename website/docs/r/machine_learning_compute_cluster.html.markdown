@@ -96,7 +96,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -161,7 +161,7 @@ A `scale_settings` block supports the following:
 
 * `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

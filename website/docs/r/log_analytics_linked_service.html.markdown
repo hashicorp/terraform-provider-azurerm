@@ -44,7 +44,7 @@ resource "azurerm_log_analytics_linked_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ~> **Note:** You must define at least one of the above access resource id attributes (e.g. `read_access_id` or `write_access_id`).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

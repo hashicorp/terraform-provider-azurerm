@@ -28,7 +28,7 @@ resource "azurerm_image" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,7 +79,7 @@ The `data_disk` block supports the following:
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this disk. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

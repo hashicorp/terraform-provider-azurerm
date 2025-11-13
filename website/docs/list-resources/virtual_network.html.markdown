@@ -23,7 +23,7 @@ list "azurerm_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 This list resource supports the following attributes:
 

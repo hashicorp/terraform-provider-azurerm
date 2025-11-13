@@ -59,7 +59,7 @@ resource "azurerm_app_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -455,7 +455,7 @@ A `source_control` block supports the following:
 
 * `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

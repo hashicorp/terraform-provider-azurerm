@@ -50,7 +50,7 @@ resource "azurerm_sentinel_watchlist_item" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `name` - (Optional) The name in UUID format which should be used for this Sentinel Watchlist Item. Changing this forces a new Sentinel Watchlist Item to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

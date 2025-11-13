@@ -367,7 +367,7 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -571,7 +571,7 @@ A `virtual_switch_configuration_override` block supports the following:
 
 * `load_balancing_algorithm` - (Optional) Specifies the load balancing algorithm for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

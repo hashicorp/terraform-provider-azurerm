@@ -21,7 +21,7 @@ data "azurerm_site_recovery_protection_container" "container" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `recovery_fabric_name` - (Required) The name of the fabric that contains the protection container.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

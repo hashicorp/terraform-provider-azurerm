@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_file_share" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -157,7 +157,7 @@ The `retention_yearly` block supports:
 
 -> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

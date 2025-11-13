@@ -67,7 +67,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `authentication_mode` - (Optional) The authentication mode for the CosmosDB database. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -22,7 +22,7 @@ output "display_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 ~> **Note:** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -55,7 +55,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -157,7 +157,7 @@ A `conflict_resolution_policy` block supports the following:
 
 * `conflict_resolution_procedure` - (Optional) The procedure to resolve conflicts in the case of `Custom` mode.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

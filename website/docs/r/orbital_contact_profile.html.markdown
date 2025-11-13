@@ -76,7 +76,7 @@ resource "azurerm_orbital_contact_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -142,7 +142,7 @@ An `end_point` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following attributes are exported:
 

@@ -24,7 +24,7 @@ output "batch_application_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Application.
 
@@ -32,7 +32,7 @@ output "batch_application_id" {
 
 * `account_name` - The name of the Batch account.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -19,13 +19,13 @@ data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `inventory_type` - (Required) The inventory type of the System Center Virtual Machine Manager Inventory Item. Possible values are `Cloud`, `VirtualMachine`, `VirtualMachineTemplate` and `VirtualNetwork`.
 
 * `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the System Center Virtual Machine Manager Inventory Items.
 

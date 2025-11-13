@@ -23,7 +23,7 @@ output "primary_access_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group where the Cognitive Services Account resides.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

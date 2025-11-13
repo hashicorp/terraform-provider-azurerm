@@ -35,7 +35,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -61,7 +61,7 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `server_version_is_32_or_higher` - (Optional) Whether API server version is 3.2 or higher. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

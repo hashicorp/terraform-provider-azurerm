@@ -40,7 +40,7 @@ resource "azurerm_dev_test_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -80,7 +80,7 @@ An `allowed_ports` block supports the following:
 
 * `transport_protocol` - (Optional) The transport protocol that the traffic will use. Possible values are `TCP` and `UDP`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -33,7 +33,7 @@ resource "azurerm_iothub_device_update_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ An `identity` block supports the following:
 
 ~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

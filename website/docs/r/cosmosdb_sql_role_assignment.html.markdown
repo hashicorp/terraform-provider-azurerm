@@ -59,7 +59,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `name` - (Optional) The GUID as the name of the Cosmos DB SQL Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

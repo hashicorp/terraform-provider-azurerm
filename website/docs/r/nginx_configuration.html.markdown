@@ -109,7 +109,7 @@ EOT
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -143,7 +143,7 @@ A `protected_file` (Protected File) block supports the following:
 
 * `virtual_path` - (Required) Specifies the path of this config file.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

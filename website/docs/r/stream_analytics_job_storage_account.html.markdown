@@ -67,7 +67,7 @@ resource "azurerm_stream_analytics_job_storage_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **Note:** `storage_account_key` must be specified when `authentication_mode` is `ConnectionString` and must be absent if `authentication_mode` is `Msi`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

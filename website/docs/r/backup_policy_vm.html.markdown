@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -182,7 +182,7 @@ An `archived_restore_point` block supports the following:
 
 * `duration_type` - (Optional) The retention duration type. Possible values are `Days`, `Weeks`, `Months` and `Years`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

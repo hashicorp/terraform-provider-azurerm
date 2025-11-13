@@ -74,7 +74,7 @@ resource "azurerm_iothub_route" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `enabled` - (Required) Specifies whether a route is enabled.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

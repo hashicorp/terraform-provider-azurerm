@@ -56,7 +56,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `activities_json` - (Optional) A JSON object that contains the activities that will be associated with the Data Factory Pipeline.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

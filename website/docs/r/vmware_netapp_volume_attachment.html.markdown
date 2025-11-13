@@ -160,7 +160,7 @@ resource "azurerm_vmware_netapp_volume_attachment" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

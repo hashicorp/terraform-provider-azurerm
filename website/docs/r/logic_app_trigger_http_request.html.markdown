@@ -42,7 +42,7 @@ SCHEMA
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **Note:** When `relative_path` is set a `method` must also be set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

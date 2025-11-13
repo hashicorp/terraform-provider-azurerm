@@ -52,7 +52,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 
 -> **Note:** The CosmosDB Account needs to have the `EnableGremlin` capability enabled to use this resource - which can be done by adding this to the `capabilities` list within the `azurerm_cosmosdb_account` resource.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -144,7 +144,7 @@ An `index` block supports the following:
 
 * `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -26,7 +26,7 @@ output "private_dns_srv_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Private DNS SRV Record.
 
@@ -34,7 +34,7 @@ output "private_dns_srv_record_id" {
 
 * `zone_name` - Specifies the Private DNS Zone where the resource exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Private DNS SRV Record ID.
 

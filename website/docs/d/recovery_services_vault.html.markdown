@@ -19,7 +19,7 @@ data "azurerm_recovery_services_vault" "vault" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which the Recovery Services Vault resides.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

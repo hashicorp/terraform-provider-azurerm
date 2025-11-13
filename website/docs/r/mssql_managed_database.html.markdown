@@ -60,7 +60,7 @@ resource "azurerm_mssql_managed_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -93,7 +93,7 @@ A `point_in_time_restore` block supports the following:
 
 * `source_database_id` - (Required) The source database id that will be used to restore from. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

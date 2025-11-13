@@ -97,7 +97,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Defaults to `install`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

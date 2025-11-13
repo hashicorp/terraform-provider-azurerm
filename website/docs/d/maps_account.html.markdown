@@ -23,13 +23,13 @@ output "maps_account_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Maps Account.
 
 * `resource_group_name` - Specifies the name of the Resource Group in which the Maps Account is located.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Maps Account.
 

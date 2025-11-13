@@ -43,7 +43,7 @@ resource "azurerm_data_factory_dataset_http" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
@@ -83,7 +83,7 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

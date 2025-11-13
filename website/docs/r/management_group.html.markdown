@@ -37,7 +37,7 @@ resource "azurerm_management_group" "example_child" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 ~> **Note:** To clear all Subscriptions from the Management Group set `subscription_ids` to an empty list
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

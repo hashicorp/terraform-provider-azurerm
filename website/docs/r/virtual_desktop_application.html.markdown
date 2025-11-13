@@ -66,7 +66,7 @@ resource "azurerm_virtual_desktop_application" "chrome" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `icon_index` - (Optional) The index of the icon you wish to use.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

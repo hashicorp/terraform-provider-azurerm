@@ -37,7 +37,7 @@ resource "azurerm_data_factory_linked_service_sftp" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -115,7 +115,7 @@ A `key_vault_private_key_passphrase` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

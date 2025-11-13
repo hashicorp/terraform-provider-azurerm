@@ -74,7 +74,7 @@ resource "azurerm_signalr_service_network_acl" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -116,7 +116,7 @@ A `private_endpoint` block supports the following:
 
 ~> **Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

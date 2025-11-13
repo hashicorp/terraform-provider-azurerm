@@ -89,7 +89,7 @@ resource "azurerm_firewall_nat_rule_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

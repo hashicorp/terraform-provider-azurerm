@@ -72,7 +72,7 @@ resource "azurerm_mssql_failover_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -104,7 +104,7 @@ The `read_write_endpoint_failover_policy` block supports the following:
 
 * `grace_minutes` - (Optional) The grace period in minutes, before failover with data loss is attempted for the read-write endpoint. Required when `mode` is `Automatic`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

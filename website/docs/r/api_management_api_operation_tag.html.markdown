@@ -48,7 +48,7 @@ resource "azurerm_api_management_api_operation_tag" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the API Management API Operation Tag.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

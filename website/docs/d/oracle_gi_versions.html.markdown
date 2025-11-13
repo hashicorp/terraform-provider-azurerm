@@ -26,7 +26,7 @@ output "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `zone` - (Optional) Indicates the Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

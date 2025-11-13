@@ -43,7 +43,7 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) The IPv4 Address defining the end of the range of addresses associated with this PostgreSQL Flexible Server Firewall Rule.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

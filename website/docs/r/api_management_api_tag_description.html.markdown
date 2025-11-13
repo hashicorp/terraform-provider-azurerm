@@ -60,7 +60,7 @@ resource "azurerm_api_management_api_tag_description" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `external_documentation_description` - (Optional) The description of the external documentation resources describing the tag.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

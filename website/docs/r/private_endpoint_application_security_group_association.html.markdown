@@ -112,7 +112,7 @@ resource "azurerm_private_endpoint_application_security_group_association" "exam
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -120,7 +120,7 @@ The following arguments are supported:
 
 * `private_endpoint_id` - (Required) The id of private endpoint to associate. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -41,7 +41,7 @@ resource "azurerm_automation_connection_classic_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for this Connection.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

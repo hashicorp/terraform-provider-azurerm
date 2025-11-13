@@ -41,7 +41,7 @@ resource "azurerm_container_app_environment_custom_domain" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

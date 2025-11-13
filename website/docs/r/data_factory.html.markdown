@@ -25,7 +25,7 @@ resource "azurerm_data_factory" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ A `vsts_configuration` block supports the following:
 
 * `publishing_enabled` - (Optional) Is automated publishing enabled? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

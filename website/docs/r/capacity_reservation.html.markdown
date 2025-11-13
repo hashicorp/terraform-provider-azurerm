@@ -34,7 +34,7 @@ resource "azurerm_capacity_reservation" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ An `sku` block exports the following:
 
 * `capacity` - (Required) Specifies the number of instances to be reserved. It must be greater than or equal to `0` and not exceed the quota in the subscription.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

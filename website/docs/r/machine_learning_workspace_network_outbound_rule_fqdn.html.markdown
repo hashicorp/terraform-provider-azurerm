@@ -71,7 +71,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "exampl
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 * `destination_fqdn` - (Required) Specifies the fully qualified domain name to allow for outbound traffic.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -49,7 +49,7 @@ resource "azurerm_stream_analytics_output_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `columns_to_remove` - (Optional) A list of the column names to be removed from output event entities.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

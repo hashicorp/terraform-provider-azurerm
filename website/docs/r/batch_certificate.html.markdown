@@ -51,7 +51,7 @@ resource "azurerm_batch_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `thumbprint_algorithm` - (Required) The algorithm of the certificate thumbprint. At this time the only supported value is `SHA1`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

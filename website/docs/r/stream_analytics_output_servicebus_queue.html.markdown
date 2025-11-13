@@ -52,7 +52,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ A `serialization` block supports the following:
 
 -> **Note:** This is Required and can only be specified when `type` is set to `Json`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

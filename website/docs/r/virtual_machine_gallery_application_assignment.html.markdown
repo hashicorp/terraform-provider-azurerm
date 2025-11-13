@@ -85,7 +85,7 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_sms" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `sms_channel_auth_token` - (Required) The authorization token for the SMS Channel.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

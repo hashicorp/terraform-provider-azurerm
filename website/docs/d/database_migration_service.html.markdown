@@ -27,7 +27,7 @@ output "azurerm_dms_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the database migration service exists
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -58,7 +58,7 @@ resource "azurerm_netapp_snapshot_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -126,7 +126,7 @@ A `monthly_schedule` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -218,7 +218,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -344,7 +344,7 @@ The `key_encryption_key` block supports:
 
 * `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

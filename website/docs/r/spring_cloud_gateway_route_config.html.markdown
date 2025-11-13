@@ -63,7 +63,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,7 +117,7 @@ A `open_api` block supports the following:
 
 * `uri` - (Optional) The URI of OpenAPI specification.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

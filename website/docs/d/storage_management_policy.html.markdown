@@ -23,13 +23,13 @@ data "azurerm_storage_management_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `storage_account_id` - Specifies the id of the storage account to retrieve the management policy for.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Management Policy.
 * `rule` - A `rule` block as defined below.

@@ -26,7 +26,7 @@ output "dns_caa_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the DNS CAA Record.
 
@@ -34,7 +34,7 @@ output "dns_caa_record_id" {
 
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The DNS CAA Record ID.
 

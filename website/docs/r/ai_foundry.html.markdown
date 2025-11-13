@@ -72,7 +72,7 @@ resource "azurerm_ai_foundry" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -140,7 +140,7 @@ A `managed_network` block supports the following:
 
 * `isolation_mode` - (Optional) The isolation mode of the AI Foundry Hub. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

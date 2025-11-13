@@ -33,7 +33,7 @@ resource "azurerm_security_center_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace to save the data in.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

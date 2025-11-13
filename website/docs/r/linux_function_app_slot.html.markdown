@@ -58,7 +58,7 @@ resource "azurerm_linux_function_app_slot" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -752,7 +752,7 @@ A `storage_account` block supports the following:
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

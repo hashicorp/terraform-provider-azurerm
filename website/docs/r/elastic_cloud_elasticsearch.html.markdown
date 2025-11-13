@@ -27,7 +27,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,7 @@ The `logs` block supports the following:
 
 * `send_subscription_logs` - (Optional) Specifies if the Azure Subscription Logs should be sent to the Elasticsearch cluster. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

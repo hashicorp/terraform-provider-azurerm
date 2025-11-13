@@ -77,7 +77,7 @@ resource "azurerm_data_share_dataset_blob_storage" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ A `storage_account` block supports the following:
 
 * `subscription_id` - (Required) The subscription id of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

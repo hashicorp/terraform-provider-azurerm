@@ -54,7 +54,7 @@ resource "azurerm_synapse_sql_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -88,7 +88,7 @@ An `restore` block supports the following:
 
 * `source_database_id` - (Required) The ID of the Synapse SQL Pool or SQL Database which is to restore. Changing this forces a new Synapse SQL Pool to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

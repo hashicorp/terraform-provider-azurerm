@@ -40,7 +40,7 @@ resource "azurerm_data_factory_dataset_snowflake" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -78,7 +78,7 @@ A `schema_column` block supports the following:
 
 * `scale` - (Optional) The number of digits allowed to the right of the decimal point.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

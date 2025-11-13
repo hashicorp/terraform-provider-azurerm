@@ -49,7 +49,7 @@ resource "azurerm_private_dns_srv_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ A `record` block supports the following:
 
 * `target` - (Required) The FQDN of the service.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -111,7 +111,7 @@ resource "azurerm_machine_learning_inference_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -161,7 +161,7 @@ A `ssl` block supports the following:
 
 * `overwrite_existing_domain` - (Optional) Whether or not to overwrite existing leaf domain. Conflicts with `ssl[0].cert`,`ssl[0].key`,`ssl[0].cname` Changing this forces a new Machine Learning Inference Cluster to be created. Defaults to `""`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

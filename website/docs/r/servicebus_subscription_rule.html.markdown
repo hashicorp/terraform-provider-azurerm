@@ -97,7 +97,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -137,7 +137,7 @@ The `correlation_filter` block supports the following:
 
 ~> **Note:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

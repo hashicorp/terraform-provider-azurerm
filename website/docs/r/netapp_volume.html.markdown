@@ -133,7 +133,7 @@ resource "azurerm_netapp_volume" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -293,7 +293,7 @@ For more information on Azure NetApp Files Backup feature please see [Understand
   
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_peering" "remote" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ~> **Note:** The `virtual_network_id` field is the value you must supply to the `azurerm_virtual_network_peering` resources `remote_virtual_network_id` field to successfully peer the Databricks Virtual Network with the remote virtual network.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

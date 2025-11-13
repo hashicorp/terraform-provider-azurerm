@@ -190,7 +190,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -258,7 +258,7 @@ An `ip_configuration` block supports the following:
 
 -> **Note:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

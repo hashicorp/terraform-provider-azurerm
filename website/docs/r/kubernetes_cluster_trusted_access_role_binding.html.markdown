@@ -79,7 +79,7 @@ resource "azurerm_kubernetes_cluster_trusted_access_role_binding" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `source_resource_id` - (Required) The ARM resource ID of source resource that trusted access is configured for. Changing this forces a new Kubernetes Cluster Trusted Access Role Binding to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

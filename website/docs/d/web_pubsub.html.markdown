@@ -19,7 +19,7 @@ data "azurerm_web_pubsub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the resource group the Web Pubsub service is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

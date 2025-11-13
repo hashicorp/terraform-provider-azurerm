@@ -33,7 +33,7 @@ resource "azurerm_databricks_access_connector" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
@@ -59,7 +59,7 @@ An `identity` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -34,7 +34,7 @@ output "host_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 * 
 * `name` - (Required) The name of the API Management Gateway Host Name Configuration.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

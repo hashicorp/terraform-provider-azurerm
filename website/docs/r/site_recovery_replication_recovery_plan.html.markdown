@@ -234,7 +234,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -324,7 +324,7 @@ An `azure_to_azure_settings` block supports the following:
 
 -> **Note:** `primary_edge_zone` and `recovery_edge_zone` must be specified together.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

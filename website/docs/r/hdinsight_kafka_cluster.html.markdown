@@ -78,7 +78,7 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -440,7 +440,7 @@ A `security_profile` block supports the following:
 
 * `cluster_users_group_dns` - (Optional) A list of the distinguished names for the cluster user groups. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

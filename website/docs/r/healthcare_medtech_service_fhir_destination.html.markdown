@@ -112,7 +112,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `destination_fhir_mapping_json` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
 
-## Attribute Reference
+## Attributes Reference
 
 The following arguments are supported:
 

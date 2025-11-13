@@ -46,7 +46,7 @@ resource "azurerm_redis_cache_access_policy_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `object_id_alias` - (Required) The alias of the principal ID. User-friendly name for object ID. Also represents username for token based authentication. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

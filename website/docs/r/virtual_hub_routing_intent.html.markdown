@@ -57,7 +57,7 @@ resource "azurerm_virtual_hub_routing_intent" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ A `routing_policy` block supports the following:
 
 * `next_hop` - (Required) The resource ID of the next hop on which this routing policy is applicable to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

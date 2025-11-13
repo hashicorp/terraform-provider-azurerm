@@ -21,13 +21,13 @@ data "azurerm_active_directory_domain_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The display name for your managed Active Directory Domain Service resource. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Domain Service should exist. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Domain Service.
 

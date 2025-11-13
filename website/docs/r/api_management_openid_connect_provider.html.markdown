@@ -39,7 +39,7 @@ resource "azurerm_api_management_openid_connect_provider" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this OpenID Connect Provider.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

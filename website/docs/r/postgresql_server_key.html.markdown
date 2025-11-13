@@ -88,7 +88,7 @@ resource "azurerm_postgresql_server_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The URL to a Key Vault Key.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

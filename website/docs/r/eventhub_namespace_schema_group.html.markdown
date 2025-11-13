@@ -31,7 +31,7 @@ resource "azurerm_eventhub_namespace_schema_group" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 ~> **Note:** When `schema_type` is specified as `Json`, `schema_compatibility` must be set to `None`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -129,7 +129,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -215,7 +215,7 @@ A `vnet_configuration` block supports the following:
 
 * `untrusted_subnet_id` - (Optional) The ID of the UnTrust subnet.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

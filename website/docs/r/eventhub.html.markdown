@@ -38,7 +38,7 @@ resource "azurerm_eventhub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `destination` block supports the following:
 
 * `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

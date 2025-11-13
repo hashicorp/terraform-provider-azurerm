@@ -41,7 +41,7 @@ resource "azurerm_api_management_api_version_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 -> **Note:** This must be specified when `versioning_scheme` is set to `Query`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -32,7 +32,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `account_id` - (Required) The ID of the Data Share account in which the Data Share is created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

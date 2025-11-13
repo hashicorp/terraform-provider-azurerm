@@ -100,7 +100,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -166,7 +166,7 @@ An `alert_resolution` block supports the following:
 
 * `time_to_resolve` - (Optional) Specifies the alert auto-resolution interval, represented in ISO 8601 duration format.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

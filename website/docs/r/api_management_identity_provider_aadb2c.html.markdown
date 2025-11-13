@@ -51,7 +51,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `profile_editing_policy` - (Optional) Profile editing Policy Name.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

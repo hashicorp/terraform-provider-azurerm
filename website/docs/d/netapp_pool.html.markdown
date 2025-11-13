@@ -24,7 +24,7 @@ output "netapp_pool_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The Name of the Resource Group where the NetApp Pool exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

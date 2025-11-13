@@ -19,7 +19,7 @@ data "azurerm_iothub_dps" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group under which the Iot Device Provisioning Service is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -56,7 +56,7 @@ resource "azurerm_resource_deployment_script_azure_power_shell" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -126,7 +126,7 @@ A `storage_account` block supports the following:
 
 * `name` - (Required) Specifies the storage account name.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

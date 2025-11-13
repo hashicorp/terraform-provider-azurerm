@@ -20,7 +20,7 @@ data "azurerm_shared_image_gallery" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

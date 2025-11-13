@@ -64,7 +64,7 @@ resource "azurerm_stream_analytics_output_synapse" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `table` - (Required) The name of the table in the Azure SQL database. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

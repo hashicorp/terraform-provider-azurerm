@@ -20,7 +20,7 @@ data "azurerm_storage_table_entity" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `row_key` - The key for the row where the entity will be retrieved.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the storage table entity.
 

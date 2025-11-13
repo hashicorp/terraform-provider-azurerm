@@ -38,7 +38,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -80,7 +80,7 @@ A `key_vault_password` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

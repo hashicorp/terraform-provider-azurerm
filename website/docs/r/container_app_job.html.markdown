@@ -82,7 +82,7 @@ resource "azurerm_container_app_job" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -408,7 +408,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs to assign to the Container App Job.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

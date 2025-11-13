@@ -47,7 +47,7 @@ resource "azurerm_data_factory_dataset_json" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
@@ -119,7 +119,7 @@ A `azure_blob_storage_location` block supports the following:
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

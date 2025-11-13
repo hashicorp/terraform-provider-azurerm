@@ -24,13 +24,13 @@ output "endpoint_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Data Collection Endpoint.
 
 * `resource_group_name` - Specifies the name of the resource group the Data Collection Endpoint is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Resource.
 

@@ -53,7 +53,7 @@ resource "azurerm_mssql_server_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

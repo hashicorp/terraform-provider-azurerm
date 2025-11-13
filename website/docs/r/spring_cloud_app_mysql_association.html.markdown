@@ -60,7 +60,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `password` - (Required) Specifies the password which should be used when connecting to the MySQL Database from the Spring Cloud App.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

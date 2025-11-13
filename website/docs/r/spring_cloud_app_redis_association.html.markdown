@@ -55,7 +55,7 @@ resource "azurerm_spring_cloud_app_redis_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `ssl_enabled` - (Optional) Should SSL be used when connecting to Redis? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

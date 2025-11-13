@@ -38,7 +38,7 @@ resource "azurerm_container_registry_cache_rule" "cache_rule" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `credential_set_id` - (Optional) The ARM resource ID of the Credential Store which is associated with the Cache Rule.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

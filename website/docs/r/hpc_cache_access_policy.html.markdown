@@ -54,7 +54,7 @@ resource "azurerm_hpc_cache_access_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -86,7 +86,7 @@ An `access_rule` block supports the following:
 
 * `anonymous_gid` - (Optional) The anonymous GID used when `root_squash_enabled` is `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -52,7 +52,7 @@ resource "azurerm_api_management_api_release" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `notes` - (Optional) The Release Notes.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

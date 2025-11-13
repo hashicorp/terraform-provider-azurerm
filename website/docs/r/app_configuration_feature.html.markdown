@@ -44,7 +44,7 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

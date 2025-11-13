@@ -21,7 +21,7 @@ data "azurerm_static_web_app" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

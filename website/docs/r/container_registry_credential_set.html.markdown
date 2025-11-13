@@ -109,7 +109,7 @@ resource "azurerm_key_vault_access_policy" "read_secrets" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -138,7 +138,7 @@ An `identity` block supports the following:
 * `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Currently the only possible value is `SystemAssigned`.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

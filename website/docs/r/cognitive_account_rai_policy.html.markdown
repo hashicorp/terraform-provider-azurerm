@@ -44,7 +44,7 @@ resource "azurerm_cognitive_account_rai_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ A `content_filter` block supports the following:
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -75,7 +75,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "example" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `backend_address_pool_id` - (Required) The ID of the Load Balancer Backend Address Pool which this Network Interface should be connected to. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -78,7 +78,7 @@ resource "azurerm_mssql_managed_instance_active_directory_administrator" "exampl
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `azuread_authentication_only` - (Optional) When `true`, only permit logins from AAD users and administrators. When `false`, also allow local database users.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

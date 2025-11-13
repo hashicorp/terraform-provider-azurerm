@@ -28,7 +28,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Required) The resource ID of the virtual network.  
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -61,7 +61,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -123,7 +123,7 @@ A `inbound_nat_rule` block supports the following:
 
 * `backend_port` - (Required) The Backend Port associated with this NAT Rule. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

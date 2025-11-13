@@ -45,7 +45,7 @@ resource "azurerm_vpn_server_configuration_policy_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ A `policy` block supports the following:
 
 * `value` - (Required) The value of the attribute that is used for the VPN Server Configuration Policy member.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

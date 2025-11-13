@@ -71,7 +71,7 @@ resource "azurerm_dynatrace_tag_rules" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ The `filtering_tag` block supports the following:
 
 * `action` - (Required) Action of the filtering tag. Possible values are `Include` and `Exclude`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

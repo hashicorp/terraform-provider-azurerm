@@ -37,7 +37,7 @@ resource "azurerm_bot_channel_ms_teams" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `enable_calling` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

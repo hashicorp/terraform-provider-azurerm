@@ -24,7 +24,7 @@ output "eventhub_authorization_rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `namespace_name` - Specifies the name of the EventHub Namespace.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

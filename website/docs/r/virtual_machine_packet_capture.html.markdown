@@ -115,7 +115,7 @@ resource "azurerm_virtual_machine_packet_capture" "example" {
 
 ~> **Note:** This Resource requires that [the Network Watcher Virtual Machine Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -159,7 +159,7 @@ A `filter` block contains:
 
 * `remote_port` - (Optional) The remote port to be filtered on. Specify `80` for single port entry, `80-85` for a range and `80;443;` for multiple entries. Multiple ranges and mixing ranges with multiple entries are currently not supported. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

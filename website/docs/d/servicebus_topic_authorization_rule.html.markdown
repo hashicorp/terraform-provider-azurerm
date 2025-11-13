@@ -26,7 +26,7 @@ output "servicebus_authorization_rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `topic_name` - The name of the ServiceBus Topic.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

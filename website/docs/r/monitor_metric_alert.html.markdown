@@ -63,7 +63,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -149,7 +149,7 @@ A `dimension` block supports the following:
 * `operator` - (Required) The dimension operator. Possible values are `Include`, `Exclude` and `StartsWith`.
 * `values` - (Required) The list of dimension values.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

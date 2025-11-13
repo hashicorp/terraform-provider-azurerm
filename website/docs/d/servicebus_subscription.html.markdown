@@ -23,13 +23,13 @@ output "servicebus_subscription" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription.
 
 * `topic_id` - (Required) The ID of the ServiceBus Topic where the Service Bus Subscription exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `max_delivery_count` - The maximum number of deliveries.
 

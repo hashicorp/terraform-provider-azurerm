@@ -23,13 +23,13 @@ output "cdn_profile_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the CDN Profile.
 
 * `resource_group_name` - The name of the resource group in which the CDN Profile exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `location` - The Azure Region where the resource exists.
 

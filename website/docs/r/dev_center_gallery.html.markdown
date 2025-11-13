@@ -48,7 +48,7 @@ resource "azurerm_dev_center_gallery" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of this Dev Center Gallery. Changing this forces a new Dev Center Gallery to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

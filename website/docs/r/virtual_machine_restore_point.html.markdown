@@ -89,7 +89,7 @@ resource "azurerm_virtual_machine_restore_point" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `excluded_disks` - (Optional) A list of disks that will be excluded from the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

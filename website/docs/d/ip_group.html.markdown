@@ -23,13 +23,13 @@ output "cidrs" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the IP Group.
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the IP Group exists
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the IP Group.
 

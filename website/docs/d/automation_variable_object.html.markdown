@@ -24,7 +24,7 @@ output "variable" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 - `automation_account_name` - The name of the automation account in which the Automation Variable exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

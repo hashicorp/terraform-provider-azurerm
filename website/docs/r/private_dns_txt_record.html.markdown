@@ -35,7 +35,7 @@ resource "azurerm_private_dns_txt_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,7 +57,7 @@ A `record` block supports the following:
 
 * `value` - (Required) The value of the TXT record. Max length: 1024 characters
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

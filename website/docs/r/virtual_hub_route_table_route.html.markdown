@@ -86,7 +86,7 @@ resource "azurerm_virtual_hub_route_table_route" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `next_hop_type` - (Optional) The type of next hop. Currently the only possible value is `ResourceId`. Defaults to `ResourceId`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

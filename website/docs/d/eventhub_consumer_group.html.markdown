@@ -21,7 +21,7 @@ data "azurerm_eventhub_consumer_group" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the EventHub Consumer Group resource.
 
@@ -31,7 +31,7 @@ data "azurerm_eventhub_consumer_group" "test" {
 
 * `resource_group_name` - The name of the resource group in which the EventHub Consumer Group's grandparent Namespace exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -29,7 +29,7 @@ resource "azurerm_nat_gateway" "example" {
 
 For more complete examples, please see the [azurerm_nat_gateway_public_ip_association](nat_gateway_public_ip_association.html) and [azurerm_nat_gateway_public_ip_prefix_association](nat_gateway_public_ip_prefix_association.html) resources.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 -> **Note:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -31,7 +31,7 @@ output "redis_enterprise_database_secondary_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Redis Enterprise Database.
 
@@ -39,7 +39,7 @@ output "redis_enterprise_database_secondary_key" {
 
 * `cluster_id` - The resource ID of Redis Enterprise Cluster which hosts the Redis Enterprise Database instance.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Redis Enterprise Database ID.
 

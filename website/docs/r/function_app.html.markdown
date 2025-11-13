@@ -191,7 +191,7 @@ resource "azurerm_function_app" "example" {
 
 ~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/azure/azure-functions/functions-reference-python).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -481,7 +481,7 @@ A `source_control` block supports the following:
 
 * `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -58,7 +58,7 @@ resource "azurerm_spring_cloud_app_cosmosdb_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `cosmosdb_sql_database_name` - (Optional) Specifies the name of the SQL Database which the Spring Cloud App should be associated with. Should only be set when `api_type` is `sql`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

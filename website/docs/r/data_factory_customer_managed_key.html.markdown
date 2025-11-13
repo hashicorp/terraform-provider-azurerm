@@ -108,7 +108,7 @@ resource "azurerm_data_factory_customer_managed_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `user_assigned_identity_id` - (Optional) The User Assigned Identity ID that will be used to access Key Vaults that contain the encryption keys.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -28,7 +28,7 @@ resource "azurerm_app_service_certificate_order" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`). Defaults to `1`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

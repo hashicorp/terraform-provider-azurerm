@@ -39,7 +39,7 @@ resource "azurerm_servicebus_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `support_ordering` - (Optional) Boolean flag which controls whether the Topic supports ordering.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

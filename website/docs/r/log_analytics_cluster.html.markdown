@@ -35,7 +35,7 @@ resource "azurerm_log_analytics_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ An `identity` block supports the following:
 
 ~> **Note:** This is required when `type` is set to `UserAssigned`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

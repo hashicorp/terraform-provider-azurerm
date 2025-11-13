@@ -114,7 +114,7 @@ resource "azurerm_api_management_api_diagnostic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -216,7 +216,7 @@ The `headers` block support the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

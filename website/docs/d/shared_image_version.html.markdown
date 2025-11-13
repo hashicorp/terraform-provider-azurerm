@@ -22,7 +22,7 @@ data "azurerm_shared_image_version" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `sort_versions_by_semver` - (Optional) Sort available versions taking SemVer versioning scheme into account. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

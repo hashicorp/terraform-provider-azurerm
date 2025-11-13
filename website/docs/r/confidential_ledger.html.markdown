@@ -34,7 +34,7 @@ resource "azurerm_confidential_ledger" "ledger" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,7 +72,7 @@ A `certificate_based_security_principal` block supports the following:
 
 * `pem_public_key` - (Required) The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

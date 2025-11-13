@@ -66,7 +66,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -126,7 +126,7 @@ A `trigger_dependency` block supports the following:
 
 * `trigger_name` - (Optional) The dependency trigger name. If not specified, it will use self dependency.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

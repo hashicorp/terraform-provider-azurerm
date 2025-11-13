@@ -47,7 +47,7 @@ resource "azurerm_api_management_logger" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ An `eventhub` block supports the following:
 
 * `endpoint_uri` - (Optional) The endpoint address of an EventHub Namespace. Required when `client_id` is set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -45,7 +45,7 @@ resource "azurerm_site_recovery_protection_container" "protection-container" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `recovery_fabric_name` - (Required) Name of fabric that should contain this protection container. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

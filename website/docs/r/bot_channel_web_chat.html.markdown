@@ -39,7 +39,7 @@ resource "azurerm_bot_channel_web_chat" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -63,7 +63,7 @@ A `site` block has the following properties:
 
 * `storage_enabled` - (Optional) Is the storage site enabled for detailed logging? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

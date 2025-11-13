@@ -27,7 +27,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Name of the resource group where resource belongs to.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -81,7 +81,7 @@ resource "azurerm_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created.
 
@@ -121,7 +121,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

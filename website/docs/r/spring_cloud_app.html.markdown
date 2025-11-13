@@ -41,7 +41,7 @@ resource "azurerm_spring_cloud_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -114,7 +114,7 @@ An `persistent_disk` block supports the following:
 
 * `mount_path` - (Optional) Specifies the mount path of the persistent disk. Defaults to `/persistent`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -63,7 +63,7 @@ resource "azurerm_spring_cloud_active_deployment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `deployment_name` - (Required) Specifies the name of Spring Cloud Deployment which is going to be active.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -20,7 +20,7 @@ resource "azurerm_marketplace_agreement" "barracuda" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `publisher` - (Required) The Publisher of the Marketplace Image. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

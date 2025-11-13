@@ -68,7 +68,7 @@ resource "azurerm_synapse_sql_pool_workload_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `query_execution_timeout_in_seconds` - (Optional) The workload group query execution timeout.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

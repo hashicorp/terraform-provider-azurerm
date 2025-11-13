@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_mongo_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The `index` block supports the following:
 
 ~> **Note:** An index with an "_id" key must be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

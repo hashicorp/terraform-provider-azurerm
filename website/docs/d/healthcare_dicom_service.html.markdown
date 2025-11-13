@@ -23,13 +23,13 @@ output "azurerm_healthcare_dicom_service" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare DICOM Service
 
 * `workspace_id` - The ID of the Healthcare Workspace in which the Healthcare DICOM Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

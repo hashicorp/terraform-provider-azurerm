@@ -42,7 +42,7 @@ resource "azurerm_chaos_studio_capability" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `chaos_studio_target_id` - (Required) The Chaos Studio Target that the capability should be applied to. Changing this forces a new Chaos Studio Capability to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

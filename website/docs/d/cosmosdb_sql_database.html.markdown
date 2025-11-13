@@ -21,7 +21,7 @@ data "azurerm_cosmosdb_sql_database" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `account_name` - The name of the Cosmos DB SQL Database to create the table within.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

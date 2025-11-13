@@ -56,7 +56,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `cosmos_mongo_database_id`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

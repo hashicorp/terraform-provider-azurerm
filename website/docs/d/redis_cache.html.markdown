@@ -28,13 +28,13 @@ output "hostname" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Redis cache
 
 * `resource_group_name` - The name of the resource group the Redis cache instance is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Cache ID.
 

@@ -115,7 +115,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 * [Databricks Workspace with Root Databricks File System Customer Managed Keys in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs-cross-subscription)
 * [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Root Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ The following arguments are supported:
 
 -> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -24,7 +24,7 @@ output "private_dns_a_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Private DNS Zone Virtual Network Link.
 
@@ -32,7 +32,7 @@ output "private_dns_a_record_id" {
 
 * `resource_group_name` - Specifies the resource group where the Private DNS Zone exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Private DNS Zone Virtual Network Link.
 

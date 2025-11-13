@@ -61,7 +61,7 @@ resource "azurerm_healthcare_fhir_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -125,7 +125,7 @@ A `oci_artifact` block supports the following:
 
 * `digest` - (Optional) A digest of an image within Azure container registry used for export operations of the service instance to narrow the artifacts down.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

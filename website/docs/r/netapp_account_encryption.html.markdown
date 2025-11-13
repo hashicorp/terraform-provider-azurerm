@@ -129,7 +129,7 @@ resource "azurerm_netapp_account_encryption" "cross_tenant" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -155,7 +155,7 @@ A full example of the `azurerm_netapp_account_encryption` resource and NetApp Vo
 
 For cross-tenant scenarios, see the example in [the `./examples/netapp/nfsv3_volume_cmk_cross_tenant` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_cmk_cross_tenant)
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -77,7 +77,7 @@ resource "azurerm_storage_mover_job_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies a description for this Storage Mover Job Definition.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

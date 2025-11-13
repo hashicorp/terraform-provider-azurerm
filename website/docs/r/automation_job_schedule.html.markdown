@@ -30,7 +30,7 @@ resource "azurerm_automation_job_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

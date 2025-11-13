@@ -39,7 +39,7 @@ resource "azurerm_virtual_network_dns_servers" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

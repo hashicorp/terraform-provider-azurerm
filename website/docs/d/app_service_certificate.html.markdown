@@ -24,7 +24,7 @@ output "app_service_certificate_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which to create the certificate.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

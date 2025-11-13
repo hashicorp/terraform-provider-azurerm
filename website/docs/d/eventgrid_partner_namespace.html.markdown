@@ -24,7 +24,7 @@ output "eventgrid_partner_namespace_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Event Grid Partner Namespace exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

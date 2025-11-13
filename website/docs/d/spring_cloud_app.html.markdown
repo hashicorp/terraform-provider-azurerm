@@ -26,7 +26,7 @@ output "spring_cloud_app_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) The name of the Spring Cloud Service.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

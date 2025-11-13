@@ -49,7 +49,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

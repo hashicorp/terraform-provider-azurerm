@@ -29,7 +29,7 @@ output "spring_cloud_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Spring Cloud Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

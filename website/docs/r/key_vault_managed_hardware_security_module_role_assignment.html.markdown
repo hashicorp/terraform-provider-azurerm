@@ -27,7 +27,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "e
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 * `scope` - (Required) Specifies the scope to create the role assignment. Changing this forces a new Managed Hardware Security Module to be created.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

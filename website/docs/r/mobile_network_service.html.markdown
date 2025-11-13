@@ -81,7 +81,7 @@ resource "azurerm_mobile_network_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -173,7 +173,7 @@ A `maximum_bit_rate` block supports the following:
 
 * `uplink` - (Required) Uplink bit rate. Must be a number followed by `bps`, `Kbps`, `Mbps`, `Gbps` or `Tbps`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

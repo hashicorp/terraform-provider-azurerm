@@ -53,7 +53,7 @@ resource "azurerm_spring_cloud_customized_accelerator" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ A `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) Specifies the SSH Key algorithm of git repository basic auth.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

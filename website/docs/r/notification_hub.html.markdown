@@ -36,7 +36,7 @@ resource "azurerm_notification_hub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,7 +90,7 @@ A `gcm_credential` supports the following:
 
 * `api_key` - (Required) The API Key associated with the Google Cloud Messaging service.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

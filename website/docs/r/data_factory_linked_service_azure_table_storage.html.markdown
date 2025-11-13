@@ -38,7 +38,7 @@ resource "azurerm_data_factory_linked_service_azure_table_storage" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -60,7 +60,7 @@ The following supported arguments are specific to Azure Table Storage Linked Ser
 
 * `connection_string` - (Required) The connection string to an Azure Storage Account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

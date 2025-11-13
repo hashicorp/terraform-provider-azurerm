@@ -24,7 +24,7 @@ output "notes" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `api_management_name` - The Name of the API Management Service in which this User exists.
 
@@ -32,7 +32,7 @@ output "notes" {
 
 * `user_id` - The Identifier for the User.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the API Management User.
 

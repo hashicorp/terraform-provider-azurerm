@@ -64,7 +64,7 @@ resource "azurerm_data_share_dataset_kusto_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `kusto_cluster_id` - (Required) The resource ID of the Kusto Cluster to be shared with the receiver. Changing this forces a new Data Share Kusto Cluster Dataset to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

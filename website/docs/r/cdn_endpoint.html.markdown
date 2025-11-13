@@ -46,7 +46,7 @@ resource "azurerm_cdn_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -402,7 +402,7 @@ A `url_path_condition` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

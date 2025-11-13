@@ -49,7 +49,7 @@ resource "azurerm_spring_cloud_app_dynamics_application_performance_monitoring" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `globally_enabled` - (Optional) Specifies whether the Spring Cloud Application Performance Monitoring resource for Application Insights is enabled globally. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

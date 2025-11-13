@@ -109,7 +109,7 @@ resource "azurerm_monitor_data_collection_rule_association" "example2" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Data Collection Rule Association.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

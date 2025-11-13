@@ -31,7 +31,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

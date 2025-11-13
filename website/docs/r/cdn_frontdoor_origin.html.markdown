@@ -207,7 +207,7 @@ resource "azurerm_private_link_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -270,7 +270,7 @@ A `private_link` block supports the following:
 * [Private Link Origin with Linux Web Application](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cdn-frontdoor/linux-web-app)
 * [Private Link Origin with Internal Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service/cdn-frontdoor/load-balancer)
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

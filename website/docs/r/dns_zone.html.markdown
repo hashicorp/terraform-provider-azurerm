@@ -24,7 +24,7 @@ resource "azurerm_dns_zone" "example-public" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The `soa_record` block supports:
 
 * `tags` - (Optional) A mapping of tags to assign to the Record Set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

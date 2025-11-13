@@ -23,13 +23,13 @@ output "automation_account_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Automation Account.
 
 * `resource_group_name` - Specifies the name of the Resource Group where the Automation Account exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Automation Account
 

@@ -46,7 +46,7 @@ resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **Note:** `thumbprint` must be specified when `ssl_state` is set.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -97,7 +97,7 @@ resource "azurerm_log_analytics_cluster_customer_managed_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `log_analytics_cluster_id` - (Required) The ID of the Log Analytics Cluster. Changing this forces a new Log Analytics Cluster Customer Managed Key to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

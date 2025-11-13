@@ -24,7 +24,7 @@ output "private_dns_zone_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Private DNS Zone.
 
@@ -32,7 +32,7 @@ output "private_dns_zone_id" {
 If the Name of the Resource Group is not provided, the first Private DNS Zone from the list of Private
 DNS Zones in your subscription that matches `name` will be returned.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Private DNS Zone.
 

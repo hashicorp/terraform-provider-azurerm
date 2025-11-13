@@ -74,7 +74,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

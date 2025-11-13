@@ -37,7 +37,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -224,7 +224,7 @@ The `wsfc_domain_credential` block supports the following:
 
 * `sql_service_account_password` - (Required) The account password under which SQL service will run on all participating SQL virtual machines in the cluster.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -20,7 +20,7 @@ data "azurerm_iothub_dps_shared_access_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `iothub_dps_name` - Specifies the name of the IoT Hub Device Provisioning service to which the Shared Access Policy belongs.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

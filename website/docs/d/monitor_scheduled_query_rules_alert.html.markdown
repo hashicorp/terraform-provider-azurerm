@@ -23,12 +23,12 @@ output "query_rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the scheduled query rule.
 * `resource_group_name` - (Required) Specifies the name of the resource group where the scheduled query rule is located.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the scheduled query rule.
 * `location` - Specifies the Azure Region where the resource should exist.

@@ -24,7 +24,7 @@ resource "azurerm_resource_management_private_link" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
  
 * `location` - (Required) The Azure Region where the Resource Management Private Link should exist. Changing this forces a new Resource Management Private Link to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

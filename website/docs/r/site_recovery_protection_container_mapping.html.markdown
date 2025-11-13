@@ -77,7 +77,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "container-mapping
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -113,7 +113,7 @@ An `automatic_update` block supports the following:
 
 ~> **Note:** `RunAsAccount` of `authentication_type` is deprecated and will retire on September 30, 2023. Details could be found [here](https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

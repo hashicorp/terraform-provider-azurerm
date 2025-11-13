@@ -27,13 +27,13 @@ output "string_vars" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 - `automation_account_id` - The resource ID of the automation account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the argument listed above, the following attributes are exported:
 

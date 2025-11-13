@@ -69,7 +69,7 @@ resource "azurerm_key_vault_secret" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -27,7 +27,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - The Azure location where the resource exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

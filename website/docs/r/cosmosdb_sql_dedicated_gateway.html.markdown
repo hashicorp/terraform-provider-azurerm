@@ -42,7 +42,7 @@ resource "azurerm_cosmosdb_sql_dedicated_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `instance_count` - (Required) The instance count for the CosmosDB SQL Dedicated Gateway. Possible value is between `1` and `5`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -52,7 +52,7 @@ resource "azurerm_redis_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `end_ip` - (Required) The highest IP address included in the range.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

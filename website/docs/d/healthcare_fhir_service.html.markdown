@@ -23,13 +23,13 @@ output "healthcare_fhir_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare FHIR Service.
 
 * `workspace_id` - The id of the Healthcare Workspace in which the Healthcare FHIR Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -19,7 +19,7 @@ data "azurerm_storage_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
-## Attribute Reference
+## Attributes Reference
 
 * `metadata` - A mapping of MetaData for this Queue.
 

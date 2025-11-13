@@ -37,7 +37,7 @@ resource "azurerm_network_manager" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ A `scope` block supports the following:
 
 * `subscription_ids` - (Optional) A list of subscription IDs.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

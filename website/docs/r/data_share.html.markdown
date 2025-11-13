@@ -51,7 +51,7 @@ resource "azurerm_data_share" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ A `snapshot_schedule` block supports the following:
 
 * `start_time` - (Required) The synchronization with the source data's start time.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

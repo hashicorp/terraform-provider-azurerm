@@ -24,13 +24,13 @@ output "cache_rule_source_repo" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Container Registry Cache Rule. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `container_registry_id` - The ID of the container registry where the cache rule should apply. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -86,7 +86,7 @@ resource "azurerm_virtual_machine_automanage_configuration_assignment" "example"
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 * `configuration_id` - (Required) The ARM resource ID of the Automanage Configuration to assign to the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

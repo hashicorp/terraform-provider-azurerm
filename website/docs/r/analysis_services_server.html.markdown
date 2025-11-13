@@ -40,7 +40,7 @@ resource "azurerm_analysis_services_server" "server" {
 
 -> **Note:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ A `ipv4_firewall_rule` block supports the following:
 
 * `range_end` - (Required) End of the firewall rule range as IPv4 address.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

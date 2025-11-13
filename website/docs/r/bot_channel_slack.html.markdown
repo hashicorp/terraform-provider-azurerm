@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_slack" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `signing_secret` - (Optional) The Signing Secret that will be used to sign the requests.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

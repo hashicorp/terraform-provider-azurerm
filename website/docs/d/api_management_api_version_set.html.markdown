@@ -24,7 +24,7 @@ output "api_management_api_version_set_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the API Version Set.
 
@@ -32,7 +32,7 @@ output "api_management_api_version_set_id" {
 
 * `api_management_name` - The name of the [API Management Service](api_management.html) where the API Version Set exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the API Version Set.
 

@@ -34,7 +34,7 @@ resource "azurerm_api_management_api_schema" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `definitions` - (Optional) Types definitions. Used for Swagger/OpenAPI v1 schemas only.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

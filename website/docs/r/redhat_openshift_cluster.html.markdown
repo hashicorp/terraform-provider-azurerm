@@ -127,7 +127,7 @@ output "console_url" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -235,7 +235,7 @@ A `ingress_profile` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

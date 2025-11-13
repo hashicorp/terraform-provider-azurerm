@@ -54,7 +54,7 @@ resource "azurerm_app_service_source_control_slot" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -110,7 +110,7 @@ A `container_configuration` block supports the following:
 
 * `registry_username` - (Optional) The username used to upload the image to the container registry. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

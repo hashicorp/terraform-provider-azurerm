@@ -63,7 +63,7 @@ resource "azurerm_postgresql_virtual_network_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Should the Virtual Network Rule be created before the Subnet has the Virtual Network Service Endpoint enabled? 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

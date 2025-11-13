@@ -32,7 +32,7 @@ resource "azurerm_netapp_backup_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

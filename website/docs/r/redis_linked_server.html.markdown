@@ -64,7 +64,7 @@ resource "azurerm_redis_linked_server" "example-link" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `server_role` - (Required) The role of the linked Redis cache (eg "Secondary"). Changing this forces a new Redis to be created. Possible values are `Primary` and `Secondary`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

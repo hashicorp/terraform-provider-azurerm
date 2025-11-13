@@ -77,7 +77,7 @@ resource "azurerm_private_dns_resolver_virtual_network_link" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) Metadata attached to the Private DNS Resolver Virtual Network Link.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

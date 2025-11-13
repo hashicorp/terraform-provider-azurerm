@@ -39,7 +39,7 @@ resource "azurerm_data_factory_linked_service_azure_search" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -63,7 +63,7 @@ The following supported arguments are specific to Azure Search Linked Service:
 
 * `search_service_key` - (Required) The key of the Azure Search Service.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

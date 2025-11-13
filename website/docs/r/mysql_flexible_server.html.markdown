@@ -73,7 +73,7 @@ resource "azurerm_mysql_flexible_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -215,7 +215,7 @@ A `storage` block supports the following:
 
 -> **Note:** Decreasing `size_gb` forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -107,7 +107,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

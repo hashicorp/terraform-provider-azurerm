@@ -51,7 +51,7 @@ resource "azurerm_marketplace_role_assignment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 ~> **Note:** This field takes effect only when `principal_id` is a `Service Principal` identity.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -80,7 +80,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `spark_enabled` - (Optional) Whether to enable an additional private endpoint to be used by jobs running on Spark. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

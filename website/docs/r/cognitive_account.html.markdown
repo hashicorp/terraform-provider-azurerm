@@ -36,7 +36,7 @@ resource "azurerm_cognitive_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -164,7 +164,7 @@ A `storage` block supports the following:
 
 ~> **Note:** Not all `kind` support a `storage` block. For example the `kind` `OpenAI` does not support it.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

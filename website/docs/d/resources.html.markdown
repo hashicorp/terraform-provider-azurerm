@@ -48,7 +48,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 ~> **Note:** At least one of `name`, `resource_group_name` or `type` must be specified.
 
@@ -60,7 +60,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 * `required_tags` - (Optional) A mapping of tags which the resource has to have in order to be included in the result.
 
-## Attribute Reference
+## Attributes Reference
 
 * `resources` - One or more `resource` blocks as defined below.
 

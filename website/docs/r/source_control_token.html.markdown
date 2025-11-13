@@ -21,7 +21,7 @@ resource "azurerm_source_control_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ~> **Note:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -25,7 +25,7 @@ output "mssql_failover_group_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the primary SQL Server where the Failover Group exists.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

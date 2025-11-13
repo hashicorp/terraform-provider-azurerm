@@ -46,7 +46,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ A `network_acls` block supports the following:
 
 * `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

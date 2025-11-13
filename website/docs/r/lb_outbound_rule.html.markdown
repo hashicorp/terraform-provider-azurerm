@@ -55,7 +55,7 @@ resource "azurerm_lb_outbound_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -74,7 +74,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -45,7 +45,7 @@ resource "azurerm_notification_hub_authorization_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `listen` - (Optional) Does this Authorization Rule have Listen access to the Notification Hub? Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

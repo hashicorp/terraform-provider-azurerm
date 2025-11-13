@@ -28,13 +28,13 @@ output "cluster_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of this HDInsight Cluster.
 
 * `resource_group_name` - Specifies the name of the Resource Group in which this HDInsight Cluster exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The fully qualified HDInsight resource ID.
 

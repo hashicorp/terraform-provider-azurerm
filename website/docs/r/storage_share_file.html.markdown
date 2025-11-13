@@ -41,7 +41,7 @@ resource "azurerm_storage_share_file" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of metadata to assign to this file.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

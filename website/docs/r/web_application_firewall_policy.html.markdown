@@ -112,7 +112,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -287,7 +287,7 @@ The `scrubbing_rule` block supports the following:
 
 * `selector` - (Optional) Specifies which elements in the collection this rule applies to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

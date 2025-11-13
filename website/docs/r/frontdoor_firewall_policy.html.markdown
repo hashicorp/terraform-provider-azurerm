@@ -125,7 +125,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -229,7 +229,7 @@ The `exclusion` block supports the following:
 
 * `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

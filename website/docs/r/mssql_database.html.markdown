@@ -156,7 +156,7 @@ resource "azurerm_key_vault_key" "example" {
 ```
 
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -302,7 +302,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Database.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

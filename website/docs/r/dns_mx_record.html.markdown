@@ -47,7 +47,7 @@ resource "azurerm_dns_mx_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ The `record` block supports:
 
 * `exchange` - (Required) The mail server responsible for the domain covered by the MX record.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

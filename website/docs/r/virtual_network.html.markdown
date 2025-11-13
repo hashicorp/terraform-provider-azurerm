@@ -55,7 +55,7 @@ resource "azurerm_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -177,7 +177,7 @@ A `service_delegation` block supports the following:
 
 -> **Note:** Azure may add default actions depending on the service delegation name and they can't be changed.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

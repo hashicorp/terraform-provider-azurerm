@@ -25,7 +25,7 @@ output "netapp_volume_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `pool_name` - The name of the NetApp pool where the NetApp volume exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

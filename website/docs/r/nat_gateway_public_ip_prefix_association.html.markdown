@@ -40,7 +40,7 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `public_ip_prefix_id` - (Required) The ID of the Public IP Prefix which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

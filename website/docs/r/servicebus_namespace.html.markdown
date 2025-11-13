@@ -34,7 +34,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -119,7 +119,7 @@ A `network_rules` block supports the following:
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Should the Service Bus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

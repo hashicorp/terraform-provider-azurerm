@@ -86,7 +86,7 @@ resource "azurerm_consumption_budget_resource_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -160,7 +160,7 @@ A `time_period` block supports the following:
 
 * `end_date` - (Optional) The end date for the budget. If not set this will be 10 years after the start date.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

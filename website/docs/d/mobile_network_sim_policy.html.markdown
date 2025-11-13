@@ -24,7 +24,7 @@ data "azurerm_mobile_network_sim_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `mobile_network_id` - The ID of the Mobile Network which the Sim Policy belongs to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

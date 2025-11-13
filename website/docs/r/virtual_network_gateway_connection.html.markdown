@@ -199,7 +199,7 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -297,7 +297,7 @@ The `traffic_selector_policy` block supports:
 
 * `remote_address_cidrs` - (Required) List of remote CIDRs.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -50,7 +50,7 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "example
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Tenant ID.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

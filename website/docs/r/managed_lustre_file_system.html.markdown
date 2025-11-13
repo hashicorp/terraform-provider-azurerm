@@ -48,7 +48,7 @@ resource "azurerm_managed_lustre_file_system" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ A `root_squash` block supports the following:
 
 * `squash_uid` - (Optional) The UID to be used for the root squash. Defaults to `0`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

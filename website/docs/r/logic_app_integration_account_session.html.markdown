@@ -38,7 +38,7 @@ resource "azurerm_logic_app_integration_account_session" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `content` - (Required) The content of the Logic App Integration Account Session.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

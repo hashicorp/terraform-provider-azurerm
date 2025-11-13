@@ -45,7 +45,7 @@ resource "azurerm_site_recovery_hyperv_network_mapping" "recovery-mapping" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `target_network_id` - (Required) The id of the recovery network. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

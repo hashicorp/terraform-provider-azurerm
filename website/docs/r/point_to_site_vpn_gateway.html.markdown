@@ -85,7 +85,7 @@ resource "azurerm_point_to_site_vpn_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -147,7 +147,7 @@ A `propagated_route_table` block supports the following:
 
 * `labels` - (Optional) The list of labels to logically group Virtual Hub Route Tables which the routes will be propagated to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -24,7 +24,7 @@ resource "azurerm_cost_anomaly_alert" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `message` - (Optional) The message of the Cost Anomaly Alert. Maximum length of the message is 250.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

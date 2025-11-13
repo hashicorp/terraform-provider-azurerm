@@ -39,7 +39,7 @@ resource "azurerm_management_group_policy_remediation" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `resource_count` - (Optional) Determines the max number of resources that can be remediated by the remediation job. If not provided, the default resource count is used.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

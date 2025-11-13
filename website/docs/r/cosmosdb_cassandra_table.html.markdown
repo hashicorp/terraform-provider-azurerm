@@ -67,7 +67,7 @@ resource "azurerm_cosmosdb_cassandra_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -123,7 +123,7 @@ A `partition_key` block supports the following:
 
 * `name` - (Required) Name of the column to partition by.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

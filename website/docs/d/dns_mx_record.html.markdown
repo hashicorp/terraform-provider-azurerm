@@ -26,7 +26,7 @@ output "dns_mx_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the DNS MX Record.
 
@@ -34,7 +34,7 @@ output "dns_mx_record_id" {
 
 * `zone_name` - Specifies the DNS Zone where the resource exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The DNS MX Record ID.
 

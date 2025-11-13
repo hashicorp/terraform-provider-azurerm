@@ -45,7 +45,7 @@ resource "azurerm_network_manager_security_admin_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of the Security Admin Configuration.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

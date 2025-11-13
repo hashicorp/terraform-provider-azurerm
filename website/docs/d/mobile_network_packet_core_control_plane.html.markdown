@@ -19,7 +19,7 @@ data "azurerm_mobile_network_packet_core_control_plane" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -29,7 +29,7 @@ The following arguments are supported:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

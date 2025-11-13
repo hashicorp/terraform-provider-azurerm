@@ -24,7 +24,7 @@ output "backup_vault_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

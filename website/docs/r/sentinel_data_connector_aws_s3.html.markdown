@@ -38,7 +38,7 @@ resource "azurerm_sentinel_data_connector_aws_s3" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `sqs_urls` - (Required) Specifies a list of AWS SQS urls for the AWS S3 Data Connector.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

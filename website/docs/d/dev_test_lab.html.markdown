@@ -23,13 +23,13 @@ output "unique_identifier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Dev Test Lab.
 
 * `resource_group_name` - The Name of the Resource Group where the Dev Test Lab exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Dev Test Lab.
 

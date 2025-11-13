@@ -52,7 +52,7 @@ resource "azurerm_backup_protected_vm" "vm1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 ~> **Note:** `protection_state` cannot be set to `BackupsSuspended` unless the `azurerm_recovery_services_vault` has `immutability` set to `Unlocked` or `Locked`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

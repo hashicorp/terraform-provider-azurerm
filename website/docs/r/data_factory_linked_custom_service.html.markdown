@@ -60,7 +60,7 @@ JSON
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
@@ -88,7 +88,7 @@ An `integration_runtime` block supports the following:
 
 * `parameters` - (Optional) A map of parameters to associate with the integration runtime.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

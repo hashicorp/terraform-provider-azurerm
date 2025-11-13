@@ -30,7 +30,7 @@ resource "azurerm_custom_provider" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,7 +72,7 @@ A `validation` block supports the following:
 
 * `specification` - (Required) The endpoint where the validation specification is located.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

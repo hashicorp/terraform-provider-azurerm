@@ -44,7 +44,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -118,7 +118,7 @@ A `kill_chain_phase` block supports the following:
 
 * `name` - (Optional) The name which should be used for the Lockheed Martin cyber kill chain phase.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

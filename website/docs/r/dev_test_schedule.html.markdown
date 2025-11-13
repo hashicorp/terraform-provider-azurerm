@@ -48,7 +48,7 @@ resource "azurerm_dev_test_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -106,7 +106,7 @@ A `notification_settings` block supports the following:
 
 * `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

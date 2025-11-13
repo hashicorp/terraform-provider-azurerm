@@ -37,7 +37,7 @@ resource "azurerm_storage_container" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData for this Container. All metadata keys should be lowercase.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

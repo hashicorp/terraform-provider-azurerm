@@ -67,7 +67,7 @@ output "full_permissions_api_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 -> **Note:** At least one read or write permission must be defined.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

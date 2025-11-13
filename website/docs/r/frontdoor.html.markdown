@@ -77,7 +77,7 @@ resource "azurerm_frontdoor" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -245,7 +245,7 @@ The `redirect_configuration` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 -> **Note:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as backend pool health probes, backend pool loadbalancer settings, backend pools, frontend endpoints and routing rules. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 

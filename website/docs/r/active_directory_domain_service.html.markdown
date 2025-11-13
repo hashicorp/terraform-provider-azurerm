@@ -160,7 +160,7 @@ resource "azurerm_active_directory_domain_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -234,7 +234,7 @@ A `security` block supports the following:
 
 * `tls_v1_enabled` - (Optional) Whether to enable legacy TLS v1 support. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

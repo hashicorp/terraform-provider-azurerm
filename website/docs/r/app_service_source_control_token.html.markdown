@@ -24,7 +24,7 @@ resource "azurerm_app_service_source_control_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

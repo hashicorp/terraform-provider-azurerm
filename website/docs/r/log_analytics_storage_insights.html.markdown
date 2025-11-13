@@ -44,7 +44,7 @@ resource "azurerm_log_analytics_storage_insights" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `table_names` - (Optional) The names of the Azure tables that the workspace should read.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

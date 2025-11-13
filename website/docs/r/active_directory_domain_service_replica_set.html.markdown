@@ -276,7 +276,7 @@ resource "azurerm_active_directory_domain_service_replica_set" "replica" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -286,7 +286,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set. Changing this forces a new resource to be created.
   
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -56,7 +56,7 @@ resource "azurerm_new_relic_tag_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,7 +94,7 @@ A `metric_tag_filter` block supports the following:
 
 * `value` - (Required) Specifies the value of the tag.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

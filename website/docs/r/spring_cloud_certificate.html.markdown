@@ -114,7 +114,7 @@ resource "azurerm_spring_cloud_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `certificate_content` - (Optional) The content of uploaded certificate. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

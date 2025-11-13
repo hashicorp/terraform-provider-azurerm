@@ -40,7 +40,7 @@ resource "azurerm_api_management_authorization_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ A `token_body_parameter` block supports the following:
 
 * `value` - (Required) The Value of the Parameter.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

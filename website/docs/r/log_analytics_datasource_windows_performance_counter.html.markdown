@@ -40,7 +40,7 @@ resource "azurerm_log_analytics_datasource_windows_performance_counter" "example
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `interval_seconds` - (Required) The time of sample interval in seconds. Supports values between 10 and 2147483647.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

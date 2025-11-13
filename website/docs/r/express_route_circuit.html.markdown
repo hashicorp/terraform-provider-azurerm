@@ -37,7 +37,7 @@ resource "azurerm_express_route_circuit" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The `sku` block supports the following:
 
 ~> **Note:** You can migrate from `MeteredData` to `UnlimitedData`, but not the other way around.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

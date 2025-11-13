@@ -19,7 +19,7 @@ data "azurerm_storage_table_entities" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `select` - (Optional) A list of properties to select from the returned Storage Table Entities.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the storage table entity.
 

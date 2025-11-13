@@ -94,12 +94,12 @@ output "public_ip_address" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the public IP address.
 * `resource_group_name` - Specifies the name of the resource group.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Public IP address.
 * `allocation_method` - The allocation method for this IP address. Possible values are `Static` or `Dynamic`.

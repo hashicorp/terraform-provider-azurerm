@@ -75,7 +75,7 @@ resource "azurerm_nginx_deployment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -165,7 +165,7 @@ A `web_application_firewall` - block supports the following:
 
 * `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

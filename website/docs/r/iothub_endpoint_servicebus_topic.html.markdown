@@ -65,7 +65,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

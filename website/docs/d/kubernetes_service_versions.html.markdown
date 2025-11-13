@@ -26,7 +26,7 @@ output "latest_version" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - Specifies the location in which to query for versions.
 
@@ -34,7 +34,7 @@ output "latest_version" {
 
 * `include_preview` - (Optional) Should Preview versions of Kubernetes in AKS be included? Defaults to `true`
 
-## Attribute Reference
+## Attributes Reference
 
 * `versions` - The list of all supported versions.
 

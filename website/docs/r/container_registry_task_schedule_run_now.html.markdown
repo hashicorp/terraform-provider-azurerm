@@ -45,13 +45,13 @@ resource "azurerm_container_registry_task_schedule_run_now" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `container_registry_task_id` - (Required) The ID of the Container Registry Task that to be scheduled. Changing this forces a new Container Registry Task Schedule to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

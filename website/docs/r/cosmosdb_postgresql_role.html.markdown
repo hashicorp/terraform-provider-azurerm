@@ -35,7 +35,7 @@ resource "azurerm_cosmosdb_postgresql_role" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `password` - (Required) The password of the Azure Cosmos DB for PostgreSQL Role. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -36,7 +36,7 @@ resource "azurerm_sentinel_data_connector_aws_cloud_trail" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this AWS CloudTrail Data Connector. Changing this forces a new AWS CloudTrail Data Connector to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

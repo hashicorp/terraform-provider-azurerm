@@ -25,7 +25,7 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `vulnerability_profile` - (Optional) The setting to use for the Vulnerability Profile. Possible values include `BestPractice`, and `Custom`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

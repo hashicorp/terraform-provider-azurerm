@@ -97,7 +97,7 @@ resource "azurerm_app_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -141,7 +141,7 @@ The `sku` block supports the following:
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

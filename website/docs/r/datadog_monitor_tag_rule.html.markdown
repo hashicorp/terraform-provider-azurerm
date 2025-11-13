@@ -52,7 +52,7 @@ resource "azurerm_datadog_monitor_tag_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

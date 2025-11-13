@@ -42,7 +42,7 @@ resource "azurerm_cosmosdb_sql_trigger" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `type` - (Required) Type of the Trigger. Possible values are `Pre` and `Post`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

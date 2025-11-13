@@ -42,7 +42,7 @@ resource "azurerm_stack_hci_logical_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -96,7 +96,7 @@ A `subnet` block supports the following:
 
 * `vlan_id` - (Optional) The VLAN ID for the Logical Network. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

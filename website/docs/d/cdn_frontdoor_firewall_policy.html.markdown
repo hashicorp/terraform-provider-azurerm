@@ -19,7 +19,7 @@ data "azurerm_cdn_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

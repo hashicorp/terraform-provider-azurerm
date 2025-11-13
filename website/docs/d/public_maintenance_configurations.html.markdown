@@ -24,7 +24,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 
@@ -32,7 +32,7 @@ output "name" {
 
 * `recur_every` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
 
-## Attribute Reference
+## Attributes Reference
 
 * `configs` - A `configs` block as defined below.
 

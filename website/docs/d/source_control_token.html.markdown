@@ -24,13 +24,13 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `type` - (Required) The Token type. Possible values include `Bitbucket`, `Dropbox`, `Github`, and `OneDrive`.
 
-## Attribute Reference
+## Attributes Reference
 
 The following Attributes are exported:
 

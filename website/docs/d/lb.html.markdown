@@ -24,13 +24,13 @@ output "loadbalancer_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Load Balancer.
 
 * `resource_group_name` - The name of the Resource Group in which the Load Balancer exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

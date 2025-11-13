@@ -338,7 +338,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -448,7 +448,7 @@ An `feature_store` block supports the following:
 
 ~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

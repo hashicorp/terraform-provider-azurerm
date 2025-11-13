@@ -125,7 +125,7 @@ resource "azurerm_servicebus_namespace_customer_managed_key" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

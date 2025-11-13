@@ -106,7 +106,7 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "example" {
 
 ~> **Note:** This Resource requires that [the Network Watcher Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine Scale Set before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_scale_set_extension` resource](virtual_machine_scale_set_extension.html).
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -160,7 +160,7 @@ A `machine_scope` block contains:
 
 * `include_instance_ids` - (Optional) A list of Virtual Machine Scale Set instance IDs which should be included for Packet Capture, e.g. `["1", "3"]`. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

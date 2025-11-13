@@ -83,7 +83,7 @@ resource "azurerm_iothub_enrichment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `endpoint_names` - (Required) The list of endpoints which will be enriched.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

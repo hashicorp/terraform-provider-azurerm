@@ -72,7 +72,7 @@ resource "azurerm_kubernetes_flux_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -226,7 +226,7 @@ A `substitute_from` block supports the following:
 
 * `optional` - (Optional) Whether to proceed without ConfigMap/Secret if it is not present. Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

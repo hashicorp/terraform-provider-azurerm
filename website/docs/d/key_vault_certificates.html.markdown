@@ -25,7 +25,7 @@ data "azurerm_key_vault_certificate" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `include_pending` - Specifies whether to include certificates which are not completely provisioned. Defaults to true.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

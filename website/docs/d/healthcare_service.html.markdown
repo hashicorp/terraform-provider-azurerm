@@ -24,13 +24,13 @@ output "healthcare_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Healthcare Service.
 
 * `resource_group_name` - The name of the Resource Group in which the Healthcare Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

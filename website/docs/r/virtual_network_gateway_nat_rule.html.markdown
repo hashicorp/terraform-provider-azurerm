@@ -80,7 +80,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -118,7 +118,7 @@ A `internal_mapping` block exports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

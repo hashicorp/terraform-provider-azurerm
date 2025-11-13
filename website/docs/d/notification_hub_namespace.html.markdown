@@ -23,13 +23,13 @@ output "servicebus_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the Notification Hub Namespace.
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Notification Hub Namespace.
 

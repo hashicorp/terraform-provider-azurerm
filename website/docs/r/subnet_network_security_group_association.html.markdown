@@ -57,7 +57,7 @@ resource "azurerm_subnet_network_security_group_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

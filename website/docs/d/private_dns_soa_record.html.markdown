@@ -25,13 +25,13 @@ output "private_dns_soa_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `resource_group_name` - Specifies the resource group where the Private DNS Zone (parent resource) exists.
 
 * `zone_name` - Specifies the Private DNS Zone where the resource exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Private DNS SOA Record ID.
 

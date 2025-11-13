@@ -76,7 +76,7 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

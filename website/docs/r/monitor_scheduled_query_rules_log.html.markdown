@@ -82,7 +82,7 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -111,7 +111,7 @@ The `dimension` block supports the following:
 * `operator` - (Optional) Operator for dimension values, - 'Include'. Defaults to `Include`.
 * `values` - (Required) List of dimension values.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

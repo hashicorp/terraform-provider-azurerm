@@ -73,7 +73,7 @@ resource "azurerm_network_manager_connectivity_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ A `hub` block supports the following:
 
 * `resource_type` - (Required) Specifies the resource Type used as hub in Hub And Spoke topology.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

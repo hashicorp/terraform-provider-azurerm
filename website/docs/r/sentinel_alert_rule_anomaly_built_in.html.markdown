@@ -46,7 +46,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_built_in" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `mode` - (Required) mode of the Built-in Anomaly Alert Rule. Possible Values are `Production` and `Flighting`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

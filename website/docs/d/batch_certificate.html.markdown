@@ -25,7 +25,7 @@ output "thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Batch certificate.
 
@@ -33,7 +33,7 @@ output "thumbprint" {
 
 * `resource_group_name` - The Name of the Resource Group where this Batch account exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

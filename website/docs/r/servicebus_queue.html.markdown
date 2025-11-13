@@ -37,7 +37,7 @@ resource "azurerm_servicebus_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward dead lettered messages to.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

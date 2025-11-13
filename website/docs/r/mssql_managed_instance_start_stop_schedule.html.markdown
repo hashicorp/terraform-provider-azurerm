@@ -219,7 +219,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -243,7 +243,7 @@ A `schedule` block supports the following:
 
 * `stop_time` - (Required) Stop time of the schedule in 24-hour format (e.g., `17:00`).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

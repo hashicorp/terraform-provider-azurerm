@@ -334,7 +334,7 @@ func (gen documentationGenerator) argumentsBlock() string {
 
 	fields = strings.TrimSuffix(fields, "\n\n")
 
-	return fmt.Sprintf(`## Argument Reference
+	return fmt.Sprintf(`## Arguments Reference
 
 The following arguments are supported:
 
@@ -382,7 +382,7 @@ func (gen documentationGenerator) attributesBlock() string {
 
 	fields = strings.TrimSuffix(fields, "\n\n")
 
-	return fmt.Sprintf(`## Attribute Reference
+	return fmt.Sprintf(`## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

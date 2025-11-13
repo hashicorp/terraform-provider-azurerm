@@ -56,7 +56,7 @@ resource "azurerm_container_connected_registry" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `notification` block supports the following:
 
 ~> **Note:** One of either `tag` or `digest` can be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

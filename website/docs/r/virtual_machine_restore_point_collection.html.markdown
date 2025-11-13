@@ -84,7 +84,7 @@ resource "azurerm_virtual_machine_restore_point_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Restore Point Collection.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

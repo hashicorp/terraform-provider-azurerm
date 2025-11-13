@@ -23,13 +23,13 @@ output "rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the ServiceBus Namespace Authorization Rule.
 
 * `namespace_id` - (Required) Specifies the ID of the ServiceBus Namespace where the Service Bus Namespace Authorization Rule exists.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The id of the ServiceBus Namespace Authorization Rule.
 

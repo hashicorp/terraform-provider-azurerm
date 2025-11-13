@@ -128,7 +128,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -312,7 +312,7 @@ The following table shows examples of `scrubbing_rule`'s that can be used to pro
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

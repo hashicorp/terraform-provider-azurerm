@@ -50,7 +50,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -78,7 +78,7 @@ A `permissions` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

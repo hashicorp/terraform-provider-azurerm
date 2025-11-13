@@ -47,7 +47,7 @@ QUERY
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -181,7 +181,7 @@ A `grouping` block supports the following:
 
 * `by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

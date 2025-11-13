@@ -71,7 +71,7 @@ resource "azurerm_automation_software_update_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -209,7 +209,7 @@ The `monthly_occurrence` block supports the following:
 
 * `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `4`. `-1` for last week within the month.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

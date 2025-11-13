@@ -48,7 +48,7 @@ resource "azurerm_kubernetes_fleet_member" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `group` - (Optional) The group this member belongs to for multi-cluster update management.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -42,7 +42,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Key Vault.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

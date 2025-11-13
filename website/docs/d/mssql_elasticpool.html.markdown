@@ -24,7 +24,7 @@ output "elasticpool_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the elastic pool.
 
@@ -32,7 +32,7 @@ output "elasticpool_id" {
 
 * `server_name` - The name of the SQL Server which contains the elastic pool.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the elastic pool.
 

@@ -94,7 +94,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
@@ -158,7 +158,7 @@ A `service_principal_linked_key_vault_key` block supports the following:
 
 * `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

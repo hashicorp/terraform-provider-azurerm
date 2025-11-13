@@ -39,7 +39,7 @@ resource "azurerm_bot_channel_email" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `magic_code` - (Optional) The magic code used to set up OAUTH authentication.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

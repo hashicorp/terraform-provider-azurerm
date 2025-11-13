@@ -28,13 +28,13 @@ data "azurerm_blueprint_definition" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Blueprint.
 
 * `scope_id` - (Required) The ID of the Subscription or Management Group, as the scope at which the blueprint definition is stored.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Blueprint Definition.  
 

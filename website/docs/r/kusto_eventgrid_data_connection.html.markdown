@@ -98,7 +98,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -134,7 +134,7 @@ The following arguments are supported:
 
 * `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

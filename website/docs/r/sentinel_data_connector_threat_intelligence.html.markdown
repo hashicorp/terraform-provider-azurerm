@@ -35,7 +35,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 -> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

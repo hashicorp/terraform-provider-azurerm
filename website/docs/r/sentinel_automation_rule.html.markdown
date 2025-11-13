@@ -45,7 +45,7 @@ resource "azurerm_sentinel_automation_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -121,7 +121,7 @@ An `action_playbook` block supports the following:
 
 * `tenant_id` - (Optional) The ID of the Tenant that owns the playbook.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -61,7 +61,7 @@ resource "azurerm_healthcare_medtech_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,7 +90,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Healthcare Med Tech Service.
 
-## Attribute Reference
+## Attributes Reference
 
 The following arguments are supported:
 

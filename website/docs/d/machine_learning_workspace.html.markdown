@@ -27,7 +27,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Machine Learning Workspace exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

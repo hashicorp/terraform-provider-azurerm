@@ -37,7 +37,7 @@ resource "azurerm_api_management" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -329,7 +329,7 @@ A `terms_of_service` block supports the following:
 
 * `text` - (Optional) The Terms of Service which users are required to agree to in order to sign up.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

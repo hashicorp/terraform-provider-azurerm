@@ -257,7 +257,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -581,7 +581,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

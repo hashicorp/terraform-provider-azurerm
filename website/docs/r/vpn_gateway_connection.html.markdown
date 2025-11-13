@@ -71,7 +71,7 @@ resource "azurerm_vpn_gateway_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -181,7 +181,7 @@ A `custom_bgp_address` block supports the following:
 
 * `ip_configuration_id` - (Required) The ID of the IP Configuration which belongs to the VPN Gateway.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

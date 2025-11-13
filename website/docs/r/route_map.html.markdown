@@ -56,7 +56,7 @@ resource "azurerm_route_map" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -108,7 +108,7 @@ A `match_criterion` block supports the following:
 
 * `route_prefix` - (Optional) A list of route prefixes which this criterion matches.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

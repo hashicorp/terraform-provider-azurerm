@@ -117,7 +117,7 @@ resource "azurerm_storage_account_customer_managed_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `federated_identity_client_id` - (Optional) The Client ID of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

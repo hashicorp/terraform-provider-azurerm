@@ -110,7 +110,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -180,7 +180,7 @@ A `microsoft_peering` block contains:
 
 * `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

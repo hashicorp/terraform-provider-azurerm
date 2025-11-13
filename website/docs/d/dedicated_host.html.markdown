@@ -24,7 +24,7 @@ output "dedicated_host_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the resource group the Dedicated Host is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

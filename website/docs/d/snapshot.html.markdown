@@ -19,13 +19,13 @@ data "azurerm_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Snapshot.
 
 * `resource_group_name` - Specifies the name of the resource group the Snapshot is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Snapshot.
 

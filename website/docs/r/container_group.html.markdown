@@ -53,7 +53,7 @@ resource "azurerm_container_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -331,7 +331,7 @@ The `security` block supports:
 
 ~> **Note:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

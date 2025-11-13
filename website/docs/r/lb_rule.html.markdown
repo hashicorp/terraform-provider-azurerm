@@ -48,7 +48,7 @@ resource "azurerm_lb_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
 * `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

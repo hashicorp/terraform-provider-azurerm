@@ -47,7 +47,7 @@ resource "azurerm_vpn_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -89,7 +89,7 @@ A `instance_bgp_peering_address` block supports the following:
 
 * `custom_ips` - (Required) A list of custom BGP peering addresses to assign to this instance.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

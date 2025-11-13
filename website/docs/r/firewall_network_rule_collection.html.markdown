@@ -86,7 +86,7 @@ resource "azurerm_firewall_network_rule_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

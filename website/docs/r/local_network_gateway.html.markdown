@@ -27,7 +27,7 @@ resource "azurerm_local_network_gateway" "home" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,7 +59,7 @@ The `bgp_settings` block supports the following:
 
 * `peer_weight` - (Optional) The weight added to routes learned from this BGP speaker.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

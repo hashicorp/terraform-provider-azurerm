@@ -38,7 +38,7 @@ resource "azurerm_iot_security_solution" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -116,7 +116,7 @@ A `recommendations_enabled` block supports the following:
 
 * `vulnerable_tls_cipher_suite` - (Optional) Does TLS cipher suite need to be updated? Defaults to `true`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

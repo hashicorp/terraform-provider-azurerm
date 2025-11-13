@@ -68,7 +68,7 @@ resource "azurerm_mobile_network_sim" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,7 +101,7 @@ A `static_ip_configuration` block supports the following:
 * `static_ipv4_address` - (Optional) The IPv4 address assigned to the SIM at this network scope. This address must be in the userEquipmentStaticAddressPoolPrefix defined in the attached data network.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

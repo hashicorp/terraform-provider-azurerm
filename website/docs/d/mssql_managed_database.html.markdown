@@ -20,7 +20,7 @@ data "azurerm_mssql_managed_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `managed_instance_id` - (Required) The SQL Managed Instance ID.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

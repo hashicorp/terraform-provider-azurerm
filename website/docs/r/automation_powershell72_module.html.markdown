@@ -35,7 +35,7 @@ resource "azurerm_automation_powershell72_module" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -63,7 +63,7 @@ The `hash` block supports the following:
 
 * `value` - (Required) The hash value of the content.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

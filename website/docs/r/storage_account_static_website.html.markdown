@@ -37,7 +37,7 @@ resource "azurerm_storage_account_static_website" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

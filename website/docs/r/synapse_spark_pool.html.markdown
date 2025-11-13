@@ -85,7 +85,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -159,7 +159,7 @@ An `spark_config` block supports the following:
 
 * `filename` - (Required) The name of the file where the spark configuration `content` will be stored.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

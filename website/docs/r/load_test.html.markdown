@@ -29,7 +29,7 @@ resource "azurerm_load_test" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -80,7 +80,7 @@ The `identity` block for `encryption` supports the following arguments:
 ~> **Note:** The User Assigned Identity ID specified here must also exist in `identity.identity_ids`.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

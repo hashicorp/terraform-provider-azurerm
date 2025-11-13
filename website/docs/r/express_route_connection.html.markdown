@@ -82,7 +82,7 @@ resource "azurerm_express_route_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -122,7 +122,7 @@ A `propagated_route_table` block supports the following:
 
 * `route_table_ids` - (Optional) A list of IDs of the Virtual Hub Route Table to propagate routes from Express Route Connection to the route table.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

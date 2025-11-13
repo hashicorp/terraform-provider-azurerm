@@ -23,13 +23,13 @@ output "azurerm_healthcare_medtech_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare Med Tech Service.
 
 * `workspace_id` - The id of the Healthcare Workspace in which the Healthcare Med Tech Service exists.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

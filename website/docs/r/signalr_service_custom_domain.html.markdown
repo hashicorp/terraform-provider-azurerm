@@ -101,7 +101,7 @@ resource "azurerm_signalr_service_custom_domain" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `signalr_custom_certificate_id` - (Required) Specifies the SignalR Custom Certificate ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 

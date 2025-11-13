@@ -52,7 +52,7 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -174,7 +174,7 @@ A `server_root_certificate` block supports the following:
 
 * `public_cert_data` - (Required) The Public Key Data associated with the Certificate.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

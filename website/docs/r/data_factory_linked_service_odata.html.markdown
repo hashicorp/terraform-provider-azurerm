@@ -43,7 +43,7 @@ resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -73,7 +73,7 @@ A `basic_authentication` block supports the following:
 
 * `password` - (Required) The password associated with the username, which can be used to authenticate to the OData endpoint.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

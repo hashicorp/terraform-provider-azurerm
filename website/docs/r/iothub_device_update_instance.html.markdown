@@ -60,7 +60,7 @@ resource "azurerm_iothub_device_update_instance" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ A `diagnostic_storage_account` block supports the following:
 
 * `id` - (Required) Resource ID of the Diagnostic Storage Account.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

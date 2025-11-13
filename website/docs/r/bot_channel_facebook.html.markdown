@@ -44,7 +44,7 @@ resource "azurerm_bot_channel_facebook" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The `page` block supports the following:
 
 * `access_token` - (Required) The Facebook Page Access Token for the Facebook Channel.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -24,7 +24,7 @@ data "azurerm_site_recovery_replication_recovery_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,7 +33,7 @@ The following arguments are supported:
 * `recovery_vault_id` - (Required) The ID of the vault that should be updated.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 

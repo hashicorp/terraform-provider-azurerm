@@ -67,7 +67,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +103,7 @@ A `tags` block supports the following:
 
 * `values` - (Required) Specifies a list of values the defined tag can have.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 

@@ -46,7 +46,7 @@ XML
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ~> **Note:** Exactly one of `xml_content` or `xml_link` must be specified.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -72,7 +72,7 @@ resource "azurerm_stream_analytics_output_function" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `batch_max_in_bytes` - (Optional) The maximum batch size in bytes that's sent to the function. Defaults to `262144` (256 kB).
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

@@ -87,7 +87,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,7 +117,7 @@ A `notification_settings` block supports the following:
 
 * `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
-## Attribute Reference
+## Attributes Reference
 
 The following additional attributes are exported:
 

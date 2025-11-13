@@ -79,7 +79,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -258,7 +258,7 @@ A `high_availability` block supports the following:
 
 ---
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

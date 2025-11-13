@@ -64,7 +64,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +102,7 @@ A `serialization` block supports the following:
 
 -> **Note:** This is required when `type` is set to `Csv`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
