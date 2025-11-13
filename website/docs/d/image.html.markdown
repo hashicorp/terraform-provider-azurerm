@@ -33,7 +33,7 @@ output "image_id" {
 
 ## Attribute Reference
 
-* `data_disk` - a collection of `data_disk` blocks as defined below.
+* `data_disk` - One or more `data_disk` blocks as defined below.
 * `name` - the name of the Image.
 * `location` - the Azure Location where this Image exists.
 * `os_disk` - a `os_disk` block as defined below.
