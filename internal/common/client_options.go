@@ -47,6 +47,7 @@ type ClientOptions struct {
 
 	DisableTerraformPartnerID bool
 	StorageUseAzureAD         bool
+	DefaultTags               map[string]*string
 
 	ResourceManagerEndpoint string
 

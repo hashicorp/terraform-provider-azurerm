@@ -31,6 +31,7 @@ type ClientBuilder struct {
 	PartnerID                   string
 	RegisteredResourceProviders resourceproviders.ResourceProviders
 	StorageUseAzureAD           bool
+	DefaultTags                 map[string]*string
 	SubscriptionID              string
 	TerraformVersion            string
 }
@@ -148,6 +149,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
+		DefaultTags:                 builder.DefaultTags,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
