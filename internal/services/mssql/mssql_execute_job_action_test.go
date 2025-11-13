@@ -42,7 +42,7 @@ func TestAccMsSqlExecuteJobAction_complete(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: a.basic(data),
+				Config: a.complete(data),
 				Check:  nil, // TODO
 			},
 		},
