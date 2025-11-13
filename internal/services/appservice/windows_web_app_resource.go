@@ -978,8 +978,13 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 				updateLogs = true
 			}
