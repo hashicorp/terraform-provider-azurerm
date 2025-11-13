@@ -236,8 +236,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"exascale_database_storage_vault_id": {
-			Type:         schema.TypeString,
-			Optional:     true,
+			Type:     schema.TypeString,
+			Optional: true,
+			// NOTE: O+C if not specified, the default value will be provided by API
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: exascaledbstoragevaults.ValidateExascaleDbStorageVaultID,
