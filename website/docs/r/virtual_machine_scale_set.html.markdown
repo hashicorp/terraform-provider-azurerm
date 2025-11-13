@@ -267,7 +267,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `network_profile` - (Required) A collection of `network_profile` blocks as defined below.
+* `network_profile` - (Required) One or more `network_profile` blocks as defined below.
 
 * `os_profile` - (Required) A `os_profile` block as defined below.
 
@@ -301,7 +301,7 @@ The following arguments are supported:
 
 * `license_type` - (Optional) (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 
-* `os_profile_secrets` - (Optional) A collection of `os_profile_secrets` blocks as defined below.
+* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks as defined below.
 
 * `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
 
@@ -319,7 +319,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over. Changing this forces a new resource to be created.
+* `zones` - (Optional) A list of availability zones to spread the Virtual Machines over. Changing this forces a new resource to be created.
 
 -> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
@@ -408,7 +408,7 @@ The `os_profile_windows_config` block supports the following:
 
 * `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
 * `enable_automatic_upgrades` - (Optional) Indicates whether virtual machines in the scale set are enabled for automatic updates.
-* `winrm` - (Optional) A collection of `winrm` blocks as defined below.
+* `winrm` - (Optional) One or more `winrm` blocks as defined below.
 * `additional_unattend_config` - (Optional) An `additional_unattend_config` block as defined below.
 
 ---

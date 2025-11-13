@@ -152,7 +152,37 @@ The following arguments are supported:
 
 ---
 
-A `backend_request`, `backend_response`, `frontend_request` or `frontend_response` block supports the following:
+A `backend_request` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `backend_response` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `frontend_request` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `frontend_response` block supports the following:
 
 * `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
 
@@ -170,11 +200,21 @@ A `data_masking` block supports the following:
 
 ---
 
-The `query_params` and `headers` blocks support the following:
+The `query_params` block support the following:
 
 * `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
 
 * `value` - (Required) The name of the header or the query parameter to mask.
+
+---
+
+The `headers` block support the following:
+
+* `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
+
+* `value` - (Required) The name of the header or the query parameter to mask.
+
+---
 
 ## Attribute Reference
 

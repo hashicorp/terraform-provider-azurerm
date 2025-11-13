@@ -85,7 +85,7 @@ The following arguments are supported:
 
 -> **Note:** `blob_uri` and `storage_account_id` must be specified together
 
-* `tags` - (Optional) A collection of tags which should be applied to this resource.
+* `tags` - (Optional) A mapping of tags which should be applied to this resource.
 
 ---
 
