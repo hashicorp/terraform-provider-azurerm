@@ -218,6 +218,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"auth_config_allowed_modes": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForAuthenticationMode(), false),
@@ -267,8 +268,10 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      string(mongoclusters.StorageTypePremiumSSD),
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
+			RequiredWith: []string{"storage_size_in_gb"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -393,13 +396,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 
-			if state.StorageSizeInGb != 0 || state.StorageType != "" {
-				parameter.Properties.Storage = &mongoclusters.StorageProperties{}
-				if state.StorageSizeInGb != 0 {
-					parameter.Properties.Storage.SizeGb = pointer.To(state.StorageSizeInGb)
-				}
-				if state.StorageType != "" {
-					parameter.Properties.Storage.Type = pointer.To(mongoclusters.StorageType(state.StorageType))
+			if state.StorageSizeInGb != 0 {
+				parameter.Properties.Storage = &mongoclusters.StorageProperties{
+					SizeGb: pointer.To(state.StorageSizeInGb),
+					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
 				}
 			}
 
@@ -525,13 +525,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 			}
 
-			if metadata.ResourceData.HasChange("storage_size_in_gb") || metadata.ResourceData.HasChange("storage_type") {
-				payload.Properties.Storage = &mongoclusters.StorageProperties{}
-				if state.StorageSizeInGb != 0 {
-					payload.Properties.Storage.SizeGb = pointer.To(state.StorageSizeInGb)
-				}
-				if state.StorageType != "" {
-					payload.Properties.Storage.Type = pointer.To(mongoclusters.StorageType(state.StorageType))
+			if metadata.ResourceData.HasChange("storage_size_in_gb") {
+				payload.Properties.Storage = &mongoclusters.StorageProperties{
+					SizeGb: pointer.To(state.StorageSizeInGb),
+					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
 				}
 			}
 
