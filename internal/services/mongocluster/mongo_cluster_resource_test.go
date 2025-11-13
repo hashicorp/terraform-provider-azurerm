@@ -410,11 +410,10 @@ resource "azurerm_mongo_cluster" "test" {
   administrator_username = "adminTerraform"
   administrator_password = "QAZwsx123basic"
   shard_count            = "1"
-  compute_tier           = "Free"
+  compute_tier           = "M30"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
   version                = "7.0"
-  storage_type           = "PremiumSSDv2"
 
   identity {
     type         = "UserAssigned"
@@ -429,19 +428,6 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Ternary), data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r MongoClusterResource) template(data acceptance.TestData, location string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-`, data.RandomInteger, location)
-}
-
 func (r MongoClusterResource) dataApiMode(data acceptance.TestData, dataApiMode bool) string {
 	return fmt.Sprintf(`
 %s
@@ -453,11 +439,25 @@ resource "azurerm_mongo_cluster" "test" {
   administrator_username = "adminTerraform"
   administrator_password = "QAZwsx123basic"
   shard_count            = "1"
-  compute_tier           = "Free"
+  compute_tier           = "M30"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
   version                = "7.0"
   data_api_mode_enabled  = %t
+  storage_type           = "PremiumSSDv2"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, dataApiMode)
+}
+
+func (r MongoClusterResource) template(data acceptance.TestData, location string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, location)
 }
