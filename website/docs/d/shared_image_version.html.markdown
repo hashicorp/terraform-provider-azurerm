@@ -52,7 +52,7 @@ The following attributes are exported:
 
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
-* `target_region` - One or more `target_region` blocks as documented below.
+* `target_region` - One or more `target_region` blocks as defined below.
 
 * `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
 
