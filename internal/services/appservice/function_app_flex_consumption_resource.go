@@ -1228,13 +1228,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			var (
-				backendStorageString,
-				deploymentSaKey,
-				deploymentSaName,
-				storageConnStringForFCApp,
-				storageConnStringForFcAppValue string
-			)
+			var backendStorageString, deploymentSaKey, deploymentSaName, storageConnStringForFCApp, storageConnStringForFcAppValue string
+
 			deploymentSaEndpoint := state.DeploymentStorageContainerEndpoint
 			if !features.FivePointOh() && deploymentSaEndpoint == "" {
 				deploymentSaEndpoint = state.StorageContainerEndpoint
