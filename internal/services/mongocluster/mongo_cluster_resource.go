@@ -343,8 +343,9 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
 				Identity: expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{
-					AuthConfig: expandMongoClusterAuthConfig(state.AuthConfigAllowedModes),
-					Encryption: expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
+					AuthConfig:        expandMongoClusterAuthConfig(state.AuthConfigAllowedModes),
+					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
+					RestoreParameters: expandMongoClusterRestore(state.Restore),
 				},
 			}
 
@@ -376,10 +377,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					SourceLocation:   state.SourceLocation,
 					SourceResourceId: state.SourceServerId,
 				}
-			}
-
-			if state.CreateMode == string(mongoclusters.CreateModePointInTimeRestore) {
-				parameter.Properties.RestoreParameters = expandMongoClusterRestore(state.Restore)
 			}
 
 			if state.ComputeTier != "" {
