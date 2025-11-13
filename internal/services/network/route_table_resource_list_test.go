@@ -28,7 +28,12 @@ func TestAccRouteTable_list_basic(t *testing.T) {
 			},
 			{
 				Query:             true,
-				Config:            r.basicListQuery(data),
+				Config:            r.basicQuery(),
+				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+			},
+			{
+				Query:             true,
+				Config:            r.basicQueryByResourceGroupName(data),
 				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
 			},
 		},
@@ -66,7 +71,16 @@ resource "azurerm_route_table" "test3" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r RouteTableResource) basicListQuery(data acceptance.TestData) string {
+func (r RouteTableResource) basicQuery() string {
+	return `
+list "azurerm_route_table" "list" {
+  provider = azurerm
+  config {}
+}
+`
+}
+
+func (r RouteTableResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_route_table" "list" {
   provider = azurerm
