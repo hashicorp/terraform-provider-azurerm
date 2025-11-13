@@ -36,6 +36,7 @@ type ProviderModel struct {
 	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
 	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
+	DefaultTags                    types.Map    `tfsdk:"default_tags"`
 	Features                       types.List   `tfsdk:"features"`
 	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
