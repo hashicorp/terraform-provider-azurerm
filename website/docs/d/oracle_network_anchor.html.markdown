@@ -73,11 +73,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `subnet_id` - Delegated Azure subnet.
 
-* `tags` - A mapping of tags assigned to the Oracle Network Anchor.
-
 * `vnet_id` - Oracle Cloud Infrastructure VNET for network connectivity.
 
 * `zones` - A `zones` block as defined below.
+
+* `tags` - A mapping of tags assigned to the Oracle Network Anchor.
 
 ## Timeouts
 

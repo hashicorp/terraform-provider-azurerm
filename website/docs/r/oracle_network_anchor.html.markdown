@@ -27,13 +27,13 @@ resource "azurerm_oracle_network_anchor" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Oracle Network Anchor should exist. Changing this forces a new Oracle Network Anchor to be created.
-
 * `name` - (Required) The name which should be used for this Oracle Network Anchor. Changing this forces a new Oracle Network Anchor to be created.
 
-* `resource_anchor_id` - (Required) The ID of the Azure Resource Anchor. Changing this forces a new Oracle Network Anchor to be created.
-
 * `resource_group_name` - (Required) The name of the Resource Group where the Oracle Network Anchor should exist. Changing this forces a new Oracle Network Anchor to be created.
+
+* `location` - (Required) The Azure Region where the Oracle Network Anchor should exist. Changing this forces a new Oracle Network Anchor to be created.
+
+* `resource_anchor_id` - (Required) The ID of the Azure Resource Anchor. Changing this forces a new Oracle Network Anchor to be created.
 
 * `subnet_id` - (Required) The ID of the Delegated Azure subnet. Changing this forces a new Oracle Network Anchor to be created.
 
