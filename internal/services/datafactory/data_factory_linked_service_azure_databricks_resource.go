@@ -217,6 +217,39 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"spark_config": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"spark_environment_variables": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"custom_tags": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"init_scripts": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"log_destination": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 				ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
@@ -337,6 +370,31 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 				return fmt.Errorf("expanding `instance_pool`: +%v", err)
 			}
 		}
+
+		if instancePoolMap["spark_config"] != nil {
+			if sparkConfig := instancePoolMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
+				databricksProperties.NewClusterSparkConf = sparkConfig
+			}
+		}
+
+		if instancePoolMap["spark_environment_variables"] != nil {
+			if sparkEnvVars := instancePoolMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
+				databricksProperties.NewClusterSparkEnvVars = sparkEnvVars
+			}
+		}
+
+		if data := instancePoolMap["log_destination"]; data != nil {
+			databricksProperties.NewClusterLogDestination = data
+		}
+
+		if instancePoolMap["custom_tags"] != nil {
+			if customTags := instancePoolMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
+				databricksProperties.NewClusterCustomTags = customTags
+			}
+		}
+
+		initScripts := instancePoolMap["init_scripts"]
+		databricksProperties.NewClusterInitScripts = &initScripts
 	}
 
 	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]interface{})[0] != nil {
@@ -494,6 +552,26 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 
 			if maxWorkers != 0 {
 				instancePoolMap["max_number_of_workers"] = maxWorkers
+			}
+
+			if data := props.NewClusterSparkConf; data != nil {
+				instancePoolMap["spark_config"] = data
+			}
+
+			if data := props.NewClusterCustomTags; data != nil {
+				instancePoolMap["custom_tags"] = data
+			}
+
+			if data := props.NewClusterLogDestination; data != nil {
+				instancePoolMap["log_destination"] = data
+			}
+
+			if data := props.NewClusterSparkEnvVars; data != nil {
+				instancePoolMap["spark_environment_variables"] = data
+			}
+
+			if data := props.NewClusterInitScripts; data != nil {
+				instancePoolMap["init_scripts"] = data
 			}
 
 			instancePoolArray = append(instancePoolArray, instancePoolMap)

@@ -229,6 +229,18 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     instance_pool_id      = "0308-201055-safes631-pool-EHfwukQo"
     min_number_of_workers = 3
     cluster_version       = "5.5.x-gpu-scala2.11"
+    log_destination       = "dbfs:/logs"
+    custom_tags = {
+      ip_tag1 = "val1"
+      ip_tag2 = "val2"
+    }
+    spark_config = {
+      "spark.databricks.delta.preview.enabled" = "true"
+    }
+    spark_environment_variables = {
+      "PYSPARK_PYTHON" = "/databricks/python3/bin/python3"
+    }
+    init_scripts = ["ip_init1.sh", "ip_init2.sh"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
