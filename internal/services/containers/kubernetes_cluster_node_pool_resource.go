@@ -9,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,12 +67,15 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldStr := old.(string)
+				newStr := new.(string)
+
 				// Ubuntu and AzureLinux are currently the only allowed Linux OSSKU Migration targets.
-				if old != string(agentpools.OSSKUUbuntu) && old != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(oldStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(oldStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
-				if new != string(agentpools.OSSKUUbuntu) && new != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(newStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(newStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
@@ -80,6 +84,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
+			}),
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
 			}),
 		),
 	}
@@ -297,7 +304,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Computed: true, // defaults to Ubuntu if using Linux
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSSKUAzureLinux),
+				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
+				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
@@ -433,7 +442,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -973,10 +982,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
 		oldOsSku := oldOsSkuRaw.(string)
 		newOsSku := newOsSkuRaw.(string)
-		if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
-		if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
 	}
@@ -1256,46 +1265,21 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-				},
-				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-				"max_unavailable": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-				"node_soak_duration_in_minutes": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 30),
-				},
-				"undrainable_node_behavior": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
-				},
-			},
-		},
-	}
-}
-
-func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+				"max_unavailable": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1393,10 +1377,13 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
 	}
-	if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
+	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
 	}
+
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
@@ -1417,10 +1404,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	values := make(map[string]interface{})
 
-	if input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
 	}
-	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" {
+	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" && *input.MaxUnavailable != "0" && *input.MaxUnavailable != "0%" {
 		values["max_unavailable"] = *input.MaxUnavailable
 	}
 

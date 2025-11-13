@@ -113,13 +113,6 @@ func (r MsSqlJobTargetGroupResource) CustomizeDiff() sdk.ResourceFunc {
 				if v.DatabaseName != "" && v.ElasticPoolName != "" {
 					return fmt.Errorf("`database_name` and `elastic_pool_name` are mutually exclusive")
 				}
-
-				targetType := determineJobTargetType(v)
-				if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
-					if v.JobCredentialId == "" {
-						return fmt.Errorf("`job_credential_id` is required when `membership_type` is `%s` and `type` is `%s`", jobtargetgroups.JobTargetGroupMembershipTypeInclude, targetType)
-					}
-				}
 			}
 
 			return nil
@@ -298,7 +291,7 @@ func expandJobTargets(input []MsSqlJobTarget) []jobtargetgroups.JobTarget {
 		targetType := determineJobTargetType(v)
 		t.Type = targetType
 
-		if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
+		if v.JobCredentialId != "" {
 			t.RefreshCredential = pointer.To(v.JobCredentialId)
 		}
 
@@ -347,8 +340,4 @@ func determineJobTargetType(input MsSqlJobTarget) jobtargetgroups.JobTargetType 
 	default:
 		return jobtargetgroups.JobTargetTypeSqlServer
 	}
-}
-
-func isCredentialRequired(membershipType jobtargetgroups.JobTargetGroupMembershipType, targetType jobtargetgroups.JobTargetType) bool {
-	return membershipType == jobtargetgroups.JobTargetGroupMembershipTypeInclude && targetType != jobtargetgroups.JobTargetTypeSqlDatabase
 }

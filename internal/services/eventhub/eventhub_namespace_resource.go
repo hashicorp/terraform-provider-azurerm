@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -318,10 +317,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	parameters := namespaces.EHNamespace{
 		Location: &location,
@@ -331,19 +327,19 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 				v := namespaces.SkuTier(sku)
 				return &v
 			}(),
-			Capacity: utils.Int64(int64(capacity)),
+			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
-			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
+			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
-		parameters.Properties.ClusterArmId = utils.String(v)
+		parameters.Properties.ClusterArmId = pointer.To(v)
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -352,7 +348,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -409,10 +405,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -427,19 +420,19 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 				v := namespaces.SkuTier(sku)
 				return &v
 			}(),
-			Capacity: utils.Int64(int64(capacity)),
+			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
-			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			DisableLocalAuth:     utils.Bool(disableLocalAuth),
+			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
+			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
-		parameters.Properties.ClusterArmId = utils.String(v)
+		parameters.Properties.ClusterArmId = pointer.To(v)
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -447,8 +440,8 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
-	if v, ok := d.GetOk("maximum_throughput_units"); ok {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+	if d.HasChange("maximum_throughput_units") {
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(d.Get("maximum_throughput_units").(int)))
 	}
 
 	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
@@ -457,7 +450,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/10244
 	//
 	if *parameters.Sku.Tier == namespaces.SkuTierBasic && !autoInflateEnabled {
-		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
+		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(0))
 	}
 
 	if _, err = client.Update(ctx, id, parameters); err != nil {
@@ -640,7 +633,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	}
 
 	if v, ok := block["trusted_service_access_enabled"]; ok {
-		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
+		ruleset.TrustedServiceAccessEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := block["virtual_network_rule"]; ok {
@@ -651,9 +644,9 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
-						Id: utils.String(rblock["subnet_id"].(string)),
+						Id: pointer.To(rblock["subnet_id"].(string)),
 					},
-					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
+					IgnoreMissingVnetServiceEndpoint: pointer.To(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
 				})
 			}
 
@@ -667,7 +660,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetIPRules{
-					IPMask: utils.String(rblock["ip_mask"].(string)),
+					IPMask: pointer.To(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
 						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
 						return &v
@@ -734,10 +727,8 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 	// TODO: fix this
 
-	publicNetworkAccess := true
-	if ruleset.Model.Properties.PublicNetworkAccess != nil && *ruleset.Model.Properties.PublicNetworkAccess == networkrulesets.PublicNetworkAccessFlagDisabled {
-		publicNetworkAccess = false
-	}
+	publicNetworkAccess := ruleset.Model.Properties.PublicNetworkAccess == nil || *ruleset.Model.Properties.PublicNetworkAccess != networkrulesets.PublicNetworkAccessFlagDisabled
+
 	return []interface{}{map[string]interface{}{
 		"default_action":                 string(*ruleset.Model.Properties.DefaultAction),
 		"public_network_access_enabled":  publicNetworkAccess,

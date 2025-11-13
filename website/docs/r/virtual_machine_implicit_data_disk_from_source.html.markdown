@@ -114,7 +114,7 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -134,6 +134,8 @@ The following arguments are supported:
 
 -> **Note:** If the VM does not meet the requirements to expand the disk without downtime, changing this value is disruptive. The VM will be shut down and deallocated as required by Azure to action the change. Terraform will attempt to start the VM again after the update if it was in a `running` state prior to the change.
 
+~> **Note:** Expanding Ultra Disks and Premium SSD v2 disks without downtime has additional limitations. Allow up to 10 minutes for the correct size to be reflected, and a `rescan` function may be required. For more details, refer to [Expand with Ultra Disks and Premium SSD v2](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=ubuntu#expand-with-ultra-disks-and-premium-ssd-v2).
+
 * `source_resource_id` - (Required) The ID of the source resource which this Data Disk was created from. Changing this forces a new resource to be created.
 
 * `caching` - (Optional) Specifies the caching requirements for this Data Disk. Possible values are `ReadOnly` and `ReadWrite`.
@@ -148,7 +150,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the implicit Data Disk of the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the implicit Data Disk of the Virtual Machine.

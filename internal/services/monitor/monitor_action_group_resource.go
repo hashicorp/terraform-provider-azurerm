@@ -652,7 +652,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 
 		_, existKeyPayloadRevision := j["PayloadRevision"]
 		_, existKeyWorkItemType := j["WorkItemType"]
-		if !(existKeyPayloadRevision && existKeyWorkItemType) {
+		if !existKeyPayloadRevision || !existKeyWorkItemType {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
 		}
 		receivers = append(receivers, receiver)

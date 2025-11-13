@@ -140,14 +140,14 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageAccountKey(data acceptan
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
@@ -160,14 +160,14 @@ func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data accept
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "accdatastore%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
 }
 `, template, data.RandomInteger)
@@ -180,7 +180,7 @@ func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data 
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -223,7 +223,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "accdatastore%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceUserAssignedIdentity"
   shared_access_signature    = data.azurerm_storage_account_sas.test.sas
   account_key                = azurerm_storage_account.test.primary_access_key
@@ -238,7 +238,7 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageSas(data acceptance.Test
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -280,7 +280,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_container_id    = azurerm_storage_container.test.resource_manager_id
+  storage_container_id    = azurerm_storage_container.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, template, data.RandomInteger)
@@ -335,7 +335,8 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -352,7 +353,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -371,5 +372,5 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

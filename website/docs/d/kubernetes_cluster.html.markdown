@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -179,8 +179,6 @@ A `upgrade_settings` block exports the following:
 * `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
 
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
-
-* `max_unavailable` - The maximum number or percentage of nodes which can be unavailable during the upgrade.
 
 * `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
@@ -402,7 +400,7 @@ A `certificate_authority` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).
 
@@ -410,4 +408,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-05-01
+* `Microsoft.ContainerService` - 2025-07-01

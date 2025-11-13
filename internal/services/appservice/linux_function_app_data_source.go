@@ -301,7 +301,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(functionApp.HttpResponse) {
-					return fmt.Errorf("Linux %s not found", id)
+					return fmt.Errorf("the Linux %s was not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}

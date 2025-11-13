@@ -139,7 +139,7 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["id"].(string)
 		parts := strings.Split(oldId, "/networkSecurityGroupId")
 		if len(parts) != 2 {
-			return rawState, fmt.Errorf("Error: Network Watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", oldId)
+			return rawState, fmt.Errorf("network watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", oldId)
 		}
 		watcherId, err := networkwatchers.ParseNetworkWatcherIDInsensitively(parts[0])
 		if err != nil {

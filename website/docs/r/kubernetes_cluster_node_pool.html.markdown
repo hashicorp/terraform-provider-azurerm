@@ -56,7 +56,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
@@ -142,7 +142,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
+~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) until this is fixed in the AKS API.
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
@@ -174,7 +174,7 @@ If `auto_scaling_enabled` is set to `true`, then the following fields can also b
 
 * `node_count` - (Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` (inclusive) for user pools and between `1` and `1000` (inclusive) for system pools and must be a value in the range `min_count` - `max_count`.
 
--> **Note:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
 If `auto_scaling_enabled` is set to `false`, then the following fields can also be configured:
 
@@ -310,13 +310,13 @@ A `upgrade_settings` block supports the following:
 
 * `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node.
 
-* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+* `max_surge` - (Optional) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
-* `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade. 
+* `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade.
 
--> **Note:** `max_unavailable` conflicts with `max_surge`. Only one of them should be set. Using both with percentages that violate upgrade constraints is not supported.
+~> **Note:** Exactly one of `max_surge` or `max_unavailable` must be specified.
 
-* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
+* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`. Unsetting this after configuring it will force a new resource to be created.
 
 ---
 
@@ -334,7 +334,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kubernetes Cluster Node Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.
@@ -353,4 +353,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-05-01
+* `Microsoft.ContainerService` - 2025-07-01

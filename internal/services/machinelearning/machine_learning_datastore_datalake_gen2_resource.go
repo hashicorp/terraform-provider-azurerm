@@ -84,7 +84,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateStorageContainerID,
 		},
 
 		"tenant_id": {
@@ -327,7 +327,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}
 			if storageAccount == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
