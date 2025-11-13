@@ -210,6 +210,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
 
+			"default_tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "A map of tags to apply to all resources by default.",
+			},
+
 			"resource_provider_registrations": schema.StringAttribute{
 				Optional:    true,
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
