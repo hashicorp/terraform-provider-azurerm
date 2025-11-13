@@ -104,12 +104,12 @@ resource "azurerm_network_interface" "test3" {
 }
 
 func (r NetworkInterfaceResource) basicQuery() string {
-	return fmt.Sprintf(`
+	return `
 list "azurerm_network_interface" "list" {
   provider = azurerm
   config {}
 }
-`)
+`
 }
 
 func (r NetworkInterfaceResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
