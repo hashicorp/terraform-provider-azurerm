@@ -170,14 +170,32 @@ func (r MongoClusterFirewallRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := firewallrules.FirewallRule{
-				Properties: &firewallrules.FirewallRuleProperties{
-					EndIPAddress:   state.EndIpAddress,
-					StartIPAddress: state.StartIpAddress,
-				},
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			model := *existing.Model
+
+			if metadata.ResourceData.HasChange("end_ip_address") {
+				if model.Properties == nil {
+					model.Properties = &firewallrules.FirewallRuleProperties{}
+				}
+				model.Properties.EndIPAddress = state.EndIpAddress
+			}
+
+			if metadata.ResourceData.HasChange("start_ip_address") {
+				if model.Properties == nil {
+					model.Properties = &firewallrules.FirewallRuleProperties{}
+				}
+				model.Properties.StartIPAddress = state.StartIpAddress
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
