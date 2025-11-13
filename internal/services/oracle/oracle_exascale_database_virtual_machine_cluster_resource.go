@@ -320,9 +320,9 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"shape_attribute": {
-			Type: pluginsdk.TypeString,
-			// O+C if not specified, the default value will be provided by API
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C if not specified, the default value will be provided by API
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForShapeAttribute(), false),

@@ -120,7 +120,6 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// CloudVMClusterProperties
 		"backup_subnet_cidr": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

@@ -196,6 +196,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"exascale_config": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
