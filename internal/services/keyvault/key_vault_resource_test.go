@@ -439,7 +439,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -463,7 +463,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (r KeyVaultResource) requiresImport(data acceptance.TestData) string {
@@ -509,7 +509,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                          = "acctest%d"
+  name                          = "acctestkv-%d"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
@@ -534,7 +534,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) networkAclsTemplate(data acceptance.TestData) string {
@@ -582,7 +582,7 @@ func (KeyVaultResource) networkAcls(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -608,7 +608,7 @@ resource "azurerm_key_vault" "test" {
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(14))
 }
 
 func (r KeyVaultResource) networkAclsUpdated(data acceptance.TestData) string {
@@ -616,7 +616,7 @@ func (r KeyVaultResource) networkAclsUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -643,7 +643,7 @@ resource "azurerm_key_vault" "test" {
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomIntOfLength(14))
 }
 
 func (r KeyVaultResource) networkAclsAllowed(data acceptance.TestData) string {
@@ -651,7 +651,7 @@ func (r KeyVaultResource) networkAclsAllowed(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -676,7 +676,7 @@ resource "azurerm_key_vault" "test" {
     bypass         = "AzureServices"
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) update(data acceptance.TestData) string {
@@ -694,7 +694,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -724,7 +724,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) noAccessPolicyBlocks(data acceptance.TestData) string {
@@ -743,7 +743,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -760,7 +760,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 	}
 
 	return fmt.Sprintf(`
@@ -777,7 +777,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -794,7 +794,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) accessPolicyExplicitZero(data acceptance.TestData) string {
@@ -812,7 +812,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -830,7 +830,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) complete(data acceptance.TestData) string {
@@ -848,7 +848,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -879,7 +879,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) justCert(data acceptance.TestData) string {
@@ -897,7 +897,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -913,7 +913,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) accessPolicyUpperLimit(data acceptance.TestData) string {
@@ -939,7 +939,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -950,7 +950,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessPoliciesConfigs, storageAccountConfigs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14), accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
@@ -1008,7 +1008,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -1016,7 +1016,7 @@ resource "azurerm_key_vault" "test" {
   purge_protection_enabled   = "%t"
   soft_delete_retention_days = 7
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14), enabled)
 }
 
 func (KeyVaultResource) softDelete(data acceptance.TestData) string {
@@ -1034,13 +1034,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctestkv-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) softDeleteAbsent(data acceptance.TestData) string {
@@ -1082,14 +1082,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) purgeProtectionAndSoftDelete(data acceptance.TestData) string {
@@ -1106,7 +1106,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -1114,7 +1114,7 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
 
 func (KeyVaultResource) basicPremiumSKU(data acceptance.TestData) string {
@@ -1132,7 +1132,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -1156,5 +1156,5 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(14))
 }
