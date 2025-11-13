@@ -109,6 +109,17 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 35),
 			},
 
+			"backup_interval_hours": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default:  24,
+				ValidateFunc: validation.IntInSlice([]int{
+					6,
+					12,
+					24,
+				}),
+			},
+
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -604,6 +615,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if backup := props.Backup; backup != nil {
 				d.Set("backup_retention_days", backup.BackupRetentionDays)
+				d.Set("backup_interval_hours", backup.BackupIntervalHours)
 				d.Set("geo_redundant_backup_enabled", *backup.GeoRedundantBackup == servers.EnableStatusEnumEnabled)
 			}
 
@@ -748,7 +760,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
+	if d.HasChanges("backup_retention_days", "geo_redundant_backup_enabled", "backup_interval_hours") {
 		parameters.Properties.Backup = expandArmServerBackup(d)
 	}
 
@@ -963,6 +975,10 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
 		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("backup_interval_hours"); ok {
+		backup.BackupIntervalHours = pointer.To(int64(v.(int)))
 	}
 
 	return &backup
