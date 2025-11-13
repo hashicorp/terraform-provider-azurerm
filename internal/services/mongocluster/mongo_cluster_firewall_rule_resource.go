@@ -179,19 +179,17 @@ func (r MongoClusterFirewallRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
 			model := *existing.Model
 
 			if metadata.ResourceData.HasChange("end_ip_address") {
-				if model.Properties == nil {
-					model.Properties = &firewallrules.FirewallRuleProperties{}
-				}
 				model.Properties.EndIPAddress = state.EndIpAddress
 			}
 
 			if metadata.ResourceData.HasChange("start_ip_address") {
-				if model.Properties == nil {
-					model.Properties = &firewallrules.FirewallRuleProperties{}
-				}
 				model.Properties.StartIPAddress = state.StartIpAddress
 			}
 
