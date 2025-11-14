@@ -825,19 +825,14 @@ func TestAccProvider_DefaultTags_None(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{} // No default_tags block
+	config := testAccProviderConfigDefaultTags_Tags(map[string]interface{}{})
 
 	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
 		t.Fatalf("provider failed to configure: %v", diags)
 	}
 
-	client := provider.Meta().(*clients.Client)
-	if client.DefaultTags == nil {
-		// nil is acceptable - it means no default tags configured
-		return
-	}
-	if len(client.DefaultTags) != 0 {
-		t.Fatalf("Expected empty DefaultTags, got %d tags: %#v", len(client.DefaultTags), client.DefaultTags)
+	if err := testAccCheckProviderDefaultTags(provider, map[string]string{}); err != nil {
+		t.Fatalf("DefaultTags validation failed: %v", err)
 	}
 }
 
@@ -852,21 +847,14 @@ func TestAccProvider_DefaultTags_Empty(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
-		"default_tags": []interface{}{
-			map[string]interface{}{
-				"tags": map[string]interface{}{},
-			},
-		},
-	}
+	config := testAccProviderConfigDefaultTagsEmptyBlock()
 
 	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
 		t.Fatalf("provider failed to configure: %v", diags)
 	}
 
-	client := provider.Meta().(*clients.Client)
-	if client.DefaultTags != nil && len(client.DefaultTags) != 0 {
-		t.Fatalf("Expected empty DefaultTags, got %d tags: %#v", len(client.DefaultTags), client.DefaultTags)
+	if err := testAccCheckProviderDefaultTags(provider, map[string]string{}); err != nil {
+		t.Fatalf("DefaultTags validation failed: %v", err)
 	}
 }
 
@@ -881,26 +869,18 @@ func TestAccProvider_DefaultTags_SingleTag(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
-		"default_tags": []interface{}{
-			map[string]interface{}{
-				"tags": map[string]interface{}{
-					"managed_by": "terraform",
-				},
-			},
-		},
-	}
+	config := testAccProviderConfigDefaultTags_Tags(map[string]interface{}{
+		"managed_by": "terraform",
+	})
 
 	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
 		t.Fatalf("provider failed to configure: %v", diags)
 	}
 
-	client := provider.Meta().(*clients.Client)
-	if len(client.DefaultTags) != 1 {
-		t.Fatalf("Expected 1 default tag, got %d: %#v", len(client.DefaultTags), client.DefaultTags)
-	}
-	if client.DefaultTags["managed_by"] == nil || *client.DefaultTags["managed_by"] != "terraform" {
-		t.Fatalf("Expected managed_by=terraform, got: %#v", client.DefaultTags)
+	if err := testAccCheckProviderDefaultTags(provider, map[string]string{
+		"managed_by": "terraform",
+	}); err != nil {
+		t.Fatalf("DefaultTags validation failed: %v", err)
 	}
 }
 
@@ -915,38 +895,22 @@ func TestAccProvider_DefaultTags_MultipleTags(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
-		"default_tags": []interface{}{
-			map[string]interface{}{
-				"tags": map[string]interface{}{
-					"managed_by":  "terraform",
-					"environment": "test",
-					"owner":       "platform",
-				},
-			},
-		},
-	}
+	config := testAccProviderConfigDefaultTags_Tags(map[string]interface{}{
+		"managed_by":  "terraform",
+		"environment": "test",
+		"owner":       "platform",
+	})
 
 	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
 		t.Fatalf("provider failed to configure: %v", diags)
 	}
 
-	client := provider.Meta().(*clients.Client)
-	expectedCount := 3
-	if len(client.DefaultTags) != expectedCount {
-		t.Fatalf("Expected %d default tags, got %d: %#v", expectedCount, len(client.DefaultTags), client.DefaultTags)
-	}
-
-	expectedTags := map[string]string{
+	if err := testAccCheckProviderDefaultTags(provider, map[string]string{
 		"managed_by":  "terraform",
 		"environment": "test",
 		"owner":       "platform",
-	}
-
-	for key, expectedValue := range expectedTags {
-		if client.DefaultTags[key] == nil || *client.DefaultTags[key] != expectedValue {
-			t.Fatalf("Expected %s=%s, got: %#v", key, expectedValue, client.DefaultTags)
-		}
+	}); err != nil {
+		t.Fatalf("DefaultTags validation failed: %v", err)
 	}
 }
 
@@ -978,4 +942,59 @@ func testCheckProvider(provider *schema.Provider) (errs []error) {
 	}
 
 	return //nolint:nakedret
+}
+
+// testAccCheckProviderDefaultTags validates that the provider's default tags match expected values
+func testAccCheckProviderDefaultTags(provider *schema.Provider, expectedTags map[string]string) error {
+	client := provider.Meta().(*clients.Client)
+
+	// Check tag count
+	actualCount := 0
+	if client.DefaultTags != nil {
+		actualCount = len(client.DefaultTags)
+	}
+	expectedCount := len(expectedTags)
+
+	if actualCount != expectedCount {
+		return fmt.Errorf("expected %d default tags, got %d", expectedCount, actualCount)
+	}
+
+	// Check each expected tag
+	for key, expectedValue := range expectedTags {
+		if client.DefaultTags[key] == nil {
+			return fmt.Errorf("expected default tag %q not found", key)
+		}
+		actualValue := *client.DefaultTags[key]
+		if actualValue != expectedValue {
+			return fmt.Errorf("expected default tag %q to be %q, got %q", key, expectedValue, actualValue)
+		}
+	}
+
+	return nil
+}
+
+// testAccProviderConfigDefaultTags_Tags generates a provider configuration with the specified default tags
+func testAccProviderConfigDefaultTags_Tags(tags map[string]interface{}) map[string]interface{} {
+	config := map[string]interface{}{}
+
+	if len(tags) > 0 {
+		config["default_tags"] = []interface{}{
+			map[string]interface{}{
+				"tags": tags,
+			},
+		}
+	}
+
+	return config
+}
+
+// testAccProviderConfigDefaultTagsEmptyBlock generates a provider configuration with an empty default_tags block
+func testAccProviderConfigDefaultTagsEmptyBlock() map[string]interface{} {
+	return map[string]interface{}{
+		"default_tags": []interface{}{
+			map[string]interface{}{
+				"tags": map[string]interface{}{},
+			},
+		},
+	}
 }
