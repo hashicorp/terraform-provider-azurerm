@@ -814,6 +814,142 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 	}
 }
 
+func TestAccProvider_DefaultTags_None(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{} // No default_tags block
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	client := provider.Meta().(*clients.Client)
+	if client.DefaultTags == nil {
+		// nil is acceptable - it means no default tags configured
+		return
+	}
+	if len(client.DefaultTags) != 0 {
+		t.Fatalf("Expected empty DefaultTags, got %d tags: %#v", len(client.DefaultTags), client.DefaultTags)
+	}
+}
+
+func TestAccProvider_DefaultTags_Empty(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"default_tags": []interface{}{
+			map[string]interface{}{
+				"tags": map[string]interface{}{},
+			},
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	client := provider.Meta().(*clients.Client)
+	if client.DefaultTags != nil && len(client.DefaultTags) != 0 {
+		t.Fatalf("Expected empty DefaultTags, got %d tags: %#v", len(client.DefaultTags), client.DefaultTags)
+	}
+}
+
+func TestAccProvider_DefaultTags_SingleTag(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"default_tags": []interface{}{
+			map[string]interface{}{
+				"tags": map[string]interface{}{
+					"managed_by": "terraform",
+				},
+			},
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	client := provider.Meta().(*clients.Client)
+	if len(client.DefaultTags) != 1 {
+		t.Fatalf("Expected 1 default tag, got %d: %#v", len(client.DefaultTags), client.DefaultTags)
+	}
+	if client.DefaultTags["managed_by"] == nil || *client.DefaultTags["managed_by"] != "terraform" {
+		t.Fatalf("Expected managed_by=terraform, got: %#v", client.DefaultTags)
+	}
+}
+
+func TestAccProvider_DefaultTags_MultipleTags(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"default_tags": []interface{}{
+			map[string]interface{}{
+				"tags": map[string]interface{}{
+					"managed_by":  "terraform",
+					"environment": "test",
+					"owner":       "platform",
+				},
+			},
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	client := provider.Meta().(*clients.Client)
+	expectedCount := 3
+	if len(client.DefaultTags) != expectedCount {
+		t.Fatalf("Expected %d default tags, got %d: %#v", expectedCount, len(client.DefaultTags), client.DefaultTags)
+	}
+
+	expectedTags := map[string]string{
+		"managed_by":  "terraform",
+		"environment": "test",
+		"owner":       "platform",
+	}
+
+	for key, expectedValue := range expectedTags {
+		if client.DefaultTags[key] == nil || *client.DefaultTags[key] != expectedValue {
+			t.Fatalf("Expected %s=%s, got: %#v", key, expectedValue, client.DefaultTags)
+		}
+	}
+}
+
 func testCheckProvider(provider *schema.Provider) (errs []error) {
 	client := provider.Meta().(*clients.Client)
 
