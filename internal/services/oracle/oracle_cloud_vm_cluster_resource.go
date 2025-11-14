@@ -542,7 +542,6 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneId = pointer.From(props.ZoneId)
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
-
 				}
 			}
 
