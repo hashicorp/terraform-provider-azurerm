@@ -62,3 +62,15 @@ func TagsWithLowerCaseKeys() *schema.Schema {
 		},
 	}
 }
+
+func TagsAll() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeMap,
+		Computed:    true,
+		Optional:    true,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+		Description: "A map of all tags applied to the resource, including default tags from the provider.",
+	}
+}

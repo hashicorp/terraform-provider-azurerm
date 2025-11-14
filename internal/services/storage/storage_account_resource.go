@@ -1111,13 +1111,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"tags_all": {
-				Type:        pluginsdk.TypeMap,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Optional:    true,
-				Computed:    true,
-				Description: "A map of all tags applied to the resource, including default tags from the provider.",
-			},
+			"tags_all": commonschema.TagsAll(),
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(providerTags.SetTagsDiff),
