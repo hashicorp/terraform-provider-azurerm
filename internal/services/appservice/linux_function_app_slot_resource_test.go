@@ -500,6 +500,26 @@ func TestAccLinuxFunctionAppSlot_withAuthSettingsConsumption(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_stickySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionAppSlot_builtInLogging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -3899,6 +3919,54 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.template(data, planSKU), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First", "Third"]
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppSlotResource) withTlsVersion(data acceptance.TestData, planSku string, tlsVersion string) string {

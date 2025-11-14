@@ -124,6 +124,8 @@ The following arguments are supported:
 
 ~> **Note:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
+* `sticky_settings` - (Optional) a `sticky_settings` block as detailed below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
@@ -735,6 +737,14 @@ A `scm_ip_restriction` block supports the following:
 ~> **Note:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
+---
+
+A `sticky_settings` block supports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 
