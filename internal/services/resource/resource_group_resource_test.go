@@ -274,13 +274,13 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func TestAccResourceGroup_tagsAll_providerOnly(t *testing.T) {
+func TestAccResourceGroup_defaultTags_providerOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllProviderOnlyConfig(data),
+			Config: testResource.defaultTagsProviderOnlyConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("0"),
@@ -292,13 +292,13 @@ func TestAccResourceGroup_tagsAll_providerOnly(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroup_tagsAll_resourceOnly(t *testing.T) {
+func TestAccResourceGroup_defaultTags_resourceOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllResourceOnlyConfig(data),
+			Config: testResource.defaultTagsResourceOnlyConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("2"),
@@ -312,13 +312,13 @@ func TestAccResourceGroup_tagsAll_resourceOnly(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroup_tagsAll_providerAndResource_nonOverlappingTags(t *testing.T) {
+func TestAccResourceGroup_defaultTags_providerAndResource_nonOverlappingTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllProviderAndResourceNonOverlappingConfig(data),
+			Config: testResource.defaultTagsProviderAndResourceNonOverlappingConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("2"),
@@ -334,13 +334,13 @@ func TestAccResourceGroup_tagsAll_providerAndResource_nonOverlappingTags(t *test
 	})
 }
 
-func TestAccResourceGroup_tagsAll_providerAndResource_overlappingTag(t *testing.T) {
+func TestAccResourceGroup_defaultTags_providerAndResource_overlappingTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllProviderAndResourceOverlappingConfig(data),
+			Config: testResource.defaultTagsProviderAndResourceOverlappingConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("2"),
@@ -356,13 +356,13 @@ func TestAccResourceGroup_tagsAll_providerAndResource_overlappingTag(t *testing.
 	})
 }
 
-func TestAccResourceGroup_tagsAll_updateProviderTags(t *testing.T) {
+func TestAccResourceGroup_defaultTags_updateProviderTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllProviderOnlyConfig(data),
+			Config: testResource.defaultTagsProviderOnlyConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags_all.%").HasValue("2"),
@@ -371,7 +371,7 @@ func TestAccResourceGroup_tagsAll_updateProviderTags(t *testing.T) {
 			),
 		},
 		{
-			Config: testResource.tagsAllProviderUpdatedConfig(data),
+			Config: testResource.defaultTagsProviderUpdatedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("0"),
@@ -384,13 +384,13 @@ func TestAccResourceGroup_tagsAll_updateProviderTags(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroup_tagsAll_updateResourceTags(t *testing.T) {
+func TestAccResourceGroup_defaultTags_updateResourceTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	assert := check.That(data.ResourceName)
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		{
-			Config: testResource.tagsAllProviderAndResourceNonOverlappingConfig(data),
+			Config: testResource.defaultTagsProviderAndResourceNonOverlappingConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("2"),
@@ -398,7 +398,7 @@ func TestAccResourceGroup_tagsAll_updateResourceTags(t *testing.T) {
 			),
 		},
 		{
-			Config: testResource.tagsAllResourceUpdateConfig(data),
+			Config: testResource.defaultTagsResourceUpdateConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				assert.ExistsInAzure(testResource),
 				assert.Key("tags.%").HasValue("3"),
@@ -431,7 +431,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllProviderOnlyConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsProviderOnlyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -451,7 +451,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllResourceOnlyConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsResourceOnlyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -469,7 +469,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllProviderAndResourceNonOverlappingConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsProviderAndResourceNonOverlappingConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -494,7 +494,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllProviderAndResourceOverlappingConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsProviderAndResourceOverlappingConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -519,7 +519,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllProviderUpdatedConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsProviderUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -540,7 +540,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) tagsAllResourceUpdateConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) defaultTagsResourceUpdateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
