@@ -31,8 +31,8 @@ type NetworkAnchorResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
-	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
+	Tags              map[string]string `tfschema:"tags"`
 
 	ResourceAnchorId string `tfschema:"resource_anchor_id"`
 	SubnetId         string `tfschema:"subnet_id"`
@@ -87,9 +87,9 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"oci_vcn_dns_label": {
-			Type: pluginsdk.TypeString,
-			// O+C if the value not specified, this gets set to the name of the Network Anchor
-			Optional:    true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C if the value not specified, this gets set to the name of the Network Anchor
 			Computed:    true,
 			Description: "If the `oci_vcn_dns_label` is omitted it will be set to the `name` field of the network anchor resource.",
 			ForceNew:    true,
@@ -154,8 +154,8 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.IsCommaSeparatedCIDRs,
 		},
 
-		"tags":  commonschema.Tags(),
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+		"tags":  commonschema.Tags(),
 	}
 }
 

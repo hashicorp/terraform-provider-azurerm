@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_network_anchor"
 description: |-
-  Manages a Oracle Network Anchor.
+  Manages an Oracle Network Anchor.
 ---
 
 # azurerm_oracle_network_anchor
 
-Manages a Oracle Network Anchor.
+Manages an Oracle Network Anchor.
 
 ## Example Usage
 

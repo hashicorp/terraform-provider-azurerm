@@ -26,8 +26,8 @@ type NetworkAnchorDataModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
-	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
+	Tags              map[string]string `tfschema:"tags"`
 
 	ResourceAnchorId  string `tfschema:"resource_anchor_id"`
 	ProvisioningState string `tfschema:"provisioning_state"`
@@ -141,8 +141,8 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"tags":  commonschema.TagsDataSource(),
 		"zones": commonschema.ZonesMultipleComputed(),
+		"tags":  commonschema.TagsDataSource(),
 	}
 }
 
