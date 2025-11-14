@@ -12,7 +12,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,29 +30,36 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                  string                         `tfschema:"name"`
-	ResourceGroupName     string                         `tfschema:"resource_group_name"`
-	Location              string                         `tfschema:"location"`
-	AdministratorUserName string                         `tfschema:"administrator_username"`
-	AdministratorPassword string                         `tfschema:"administrator_password"`
-	CreateMode            string                         `tfschema:"create_mode"`
-	ShardCount            int64                          `tfschema:"shard_count"`
-	SourceLocation        string                         `tfschema:"source_location"`
-	SourceServerId        string                         `tfschema:"source_server_id"`
-	ComputeTier           string                         `tfschema:"compute_tier"`
-	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
-	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
-	PreviewFeatures       []string                       `tfschema:"preview_features"`
-	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
-	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
-	Tags                  map[string]string              `tfschema:"tags"`
-	Version               string                         `tfschema:"version"`
+	Name                  string                           `tfschema:"name"`
+	ResourceGroupName     string                           `tfschema:"resource_group_name"`
+	Location              string                           `tfschema:"location"`
+	AdministratorUserName string                           `tfschema:"administrator_username"`
+	AdministratorPassword string                           `tfschema:"administrator_password"`
+	CreateMode            string                           `tfschema:"create_mode"`
+	CustomerManagedKey    []MongoClusterCustomerManagedKey `tfschema:"customer_managed_key"`
+	Identity              []identity.ModelUserAssigned     `tfschema:"identity"`
+	ShardCount            int64                            `tfschema:"shard_count"`
+	SourceLocation        string                           `tfschema:"source_location"`
+	SourceServerId        string                           `tfschema:"source_server_id"`
+	ComputeTier           string                           `tfschema:"compute_tier"`
+	HighAvailabilityMode  string                           `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string                           `tfschema:"public_network_access"`
+	PreviewFeatures       []string                         `tfschema:"preview_features"`
+	StorageSizeInGb       int64                            `tfschema:"storage_size_in_gb"`
+	ConnectionStrings     []MongoClusterConnectionString   `tfschema:"connection_strings"`
+	Tags                  map[string]string                `tfschema:"tags"`
+	Version               string                           `tfschema:"version"`
 }
 
 type MongoClusterConnectionString struct {
 	Value       string `tfschema:"value"`
 	Description string `tfschema:"description"`
 	Name        string `tfschema:"name"`
+}
+
+type MongoClusterCustomerManagedKey struct {
+	KeyVaultKeyID          string `tfschema:"key_vault_key_id"`
+	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -98,6 +108,25 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(mongoclusters.CreateModeGeoReplica),
 			}, false),
 		},
+
+		"customer_managed_key": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
+					},
+
+					"user_assigned_identity_id": commonschema.ResourceIDReferenceRequired(&commonids.UserAssignedIdentityId{}),
+				},
+			},
+		},
+
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"preview_features": {
 			Type:     pluginsdk.TypeList,
@@ -245,9 +274,25 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %w", err)
+			}
+
+			// The service has a bug where it returns a Bad Request when identity type is `None`.
+			// https://github.com/Azure/azure-rest-api-specs/issues/38575
+			if expandedIdentity.Type == identity.TypeNone {
+				expandedIdentity = nil
+			}
+
 			parameter := mongoclusters.MongoCluster{
-				Location:   location.Normalize(state.Location),
-				Properties: &mongoclusters.MongoClusterProperties{},
+				Location: location.Normalize(state.Location),
+				Identity: expandedIdentity,
+				Properties: &mongoclusters.MongoClusterProperties{
+					Encryption:          expandMongoClusterEncryption(state.CustomerManagedKey),
+					PreviewFeatures:     expandMongoClusterPreviewFeatures(state.PreviewFeatures),
+					PublicNetworkAccess: pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess),
+				},
 			}
 
 			if state.AdministratorUserName != "" {
@@ -260,8 +305,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			if state.CreateMode != "" {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
-
-			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
 
 			if state.ShardCount != 0 {
 				parameter.Properties.Sharding = &mongoclusters.ShardingProperties{
@@ -291,8 +334,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
 				}
 			}
-
-			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
@@ -355,9 +396,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
-			// Set `identity` to `nil` to avoid schema validation errors returned by service API when upgrading API version from `2024-07-01` to `2025-09-01`.
-			payload.Identity = nil
-
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
 				payload.Properties.Compute = &mongoclusters.ComputeProperties{
@@ -378,6 +416,23 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 					UserName: pointer.To(state.AdministratorUserName),
 					Password: pointer.To(state.AdministratorPassword),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				payload.Properties.Encryption = expandMongoClusterEncryption(state.CustomerManagedKey)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %w", err)
+				}
+				payload.Identity = expandedIdentity
+			}
+
+			// https://github.com/Azure/azure-rest-api-specs/issues/38575
+			if payload.Identity != nil && payload.Identity.Type == identity.TypeNone {
+				payload.Identity = nil
 			}
 
 			if metadata.ResourceData.HasChange("high_availability_mode") {
@@ -440,6 +495,12 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
+				flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %w", err)
+				}
+				state.Identity = pointer.From(flattenedIdentity)
+
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
 					state.AdministratorPassword = metadata.ResourceData.Get("administrator_password").(string)
@@ -449,6 +510,14 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
+					}
+
+					if props.Encryption != nil {
+						flattenedCMK, err := flattenMongoClusterEncryption(props.Encryption)
+						if err != nil {
+							return fmt.Errorf("flattening `customer_managed_key`: %w", err)
+						}
+						state.CustomerManagedKey = flattenedCMK
 					}
 
 					if v := props.Replica; v != nil {
@@ -586,12 +655,89 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return err
 				}
 			}
+
+			if metadata.ResourceDiff.Id() != "" {
+				if metadata.ResourceDiff.HasChange("customer_managed_key") {
+					// The service does not allow migrating from customer managed encryption to service managed encryption and vice versa, ForceNew on addition/removal if resource exists.
+					o, n := metadata.ResourceDiff.GetChange("customer_managed_key")
+					if len(o.([]any)) != len(n.([]any)) {
+						if err := metadata.ResourceDiff.ForceNew("customer_managed_key"); err != nil {
+							return err
+						}
+					}
+				}
+
+				if metadata.ResourceDiff.HasChange("identity") {
+					o, n := metadata.ResourceDiff.GetChange("identity")
+					if len(o.([]any)) != len(n.([]any)) {
+						// If `identity` is removed we must ForceNew due to an API issue:
+						// https://github.com/Azure/azure-rest-api-specs/issues/38575
+						// If `identity` is added we must ForceNew because the API returns a 500 error:
+						// https://github.com/Azure/azure-rest-api-specs/issues/38811
+						if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
+							return err
+						}
+					}
+				}
+			}
+
+			if len(state.CustomerManagedKey) > 0 {
+				if len(state.Identity) == 0 {
+					return fmt.Errorf("`identity` must be specified when `customer_managed_key` is configured")
+				}
+
+				rawCMKUserAssignedIdentity, err := metadata.GetRawConfigAt("customer_managed_key.0.user_assigned_identity_id")
+				if err != nil {
+					return nil
+				}
+
+				rawIdentityIDs, err := metadata.GetRawConfigAt("identity.0.identity_ids")
+				if err != nil {
+					return nil
+				}
+
+				// Best-effort to catch this at initial plan time, if these values are not wholly known we cannot determine whether the identity exists in both places.
+				// Since these are resource IDs it's likely we'll have plans where they are unknown.
+				if !rawCMKUserAssignedIdentity.IsWhollyKnown() || !rawIdentityIDs.IsWhollyKnown() {
+					return nil
+				}
+
+				uaiExistsInBoth := false
+				for _, id := range state.Identity[0].IdentityIds {
+					if id == state.CustomerManagedKey[0].UserAssignedIdentityID {
+						uaiExistsInBoth = true
+						break
+					}
+				}
+
+				if !uaiExistsInBoth {
+					return fmt.Errorf("the value specified in `customer_managed_key.user_assigned_identity_id` must also be specified in `identity.identity_ids`")
+				}
+			}
+
 			return nil
 		},
 	}
 }
 
-func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
+func expandMongoClusterEncryption(input []MongoClusterCustomerManagedKey) *mongoclusters.EncryptionProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	cmk := input[0]
+	return &mongoclusters.EncryptionProperties{
+		CustomerManagedKeyEncryption: &mongoclusters.CustomerManagedKeyEncryptionProperties{
+			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyID),
+			KeyEncryptionKeyIdentity: &mongoclusters.KeyEncryptionKeyIdentity{
+				IdentityType:                   pointer.To(mongoclusters.KeyEncryptionKeyIdentityTypeUserAssignedIdentity),
+				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityID),
+			},
+		},
+	}
+}
+
+func expandMongoClusterPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
 	if len(input) == 0 {
 		return nil
 	}
@@ -605,6 +751,31 @@ func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
 	}
 
 	return &result
+}
+
+func flattenMongoClusterEncryption(input *mongoclusters.EncryptionProperties) ([]MongoClusterCustomerManagedKey, error) {
+	result := make([]MongoClusterCustomerManagedKey, 0)
+	if input == nil || input.CustomerManagedKeyEncryption == nil {
+		return result, nil
+	}
+
+	v := input.CustomerManagedKeyEncryption
+
+	// While the `key_vault_key_id` is versionless, we'll parse it allowing versioned as well in case the API returns the version, preventing possible future errors
+	keyVaultKeyID, err := keyvault.ParseNestedItemID(pointer.From(v.KeyEncryptionKeyURL), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return result, err
+	}
+
+	cmk := MongoClusterCustomerManagedKey{
+		KeyVaultKeyID: keyVaultKeyID.VersionlessID(),
+	}
+
+	if ident := v.KeyEncryptionKeyIdentity; ident != nil {
+		cmk.UserAssignedIdentityID = pointer.From(ident.UserAssignedIdentityResourceId)
+	}
+
+	return append(result, cmk), nil
 }
 
 func flattenMongoClusterPreviewFeatures(input *[]mongoclusters.PreviewFeature) []string {

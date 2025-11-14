@@ -81,6 +81,14 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`.
 
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
+!> **Note:** `customer_managed_key` cannot be added to or removed from an existing MongoDB Cluster, doing so forces a new resource to be created. 
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+!> **Note:** Currently, `identity` cannot be added to or removed from an existing MongoDB Cluster, doing so will force a new resource to be created. 
+
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
@@ -102,6 +110,24 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) A versionless Key Vault Key ID.
+
+* `user_assigned_identity_id` - (Required) A User Assigned Identity ID.
+
+~> **Note:** The User Assigned Identity ID specified for `user_assigned_identity_id` must also exist in `identity.identity_ids`
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) - The identity type. The only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) - A list of User Assigned Identity IDs.
 
 ## Attributes Reference
 
