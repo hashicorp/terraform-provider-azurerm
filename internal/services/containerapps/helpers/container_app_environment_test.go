@@ -1,11 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
 
 import (
+	"fmt"
+	"slices"
 	"testing"
 )
+
+func ValidateContainerWorkloadProfiles(w WorkloadProfileModel) error {
+	if slices.Contains(PossibleValuesForWorkloadProfileSku(), w.WorkloadProfileType) {
+		return nil
+	}
+	return fmt.Errorf("invalid workload profile type: %s", w.WorkloadProfileType)
+}
 
 func TestValidateContainerWorkloadProfiles(t *testing.T) {
 	cases := []struct {
@@ -131,7 +139,7 @@ func TestValidateContainerWorkloadProfiles(t *testing.T) {
 				MinimumCount:        1,
 			},
 			Valid: false,
-		},	
+		},
 	}
 
 	for _, tc := range cases {
