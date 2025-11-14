@@ -159,7 +159,7 @@ type Client struct {
 
 	Account     *ResourceManagerAccount
 	Features    features.UserFeatures
-	DefaultTags map[string]*string // Do we need this?
+	DefaultTags map[string]*string
 
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
