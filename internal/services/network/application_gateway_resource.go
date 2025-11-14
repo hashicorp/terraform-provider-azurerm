@@ -4803,7 +4803,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
-	if oldTier != tier && (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameBasic)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameStandardSmall)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameStandardMedium)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameStandardLarge)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameWAFLarge)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameWAFMedium))) {
+	if oldTier != tier && (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierBasic)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAF))) {
 		return fmt.Errorf("the creation of new %q V1 SKU is no longer supported, please use V2 SKU with \"Basic\", \"Standard_v2\" or \"WAF_v2\" tier instead", tier)
 	}
 
