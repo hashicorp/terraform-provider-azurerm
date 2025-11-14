@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	tagsHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -2000,6 +2001,51 @@ func TestAccStorageAccount_noDataPlaneWebsiteShouldError(t *testing.T) {
 			ExpectError: regexp.MustCompile("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'"),
 		},
 	})
+}
+
+func TestAccStorageAccount_defaultTags_providerOnly(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsProviderOnly(t, "azurerm_storage_account", r, r.defaultTagsProviderOnlyConfig)
+}
+
+func TestAccStorageAccount_defaultTags_resourceOnly(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsResourceOnly(t, "azurerm_storage_account", r, r.defaultTagsResourceOnlyConfig)
+}
+
+func TestAccStorageAccount_defaultTags_providerAndResource_nonOverlappingTags(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsProviderAndResourceNonOverlapping(t, "azurerm_storage_account", r, r.defaultTagsProviderAndResourceNonOverlappingConfig)
+}
+
+func TestAccStorageAccount_defaultTags_providerAndResource_overlappingTag(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsProviderAndResourceOverlapping(t, "azurerm_storage_account", r, r.defaultTagsProviderAndResourceOverlappingConfig)
+}
+
+func TestAccStorageAccount_defaultTags_updateProviderTags(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsUpdateProviderTags(t, "azurerm_storage_account", r, r.defaultTagsProviderOnlyConfig, r.defaultTagsProviderUpdatedConfig)
+}
+
+func TestAccStorageAccount_defaultTags_updateResourceTags(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsUpdateResourceTags(t, "azurerm_storage_account", r, r.defaultTagsProviderAndResourceNonOverlappingConfig, r.defaultTagsResourceUpdateConfig)
+}
+
+func TestAccStorageAccount_defaultTags_updateToProviderOnly(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsUpdateToProviderOnly(t, "azurerm_storage_account", r, r.defaultTagsProviderAndResourceNonOverlappingConfig, r.defaultTagsProviderOnlyConfig)
+}
+
+func TestAccStorageAccount_defaultTags_updateToResourceOnly(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsUpdateToResourceOnly(t, "azurerm_storage_account", r, r.defaultTagsProviderOnlyConfig, r.defaultTagsProviderAndResourceNonOverlappingConfig)
+}
+
+func TestAccStorageAccount_defaultTags_providerAndResource_duplicateTag(t *testing.T) {
+	r := StorageAccountResource{}
+	tagsHelpers.TestDefaultTagsProviderAndResourceDuplicateTag(t, "azurerm_storage_account", r, r.defaultTagsProviderAndResourceOverlappingConfig)
 }
 
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -5568,6 +5614,189 @@ resource "azurerm_storage_account" "test" {
 
   tags = {
     environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsProviderOnlyConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      managed_by  = "terraform"
+      environment = "test"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsResourceOnlyConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    cost_center = "Finance"
+    team        = "Backend"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsProviderAndResourceNonOverlappingConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      managed_by  = "terraform"
+      environment = "test"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    cost_center = "Finance"
+    team        = "Backend"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsProviderAndResourceOverlappingConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      managed_by  = "terraform"
+      environment = "test"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+    team        = "Backend"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsProviderUpdatedConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      managed_by  = "terraform-updated"
+      environment = "test"
+      owner       = "platform"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) defaultTagsResourceUpdateConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      managed_by  = "terraform"
+      environment = "test"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_tier        = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    cost_center = "Finance"
+    team        = "Backend"
+    project     = "Project-X"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
