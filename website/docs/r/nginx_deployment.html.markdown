@@ -161,7 +161,7 @@ An `auto_scale_profile` block supports the following:
 
 ---
 
-A `web_application_firewall` - block supports the following:
+A `web_application_firewall` block supports the following:
 
 * `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
 
@@ -177,11 +177,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
-* `web_application_firewall.status` - A `web_application_firewall.status` block as defined below:
+* `web_application_firewall` - A `web_application_firewall` blocks as defined below.
 
 ---
 
-A `web_application_firewall.status` - block supports the following:
+A `web_application_firewall` block exports the following:
+
+* `status` - A `status` block as defined below.
+
+---
+
+A `status` block exports the following:
 
 * `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
 

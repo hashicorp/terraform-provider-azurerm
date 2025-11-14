@@ -22,7 +22,7 @@ func Test_unmarshalFile(t *testing.T) {
 		itemNum int
 		argsNum int
 	}{
-		{"key_vault.html.markdown", 64, 16},
+		{"key_vault.html.markdown", 65, 16},
 		{"media_transform.html.markdown", 270, 5},
 	}
 	for _, arg := range args {
