@@ -164,7 +164,7 @@ func (t NetAppSnapshotPolicyResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.SnapshotPoliciesClient.SnapshotPoliciesGet(ctx, *id)
+	resp, err := clients.NetApp.SnapshotPoliciesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Netapp SnapshotPolicy (%s): %+v", id.String(), err)
 	}
