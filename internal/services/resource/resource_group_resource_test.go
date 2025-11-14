@@ -416,6 +416,90 @@ func TestAccResourceGroup_defaultTags_updateResourceTags(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroup_defaultTags_updateToProviderOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	assert := check.That(data.ResourceName)
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		{
+			Config: testResource.defaultTagsProviderAndResourceNonOverlappingConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("Finance"),
+				assert.Key("tags.team").HasValue("Backend"),
+				assert.Key("tags_all.%").HasValue("4"),
+				assert.Key("tags_all.managed_by").HasValue("terraform"),
+				assert.Key("tags_all.environment").HasValue("test"),
+			),
+		},
+		{
+			Config: testResource.defaultTagsProviderOnlyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("0"),
+				assert.Key("tags_all.%").HasValue("2"),
+				assert.Key("tags_all.managed_by").HasValue("terraform"),
+				assert.Key("tags_all.environment").HasValue("test"),
+			),
+		},
+	})
+}
+
+func TestAccResourceGroup_defaultTags_updateToResourceOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	assert := check.That(data.ResourceName)
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		{
+			Config: testResource.defaultTagsProviderOnlyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("0"),
+				assert.Key("tags_all.%").HasValue("2"),
+				assert.Key("tags_all.managed_by").HasValue("terraform"),
+				assert.Key("tags_all.environment").HasValue("test"),
+			),
+		},
+		{
+			Config: testResource.defaultTagsProviderAndResourceNonOverlappingConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("Finance"),
+				assert.Key("tags.team").HasValue("Backend"),
+				assert.Key("tags_all.%").HasValue("4"),
+				assert.Key("tags_all.managed_by").HasValue("terraform"),
+				assert.Key("tags_all.environment").HasValue("test"),
+				assert.Key("tags_all.cost_center").HasValue("Finance"),
+				assert.Key("tags_all.team").HasValue("Backend"),
+			),
+		},
+	})
+}
+
+func TestAccResourceGroup_defaultTags_providerAndResource_duplicateTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	assert := check.That(data.ResourceName)
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		{
+			Config: testResource.defaultTagsProviderAndResourceOverlappingConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				// When same key exists in both provider and resource, resource value takes precedence
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.environment").HasValue("production"),
+				assert.Key("tags.team").HasValue("Backend"),
+				assert.Key("tags_all.%").HasValue("3"),
+				assert.Key("tags_all.environment").HasValue("production"),
+				assert.Key("tags_all.managed_by").HasValue("terraform"),
+				assert.Key("tags_all.team").HasValue("Backend"),
+			),
+		},
+	})
+}
+
 func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
