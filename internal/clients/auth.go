@@ -109,7 +109,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		return nil, errors.New("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
 	}
 	if subscriptionId == "" {
-		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified NOOOOOOOOOB!!!!")
+		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
 	}
 
 	account := ResourceManagerAccount{
