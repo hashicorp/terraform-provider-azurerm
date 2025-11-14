@@ -162,7 +162,6 @@ A `default_database` block supports the following:
 
 !> **Note:** Changing `geo_replication_group_name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 
-
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
 
 * `persistence_append_only_file_backup_frequency` - (Optional) The frequency of Append Only File (AOF) backups. The only possible value is `1s`. Providing this value implies AOF persistence method is enabled. Conflicts with `persistence_redis_database_backup_frequency`, only one persistence method is allowed. Conflicts with `geo_replication_group_name`, persistence can only be enabled on non-geo-replicated databases. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.
@@ -195,11 +194,9 @@ A `module` block supports the following:
 
 !> **Note:** Changing `name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 
-
 * `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`).
 
 !> **Note:** Changing `args` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
-
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
 
