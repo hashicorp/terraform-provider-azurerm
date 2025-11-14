@@ -15,7 +15,24 @@ import (
 type ListByVolumeOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VolumeQuotaRulesList
+	Model        *[]VolumeQuotaRule
+}
+
+type ListByVolumeCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []VolumeQuotaRule
+}
+
+type ListByVolumeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVolumeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByVolume ...
@@ -26,6 +43,7 @@ func (c VolumeQuotaRulesClient) ListByVolume(ctx context.Context, id VolumeId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByVolumeCustomPager{},
 		Path:       fmt.Sprintf("%s/volumeQuotaRules", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c VolumeQuotaRulesClient) ListByVolume(ctx context.Context, id VolumeId) (
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c VolumeQuotaRulesClient) ListByVolume(ctx context.Context, id VolumeId) (
 		return
 	}
 
-	var model VolumeQuotaRulesList
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]VolumeQuotaRule `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByVolumeComplete retrieves all the results into a single object
+func (c VolumeQuotaRulesClient) ListByVolumeComplete(ctx context.Context, id VolumeId) (ListByVolumeCompleteResult, error) {
+	return c.ListByVolumeCompleteMatchingPredicate(ctx, id, VolumeQuotaRuleOperationPredicate{})
+}
+
+// ListByVolumeCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c VolumeQuotaRulesClient) ListByVolumeCompleteMatchingPredicate(ctx context.Context, id VolumeId, predicate VolumeQuotaRuleOperationPredicate) (result ListByVolumeCompleteResult, err error) {
+	items := make([]VolumeQuotaRule, 0)
+
+	resp, err := c.ListByVolume(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByVolumeCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

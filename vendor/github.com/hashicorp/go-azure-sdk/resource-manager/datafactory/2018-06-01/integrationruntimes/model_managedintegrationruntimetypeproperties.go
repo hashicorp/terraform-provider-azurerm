@@ -6,5 +6,6 @@ package integrationruntimes
 type ManagedIntegrationRuntimeTypeProperties struct {
 	ComputeProperties      *IntegrationRuntimeComputeProperties      `json:"computeProperties,omitempty"`
 	CustomerVirtualNetwork *IntegrationRuntimeCustomerVirtualNetwork `json:"customerVirtualNetwork,omitempty"`
+	InteractiveQuery       *InteractiveQueryProperties               `json:"interactiveQuery,omitempty"`
 	SsisProperties         *IntegrationRuntimeSsisProperties         `json:"ssisProperties,omitempty"`
 }
