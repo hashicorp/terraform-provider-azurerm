@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -200,4 +201,26 @@ func getEnvListOfStringsIfAbsent(val types.List, envVar string, separator string
 	val.ElementsAs(context.Background(), &result, false)
 
 	return result
+}
+
+// extractDefaultTags converts a framework types.Map to map[string]*string
+// This is used to extract provider default_tags for merging with resource-level tags
+func extractDefaultTags(ctx context.Context, frameworkTags types.Map, diags *diag.Diagnostics) map[string]*string {
+	defaultTags := make(map[string]*string)
+	if frameworkTags.IsNull() || frameworkTags.IsUnknown() {
+		return defaultTags
+	}
+
+	elements := make(map[string]string)
+	d := frameworkTags.ElementsAs(ctx, &elements, false)
+	if d.HasError() {
+		diags.Append(d...)
+		return defaultTags
+	}
+
+	for k, v := range elements {
+		val := v
+		defaultTags[k] = &val
+	}
+	return defaultTags
 }
