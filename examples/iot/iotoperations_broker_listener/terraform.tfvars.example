@@ -1,0 +1,38 @@
+# Example values for the IoT Operations Broker Listener deployment
+# Copy this file to terraform.tfvars and modify the values as needed
+
+resource_group_name = "rg-iotoperations-broker-listener"
+location           = "East US 2"
+instance_name      = "my-iotops-instance"
+broker_name        = "my-broker"
+listener_name      = "mqtt-listener"
+
+# Listener configuration
+listener_port = 1883
+service_name  = "mqtt-service"
+service_type  = "LoadBalancer"
+
+# TLS configuration (optional)
+enable_tls               = true
+tls_mode                = "Automatic"
+tls_cert_duration       = "8760h"  # 1 year
+tls_issuer_name         = "letsencrypt-prod"
+tls_issuer_kind         = "ClusterIssuer"
+tls_issuer_group        = "cert-manager.io"
+tls_cert_renew_before   = "720h"   # 30 days
+tls_cert_secret_name    = "mqtt-listener-tls"
+tls_subject_organization = "My Organization"
+tls_subject_organizational_unit = "IoT Division"
+
+# Authentication and Authorization references (optional)
+# Uncomment and set these if you have authentication/authorization resources
+# authentication_ref_name = "my-auth-policy"
+# authorization_ref_name  = "my-authz-policy"
+
+# Tags
+tags = {
+  Environment = "Production"
+  Project     = "IoT Operations"
+  Owner       = "IoT Team"
+  Purpose     = "MQTT Broker Listener"
+}
