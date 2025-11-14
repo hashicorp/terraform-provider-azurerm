@@ -42,17 +42,11 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			client := meta.(*clients.Client)
 
 			// Compute tags_all by merging default_tags and tags
-			mergedTags := make(map[string]interface{})
-			if client.DefaultTags != nil {
-				for k, v := range client.DefaultTags {
-					mergedTags[k] = *v
-				}
-			}
+			resourceTags := make(map[string]interface{})
 			if tags, ok := d.GetOk("tags"); ok {
-				for k, v := range tags.(map[string]interface{}) {
-					mergedTags[k] = v
-				}
+				resourceTags = tags.(map[string]interface{})
 			}
+			mergedTags := tags.MergeDefaultTags(client.DefaultTags, resourceTags)
 
 			d.SetNew("tags_all", mergedTags)
 			return nil
@@ -99,15 +93,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	// Merge default_tags with resource-specific tags
-	mergedTags := make(map[string]interface{})
-	if meta.(*clients.Client).DefaultTags != nil {
-		for k, v := range meta.(*clients.Client).DefaultTags {
-			mergedTags[k] = *v
-		}
-	}
-	for k, v := range t {
-		mergedTags[k] = v
-	}
+	mergedTags := tags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, t)
 
 	// Set tags_all early so it shows in plan output
 	d.Set("tags_all", mergedTags)
