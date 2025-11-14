@@ -3907,7 +3907,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) *managedclusters.ManagedClusterAADProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
