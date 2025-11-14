@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,13 +18,13 @@ import (
 
 type NetAppBackupPolicyResource struct{}
 
-func (t NetAppBackupPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r NetAppBackupPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
+	resp, err := clients.NetApp.BackupPolicyClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
