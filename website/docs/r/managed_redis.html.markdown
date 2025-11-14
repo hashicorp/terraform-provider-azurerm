@@ -160,7 +160,7 @@ A `default_database` block supports the following:
 
 * `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information.
 
-!> **Note:** Changing `geo_replication_group_name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.  
+!> **Note:** Changing `geo_replication_group_name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 
 
 * `module` - (Optional) A `module` block as defined below. Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.
@@ -193,12 +193,12 @@ A `module` block supports the following:
 
 * `name` - (Required) The name which should be used for this module. Possible values are `RedisBloom`, `RedisTimeSeries`, `RediSearch` and `RedisJSON`.
 
-!> **Note:** Changing `name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.  
+!> **Note:** Changing `name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 
 
 * `args` - (Optional) Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`).
 
-!> **Note:** Changing `args` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.  
+!> **Note:** Changing `args` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 
 
 ~> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication.
