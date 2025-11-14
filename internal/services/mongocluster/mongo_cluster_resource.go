@@ -670,6 +670,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r MongoClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
