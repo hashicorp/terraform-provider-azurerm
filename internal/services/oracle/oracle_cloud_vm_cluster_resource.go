@@ -130,10 +130,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				if old != new {
-					return false
-				}
-				return true
+				return old == new
 			},
 		},
 
