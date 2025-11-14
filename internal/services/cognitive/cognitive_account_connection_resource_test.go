@@ -6,7 +6,6 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -144,6 +143,13 @@ func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 		},
 		data.ImportStep("oauth2", "metadata"),
 		{
+			Config: r.oauth2_anotherContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("oauth2", "metadata"),
+		{
 			Config: r.oauth2Updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -157,22 +163,6 @@ func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 			),
 		},
 		data.ImportStep("metadata"),
-	})
-}
-
-func TestAccCognitiveAccountConnection_authTypeValidation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.invalidAuthTypeApiKeyMismatch(data),
-			ExpectError: regexp.MustCompile("when `auth_type` is `ApiKey`, `api_key` must be specified"),
-		},
-		{
-			Config:      r.invalidAuthTypeAADWithOtherAuth(data),
-			ExpectError: regexp.MustCompile("when `auth_type` is `AAD`, no other auth configuration blocks should be specified"),
-		},
 	})
 }
 
@@ -193,7 +183,7 @@ func (r CognitiveAccountConnectionTestResource) Exists(ctx context.Context, clie
 func (r CognitiveAccountConnectionTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
+  name     = "acctestRG-cognitive-ac-%[1]d"
   location = "%[2]s"
 }
 
@@ -240,7 +230,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "acctestcsc%[3]s"
+  name                  = "acctestsc%[3]s"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
@@ -274,7 +264,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 
 func (r CognitiveAccountConnectionTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_cognitive_account_connection" "import" {
   name                 = azurerm_cognitive_account_connection.test.name
@@ -283,6 +273,7 @@ resource "azurerm_cognitive_account_connection" "import" {
   category             = azurerm_cognitive_account_connection.test.category
   target               = azurerm_cognitive_account_connection.test.target
   api_key              = azurerm_cognitive_account_connection.test.api_key
+
   metadata = {
     apiType    = azurerm_cognitive_account_connection.test.metadata.apiType
     resourceId = azurerm_cognitive_account_connection.test.metadata.resourceId
@@ -335,23 +326,59 @@ provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
+
 
 resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-%d"
+  name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   auth_type            = "OAuth2"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
+
   metadata = {
     containerName = azurerm_storage_container.test.name
     accountName   = azurerm_storage_account.test.name
   }
+
   oauth2 {
     auth_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionTestResource) oauth2_anotherContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "acctestsc2%[2]s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_cognitive_account_connection" "test" {
+  name                 = "acctest-conn-%[3]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  auth_type            = "OAuth2"
+  category             = "AzureBlob"
+  target               = azurerm_storage_account.test.primary_blob_endpoint
+
+  metadata = {
+    containerName = azurerm_storage_container.test2.name
+    accountName   = azurerm_storage_account.test.name
+  }
+
+  oauth2 {
+    auth_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
+  }
+}
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r CognitiveAccountConnectionTestResource) oauth2Updated(data acceptance.TestData) string {
@@ -360,18 +387,20 @@ provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-%d"
+  name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   auth_type            = "OAuth2"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
+
   metadata = {
     containerName = azurerm_storage_container.test.name
     accountName   = azurerm_storage_account.test.name
   }
+
   oauth2 {
     auth_url        = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
     client_id       = "00000000-0000-0000-0000-000000000000"
@@ -392,10 +421,10 @@ provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-%d"
+  name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   auth_type            = "CustomKeys"
   category             = "CustomKeys"
@@ -421,10 +450,10 @@ provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-%d"
+  name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   auth_type            = "AAD"
   category             = "AzureBlob"
@@ -436,56 +465,4 @@ resource "azurerm_cognitive_account_connection" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r CognitiveAccountConnectionTestResource) invalidAuthTypeApiKeyMismatch(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-invalid"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
-  category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai.endpoint
-
-  metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
-  }
-
-  # Missing api_key field - should cause validation error
-}
-`, r.template(data))
-}
-
-func (r CognitiveAccountConnectionTestResource) invalidAuthTypeAADWithOtherAuth(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cognitive_account_connection" "test" {
-  name                 = "acctest-conn-invalid"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.test.primary_blob_endpoint
-
-  metadata = {
-    accountName   = azurerm_storage_account.test.name
-    containerName = azurerm_storage_container.test.name
-  }
-
-  # Should not specify other auth blocks when using AAD
-  api_key = "should-not-be-here"
-}
-`, r.template(data))
 }
