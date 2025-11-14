@@ -16,6 +16,10 @@ var skipProps = []string{
 	"all.timezone",
 	"all.time_zone",
 	"all.time_zone_id",
+	// Skip Key Vault reference properties - these reference external resources and shouldn't have "Possible values" documented
+	"all.key_vault_secret_id",
+	"all.key_vault_key_id",
+	"all.key_vault_certificate_id",
 	"azurerm_nginx_deployment.identity.type", // there is a diff between real supported values and common identity schema
 	"azurerm_kubernetes_cluster.default_node_pool.os_sku",
 	"azurerm_kubernetes_cluster_node_pool.os_sku",

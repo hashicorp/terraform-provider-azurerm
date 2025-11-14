@@ -188,8 +188,8 @@ The `email_receiver` block supports the following:
 The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_name` - (Optional) The name of the specific Event Hub queue.
-* `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
+* `event_hub_name` - (Required) The name of the specific Event Hub queue.
+* `event_hub_namespace` - (Required) The namespace name of the Event Hub.
 * `subscription_id` - (Optional) The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.

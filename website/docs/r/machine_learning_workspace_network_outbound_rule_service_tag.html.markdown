@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `protocol` - (Required) Specifies the network protocol. Possible values are `*`, `TCP`, `UDP` and `ICMP`
 
-* `port_ranges` - (Required) Specifies which ports traffic will be allowed by this rule. You can specify a single port (e.g. ` 80`) ,  a port range  (e.g. `1024-655535`) or a comma-separated list of single ports and/or port ranges(e.g. `80,1024-655535`). `*` can be used to allow traffic on any port.
+* `port_ranges` - (Required) Specifies which ports traffic will be allowed by this rule. You can specify a single port (e.g. ` 80`) , a port range (e.g. `1024-655535`) or a comma-separated list of single ports and/or port ranges(e.g. `80,1024-655535`). `*` can be used to allow traffic on any port.
 
 
 ## Attributes Reference

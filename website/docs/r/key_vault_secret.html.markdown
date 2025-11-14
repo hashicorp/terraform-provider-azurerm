@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `value_wo` - (Optional, Write-Only) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
 
-* ~> **Note:** One of `value` or `value_wo` must be specified.
+~> **Note:** One of `value` or `value_wo` must be specified.
 
 * `value_wo_version` - (Optional) An integer value used to trigger an update for `value_wo`. This property should be incremented when updating `value_wo`.
 

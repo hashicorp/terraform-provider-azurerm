@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`. Changing this forces a new resource to be created.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 

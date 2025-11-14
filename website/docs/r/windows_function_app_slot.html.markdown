@@ -635,7 +635,7 @@ An `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11` and `17` (In-Preview).
+* `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11`, `17` and `21`.
 
 * `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18`, `~20`, and `~22`.
 

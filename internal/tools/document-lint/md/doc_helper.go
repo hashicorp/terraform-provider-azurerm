@@ -80,3 +80,8 @@ func ResourceDir() string {
 	}
 	return docRDir
 }
+
+// DocDir returns the base documentation directory
+func DocDir() string {
+	return docDir()
+}

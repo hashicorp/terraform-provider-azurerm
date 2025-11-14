@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
+* `cluster_id` - (Optional) The resource id of the cluster where the databases you would like to attach reside.
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 

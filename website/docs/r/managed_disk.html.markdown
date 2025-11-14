@@ -177,7 +177,7 @@ The following arguments are supported:
 
 ~> **Note:** Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
-* `network_access_policy` - (Optional) Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
+* `network_access_policy` - (Optional) Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`. Defaults to `AllowAll`.
 
 * `disk_access_id` - (Optional) The ID of the disk access resource for using private endpoints on disks.
 
@@ -199,7 +199,7 @@ The `disk_encryption_key` block supports:
 
 The `encryption_settings` block supports:
 
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined above.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 

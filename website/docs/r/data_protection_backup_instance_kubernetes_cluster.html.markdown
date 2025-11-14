@@ -211,7 +211,7 @@ The following arguments are supported:
 
 * `snapshot_resource_group_name` - (Required) The name of the Resource Group where snapshots are stored. Changing this forces a new resource to be created.
 
-* `backup_datasource_parameters` - (Optional)  A `backup_datasource_parameters` block as defined below.
+* `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -225,7 +225,7 @@ A `backup_datasource_parameters` block supports the following:
 
 * `included_namespaces` - (Optional) Specifies the namespaces to be included during backup. Changing this forces a new resource to be created.
 
-* `included_resource_types` - (Optional)  Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
+* `included_resource_types` - (Optional) Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
 
 * `label_selectors` - (Optional) Specifies the resources with such label selectors to be included during backup. Changing this forces a new resource to be created.
 
