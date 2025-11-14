@@ -40,6 +40,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	providerTags "github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -1109,8 +1110,17 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"tags_all": {
+				Type:        pluginsdk.TypeMap,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of all tags applied to the resource, including default tags from the provider.",
+			},
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(providerTags.SetTagsDiff),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
@@ -1415,7 +1425,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
 			Tier: pointer.To(accountTier),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(providerTags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, d.Get("tags").(map[string]interface{}))),
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
@@ -1888,7 +1898,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Identity = expandedIdentity
 	}
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(providerTags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, d.Get("tags").(map[string]interface{})))
 	}
 
 	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
@@ -2267,7 +2277,21 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, account.Tags); err != nil {
+		// Set tags_all to all tags from Azure (includes defaults)
+		if err := d.Set("tags_all", tags.Flatten(account.Tags)); err != nil {
+			return fmt.Errorf("setting `tags_all`: %+v", err)
+		}
+
+		// Set tags to only resource-specific tags (remove defaults)
+		// Convert SDK tags (map[string]string) to provider format (map[string]*string)
+		allTagsConverted := make(map[string]*string)
+		if account.Tags != nil {
+			for k, v := range *account.Tags {
+				allTagsConverted[k] = pointer.To(v)
+			}
+		}
+		resourceTags := providerTags.RemoveDefaultTags(allTagsConverted, meta.(*clients.Client).DefaultTags)
+		if err := providerTags.FlattenAndSet(d, resourceTags); err != nil {
 			return err
 		}
 	}
