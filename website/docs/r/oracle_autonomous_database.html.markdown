@@ -60,7 +60,9 @@ The following arguments are supported:
 
 * `db_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database to be created.
 
-* `db_workload` - (Required) The Autonomous Database workload type. Changing this forces a new Autonomous Database to be created. The following values are valid: * OLTP - indicates an Autonomous Transaction Processing database * DW - indicates an Autonomous Data Warehouse database * AJD - indicates an Autonomous JSON Database * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type. 
+* `db_workload` - (Required) The Autonomous Database workload type. Changing this forces a new Autonomous Database to be created. Possible values are `AJD`, `APEX`, `DW` and `OLTP`.
+
+-> **Note:** `AJD` indicates an Autonomous JSON database; `APEX` indicates an Autonomous Database with the Oracle APEX Application Development workload type; `DW` indicates an Autonomous Data Warehouse database; `OLTP` indicates an Autonomous Transaction Processing database
 ~> **Note:** When Provisioning Database with `APEX` workload `mtls_connection_required` must be set to `true`.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. The name does not have to be unique. Changing this forces a new Autonomous Database to be created.

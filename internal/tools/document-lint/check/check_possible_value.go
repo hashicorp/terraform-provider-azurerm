@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -116,9 +117,62 @@ func (p possibleValueDiff) Fix(line string) (result string, err error) {
 
 var _ Checker = (*possibleValueDiff)(nil)
 
+// sortPossibleValues sorts possible values in a sensible order
+// For weekdays, it maintains chronological order (Monday -> Sunday)
+// For other values, it sorts alphabetically (case-insensitive)
+func sortPossibleValues(values []string) []string {
+	if len(values) <= 1 {
+		return values
+	}
+
+	// Check if all values are weekdays
+	weekdayOrder := map[string]int{
+		"monday":    1,
+		"tuesday":   2,
+		"wednesday": 3,
+		"thursday":  4,
+		"friday":    5,
+		"saturday":  6,
+		"sunday":    7,
+		"Monday":    1,
+		"Tuesday":   2,
+		"Wednesday": 3,
+		"Thursday":  4,
+		"Friday":    5,
+		"Saturday":  6,
+		"Sunday":    7,
+	}
+
+	allWeekdays := true
+	for _, v := range values {
+		if _, ok := weekdayOrder[v]; !ok {
+			allWeekdays = false
+			break
+		}
+	}
+
+	sorted := make([]string, len(values))
+	copy(sorted, values)
+
+	if allWeekdays {
+		sort.Slice(sorted, func(i, j int) bool {
+			return weekdayOrder[sorted[i]] < weekdayOrder[sorted[j]]
+		})
+	} else {
+		sort.Slice(sorted, func(i, j int) bool {
+			return strings.ToLower(sorted[i]) < strings.ToLower(sorted[j])
+		})
+	}
+
+	return sorted
+}
+
 func patchWantEnums(want []string) string {
-	res := make([]string, len(want))
-	for idx, val := range want {
+	// Sort the values before formatting
+	sorted := sortPossibleValues(want)
+
+	res := make([]string, len(sorted))
+	for idx, val := range sorted {
 		res[idx] = "`" + val + "`"
 	}
 	if len(res) == 1 {

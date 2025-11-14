@@ -165,7 +165,7 @@ func newMarkFromString(content string, filepath string) *Mark {
 			}
 		case strings.HasPrefix(line, "```"):
 			result.addLineOrItem(idx, line, ItemExample)
-		case strings.HasPrefix(line, "->"), strings.HasPrefix(line, "~>"):
+		case strings.HasPrefix(line, "->"), strings.HasPrefix(line, "~>"), strings.HasPrefix(line, "!>"):
 			result.addItemWith(idx, line, ItemNote)
 		case isBlockHead(line):
 			result.addItemWith(idx, line, ItemBlockHead)

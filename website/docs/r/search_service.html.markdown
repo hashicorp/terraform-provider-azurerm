@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `customer_managed_key_enforcement_enabled` - (Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`.
 
-* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `Default`. Changing this forces a new Search Service to be created.
+* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `HighDensity` or `Default`. Defaults to `Default`. Changing this forces a new Search Service to be created.
 
 -> **Note:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
 

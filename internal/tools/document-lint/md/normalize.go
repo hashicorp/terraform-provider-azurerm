@@ -246,8 +246,8 @@ func tryFixProp(line string) string {
 			}
 		}
 	}
-	// Skip adding dashes for note sections (lines starting with ~>)
-	if !strings.HasPrefix(line, "~>") {
+	// Skip adding dashes for note sections
+	if !strings.HasPrefix(line, "~>") && !strings.HasPrefix(line, "->") && !strings.HasPrefix(line, "!>") {
 		// need a dash after property name
 		idx := strings.Index(line, "`")
 		if idx += strings.Index(line[idx+1:], "`") + 1; idx > 0 {

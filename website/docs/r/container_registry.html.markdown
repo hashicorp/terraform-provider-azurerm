@@ -162,8 +162,6 @@ The following arguments are supported:
 
 * `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
-~> **Note:** The default value for `retention_policy_in_days` is `7`.
-
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
