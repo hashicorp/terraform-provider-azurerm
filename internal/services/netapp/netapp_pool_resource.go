@@ -189,7 +189,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
-		capacityPoolParameters.Properties.CustomThroughputMibps = pointer.To(float64(customThroughputMibps.(int)))
+		capacityPoolParameters.Properties.CustomThroughputMibps = pointer.To(int64(customThroughputMibps.(int)))
 	}
 
 	if err := client.PoolsCreateOrUpdateThenPoll(ctx, id, capacityPoolParameters); err != nil {
@@ -238,7 +238,7 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("custom_throughput_mibps") {
 		if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
-			update.Properties.CustomThroughputMibps = pointer.To(float64(customThroughputMibps.(int)))
+			update.Properties.CustomThroughputMibps = pointer.To(int64(customThroughputMibps.(int)))
 		}
 	}
 
