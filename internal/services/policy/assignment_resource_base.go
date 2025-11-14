@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -50,6 +51,10 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 					Scope:              utils.String(id.Scope),
 					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
 				},
+			}
+
+			if v := metadata.ResourceData.Get("definition_version").(string); v != "" {
+				assignment.Properties.DefinitionVersion = utils.String(v)
 			}
 
 			if v := metadata.ResourceData.Get("description").(string); v != "" {
@@ -189,6 +194,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			}
 
 			if props := model.Properties; props != nil {
+				metadata.ResourceData.Set("definition_version", props.DefinitionVersion)
 				metadata.ResourceData.Set("description", props.Description)
 				metadata.ResourceData.Set("display_name", props.DisplayName)
 				var enforce bool
@@ -253,6 +259,9 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				update.Properties.Description = utils.String(metadata.ResourceData.Get("description").(string))
+			}
+			if metadata.ResourceData.HasChange("definition_version") {
+				update.Properties.DefinitionVersion = utils.String(metadata.ResourceData.Get("definition_version").(string))
 			}
 			if metadata.ResourceData.HasChange("display_name") {
 				update.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
@@ -349,6 +358,16 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			ValidateFunc: validation.Any(
 				validate.PolicyDefinitionID,
 				validate.PolicySetDefinitionID,
+			),
+		},
+
+		"definition_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^\d+(\.\*|\.\d+)(\.\*|\.\d+)?$`),
+				"definitionVersion must follow the format: major.minor.patch where minor and patch can be wildcards (*). Examples: 1.*.*, 1.2.*, 1.2.3",
 			),
 		},
 

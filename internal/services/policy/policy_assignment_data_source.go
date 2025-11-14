@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,6 +31,7 @@ var _ sdk.DataSource = AssignmentDataSource{}
 type AssignmentDataSourceModel struct {
 	Name                 string                                     `tfschema:"name"`
 	ScopeId              string                                     `tfschema:"scope_id"`
+	DefinitionVersion    string                                     `tfschema:"definition_version"`
 	Description          string                                     `tfschema:"description"`
 	DisplayName          string                                     `tfschema:"display_name"`
 	Enforce              bool                                       `tfschema:"enforce"`
@@ -72,6 +73,11 @@ func (AssignmentDataSource) Arguments() map[string]*schema.Schema {
 
 func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"definition_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -177,6 +183,9 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := respModel.Properties; props != nil {
+				if v := props.DefinitionVersion; v != nil {
+					model.DefinitionVersion = *v
+				}
 				if v := props.Description; v != nil {
 					model.Description = *v
 				}
