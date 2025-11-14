@@ -5,6 +5,8 @@ package tags
 
 import (
 	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestMergeDefaultTags_NoDefaults(t *testing.T) {
@@ -28,8 +30,8 @@ func TestMergeDefaultTags_NoDefaults(t *testing.T) {
 
 func TestMergeDefaultTags_NoResourceTags(t *testing.T) {
 	defaultTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
-		"owner":      stringPtr("platform"),
+		"managed_by": utils.String("terraform"),
+		"owner":      utils.String("platform"),
 	}
 
 	result := MergeDefaultTags(defaultTags, map[string]interface{}{})
@@ -47,8 +49,8 @@ func TestMergeDefaultTags_NoResourceTags(t *testing.T) {
 
 func TestMergeDefaultTags_BothPresent(t *testing.T) {
 	defaultTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
-		"owner":      stringPtr("platform"),
+		"managed_by": utils.String("terraform"),
+		"owner":      utils.String("platform"),
 	}
 	resourceTags := map[string]interface{}{
 		"env":  "prod",
@@ -76,8 +78,8 @@ func TestMergeDefaultTags_BothPresent(t *testing.T) {
 
 func TestMergeDefaultTags_Conflict(t *testing.T) {
 	defaultTags := map[string]*string{
-		"env":        stringPtr("dev"),
-		"managed_by": stringPtr("terraform"),
+		"env":        utils.String("dev"),
+		"managed_by": utils.String("terraform"),
 	}
 	resourceTags := map[string]interface{}{
 		"env":  "prod", // This should override the default
@@ -119,14 +121,14 @@ func TestMergeDefaultTags_EmptyDefaultsEmptyResource(t *testing.T) {
 
 func TestRemoveDefaultTags_Basic(t *testing.T) {
 	allTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
-		"owner":      stringPtr("platform"),
-		"env":        stringPtr("prod"),
-		"team":       stringPtr("backend"),
+		"managed_by": utils.String("terraform"),
+		"owner":      utils.String("platform"),
+		"env":        utils.String("prod"),
+		"team":       utils.String("backend"),
 	}
 	defaultTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
-		"owner":      stringPtr("platform"),
+		"managed_by": utils.String("terraform"),
+		"owner":      utils.String("platform"),
 	}
 
 	result := RemoveDefaultTags(allTags, defaultTags)
@@ -150,12 +152,12 @@ func TestRemoveDefaultTags_Basic(t *testing.T) {
 
 func TestRemoveDefaultTags_NoMatches(t *testing.T) {
 	allTags := map[string]*string{
-		"env":  stringPtr("prod"),
-		"team": stringPtr("backend"),
+		"env":  utils.String("prod"),
+		"team": utils.String("backend"),
 	}
 	defaultTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
-		"owner":      stringPtr("platform"),
+		"managed_by": utils.String("terraform"),
+		"owner":      utils.String("platform"),
 	}
 
 	result := RemoveDefaultTags(allTags, defaultTags)
@@ -173,7 +175,7 @@ func TestRemoveDefaultTags_NoMatches(t *testing.T) {
 
 func TestRemoveDefaultTags_NilAllTags(t *testing.T) {
 	defaultTags := map[string]*string{
-		"managed_by": stringPtr("terraform"),
+		"managed_by": utils.String("terraform"),
 	}
 
 	result := RemoveDefaultTags(nil, defaultTags)
@@ -186,8 +188,3 @@ func TestRemoveDefaultTags_NilAllTags(t *testing.T) {
 // Note: SetTagsDiff is tested through acceptance tests in resource_group_resource_test.go
 // because it requires a full pluginsdk.ResourceDiff implementation which is complex to mock.
 // Unit tests for MergeDefaultTags (which SetTagsDiff calls) are provided above.
-
-// Helper function to create string pointers
-func stringPtr(s string) *string {
-	return &s
-}
