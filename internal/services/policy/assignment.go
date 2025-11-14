@@ -31,7 +31,7 @@ func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments
 		Pending: []string{"404"},
 		Target:  []string{"200"},
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id)
+			resp, err := client.Get(ctx, id, assignments.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil

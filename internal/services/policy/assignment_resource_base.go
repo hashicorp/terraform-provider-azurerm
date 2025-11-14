@@ -33,7 +33,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id)
+			existing, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -164,15 +164,14 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
-				return err
+			return err
+		}
+
+		resp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return metadata.MarkAsGone(id)
 			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 			if resp.Model == nil {
@@ -234,21 +233,20 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+		id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
 
-			getResp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
+		getResp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
 
-			existing := getResp.Model
-			if existing == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-			}
-
+		existing := getResp.Model
+		if existing == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		}
 			update := policyassignments.PolicyAssignment{
 				Location:   existing.Location,
 				Properties: existing.Properties,
