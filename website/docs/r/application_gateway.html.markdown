@@ -158,8 +158,6 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-~> **Note:** `authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider.
-
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
 * `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
@@ -237,8 +235,6 @@ A `backend_http_settings` block supports the following:
 * `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
-
-~> **Note:** `authentication_certificate_backend` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 

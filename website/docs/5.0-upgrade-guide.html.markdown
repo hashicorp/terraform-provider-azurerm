@@ -189,11 +189,6 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
-### `azurerm_application_gateway`
-
-* The `backend_http_settings.authentication_certificate` property has been removed.
-* The `authentication_certificate` property has been removed.
-
 ### `azurerm_automation_account`
 
 * The `encryption.key_source` property has been removed.
@@ -493,11 +488,6 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the `hostname_configuration.portal.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the `hostname_configuration.scm.key_vault_certificate_id` property.
-
-### `azurerm_application_gateway`
-
-* The `backend_http_settings.authentication_certificate` property has been removed.
-* The `authentication_certificate` property has been removed.
 
 ### `azurerm_container_app`
 
