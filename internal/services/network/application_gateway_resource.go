@@ -4775,7 +4775,9 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
-	tier := d.Get("sku.0.tier").(string)
+	oldTierInterface, newTierInterface := d.GetChange("sku.0.tier")
+	oldTier := oldTierInterface.(string)
+	tier := newTierInterface.(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
 		err := checkBasicSkuFeatures(d)
@@ -4815,6 +4817,10 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 			return fmt.Errorf("the value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
 		}
 	}
+
+	if oldTier != tier && !(strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameBasic)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameStandardVTwo)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewaySkuNameWAFVTwo))) {
+        return fmt.Errorf("the creation of new %q V1 SKU is no longer supported, please use V2 SKU with \"Basic\", \"Standard_v2\" or \"WAF_v2\" tier instead", tier)
+    }
 
 	return nil
 }
