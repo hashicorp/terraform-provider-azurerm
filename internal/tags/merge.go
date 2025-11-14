@@ -3,6 +3,13 @@
 
 package tags
 
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
 // MergeDefaultTags merges provider default tags with resource-specific tags.
 // Resource tags take precedence over default tags in case of conflicts.
 // Returns a map[string]interface{} suitable for Terraform operations.
@@ -44,4 +51,23 @@ func RemoveDefaultTags(allTags, defaultTags map[string]*string) map[string]*stri
 	}
 
 	return resourceTags
+}
+
+// SetTagsDiff computes tags_all by merging provider default_tags with resource-specific tags.
+// This function allows tags_all to be computed at plan time rather than showing as (known after apply).
+// It should be used with pluginsdk.CustomizeDiffShim:
+//
+//	CustomizeDiff: pluginsdk.CustomizeDiffShim(tags.SetTagsDiff),
+func SetTagsDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+	client := meta.(*clients.Client)
+
+	// Compute tags_all by merging default_tags and tags
+	resourceTags := make(map[string]interface{})
+	if tags, ok := d.GetOk("tags"); ok {
+		resourceTags = tags.(map[string]interface{})
+	}
+	mergedTags := MergeDefaultTags(client.DefaultTags, resourceTags)
+
+	d.SetNew("tags_all", mergedTags)
+	return nil
 }

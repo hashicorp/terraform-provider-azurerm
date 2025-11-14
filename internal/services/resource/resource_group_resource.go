@@ -4,7 +4,6 @@
 package resource
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -38,19 +37,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			return err
 		}),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
-			client := meta.(*clients.Client)
-
-			// Compute tags_all by merging default_tags and tags
-			resourceTags := make(map[string]interface{})
-			if tags, ok := d.GetOk("tags"); ok {
-				resourceTags = tags.(map[string]interface{})
-			}
-			mergedTags := tags.MergeDefaultTags(client.DefaultTags, resourceTags)
-
-			d.SetNew("tags_all", mergedTags)
-			return nil
-		}),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(tags.SetTagsDiff),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
