@@ -12,7 +12,7 @@ ENHANCEMENTS:
 * dependencies: `managedredis` - update to API Version `2025-07-01` ([#31051](https://github.com/hashicorp/terraform-provider-azurerm/issues/31051))
 * dependencies: `mongocluster` - update to API version `2025-09-01` ([#30982](https://github.com/hashicorp/terraform-provider-azurerm/issues/30982))
 * `azurerm_api_management_backend` - add support for the `circuit_breaker_rule` block  ([#30471](https://github.com/hashicorp/terraform-provider-azurerm/issues/30471))
-`azurerm_dynatrace_monitor` - support for the `YEARLY` value in the `billing_cycle` property ([#31078](https://github.com/hashicorp/terraform-provider-azurerm/issues/31078))
+* `azurerm_dynatrace_monitor` - support for the `YEARLY` value in the `billing_cycle` property ([#31078](https://github.com/hashicorp/terraform-provider-azurerm/issues/31078))
 * `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties ([#30563](https://github.com/hashicorp/terraform-provider-azurerm/issues/30563))
 * `azurerm_managed_disk` - support expanding Ultra Disks and Premium SSD v2 disk without downtime ([#30593](https://github.com/hashicorp/terraform-provider-azurerm/issues/30593))
 * `azurerm_managed_redis` - add support for `public_network_access` ([#31051](https://github.com/hashicorp/terraform-provider-azurerm/issues/31051))
