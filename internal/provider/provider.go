@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -538,6 +539,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+		DefaultTags:                 tags.Expand(d.Get("default_tags").(map[string]interface{})),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
 

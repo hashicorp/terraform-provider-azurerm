@@ -159,7 +159,7 @@ type Client struct {
 
 	Account     *ResourceManagerAccount
 	Features    features.UserFeatures
-	DefaultTags map[string]*string
+	DefaultTags map[string]*string // Do we need this?
 
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
@@ -301,6 +301,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 
 	client.Features = o.Features
+	client.DefaultTags = o.DefaultTags
 	client.StopContext = ctx
 
 	var err error

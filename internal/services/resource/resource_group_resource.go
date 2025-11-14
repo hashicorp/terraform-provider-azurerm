@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -37,6 +38,26 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+			client := meta.(*clients.Client)
+
+			// Compute tags_all by merging default_tags and tags
+			mergedTags := make(map[string]interface{})
+			if client.DefaultTags != nil {
+				for k, v := range client.DefaultTags {
+					mergedTags[k] = *v
+				}
+			}
+			if tags, ok := d.GetOk("tags"); ok {
+				for k, v := range tags.(map[string]interface{}) {
+					mergedTags[k] = v
+				}
+			}
+
+			d.SetNew("tags_all", mergedTags)
+			return nil
+		}),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -50,6 +71,14 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"tags": commonschema.Tags(),
+
+			"tags_all": {
+				Type:        pluginsdk.TypeMap,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of all tags applied to the resource, including default tags from the provider.",
+			},
 
 			"managed_by": {
 				Type:         pluginsdk.TypeString,
@@ -69,6 +98,20 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	// Merge default_tags with resource-specific tags
+	mergedTags := make(map[string]interface{})
+	if meta.(*clients.Client).DefaultTags != nil {
+		for k, v := range meta.(*clients.Client).DefaultTags {
+			mergedTags[k] = *v
+		}
+	}
+	for k, v := range t {
+		mergedTags[k] = v
+	}
+
+	// Set tags_all early so it shows in plan output
+	d.Set("tags_all", mergedTags)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
@@ -84,7 +127,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	parameters := resources.Group{
 		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Tags:     tags.Expand(mergedTags),
 	}
 
 	if v := d.Get("managed_by").(string); v != "" {
@@ -181,7 +224,15 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("name", resp.Name)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("managed_by", pointer.From(resp.ManagedBy))
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	// Set tags_all to all tags from Azure (includes defaults)
+	if err := d.Set("tags_all", tags.Flatten(resp.Tags)); err != nil {
+		return fmt.Errorf("setting `tags_all`: %s", err)
+	}
+
+	// Set tags to only resource-specific tags (remove defaults)
+	resourceTags := tags.RemoveDefaultTags(resp.Tags, meta.(*clients.Client).DefaultTags)
+	return tags.FlattenAndSet(d, resourceTags)
 }
 
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -127,6 +127,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
+	// Extract default_tags from framework types.Map to map[string]*string
+	defaultTags := make(map[string]*string)
+	if !data.DefaultTags.IsNull() && !data.DefaultTags.IsUnknown() {
+		elements := make(map[string]string)
+		d := data.DefaultTags.ElementsAs(ctx, &elements, false)
+		if d.HasError() {
+			diags.Append(d...)
+			return
+		}
+		for k, v := range elements {
+			val := v
+			defaultTags[k] = &val
+		}
+	}
+	p.clientBuilder.DefaultTags = defaultTags
+
 	f := providerfeatures.UserFeatures{}
 
 	// features is required, but we'll play safe here
