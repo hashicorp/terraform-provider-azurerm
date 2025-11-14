@@ -189,13 +189,45 @@ A `web_application_firewall` block exports the following:
 
 A `status` block exports the following:
 
-* `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
+* `attack_signatures_package` - One or more `attack_signatures_package` blocks as defined below.
 
-* `bot_signatures_package` - Indicates the version of the bot signatures package used by NGINX App Protect.
+* `bot_signatures_package` - One or more `bot_signatures_package` blocks as defined below.
 
-* `threat_campaigns_package` - Indicates the version of the threat campaigns package used by NGINX App Protect.
+* `component_versions` - One or more `component_versions` blocks as defined below.
 
-* `component_versions` - Indicates the version of the WAF Engine and Nginx WAF Module used by NGINX App Protect.
+* `threat_campaigns_package` - One or more `threat_campaigns_package` blocks as defined below.
+
+---
+
+An `attack_signatures_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the attack signatures package.
+
+* `version` - The version of the attack signatures package.
+
+---
+
+A `bot_signatures_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the bot signatures package.
+
+* `version` - The version of the bot signatures package.
+
+---
+
+A `component_versions` block exports the following:
+
+* `waf_engine_version` - The version of the WAF Engine.
+
+* `waf_nginx_version` - The version of the WAF Nginx module.
+
+---
+
+A `threat_campaigns_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the threat campaigns package.
+
+* `version` - The version of the threat campaigns package.
 
 ## Timeouts
 
