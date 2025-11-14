@@ -32,28 +32,6 @@ resource "azurerm_mongo_cluster" "example" {
 
 ```
 
-## Example Usage (with Microsoft Entra ID Authentication)
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
-  location = "East US"
-}
-
-resource "azurerm_mongo_cluster" "example" {
-  name                      = "example-mc"
-  resource_group_name       = azurerm_resource_group.example.name
-  location                  = azurerm_resource_group.example.location
-  administrator_username    = "adminTerraform"
-  administrator_password    = "QAZwsx123"
-  shard_count               = "1"
-  compute_tier              = "M30"
-  high_availability_mode    = "ZoneRedundantPreferred"
-  storage_size_in_gb        = "64"
-  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
-}
-```
-
 ## Example Usage (Preview feature GeoReplicas)
 
 ```hcl
