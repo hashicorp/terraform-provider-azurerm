@@ -12,7 +12,7 @@ Manages a Cognitive Services Account Connection.
 
 ## Example Usage
 
-### AAD Authentication
+This example provisions a Cognitive Services Account Connection with AAD authentication. Additional examples of how to use the `azurerm_cognitive_account_connection` resource can be found in [the `./examples/cognitive/account-connection` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/cognitive/account-connection).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -62,171 +62,6 @@ resource "azurerm_cognitive_account_connection" "example" {
 }
 ```
 
-### API Key Authentication
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_cognitive_account" "example" {
-  name                       = "example-aiservices"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  kind                       = "AIServices"
-  sku_name                   = "S0"
-  project_management_enabled = true
-  custom_subdomain_name      = "exampleaiservices"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_cognitive_account" "openai" {
-  name                = "example-openai"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_cognitive_account_connection" "example" {
-  name                 = "example-connection"
-  cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "ApiKey"
-  category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai.endpoint
-  api_key              = azurerm_cognitive_account.openai.primary_access_key
-
-  metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
-  }
-}
-```
-
-### OAuth2 Authentication
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_cognitive_account" "example" {
-  name                       = "example-aiservices"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  kind                       = "AIServices"
-  sku_name                   = "S0"
-  project_management_enabled = true
-  custom_subdomain_name      = "exampleaiservices"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "example" {
-  name                  = "examplecsc"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "private"
-}
-
-resource "azurerm_cognitive_account_connection" "example" {
-  name                 = "example-connection"
-  cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "OAuth2"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.example.primary_blob_endpoint
-
-  metadata = {
-    containerName = azurerm_storage_container.example.name
-    accountName   = azurerm_storage_account.example.name
-  }
-
-  oauth2 {
-    auth_url        = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
-    client_id       = "00000000-0000-0000-0000-000000000000"
-    client_secret   = "placeHolderClientSecret"
-    tenant_id       = "00000000-0000-0000-0000-000000000000"
-    developer_token = "placeHolderDevToken"
-    refresh_token   = "placeRefreshToken"
-    username        = "placeHolderUsername"
-    password        = "placeHolderPassword"
-  }
-}
-```
-
-### Custom Keys Authentication
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_cognitive_account" "example" {
-  name                       = "example-aiservices"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  kind                       = "AIServices"
-  sku_name                   = "S0"
-  project_management_enabled = true
-  custom_subdomain_name      = "exampleaiservices"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_cognitive_account" "openai" {
-  name                = "example-openai"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_cognitive_account_connection" "example" {
-  name                 = "example-connection"
-  cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "CustomKeys"
-  category             = "CustomKeys"
-  target               = azurerm_cognitive_account.openai.endpoint
-
-  metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
-  }
-
-  custom_keys = {
-    primaryKey   = azurerm_cognitive_account.openai.primary_access_key
-    secondaryKey = azurerm_cognitive_account.openai.secondary_access_key
-  }
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -243,11 +78,17 @@ The following arguments are supported:
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-* `api_key` - (Optional) The API key for authentication. This field is sensitive. Must be set with `auth_type` of `ApiKey`. Cannot be used with `oauth2` or `custom_keys`.
+* `api_key` - (Optional) The API key for authentication. This field is sensitive.
 
-* `custom_keys` - (Optional) A mapping of custom keys for authentication. Must be set with `auth_type` of `CustomKeys`. All values in this map are sensitive. Cannot be used with `api_key` or `oauth2`.
+~> **Note:** `api_key` is required when `auth_type` is set to `ApiKey`. `api_key` cannot be set together with `oauth2` or `custom_keys`.
 
-* `oauth2` - (Optional) An `oauth2` block as defined below. Must be set with `auth_type` of `OAuth2`. Cannot be used with `api_key` or `custom_keys`.
+* `custom_keys` - (Optional) A mapping of custom keys for authentication. All values in this map are sensitive.
+
+~> **Note:** `custom_keys` is required when `auth_type` is set to `CustomKeys`. `custom_keys` cannot be set together with `api_key` or `oauth2`.
+
+* `oauth2` - (Optional) An `oauth2` block as defined below.
+
+~> **Note:** `oauth2` is required when `auth_type` is set to `OAuth2`. `oauth2` cannot be set together with `api_key` or `custom_keys`.
 
 ---
 
