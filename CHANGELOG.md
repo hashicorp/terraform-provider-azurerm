@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_dynatrace_monitor` -  the `phone_number` and `country` properties are no longer Required [GH-31077]
 * `azurerm_dynatrace_tag_rules` - the `log_rule.filtering_tag` property is no longer required [GH-31065]
 * `azurerm_dynatrace_tag_rules` - the `metric_rule.filtering_tag` property is no longer required [GH-31065]
+* `azurerm_kubernetes_cluster` - fix crash in use of `azure_active_directory_role_based_access_control` [GH-31101]
 
 ## 4.52.0 (November 06, 2025)
 
