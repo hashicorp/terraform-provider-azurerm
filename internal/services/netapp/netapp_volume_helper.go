@@ -13,11 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -692,32 +690,31 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	// Removing replication if present
 	if existing.Model.Properties.DataProtection != nil && existing.Model.Properties.DataProtection.Replication != nil {
 		dataProtectionReplication := existing.Model.Properties.DataProtection
-		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
+		replicaVolumeId, err := volumes.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
 		}
 		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replicaVolumeId, err = volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
+			replicaVolumeId, err = volumes.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 			if err != nil {
 				return err
 			}
 		}
 
-		replicationClient := metadata.Client.NetApp.VolumeReplicationClient
 		// Checking replication status before deletion, it need to be broken before proceeding with deletion
-		if res, err := replicationClient.VolumesReplicationStatus(ctx, pointer.From(replicaVolumeId)); err == nil {
+		if res, err := client.ReplicationStatus(ctx, pointer.From(replicaVolumeId)); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
 				if model.MirrorState != nil && strings.ToLower(string(pointer.From(model.MirrorState))) == "uninitialized" {
-					if err := waitForReplMirrorState(ctx, replicationClient, pointer.From(replicaVolumeId), "mirrored"); err != nil {
+					if err := waitForReplMirrorState(ctx, client, pointer.From(replicaVolumeId), "mirrored"); err != nil {
 						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", pointer.From(replicaVolumeId), err)
 					}
 				}
 			}
 
 			// Breaking replication
-			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
+			if err = client.BreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumes.BreakReplicationRequest{
 				ForceBreakReplication: utils.Bool(true),
 			}); err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", pointer.From(replicaVolumeId), err)
@@ -725,7 +722,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 			// Waiting for replication be in broken state
 			metadata.Logger.Infof("waiting for the replication of %s to be in broken state", pointer.From(replicaVolumeId))
-			if err := waitForReplMirrorState(ctx, replicationClient, pointer.From(replicaVolumeId), "broken"); err != nil {
+			if err := waitForReplMirrorState(ctx, client, pointer.From(replicaVolumeId), "broken"); err != nil {
 				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", pointer.From(replicaVolumeId), err)
 			}
 		}
@@ -733,11 +730,11 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		// Deleting replication and waiting for it to fully complete the operation
 		// Can't use VolumesDeleteReplicationThenPoll because from time to time the LRO SDK fails,
 		// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-		if _, err = replicationClient.VolumesDeleteReplication(ctx, pointer.From(replicaVolumeId)); err != nil {
+		if _, err = client.DeleteReplication(ctx, pointer.From(replicaVolumeId)); err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", pointer.From(replicaVolumeId), err)
 		}
 
-		if err := waitForReplicationDeletion(ctx, replicationClient, pointer.From(replicaVolumeId)); err != nil {
+		if err := waitForReplicationDeletion(ctx, client, pointer.From(replicaVolumeId)); err != nil {
 			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", pointer.From(replicaVolumeId), err)
 		}
 	}
@@ -845,7 +842,7 @@ func waitForVolumeGroupDelete(ctx context.Context, client *volumegroups.VolumeGr
 	return nil
 }
 
-func waitForReplAuthorization(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) error {
+func waitForReplAuthorization(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -867,7 +864,7 @@ func waitForReplAuthorization(ctx context.Context, client *volumesreplication.Vo
 	return nil
 }
 
-func waitForReplMirrorState(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) error {
+func waitForReplMirrorState(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId, desiredState string) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -889,7 +886,7 @@ func waitForReplMirrorState(ctx context.Context, client *volumesreplication.Volu
 	return nil
 }
 
-func waitForReplicationDeletion(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) error {
+func waitForReplicationDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -934,7 +931,7 @@ func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, i
 	return nil
 }
 
-func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) error {
+func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -990,7 +987,7 @@ func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups
 	}
 }
 
-func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
+func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
 	validStates := []string{"mirrored", "broken", "uninitialized"}
 
 	// Validation for the desiredState being valid
@@ -1012,11 +1009,11 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// mirrored, broken or uninitialized
 
 		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
-			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
+			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumes.PossibleValuesForMirrorState())
 		}
 
 		code := "200"
-		res, err := client.VolumesReplicationStatus(ctx, id)
+		res, err := client.ReplicationStatus(ctx, id)
 		if err != nil {
 			// Special handling for 409 Conflict errors with the specific "VolumeReplicationMissingFor" message
 			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
@@ -1043,9 +1040,9 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 	}
 }
 
-func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) pluginsdk.StateRefreshFunc {
+func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.GetLatestStatus(ctx, id)
+		res, err := client.BackupsGetLatestStatus(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving backup relationship status information from %s: %s", id, err)
@@ -1053,7 +1050,7 @@ func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Conte
 		}
 
 		response := 200
-		if res.Model != nil && res.Model.RelationshipStatus != nil && *res.Model.RelationshipStatus != backups.RelationshipStatusTransferring {
+		if res.Model != nil && res.Model.RelationshipStatus != nil && *res.Model.RelationshipStatus != volumes.VolumeBackupRelationshipStatusTransferring {
 			// return 204 if state matches desired state
 			response = 204
 		}
@@ -1062,9 +1059,9 @@ func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Conte
 	}
 }
 
-func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) pluginsdk.StateRefreshFunc {
+func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.VolumesReplicationStatus(ctx, id)
+		res, err := client.ReplicationStatus(ctx, id)
 		if err != nil {
 			// Special handling for 409 Conflict errors with "VolumeReplicationMissingFor" message
 			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
@@ -1104,8 +1101,8 @@ func translateSDKSchedule(scheduleName string) string {
 	return scheduleName
 }
 
-func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, replicationClient *volumesreplication.VolumesReplicationClient, subscriptionId, resourceGroupName, accountName string) error {
-	if volumeList == nil || replicationClient == nil {
+func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, client *volumes.VolumesClient, subscriptionId, resourceGroupName, accountName string) error {
+	if volumeList == nil || client == nil {
 		return nil
 	}
 
@@ -1129,13 +1126,13 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				)
 
 				// Getting primary resource id
-				primaryId, err := volumesreplication.ParseVolumeID(pointer.From(replication.RemoteVolumeResourceId))
+				primaryId, err := volumes.ParseVolumeID(pointer.From(replication.RemoteVolumeResourceId))
 				if err != nil {
 					return fmt.Errorf("parsing primary volume ID %q: %+v", pointer.From(replication.RemoteVolumeResourceId), err)
 				}
 
 				// Authorizing
-				if err := replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
+				if err := client.AuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumes.AuthorizeRequest{
 					RemoteVolumeResourceId: utils.String(secondaryId.ID()),
 				}); err != nil {
 					return fmt.Errorf("authorizing volume replication for volume %q: %+v", secondaryId.ID(), err)
@@ -1155,7 +1152,7 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 			}
 
 			// Create the destination volume ID for status checking
-			destinationReplId := volumesreplication.NewVolumeID(subscriptionId,
+			destinationReplId := volumes.NewVolumeID(subscriptionId,
 				resourceGroupName,
 				accountName,
 				capacityPoolId.CapacityPoolName,
@@ -1164,7 +1161,7 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 
 			// Wait for volume replication authorization to complete on the destination volume
 			log.Printf("[DEBUG] Waiting for replication authorization on destination volume %s to complete", destinationReplId.ID())
-			if err := waitForReplAuthorization(ctx, replicationClient, destinationReplId); err != nil {
+			if err := waitForReplAuthorization(ctx, client, destinationReplId); err != nil {
 				return err
 			}
 		}
