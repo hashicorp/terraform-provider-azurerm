@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
-* `project_management_enabled` - (Optional) Whether project management is enabled when the `kind` is set to `AIServices`. Changing this forces a new resource to be created except when rolling back from `kind` `AIServices` to `OpenAI`. Defaults to `false`.
+* `project_management_enabled` - (Optional) Whether project management is enabled. Can only be set to `true` when `kind` is set to `AIServices`. Once enabled, disabling `project_management_enabled` forces a new resource to be created unless `kind` is set to `OpenAI`. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 
