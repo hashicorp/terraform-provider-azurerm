@@ -698,17 +698,17 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 	return nil
 }
 
-func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel) *redisenterprise.ClusterCommonPropertiesEncryption {
+func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
-		return &redisenterprise.ClusterCommonPropertiesEncryption{}
+		return &redisenterprise.ClusterPropertiesEncryption{}
 	}
 
 	cmk := input[0]
 
-	return &redisenterprise.ClusterCommonPropertiesEncryption{
-		CustomerManagedKeyEncryption: &redisenterprise.ClusterCommonPropertiesEncryptionCustomerManagedKeyEncryption{
+	return &redisenterprise.ClusterPropertiesEncryption{
+		CustomerManagedKeyEncryption: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryption{
 			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
-			KeyEncryptionKeyIdentity: &redisenterprise.ClusterCommonPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
+			KeyEncryptionKeyIdentity: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
 				IdentityType:                   pointer.To(redisenterprise.CmkIdentityTypeUserAssignedIdentity),
 				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
 			},
@@ -732,12 +732,12 @@ func expandAccessKeysAuth(enabled bool) *databases.AccessKeysAuthentication {
 	return pointer.To(databases.AccessKeysAuthenticationDisabled)
 }
 
-func expandGeoReplication(input string, id string) *databases.DatabaseCommonPropertiesGeoReplication {
+func expandGeoReplication(input string, id string) *databases.DatabasePropertiesGeoReplication {
 	if input == "" {
 		return nil
 	}
 
-	return &databases.DatabaseCommonPropertiesGeoReplication{
+	return &databases.DatabasePropertiesGeoReplication{
 		GroupNickname: pointer.To(input),
 		LinkedDatabases: &[]databases.LinkedDatabase{
 			{
@@ -747,7 +747,7 @@ func expandGeoReplication(input string, id string) *databases.DatabaseCommonProp
 	}
 }
 
-func flattenGeoReplicationGroupName(input *databases.DatabaseCommonPropertiesGeoReplication) string {
+func flattenGeoReplicationGroupName(input *databases.DatabasePropertiesGeoReplication) string {
 	if input == nil || input.GroupNickname == nil {
 		return ""
 	}
@@ -781,7 +781,7 @@ func flattenModules(input *[]databases.Module) []ModuleModel {
 	return results
 }
 
-func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterCommonPropertiesEncryption) []CustomerManagedKeyModel {
+func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKeyModel {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
 		return []CustomerManagedKeyModel{}
 	}

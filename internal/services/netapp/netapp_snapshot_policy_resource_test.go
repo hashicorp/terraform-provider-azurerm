@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -159,7 +159,7 @@ func TestAccNetAppSnapshotPolicy_complete(t *testing.T) {
 }
 
 func (t NetAppSnapshotPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := snapshotpolicy.ParseSnapshotPolicyID(state.ID)
+	id, err := snapshotpolicies.ParseSnapshotPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
