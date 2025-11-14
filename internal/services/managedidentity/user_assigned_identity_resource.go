@@ -113,9 +113,10 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var payload identities.Identity
-			if err := r.mapUserAssignedIdentityResourceSchemaToIdentity(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			payload := identities.Identity{
+				Location:   location.Normalize(config.Location),
+				Tags:       tags.Expand(config.Tags),
+				Properties: &identities.UserAssignedIdentityProperties{},
 			}
 
 			if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload); err != nil {
@@ -151,8 +152,13 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.UserAssignedIdentityName
 				schema.ResourceGroupName = id.ResourceGroupName
-				if err := r.mapIdentityToUserAssignedIdentityResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
+				schema.Location = location.Normalize(model.Location)
+				schema.Tags = tags.Flatten(model.Tags)
+
+				if model.Properties != nil {
+					schema.ClientId = pointer.From(model.Properties.ClientId)
+					schema.PrincipalId = pointer.From(model.Properties.PrincipalId)
+					schema.TenantId = pointer.From(model.Properties.TenantId)
 				}
 			}
 
@@ -197,9 +203,9 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var payload identities.IdentityUpdate
-			if err := r.mapUserAssignedIdentityResourceSchemaToIdentityUpdate(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			payload := identities.IdentityUpdate{
+				Tags:       tags.Expand(config.Tags),
+				Properties: &identities.UserAssignedIdentityProperties{},
 			}
 
 			if _, err := client.UserAssignedIdentitiesUpdate(ctx, *id, payload); err != nil {
@@ -209,46 +215,4 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentity(input UserAssignedIdentityResourceSchema, output *identities.Identity) error {
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &identities.UserAssignedIdentityProperties{}
-	}
-
-	return nil
-}
-
-func (r UserAssignedIdentityResource) mapIdentityToUserAssignedIdentityResourceSchema(input identities.Identity, output *UserAssignedIdentityResourceSchema) error {
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Flatten(input.Tags)
-
-	if input.Properties == nil {
-		input.Properties = &identities.UserAssignedIdentityProperties{}
-	}
-	if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentityUpdate(input UserAssignedIdentityResourceSchema, output *identities.IdentityUpdate) error {
-	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &identities.UserAssignedIdentityProperties{}
-	}
-
-	return nil
-}
-
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(input identities.UserAssignedIdentityProperties, output *UserAssignedIdentityResourceSchema) error {
-	output.ClientId = pointer.From(input.ClientId)
-	output.PrincipalId = pointer.From(input.PrincipalId)
-	output.TenantId = pointer.From(input.TenantId)
-	return nil
 }
