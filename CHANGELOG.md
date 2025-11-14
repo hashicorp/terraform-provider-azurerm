@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_managed_redis` - add support for `public_network_access` [GH-31051]
 
 FEATURES:
+* **New Resource**: `azurerm_mongo_cluster_firewall_rule` [GH-31062]
 * **New Resource**: `azurerm_api_management_workspace_certificate` [GH-30628]
 
 BUG FIXES:
