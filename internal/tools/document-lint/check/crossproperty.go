@@ -92,7 +92,10 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 		return nil
 	case *schema2.Resource:
 		if f.Subs == nil {
-			res = append(res, newMissBlockDeclare(path, f))
+			// Skip computed-only blocks - they don't need block definitions in the documentation
+			if !s.Computed || s.Optional || s.Required {
+				res = append(res, newMissBlockDeclare(path, f))
+			}
 			return res
 		}
 		for key, val := range ele.Schema {
