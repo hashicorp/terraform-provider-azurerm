@@ -926,6 +926,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"probe": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -4801,6 +4802,64 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
+	oldProbe, newProbe := d.GetChange("probe")
+	// probeGet := d.Get("probe")
+
+	if oldProbeList := oldProbe.(*schema.Set).List(); len(oldProbeList) == 1 {
+		if oldProbeMatch := oldProbeList[0].(map[string]interface{})["match"].([]interface{}); len(oldProbeMatch) > 0 {
+			if oldProbeMatchStatusCode := oldProbeMatch[0].(map[string]interface{})["status_code"].([]interface{}); len(oldProbeMatchStatusCode) == 1 && oldProbeMatchStatusCode[0].(string) == "200-399" {
+				if newProbeList := newProbe.(*schema.Set).List(); len(newProbeList) == 1 {
+					if newProbeMatch := newProbeList[0].(map[string]interface{})["match"].([]interface{}); len(newProbeMatch) == 0 {
+						updatedProbe := schema.CopySet(newProbe.(*schema.Set))
+
+						for _, v := range newProbeList {
+							updatedV := v.(map[string]interface{})
+							updatedV["match"] = oldProbeMatch
+							updatedProbe.Remove(v)
+							updatedProbe.Add(updatedV)
+						}
+
+						if err := d.SetNew("probe", updatedProbe); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+	}
+	/*
+		fmt.Println("debug0 ", oldProbe, " ", newProbe, " ", probeGet)
+		fmt.Println("debug1 ", reflect.TypeOf(oldProbe))
+		fmt.Println("debug2 ", oldProbe.(*schema.Set).List())
+
+		if len(oldProbe.(*schema.Set).List()) > 0 {
+			fmt.Println("debug3 ", reflect.TypeOf(oldProbe.(*schema.Set).List()[0]))
+			fmt.Println("debug4 ", oldProbe.(*schema.Set).List()[0].(map[string]interface{}))
+			fmt.Println("debug5 ", reflect.TypeOf(oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"]))
+			fmt.Println("debug6 ", oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"])
+
+			if len(oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})) > 0 {
+				fmt.Println("debug7 ", reflect.TypeOf(oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0]))
+				fmt.Println("debug8 ", oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0])
+				fmt.Println("debug9 ", reflect.TypeOf(oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0].(map[string]interface{})["status_code"]))
+				fmt.Println("debug10 ", oldProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0].(map[string]interface{})["status_code"])
+			}
+		}
+
+		fmt.Println("debug2 ", newProbe.(*schema.Set).List())
+
+		if len(newProbe.(*schema.Set).List()) > 0 {
+			fmt.Println("debug4 ", newProbe.(*schema.Set).List()[0].(map[string]interface{}))
+			fmt.Println("debug6 ", newProbe.(*schema.Set).List()[0].(map[string]interface{})["match"])
+
+			if len(newProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})) > 0 {
+				fmt.Println("debug8 ", newProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0])
+				fmt.Println("debug10 ", newProbe.(*schema.Set).List()[0].(map[string]interface{})["match"].([]interface{})[0].(map[string]interface{})["status_code"])
+			}
+		}
+
+		fmt.Println()
+	*/
 	return nil
 }
 
