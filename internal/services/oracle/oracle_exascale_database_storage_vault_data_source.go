@@ -29,8 +29,10 @@ type ExascaleDatabaseStorageVaultDataModel struct {
 	Zones             zones.Schema `tfschema:"zones"`
 
 	AdditionalFlashCachePercentage int64                                 `tfschema:"additional_flash_cache_percentage"`
+	AttachedShapeAttributes        []string                              `tfschema:"attached_shape_attributes"`
 	Description                    string                                `tfschema:"description"`
 	DisplayName                    string                                `tfschema:"display_name"`
+	ExadataInfrastructureId        string                                `tfschema:"exadata_infrastructure_id"`
 	HighCapacityDatabaseStorage    []ExascaleDatabaseStorageDetailsModel `tfschema:"high_capacity_database_storage"`
 	LifecycleDetails               string                                `tfschema:"lifecycle_details"`
 	LifecycleState                 string                                `tfschema:"lifecycle_state"`
@@ -64,12 +66,25 @@ func (d ExascaleDatabaseStorageVaultDataSource) Attributes() map[string]*plugins
 			Computed: true,
 		},
 
+		"attached_shape_attributes": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"exadata_infrastructure_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -164,8 +179,10 @@ func (d ExascaleDatabaseStorageVaultDataSource) Read() sdk.ResourceFunc {
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
 					state.AdditionalFlashCachePercentage = pointer.From(props.AdditionalFlashCacheInPercent)
+					state.AttachedShapeAttributes = FlattenAttachedShapeAttribute(props.AttachedShapeAttributes)
 					state.DisplayName = props.DisplayName
 					state.Description = pointer.From(props.Description)
+					state.ExadataInfrastructureId = pointer.From(props.ExadataInfrastructureId)
 					state.HighCapacityDatabaseStorage = FlattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.LifecycleState = pointer.FromEnum(props.LifecycleState)

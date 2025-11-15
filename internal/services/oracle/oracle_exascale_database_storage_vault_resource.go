@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -32,8 +33,10 @@ type ExascaleDatabaseStorageVaultResourceModel struct {
 	Zones             zones.Schema      `tfschema:"zones"`
 
 	AdditionalFlashCachePercentage int64                                 `tfschema:"additional_flash_cache_percentage"`
+	AttachedShapeAttributes        []string                              `tfschema:"attached_shape_attributes"`
 	Description                    string                                `tfschema:"description"`
 	DisplayName                    string                                `tfschema:"display_name"`
+	ExadataInfrastructureId        string                                `tfschema:"exadata_infrastructure_id"`
 	HighCapacityDatabaseStorage    []ExascaleDatabaseStorageDetailsModel `tfschema:"high_capacity_database_storage"`
 
 	TimeZone string `tfschema:"time_zone"`
@@ -80,6 +83,13 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 
+		"exadata_infrastructure_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: cloudexadatainfrastructures.ValidateCloudExadataInfrastructureID,
+		},
+
 		"high_capacity_database_storage": {
 			Type:     pluginsdk.TypeList,
 			MinItems: 1,
@@ -115,7 +125,15 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 }
 
 func (ExascaleDatabaseStorageVaultResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"attached_shape_attributes": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+	}
 }
 
 func (ExascaleDatabaseStorageVaultResource) ModelObject() interface{} {
@@ -167,6 +185,10 @@ func (r ExascaleDatabaseStorageVaultResource) Create() sdk.ResourceFunc {
 
 			if model.Description != "" {
 				param.Properties.Description = pointer.To(model.Description)
+			}
+
+			if model.ExadataInfrastructureId != "" {
+				param.Properties.ExadataInfrastructureId = pointer.To(model.ExadataInfrastructureId)
 			}
 
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
@@ -241,7 +263,9 @@ func (ExascaleDatabaseStorageVaultResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
+					state.AttachedShapeAttributes = FlattenAttachedShapeAttribute(props.AttachedShapeAttributes)
 					state.DisplayName = props.DisplayName
+					state.ExadataInfrastructureId = pointer.From(props.ExadataInfrastructureId)
 					state.AdditionalFlashCachePercentage = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.Description = pointer.From(props.Description)
 					state.HighCapacityDatabaseStorage = FlattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)

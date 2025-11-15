@@ -23,3 +23,13 @@ func FlattenHighCapacityDatabaseStorage(input *exascaledbstoragevaults.ExascaleD
 	}
 	return output
 }
+
+func FlattenAttachedShapeAttribute(input *[]exascaledbstoragevaults.ShapeAttribute) []string {
+	output := make([]string, 0)
+	if input != nil {
+		for _, value := range *input {
+			output = append(output, string(value))
+		}
+	}
+	return output
+}
