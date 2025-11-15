@@ -559,3 +559,11 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_function_app_flex_consumption`
+
+* The deprecated `storage_container_type` property has been removed in favour of the `deployment_storage_container_type` property.
+* The deprecated `storage_container_endpoint` property has been removed in favour of the `deployment_storage_container_endpoint` property.
+* The deprecated `storage_authentication_type` property has been removed in favour of the `deployment_storage_authentication_type` property.
+* The deprecated `storage_access_key` property has been removed in favour of the `deployment_storage_access_key` property.
+* The deprecated `storage_user_assigned_identity_id` property has been removed in favour of the `deployment_storage_user_assigned_identity_id` property.
