@@ -51,6 +51,20 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis", "test")
+	r := ManagedRedisDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.dataSourceDbPersistence(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_database.0.persistence_redis_database_backup_frequency").HasValue("1h"),
+			),
+		},
+	})
+}
+
 func (ManagedRedisDataSource) dataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -149,6 +163,36 @@ resource "azurerm_managed_redis" "test" {
 
   tags = {
     env = "testing"
+  }
+}
+
+data "azurerm_managed_redis" "test" {
+  name                = azurerm_managed_redis.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (ManagedRedisDataSource) dataSourceDbPersistence(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    persistence_redis_database_backup_frequency = "1h"
   }
 }
 
