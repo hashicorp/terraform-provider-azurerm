@@ -443,6 +443,8 @@ A `default_node_pool` block supports the following:
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
+~> **Note:** This will become Required in version 5.0 of the AzureRM Provider since the Azure API always returns this block with default values.
+
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
 
 ~> **Note:** A Route Table must be configured on this Subnet.
