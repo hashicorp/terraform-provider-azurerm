@@ -156,7 +156,11 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine should exist. Changing this forces a new Linux Virtual Machine to be created.
 
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
+
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
+
+~> **Note:** `encryption_at_host_enabled` is deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider.
 
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -202,6 +206,8 @@ The following arguments are supported:
 
 * `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
+~> **Note:** `secure_boot_enabled` is deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider.
+
 * `source_image_id` - (Optional) The ID of the Image which this Virtual Machine should be created from. Changing this forces a new resource to be created. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
 -> **Note:** One of either `source_image_id` or `source_image_reference` must be set.
@@ -223,6 +229,8 @@ The following arguments are supported:
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
+
+~> **Note:** `vtpm_enabled` is deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.
 
@@ -355,6 +363,13 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the Publisher of the Marketplace Image this Virtual Machine should be created from. Changing this forces a new resource to be created.
 
 ---
+
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host? Changing this forces a new resource to be created.
+* `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `Standard`, `TrustedLaunch`, and `ConfidentialVM`. Changing this forces a new resource to be created.
+* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 A `secret` block supports the following:
 
