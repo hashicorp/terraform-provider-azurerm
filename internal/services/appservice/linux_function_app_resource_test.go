@@ -1421,6 +1421,22 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 	})
 }
 
+func TestAccLinuxFunctionApp_appStackDockerDigest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDockerDigest(data, SkuBasicPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -4986,4 +5002,36 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.template(data, planSKU), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) appStackDockerDigest(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    always_on = true
+
+    application_stack {
+      docker {
+        registry_url  = "https://mcr.microsoft.com"
+        image_name    = "azure-functions/dotnet"
+        image_digest  = "sha256:d5ebb92368458443c5f058ab50d335421338d23ad89e9e6705ca14d0ee2b8f4b"
+      }
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
