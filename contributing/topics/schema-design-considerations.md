@@ -257,3 +257,93 @@ Would be better exposed as the following resources:
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
+## Preview Fields
+
+Fields that are in preview should not be supported until they reach General Availability (GA) status, as they may change or be removed before becoming stable.
+
+## Flattening nested properties
+
+When designing schemas, flatten properties with `MaxItems: 1` that contain only a single nested property.
+
+:white_check_mark: **DO**
+```go
+"certificate": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    Elem:     &pluginsdk.Schema{
+        Type:         pluginsdk.TypeString,
+        ValidateFunc: validation.StringIsNotEmpty,
+    },
+}
+```
+
+:no_entry: **DO NOT**
+```go
+"credentials": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    MaxItems: 1,
+    Elem:     &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "certificate": {
+                Type:     pluginsdk.TypeList,
+                Optional: true,
+                Elem:     &pluginsdk.Schema{
+                    Type:         pluginsdk.TypeString,
+                    ValidateFunc: validation.StringIsNotEmpty,
+                },
+            },
+        },
+    },
+}
+```
+
+## Array fields with MinItems and MaxItems
+
+If a field is an array, proper `MinItems` and `MaxItems` should be set based on the API constraints to provide clear validation feedback to users.
+
+```go
+"email_addresses": {
+	Type:     pluginsdk.TypeList,
+	Required: true,
+	MinItems: 1,
+	MaxItems: 20,
+	Elem: &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		ValidateFunc: validation.StringIsNotEmpty,
+	},
+},
+```
+
+## Required fields in Azure Portal vs API documentation
+
+Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, even if the API documentation doesn't specify them as required.
+
+## AtLeastOneOf validation for TypeList fields
+
+When a `pluginsdk.TypeList` block has no required nested fields, `AtLeastOneOf` must be set on the optional fields to ensure at least one is specified.
+
+```go
+"setting": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    MaxItems: 1,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "linux": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+            "windows": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+        },
+    },
+}
+```
+

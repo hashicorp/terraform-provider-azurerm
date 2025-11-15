@@ -62,7 +62,7 @@ Internal errors, which are entirely outside the users control (such as failed ex
 ```go
 deadline, ok := ctx.Deadline()
 if !ok {
-    return fmt.Errorf("internal-error: context had no deadline")
+    return errors.New("internal-error: context had no deadline")
 }
 ```
 
@@ -86,3 +86,15 @@ This type of error wrapping should be applied to **all** error handling includin
 > **Note:** Wrapped error messages should generally not start with `failed`, `error`, or an uppercase letter as there will a function higher up the stack that will prefix this.
 
 When returning errors in those situations, it is important to consider the calling context and to exclude any information the calling function is likely to include, while including any additional context then calling function may not have.
+
+For error messages that are simple strings without any variables, use `errors.New()` instead of `fmt.Errorf()`. Go will not allow `fmt.Errorf()` with constant strings in future versions:
+
+```go
+errors.New("resource not found")
+```
+
+instead of 
+
+```go
+fmt.Errorf("resource not found")
+```

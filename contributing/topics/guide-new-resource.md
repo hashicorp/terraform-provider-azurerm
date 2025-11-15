@@ -68,6 +68,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 Things worth noting here:
 
+- The copyright header in Go files should use the following format:
+
+```go
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+```
+
 - The call to `o.Configure` configures the authorization token which should be used for this SDK Client - in most cases `ResourceManager` is the authorizer you want to use.
 
 At this point, this SDK Client should be usable within the Resource via:
@@ -596,6 +603,15 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 Things worth noting here:
 
+- If you want to add header comment at the beginning of the go file, use the following fixed format:
+
+```go
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+```
+
+- An argument must either be marked `ForceNew: true`, or added to `Update()` function.
+
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
 
 For example, in this case:
@@ -636,6 +652,128 @@ func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResourc
 ```
 
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
+
+- Argument names, `model`, and `properties` must be wrapped in backticks in error messages and validation messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
+		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+	),
+},
+
+return fmt.Errorf("retrieving %s: `model` was nil", id)
+return fmt.Errorf("retrieving %s: `properties` was nil", id)
+```
+
+:no_entry: **DO NOT**
+
+```
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
+		"The name can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+	),
+},
+
+return fmt.Errorf("retrieving %s: model was nil", id)
+return fmt.Errorf("retrieving %s: properties was nil", id)
+```
+
+- Do not return an error in `Update` or `CustomizeDiff` function if the error is by design and cannot be resolved by changing the configuration, use `ForceNew` in `CustomizeDiff` instead so that Terraform will plan a resource recreation.
+
+:white_check_mark: **DO**
+
+```go
+func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			...
+			o, n := metadata.ResourceDiff.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			...
+
+			return nil
+		},
+	}
+}
+```
+
+:no_entry: **DO NOT**
+
+```go
+func (r ExampleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			...
+            o, n := metadata.ResourceData.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					return errors.New("Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.")
+				}
+			}
+
+			...
+			return nil
+		},
+	}
+}
+```
+
+- `pointer.From` returns the dereferenced value or zero if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
+
+:white_check_mark: **DO**
+
+```go
+output.Name = pointer.From(input.Name)
+```
+
+:no_entry: **DO NOT**
+
+```go
+if input.Name != nil {
+    output.Name = *input.Name
+}
+```
+
+- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
+
+:white_check_mark: **DO**
+
+```go
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+}
+```
+
+:no_entry: **DO NOT**
+
+```go
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.To(managedclusters.ArtifactSource(config["artifact_source"].(string))),
+}
+```
 
 ### Step 4: Adding Resource Identity
 

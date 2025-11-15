@@ -31,6 +31,7 @@ Arguments in the documentation are expected to be ordered as follows:
 The following conventions apply to argument descriptions:
 
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
+- If an argument has `ForceNew: true`, its description must end with `Changing this forces a new <resource name> to be created.`
 - If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
   - Arguments with a single allowed value: `` The only possible values is `value1`. ``
   - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
@@ -38,7 +39,7 @@ The following conventions apply to argument descriptions:
 
 Examples:
 
-- `` * `name` - (Required) The name which should be used for this resource. ``
+- `` * `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.``
 - `` * `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. ``
 - `` * `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`. ``
 
@@ -115,7 +116,10 @@ A `block_attribute` exports the following:
 
 ## Timeouts
 
-...
+When documenting timeouts, use the updated link format for all new resources:
+
+- **New resources**: Use `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
+- **Existing resources**: Continue using `https://www.terraform.io/language/resources/syntax#operation-timeouts` to maintain consistency
 
 ```
 
