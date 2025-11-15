@@ -309,12 +309,10 @@ func TestAccResourceGroup_defaultTags_updateToProviderOnly(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	tagsHelpers.TestDefaultTagsUpdateToProviderOnly(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceNonOverlappingConfig, testResource.defaultTagsProviderOnlyConfig)
 }
-
 func TestAccResourceGroup_defaultTags_updateToResourceOnly(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	tagsHelpers.TestDefaultTagsUpdateToResourceOnly(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderOnlyConfig, testResource.defaultTagsProviderAndResourceNonOverlappingConfig)
 }
-
 func TestAccResourceGroup_defaultTags_providerAndResource_duplicateTag(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	tagsHelpers.TestDefaultTagsProviderAndResourceDuplicateTag(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceOverlappingConfig)
