@@ -170,10 +170,8 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				},
 			},
 		}
-	} else {
-		if vaultDefaultRetentionDurationSet && len(v.([]interface{})) == 0 {
-			return fmt.Errorf("backup policy has a vault default retention set; storage_account_container_names cannot be empty")
-		}
+	} else if vaultDefaultRetentionDurationSet && len(v.([]interface{})) == 0 {
+		return fmt.Errorf("backup policy has a vault default retention set; storage_account_container_names cannot be empty")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -257,48 +255,4 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	}
 
 	return nil
-}
-
-func dataProtectionBackupPolicyRefresh(ctx context.Context, client *backuppolicies.BackupPoliciesClient, policyId backuppolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {
-	log.Printf("[DEBUG] in dataProtectionBackupPolicyRefresh")
-
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, policyId)
-		if err != nil {
-			return nil, "Error", fmt.Errorf("retrieving backup policy id %s: %+v", policyId, err)
-		}
-
-		if resp.Model != nil {
-			if resp.Model.Properties != nil {
-				if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
-					defaultRetentionRuleDuration := flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)
-					log.Printf("[DEBUG] Found default retention rules %v", defaultRetentionRuleDuration)
-					// if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)); err != nil {
-					// 	return fmt.Errorf("setting `vault_default_retention_duration`: %+v", err)
-					// }
-					// if err := d.Set("retention_rule", flattenBackupPolicyBlobStorageRetentionRuleArray(&props.PolicyRules)); err != nil {
-					// 	return fmt.Errorf("setting `retention_rule`: %+v", err)
-					// }
-				}
-			}
-		}
-
-		// if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ServiceAssociationLinks != nil {
-		// 	serviceAssociationLinks := *resp.Model.Properties.ServiceAssociationLinks
-
-		// 	if len(serviceAssociationLinks) > 0 {
-		// 		for _, sal := range serviceAssociationLinks {
-		// 			// The SAL name associated with the Cognitive Services account is "legionservicelink"
-		// 			if pointer.From(sal.Name) == "legionservicelink" && sal.Properties != nil && sal.Properties.ProvisioningState != nil {
-		// 				log.Printf("[DEBUG] Found Service Association Link %s with provisioning state %s",
-		// 					pointer.From(sal.Name), *sal.Properties.ProvisioningState)
-		// 				return resp, "SALExists", nil
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		log.Printf("[DEBUG] Backup policy ID not found %s", policyId.ID())
-		return resp, "SALDeleted", nil
-	}
 }
