@@ -302,7 +302,6 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The notification rules of the policy",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -310,7 +309,6 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Notifications about active assignments",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						Computed:    true,
 						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: notificationRuleSchema(),
@@ -321,7 +319,6 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Notifications about activations of eligible assignments",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						Computed:    true,
 						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: notificationRuleSchema(),
@@ -332,7 +329,6 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Notifications about eligible assignments",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						Computed:    true,
 						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: notificationRuleSchema(),
@@ -386,7 +382,7 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: model was nil", policyId)
 			}
 
-			model, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model)
+			model, err := buildRoleManagementPolicy(pointer.To(metadata), existing.Model)
 			if err != nil {
 				return err
 			}
@@ -451,18 +447,6 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 					if len(state.ActivationRules) == 0 {
 						state.ActivationRules = make([]RoleManagementPolicyActivationRules, 1)
 					}
-					if len(state.NotificationRules) == 0 {
-						state.NotificationRules = make([]RoleManagementPolicyNotificationEvents, 1)
-					}
-					if len(state.NotificationRules[0].EligibleActivations) == 0 {
-						state.NotificationRules[0].EligibleActivations = make([]RoleManagementPolicyNotificationRule, 1)
-					}
-					if len(state.NotificationRules[0].ActiveAssignments) == 0 {
-						state.NotificationRules[0].ActiveAssignments = make([]RoleManagementPolicyNotificationRule, 1)
-					}
-					if len(state.NotificationRules[0].EligibleAssignments) == 0 {
-						state.NotificationRules[0].EligibleAssignments = make([]RoleManagementPolicyNotificationRule, 1)
-					}
 
 					for _, r := range *prop.Rules {
 						switch rule := r.(type) {
@@ -479,9 +463,9 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 									state.ActivationRules[0].RequireApproval = pointer.From(settings.IsApprovalRequired)
 									if settings.ApprovalStages != nil {
 										approvalStages := *settings.ApprovalStages
-										state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
 										approvalStage := approvalStages[0]
 										if primaryApprovers := approvalStage.PrimaryApprovers; primaryApprovers != nil && len(*primaryApprovers) > 0 {
+											state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
 											state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers = make([]RoleManagementPolicyApprover, len(*primaryApprovers))
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
@@ -546,48 +530,82 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 							}
 						case rolemanagementpolicies.RoleManagementPolicyNotificationRule:
 							if rule.Id != nil {
+								// If the rule has the default values, don't set it into state
+								if pointer.From(rule.NotificationLevel) == rolemanagementpolicies.NotificationLevelAll && pointer.From(rule.IsDefaultRecipientsEnabled) && len(pointer.From(rule.NotificationRecipients)) == 0 {
+									continue
+								} else if len(state.NotificationRules) == 0 {
+									state.NotificationRules = make([]RoleManagementPolicyNotificationEvents, 1)
+								}
+
 								switch *rule.Id {
 								case "Notification_Admin_Admin_Assignment":
+									if len(state.NotificationRules[0].ActiveAssignments) == 0 {
+										state.NotificationRules[0].ActiveAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].ActiveAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Admin_Admin_Eligibility":
+									if len(state.NotificationRules[0].EligibleAssignments) == 0 {
+										state.NotificationRules[0].EligibleAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Admin_EndUser_Assignment":
+									if len(state.NotificationRules[0].EligibleActivations) == 0 {
+										state.NotificationRules[0].EligibleActivations = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleActivations[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Approver_Admin_Assignment":
+									if len(state.NotificationRules[0].ActiveAssignments) == 0 {
+										state.NotificationRules[0].ActiveAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].ActiveAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Approver_Admin_Eligibility":
+									if len(state.NotificationRules[0].EligibleAssignments) == 0 {
+										state.NotificationRules[0].EligibleAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Approver_EndUser_Assignment":
+									if len(state.NotificationRules[0].EligibleActivations) == 0 {
+										state.NotificationRules[0].EligibleActivations = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleActivations[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Requestor_Admin_Assignment":
+									if len(state.NotificationRules[0].ActiveAssignments) == 0 {
+										state.NotificationRules[0].ActiveAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Requestor_Admin_Eligibility":
+									if len(state.NotificationRules[0].EligibleAssignments) == 0 {
+										state.NotificationRules[0].EligibleAssignments = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
 
 								case "Notification_Requestor_EndUser_Assignment":
+									if len(state.NotificationRules[0].EligibleActivations) == 0 {
+										state.NotificationRules[0].EligibleActivations = make([]RoleManagementPolicyNotificationRule, 1)
+									}
 									state.NotificationRules[0].EligibleActivations[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
 										*flattenNotificationSettings(rule),
 									}
@@ -628,7 +646,7 @@ func (r RoleManagementPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			model, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model)
+			model, err := buildRoleManagementPolicy(pointer.To(metadata), existing.Model)
 			if err != nil {
 				return fmt.Errorf("could not build update request, %+v", err)
 			}
@@ -646,11 +664,31 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if _, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id()); err != nil {
+			id, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			policyId, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
+			if err != nil {
+				return err
+			}
+			client := metadata.Client.Authorization.RoleManagementPoliciesClient
+			existing, err := client.Get(ctx, *policyId)
+			if err != nil {
+				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
+			}
+			// Role Management Policies cannot be deleted, so we reset all properties back to default values
+			if _, err := client.Update(ctx, *policyId, rolemanagementpolicies.RoleManagementPolicy{
+				Id:   existing.Model.Id,
+				Name: existing.Model.Name,
+				Properties: pointer.To(rolemanagementpolicies.RoleManagementPolicyProperties{
+					Rules: &defaultNotificationRules,
+				}),
+				Type: existing.Model.Type,
+			}); err != nil {
 				return err
 			}
 
-			// Role Management Policies cannot be deleted, so we'll just return without doing anything
 			return nil
 		},
 	}
@@ -662,7 +700,6 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 			Description: "Admin notification settings",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: notificationSettingsSchema(),
@@ -673,7 +710,6 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 			Description: "Approver notification settings",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: notificationSettingsSchema(),
@@ -684,7 +720,6 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 			Description: "Assignee notification settings",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: notificationSettingsSchema(),
@@ -699,7 +734,7 @@ func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 			Description:  "What level of notifications are sent",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice([]string{"All", "Critical"}, false),
+			ValidateFunc: validation.StringInSlice(rolemanagementpolicies.PossibleValuesForNotificationLevel(), false),
 		},
 
 		"default_recipients": {
@@ -712,7 +747,6 @@ func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 			Description: "The additional recipients to notify",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
-			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

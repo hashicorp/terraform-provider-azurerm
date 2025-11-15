@@ -115,10 +115,17 @@ resource "azurerm_role_management_policy" "example" {
 ## Arguments Reference
 
 * `activation_rules` - (Optional) An `activation_rules` block as defined below.
+
 * `active_assignment_rules` - (Optional) An `active_assignment_rules` block as defined below.
+
 * `eligible_assignment_rules` - (Optional) An `eligible_assignment_rules` block as defined below.
+
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
+
+* ~> **Note:** Azure creates default notification rules (`notification_level = "All"`, `default_recipients = true`, no additional recipients) that are not stored in Terraform state. Removing notification rule blocks from your configuration resets them to these Azure defaults, ensuring no configuration drift occurs.
+
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
+
 * `scope` - (Required) The scope to which this Role Management Policy will apply. Can refer to a management group, a subscription, a resource group or a resource. Changing this forces a new resource to be created.
 
 ---
@@ -126,11 +133,17 @@ resource "azurerm_role_management_policy" "example" {
 An `activation_rules` block supports the following:
 
 * `approval_stage` - (Optional) An `approval_stage` block as defined below.
-* `maximum_duration` - (Optional) The maximum length of time an activated role can be valid, in an ISO8601 Duration format (e.g. `PT8H`). Valid range is `PT30M` to `PT23H30M`, in 30 minute increments, or `PT1D`.
+
+* `maximum_duration` - (Optional) The maximum length of time an activated role can be valid, in an ISO8601 Duration format (e.g. `PT8H`). Valid range is `PT30M` to `PT23H30M`, in 30 minute increments, or `PT1D`. Possible values are `PT30M`, `PT1H`, `PT1H30M`, `PT2H`, `PT2H30M`, `PT3H`, `PT3H30M`, `PT4H`, `PT4H30M`, `PT5H`, `PT5H30M`, `PT6H`, `PT6H30M`, `PT7H`, `PT7H30M`, `PT8H`, `PT8H30M`, `PT9H`, `PT9H30M`, `PT10H`, `PT10H30M`, `PT11H`, `PT11H30M`, `PT12H`, `PT12H30M`, `PT13H`, `PT13H30M`, `PT14H`, `PT14H30M`, `PT15H`, `PT15H30M`, `PT16H`, `PT16H30M`, `PT17H`, `PT17H30M`, `PT18H`, `PT18H30M`, `PT19H`, `PT19H30M`, `PT20H`, `PT20H30M`, `PT21H`, `PT21H30M`, `PT22H`, `PT22H30M`, `PT23H`, `PT23H30M` and `P1D`.
+
 * `require_approval` - (Optional) Is approval required for activation. If `true` an `approval_stage` block must be provided.
+
 * `require_justification` - (Optional) Is a justification required during activation of the role.
+
 * `require_multifactor_authentication` - (Optional) Is multi-factor authentication required to activate the role. Conflicts with `required_conditional_access_authentication_context`.
+
 * `require_ticket_info` - (Optional) Is ticket information requrired during activation of the role.
+
 * `required_conditional_access_authentication_context` - (Optional) The Entra ID Conditional Access context that must be present for activation. Conflicts with `require_multifactor_authentication`.
 
 ---
@@ -138,9 +151,13 @@ An `activation_rules` block supports the following:
 An `active_assignment_rules` block supports the following:
 
 * `expiration_required` - (Optional) Must an assignment have an expiry date. `false` allows permanent assignment.
+
 * `expire_after` - (Optional) The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.
+
 * `require_justification` - (Optional) Is a justification required to create new assignments.
+
 * `require_multifactor_authentication` - (Optional) Is multi-factor authentication required to create new assignments.
+
 * `require_ticket_info` - (Optional) Is ticket information required to create new assignments.
 
 One of `expiration_required` or `expire_after` must be provided.
@@ -149,14 +166,15 @@ One of `expiration_required` or `expire_after` must be provided.
 
 An `approval_stage` block supports the following:
 
-* One or more `primary_approver` blocks as defined below.
+* One or more `primary_approver` - blocks as defined below.
 
 ---
 
 An `eligible_assignment_rules` block supports the following:
 
-* `expiration_required`- Must an assignment have an expiry date. `false` allows permanent assignment.
-* `expire_after` - The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.
+* `expiration_required` - (Optional) Must an assignment have an expiry date. `false` allows permanent assignment.
+
+* `expire_after` - (Optional) The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.
 
 One of `expiration_required` or `expire_after` must be provided.
 
@@ -165,8 +183,12 @@ One of `expiration_required` or `expire_after` must be provided.
 A `notification_rules` block supports the following:
 
 * `active_assignments` - (Optional) A `notification_target` block as defined below to configure notfications on active role assignments.
+
 * `eligible_activations` - (Optional) A `notification_target` block as defined below for configuring notifications on activation of eligible role.
+
 * `eligible_assignments` - (Optional) A `notification_target` block as defined below to configure notification on eligible role assignments.
+
+---
 
 At least one `notification_target` block must be provided.
 
@@ -175,7 +197,9 @@ At least one `notification_target` block must be provided.
 A `notification_settings` block supports the following:
 
 * `additional_recipients` - (Optional) A list of additional email addresses that will receive these notifications.
+
 * `default_recipients` - (Required) Should the default recipients receive these notifications.
+
 * `notification_level` - (Required) What level of notifications should be sent. Options are `All` or `Critical`.
 
 ---
@@ -183,8 +207,12 @@ A `notification_settings` block supports the following:
 A `notification_target` block supports the following:
 
 * `admin_notifications` - (Optional) A `notification_settings` block as defined above.
+
 * `approver_notifications` - (Optional) A `notification_settings` block as defined above.
+
 * `assignee_notifications` - (Optional) A `notification_settings` block as defined above.
+
+---
 
 At least one `notification_settings` block must be provided.
 
@@ -193,15 +221,18 @@ At least one `notification_settings` block must be provided.
 A `primary_approver` block supports the following:
 
 * `object_id` - (Required) The ID of the object which will act as an approver.
+
 * `type` - (Required) The type of object acting as an approver. Possible options are `User` and `Group`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` (String) The ID of this policy.
-* `name` (String) The name of this policy, which is typically a UUID and may change over time.
-* `description` (String) The description of this policy.
+* `id` - (String) The ID of this policy.
+
+* `name` - (String) The name of this policy, which is typically a UUID and may change over time.
+
+* `description` - (String) The description of this policy.
 
 ## Import
 
