@@ -211,6 +211,56 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
+## Default Tags
+
+The Azure Provider supports `default_tags` which can be used to apply tags to all supported resources managed by the provider. This reduces the need to specify tags on each resource definition.
+
+```hcl
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      Environment = "Production"
+      Owner       = "DevOps"
+      Project     = "MyApp"
+    }
+  }
+}
+```
+
+When using `default_tags`, resources will have two tag-related attributes:
+- `tags` - The tags specified on the resource itself
+- `tags_all` - The combined tags from both the provider's `default_tags` and the resource's tags. When a tag key exists in both, the resource tag value takes precedence.
+
+### Example Usage with Tags
+
+```hcl
+provider "azurerm" {
+  features {}
+
+  default_tags {
+    tags = {
+      Environment = "Staging"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+
+  tags = {
+    Application = "MyApp"
+  }
+}
+```
+
+In this example, the resource group will have:
+- `tags` = { Application = "MyApp" }
+- `tags_all` = { Application = "MyApp", Environment = "Staging", ManagedBy = "Terraform" }
+
 ## Features
 
 The `features` block allows configuring the behaviour of the Azure Provider, more information can be found on [the dedicated page for the `features` block](guides/features-block.html).

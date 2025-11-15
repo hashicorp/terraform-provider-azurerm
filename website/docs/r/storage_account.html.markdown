@@ -623,6 +623,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `tags_all` - A mapping of tags assigned to the Storage Account, including those inherited from the provider's `default_tags`.
+
 ---
 
 An `identity` block exports the following:

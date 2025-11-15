@@ -43,6 +43,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Resource Group.
 
+* `tags_all` - A mapping of tags assigned to the Resource Group, including those inherited from the provider's `default_tags`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
