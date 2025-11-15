@@ -94,6 +94,7 @@ import (
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
@@ -232,6 +233,7 @@ type Client struct {
 	ManagedApplication                *managedapplication.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
+	ManagedIdentity                   *managedidentity.Client
 	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
 	Monitor                           *monitor.Client
@@ -517,6 +519,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
+	}
+	if client.ManagedIdentity, err = managedidentity.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedIdentity: %+v", err)
 	}
 	if client.ManagedRedis, err = managedredis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Redis: %+v", err)
