@@ -172,11 +172,12 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
   panorama_base64_config = "%[3]s"
 
   network_profile {
-    virtual_hub_id               = azurerm_virtual_hub.test.id
-    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
-    public_ip_address_ids        = [azurerm_public_ip.test.id]
-    egress_nat_ip_address_ids    = [azurerm_public_ip.egress.id]
-    trusted_address_ranges       = ["20.22.92.11"]
+    virtual_hub_id                       = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id         = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids            = [azurerm_public_ip.egress.id]
+    private_source_nat_rules_destination = ["10.0.0.1", "192.168.1.1"]
+    trusted_address_ranges               = ["20.22.92.11"]
   }
 
   dns_settings {
