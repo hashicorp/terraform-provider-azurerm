@@ -96,6 +96,8 @@ The following arguments are supported:
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
+* `gateway_profile` - (Optional) A `gateway_profile` block as defined below.
+
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
 * `gpu_driver` - (Optional) Specifies whether to install the GPU Driver for the nodes. Possible values are `Install` and `None`. Changing this forces a new resource to be created.
@@ -301,6 +303,12 @@ A `sysctl_config` block supports the following:
 * `vm_swappiness` - (Optional) The sysctl setting vm.swappiness. Must be between `0` and `100`.
 
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`.
+
+---
+
+A `gateway_profile` block supports the following:
+
+* `public_ip_prefix_size` - (Optional) The Gateway agent pool associates one public IPPrefix for each static egress gateway to provide public egress. The size of Public IPPrefix should be selected by the user. Each node in the agent pool is assigned with one IP from the IPPrefix. The IPPrefix size thus serves as a cap on the size of the Gateway agent pool. Due to Azure public IPPrefix size limitation, the valid value range is `28` to `31` (`/31` = 2 nodes/IPs, `/30` = 4 nodes/IPs, `/29` = 8 nodes/IPs, `/28` = 16 nodes/IPs). Defaults to `31`.
 
 ---
 
