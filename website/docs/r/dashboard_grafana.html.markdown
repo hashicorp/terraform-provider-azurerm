@@ -26,6 +26,8 @@ resource "azurerm_dashboard_grafana" "example" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
+  sku                               = "Standard"
+  sku_size                          = "X1"
 
   identity {
     type = "SystemAssigned"
@@ -64,6 +66,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
 * `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
+
+* `sku_size` - (Optional) The size of the SKU used for the Grafana instance. Possible values are `X1` and `X2`. Changing this forces a new Dashboard Grafana to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
