@@ -454,6 +454,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exp
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views
 github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider
+github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/manageddashboards
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices

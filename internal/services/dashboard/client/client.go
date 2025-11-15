@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/manageddashboards"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -13,6 +14,7 @@ import (
 
 type Client struct {
 	GrafanaResourceClient         *managedgrafanas.ManagedGrafanasClient
+	ManagedDashboardsClient       *manageddashboards.ManagedDashboardsClient
 	ManagedPrivateEndpointsClient *managedprivateendpointmodels.ManagedPrivateEndpointModelsClient
 }
 
@@ -23,6 +25,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(grafanaResourceClient.Client, o.Authorizers.ResourceManager)
 
+	managedDashboardsClient, err := manageddashboards.NewManagedDashboardsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedDashboards client: %+v", err)
+	}
+	o.Configure(managedDashboardsClient.Client, o.Authorizers.ResourceManager)
+
 	managedPrivateEndpointsClient, err := managedprivateendpointmodels.NewManagedPrivateEndpointModelsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
@@ -31,6 +39,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(managedPrivateEndpointsClient.Client, o.Authorizers.ResourceManager)
 	return &Client{
 		GrafanaResourceClient:         grafanaResourceClient,
+		ManagedDashboardsClient:       managedDashboardsClient,
 		ManagedPrivateEndpointsClient: managedPrivateEndpointsClient,
 	}, nil
 }
