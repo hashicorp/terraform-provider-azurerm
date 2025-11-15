@@ -404,6 +404,8 @@ An `ingress` block supports the following:
 
 * `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
 
+* `session_affinity` - (Optional) The session affinity for the Container App. Possible values include `sticky` and `none`. Defaults to `none`.
+
 ---
 
 A `cors` block supports the following:
