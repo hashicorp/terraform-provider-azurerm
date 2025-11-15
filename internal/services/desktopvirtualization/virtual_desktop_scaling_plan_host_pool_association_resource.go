@@ -4,290 +4,331 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopScalingPlanHostPoolAssociationCreate,
-		Read:   resourceVirtualDesktopScalingPlanHostPoolAssociationRead,
-		Update: resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate,
-		Delete: resourceVirtualDesktopScalingPlanHostPoolAssociationDelete,
+var (
+	_ sdk.Resource           = DesktopVirtualizationScalingPlanHostPoolAssociationResource{}
+	_ sdk.ResourceWithUpdate = DesktopVirtualizationScalingPlanHostPoolAssociationResource{}
+)
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+type DesktopVirtualizationScalingPlanHostPoolAssociationResource struct{}
+
+func (DesktopVirtualizationScalingPlanHostPoolAssociationResource) ModelObject() interface{} {
+	return &DesktopVirtualizationScalingPlanHostPoolAssociationResourceModel{}
+}
+
+func (DesktopVirtualizationScalingPlanHostPoolAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return func(input interface{}, key string) (warnings []string, errors []error) {
+		v, ok := input.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+			return
+		}
+
+		if _, err := parse.ScalingPlanHostPoolAssociationID(v); err != nil {
+			errors = append(errors, err)
+		}
+
+		return
+	}
+}
+
+func (DesktopVirtualizationScalingPlanHostPoolAssociationResource) ResourceType() string {
+	return "azurerm_virtual_desktop_scaling_plan_host_pool_association"
+}
+
+type DesktopVirtualizationScalingPlanHostPoolAssociationResourceModel struct {
+	ScalingPlanId string `tfschema:"scaling_plan_id"`
+	HostPoolId    string `tfschema:"host_pool_id"`
+	Enabled       bool   `tfschema:"enabled"`
+}
+
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"scaling_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: scalingplan.ValidateScalingPlanID,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ScalingPlanHostPoolAssociationID(id)
-			return err
-		}),
+		"host_pool_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: scalingplan.ValidateHostPoolID,
+		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"scaling_plan_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: scalingplan.ValidateScalingPlanID,
-			},
-
-			"host_pool_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: scalingplan.ValidateHostPoolID,
-			},
-
-			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Required: true,
-			},
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
 		},
 	}
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan <-> Host Pool Association creation.")
-	scalingPlanId, err := scalingplan.ParseScalingPlanID(d.Get("scaling_plan_id").(string))
-	if err != nil {
-		return err
-	}
-	hostPoolId, err := scalingplan.ParseHostPoolID(d.Get("host_pool_id").(string))
-	if err != nil {
-		return err
-	}
-	associationId := parse.NewScalingPlanHostPoolAssociationId(*scalingPlanId, *hostPoolId).ID()
-
-	locks.ByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(scalingPlanId.ScalingPlanName, scalingPlanResourceType)
-
-	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
-
-	existing, err := client.Get(ctx, *scalingPlanId)
-	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("%s was not found", *scalingPlanId)
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *scalingPlanId, err)
-	}
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", *scalingPlanId)
-	}
-	model := *existing.Model
-
-	hostPoolAssociations := []scalingplan.ScalingHostPoolReference{}
-	if v := model.Properties.HostPoolReferences; v != nil {
-		hostPoolAssociations = *v
-	}
-
-	hostPoolStr := hostPoolId.ID()
-	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
-	}
-	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
-		HostPoolArmPath:    &hostPoolStr,
-		ScalingPlanEnabled: utils.Bool(d.Get("enabled").(bool)),
-	})
-
-	payload := scalingplan.ScalingPlanPatch{
-		Properties: &scalingplan.ScalingPlanPatchProperties{
-			HostPoolReferences: &hostPoolAssociations,
-			Schedules:          model.Properties.Schedules,
-		},
-		Tags: model.Tags,
-	}
-	if _, err = client.Update(ctx, *scalingPlanId, payload); err != nil {
-		return fmt.Errorf("creating association between %s and %s: %+v", *scalingPlanId, *hostPoolId, err)
-	}
-
-	d.SetId(associationId)
-	return resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d, meta)
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
 
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+			var model DesktopVirtualizationScalingPlanHostPoolAssociationResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	id, err := parse.ScalingPlanHostPoolAssociationID(d.Id())
-	if err != nil {
-		return err
-	}
+			log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan <-> Host Pool Association creation.")
+			scalingPlanId, err := scalingplan.ParseScalingPlanID(model.ScalingPlanId)
+			if err != nil {
+				return err
+			}
+			hostPoolId, err := scalingplan.ParseHostPoolID(model.HostPoolId)
+			if err != nil {
+				return err
+			}
+			associationId := parse.NewScalingPlanHostPoolAssociationId(*scalingPlanId, *hostPoolId)
 
-	scalingPlan, err := client.Get(ctx, id.ScalingPlan)
-	if err != nil {
-		if response.WasNotFound(scalingPlan.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id.ScalingPlan)
-			d.SetId("")
+			locks.ByName(scalingPlanId.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(scalingPlanId.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+
+			locks.ByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+			defer locks.UnlockByName(hostPoolId.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+
+			existing, err := client.Get(ctx, *scalingPlanId)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("%s was not found", *scalingPlanId)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *scalingPlanId, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *scalingPlanId)
+			}
+			scalingPlanModel := *existing.Model
+
+			hostPoolAssociations := []scalingplan.ScalingHostPoolReference{}
+			if v := scalingPlanModel.Properties.HostPoolReferences; v != nil {
+				hostPoolAssociations = *v
+			}
+
+			hostPoolStr := hostPoolId.ID()
+			if scalingPlanHostPoolAssociationExists(scalingPlanModel.Properties, hostPoolStr) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), associationId)
+			}
+			hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
+				HostPoolArmPath:    &hostPoolStr,
+				ScalingPlanEnabled: pointer.To(model.Enabled),
+			})
+
+			payload := scalingplan.ScalingPlanPatch{
+				Properties: &scalingplan.ScalingPlanPatchProperties{
+					HostPoolReferences: &hostPoolAssociations,
+					Schedules:          scalingPlanModel.Properties.Schedules,
+				},
+				Tags: scalingPlanModel.Tags,
+			}
+			if _, err = client.Update(ctx, *scalingPlanId, payload); err != nil {
+				return fmt.Errorf("creating association between %s and %s: %+v", *scalingPlanId, *hostPoolId, err)
+			}
+
+			metadata.SetID(associationId)
 			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
+		},
 	}
-	if model := scalingPlan.Model; model != nil {
-		hostPoolId := id.HostPool.ID()
-		exists := scalingPlanHostPoolAssociationExists(model.Properties, hostPoolId)
-		if !exists {
-			log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
-			d.SetId("")
-			return nil
-		}
-		if v := model.Properties.HostPoolReferences; v != nil {
-			for _, referenceId := range *v {
-				if referenceId.HostPoolArmPath != nil {
-					if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
-						d.Set("enabled", referenceId.ScalingPlanEnabled)
+}
+
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
+
+			state := DesktopVirtualizationScalingPlanHostPoolAssociationResourceModel{}
+
+			id, err := parse.ScalingPlanHostPoolAssociationID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			scalingPlan, err := client.Get(ctx, id.ScalingPlan)
+			if err != nil {
+				if response.WasNotFound(scalingPlan.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - removing from state!", id.ScalingPlan)
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
+			}
+			if model := scalingPlan.Model; model != nil {
+				hostPoolId := id.HostPool.ID()
+				exists := scalingPlanHostPoolAssociationExists(model.Properties, hostPoolId)
+				if !exists {
+					log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
+					return metadata.MarkAsGone(id)
+				}
+				if v := model.Properties.HostPoolReferences; v != nil {
+					for _, referenceId := range *v {
+						if referenceId.HostPoolArmPath != nil {
+							if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
+								state.Enabled = pointer.From(referenceId.ScalingPlanEnabled)
+							}
+						}
 					}
 				}
+
+				state.ScalingPlanId = id.ScalingPlan.ID()
+				state.HostPoolId = hostPoolId
 			}
-		}
 
-		d.Set("scaling_plan_id", id.ScalingPlan.ID())
-		d.Set("host_pool_id", hostPoolId)
-	}
-
-	return nil
-}
-
-func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.ScalingPlanHostPoolAssociationID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
-
-	existing, err := client.Get(ctx, id.ScalingPlan)
-	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("%s was not found", id.ScalingPlan)
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
-	}
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
-	}
-	model := *existing.Model
-	if !scalingPlanHostPoolAssociationExists(model.Properties, id.HostPool.ID()) {
-		log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
-		d.SetId("")
-		return nil
-	}
-
-	hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
-	hostPoolId := id.HostPool.ID()
-	if v := model.Properties.HostPoolReferences; v != nil {
-		for _, referenceId := range *v {
-			if referenceId.HostPoolArmPath != nil {
-				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
-					referenceId.ScalingPlanEnabled = utils.Bool(d.Get("enabled").(bool))
-				}
-			}
-			hostPoolReferences = append(hostPoolReferences, referenceId)
-		}
-	}
-
-	payload := scalingplan.ScalingPlanPatch{
-		Properties: &scalingplan.ScalingPlanPatchProperties{
-			HostPoolReferences: &hostPoolReferences,
-			Schedules:          model.Properties.Schedules,
+			return metadata.Encode(&state)
 		},
-		Tags: model.Tags,
 	}
-	if _, err = client.Update(ctx, id.ScalingPlan, payload); err != nil {
-		return fmt.Errorf("updating association between %s and %s: %+v", id.ScalingPlan, id.HostPool, err)
-	}
-
-	return nil
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
 
-	id, err := parse.ScalingPlanHostPoolAssociationID(d.Id())
-	if err != nil {
-		return err
-	}
+			var model DesktopVirtualizationScalingPlanHostPoolAssociationResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	locks.ByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
-	defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, scalingPlanResourceType)
+			id, err := parse.ScalingPlanHostPoolAssociationID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
-	locks.ByName(id.HostPool.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPool.HostPoolName, hostPoolResourceType)
+			locks.ByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
 
-	existing, err := client.Get(ctx, id.ScalingPlan)
-	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("%s was not found", id.ScalingPlan)
-		}
+			locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+			defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
 
-		return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
-	}
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
-	}
-	model := *existing.Model
+			existing, err := client.Get(ctx, id.ScalingPlan)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("%s was not found", id.ScalingPlan)
+				}
 
-	hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
-	hostPoolId := id.HostPool.ID()
-	if v := model.Properties.HostPoolReferences; v != nil {
-		for _, referenceId := range *v {
-			if referenceId.HostPoolArmPath != nil {
-				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
-					continue
+				return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
+			}
+			scalingPlanModel := *existing.Model
+			if !scalingPlanHostPoolAssociationExists(scalingPlanModel.Properties, id.HostPool.ID()) {
+				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
+				return metadata.MarkAsGone(id)
+			}
+
+			hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
+			hostPoolId := id.HostPool.ID()
+			if v := scalingPlanModel.Properties.HostPoolReferences; v != nil {
+				for _, referenceId := range *v {
+					if referenceId.HostPoolArmPath != nil {
+						if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
+							referenceId.ScalingPlanEnabled = pointer.To(model.Enabled)
+						}
+					}
+					hostPoolReferences = append(hostPoolReferences, referenceId)
 				}
 			}
 
-			hostPoolReferences = append(hostPoolReferences, referenceId)
-		}
-	}
+			payload := scalingplan.ScalingPlanPatch{
+				Properties: &scalingplan.ScalingPlanPatchProperties{
+					HostPoolReferences: &hostPoolReferences,
+					Schedules:          scalingPlanModel.Properties.Schedules,
+				},
+				Tags: scalingPlanModel.Tags,
+			}
+			if _, err = client.Update(ctx, id.ScalingPlan, payload); err != nil {
+				return fmt.Errorf("updating association between %s and %s: %+v", id.ScalingPlan, id.HostPool, err)
+			}
 
-	payload := scalingplan.ScalingPlanPatch{
-		Properties: &scalingplan.ScalingPlanPatchProperties{
-			HostPoolReferences: &hostPoolReferences,
-			Schedules:          model.Properties.Schedules,
+			return nil
 		},
-		Tags: model.Tags,
 	}
-	if _, err = client.Update(ctx, id.ScalingPlan, payload); err != nil {
-		return fmt.Errorf("removing association between %s and %s: %+v", id.ScalingPlan, id.HostPool, err)
-	}
+}
 
-	return nil
+func (r DesktopVirtualizationScalingPlanHostPoolAssociationResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
+
+			id, err := parse.ScalingPlanHostPoolAssociationID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			locks.ByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+			defer locks.UnlockByName(id.ScalingPlan.ScalingPlanName, DesktopVirtualizationScalingPlanResource{}.ResourceType())
+
+			locks.ByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+			defer locks.UnlockByName(id.HostPool.HostPoolName, DesktopVirtualizationHostPoolResource{}.ResourceType())
+
+			existing, err := client.Get(ctx, id.ScalingPlan)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("%s was not found", id.ScalingPlan)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", id.ScalingPlan, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
+			}
+			model := *existing.Model
+
+			hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
+			hostPoolId := id.HostPool.ID()
+			if v := model.Properties.HostPoolReferences; v != nil {
+				for _, referenceId := range *v {
+					if referenceId.HostPoolArmPath != nil {
+						if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
+							continue
+						}
+					}
+
+					hostPoolReferences = append(hostPoolReferences, referenceId)
+				}
+			}
+
+			payload := scalingplan.ScalingPlanPatch{
+				Properties: &scalingplan.ScalingPlanPatchProperties{
+					HostPoolReferences: &hostPoolReferences,
+					Schedules:          model.Properties.Schedules,
+				},
+				Tags: model.Tags,
+			}
+			if _, err = client.Update(ctx, id.ScalingPlan, payload); err != nil {
+				return fmt.Errorf("removing association between %s and %s: %+v", id.ScalingPlan, id.HostPool, err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func scalingPlanHostPoolAssociationExists(props scalingplan.ScalingPlanProperties, applicationGroupId string) bool {

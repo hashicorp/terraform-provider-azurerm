@@ -4,6 +4,7 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -11,438 +12,444 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
+var (
+	_ sdk.Resource           = DesktopVirtualizationScalingPlanResource{}
+	_ sdk.ResourceWithUpdate = DesktopVirtualizationScalingPlanResource{}
+)
 
-func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopScalingPlanCreate,
-		Read:   resourceVirtualDesktopScalingPlanRead,
-		Update: resourceVirtualDesktopScalingPlanUpdate,
-		Delete: resourceVirtualDesktopScalingPlanDelete,
+type DesktopVirtualizationScalingPlanResource struct{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+func (DesktopVirtualizationScalingPlanResource) ModelObject() interface{} {
+	return &DesktopVirtualizationScalingPlanResourceModel{}
+}
+
+func (DesktopVirtualizationScalingPlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return scalingplan.ValidateHostPoolID
+}
+
+func (DesktopVirtualizationScalingPlanResource) ResourceType() string {
+	return "azurerm_virtual_desktop_scaling_plan"
+}
+
+type DesktopVirtualizationScalingPlanResourceModel struct {
+	Name              string                                     `tfschema:"name"`
+	Location          string                                     `tfschema:"location"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	FriendlyName      string                                     `tfschema:"friendly_name"`
+	Description       string                                     `tfschema:"description"`
+	TimeZone          string                                     `tfschema:"time_zone"`
+	ExclusionTag      string                                     `tfschema:"exclusion_tag"`
+	Schedule          []DesktopVirtualizationScalingPlanSchedule `tfschema:"schedule"`
+	HostPool          []DesktopVirtualizationScalingPlanHostPool `tfschema:"host_pool"`
+	Tags              map[string]string                          `tfschema:"tags"`
+}
+
+type DesktopVirtualizationScalingPlanSchedule struct {
+	Name                             string   `tfschema:"name"`
+	DaysOfWeek                       []string `tfschema:"days_of_week"`
+	RampUpStartTime                  string   `tfschema:"ramp_up_start_time"`
+	RampUpLoadBalancingAlgorithm     string   `tfschema:"ramp_up_load_balancing_algorithm"`
+	RampUpMinimumHostsPercent        int64    `tfschema:"ramp_up_minimum_hosts_percent"`
+	RampUpCapacityThresholdPercent   int64    `tfschema:"ramp_up_capacity_threshold_percent"`
+	PeakStartTime                    string   `tfschema:"peak_start_time"`
+	PeakLoadBalancingAlgorithm       string   `tfschema:"peak_load_balancing_algorithm"`
+	RampDownStartTime                string   `tfschema:"ramp_down_start_time"`
+	RampDownLoadBalancingAlgorithm   string   `tfschema:"ramp_down_load_balancing_algorithm"`
+	RampDownMinimumHostsPercent      int64    `tfschema:"ramp_down_minimum_hosts_percent"`
+	RampDownCapacityThresholdPercent int64    `tfschema:"ramp_down_capacity_threshold_percent"`
+	RampDownForceLogoffUsers         bool     `tfschema:"ramp_down_force_logoff_users"`
+	RampDownStopHostsWhen            string   `tfschema:"ramp_down_stop_hosts_when"`
+	RampDownWaitTimeMinutes          int64    `tfschema:"ramp_down_wait_time_minutes"`
+	RampDownNotificationMessage      string   `tfschema:"ramp_down_notification_message"`
+	OffPeakStartTime                 string   `tfschema:"off_peak_start_time"`
+	OffPeakLoadBalancingAlgorithm    string   `tfschema:"off_peak_load_balancing_algorithm"`
+}
+
+type DesktopVirtualizationScalingPlanHostPool struct {
+	HostpoolId         string `tfschema:"hostpool_id"`
+	ScalingPlanEnabled bool   `tfschema:"scaling_plan_enabled"`
+}
+
+func (r DesktopVirtualizationScalingPlanResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := scalingplan.ParseScalingPlanID(id)
-			return err
-		}),
+		"location": commonschema.Location(),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": commonschema.Location(),
+		"friendly_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 64),
+		},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 512),
+		},
 
-			"friendly_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
-			},
+		"time_zone": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
 
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 512),
-			},
+		"exclusion_tag": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"time_zone": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
+		"schedule": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-			"exclusion_tag": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"schedule": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
+					"days_of_week": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForDaysOfWeek(), false),
 						},
+					},
 
-						"days_of_week": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
-								}, false),
-							},
-						},
+					"ramp_up_start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validateTime(),
+					},
 
-						"ramp_up_start_time": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validateTime(),
-						},
+					"ramp_up_load_balancing_algorithm": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
+					},
 
-						"ramp_up_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
-						},
+					"ramp_up_minimum_hosts_percent": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 100),
+					},
 
-						"ramp_up_minimum_hosts_percent": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 100),
-						},
+					"ramp_up_capacity_threshold_percent": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 100),
+					},
 
-						"ramp_up_capacity_threshold_percent": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 100),
-						},
+					"peak_start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validateTime(),
+					},
 
-						"peak_start_time": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validateTime(),
-						},
+					"peak_load_balancing_algorithm": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
+					},
 
-						"peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
-						},
+					"ramp_down_start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validateTime(),
+					},
 
-						"ramp_down_start_time": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validateTime(),
-						},
+					"ramp_down_load_balancing_algorithm": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
+					},
 
-						"ramp_down_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
-						},
+					"ramp_down_minimum_hosts_percent": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 100),
+					},
 
-						"ramp_down_minimum_hosts_percent": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 100),
-						},
+					"ramp_down_capacity_threshold_percent": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 100),
+					},
 
-						"ramp_down_capacity_threshold_percent": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 100),
-						},
+					"ramp_down_force_logoff_users": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
 
-						"ramp_down_force_logoff_users": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
+					"ramp_down_stop_hosts_when": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForStopHostsWhen(), false),
+					},
 
-						"ramp_down_stop_hosts_when": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.StopHostsWhenZeroActiveSessions),
-								string(scalingplan.StopHostsWhenZeroSessions),
-							}, false),
-						},
+					"ramp_down_wait_time_minutes": {
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+					},
 
-						"ramp_down_wait_time_minutes": {
-							Type:     pluginsdk.TypeInt,
-							Required: true,
-						},
+					"ramp_down_notification_message": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
 
-						"ramp_down_notification_message": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
+					"off_peak_start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validateTime(),
+					},
 
-						"off_peak_start_time": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validateTime(),
-						},
-
-						"off_peak_load_balancing_algorithm": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scalingplan.SessionHostLoadBalancingAlgorithmBreadthFirst),
-								string(scalingplan.SessionHostLoadBalancingAlgorithmDepthFirst),
-							}, false),
-						},
+					"off_peak_load_balancing_algorithm": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scalingplan.PossibleValuesForSessionHostLoadBalancingAlgorithm(), false),
 					},
 				},
 			},
+		},
 
-			"host_pool": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"hostpool_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: hostpool.ValidateHostPoolID,
-						},
-						"scaling_plan_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
+		"host_pool": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"hostpool_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: hostpool.ValidateHostPoolID,
+					},
+					"scaling_plan_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 				},
 			},
-
-			"tags": commonschema.Tags(),
 		},
+
+		"tags": commonschema.Tags(),
 	}
+}
+
+func (r DesktopVirtualizationScalingPlanResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func validateTime() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`), `The time must be in the format HH:MM.`)
 }
 
-func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationScalingPlanResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan create")
-
-	id := scalingplan.NewScalingPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s): %+v", id, err)
+			var model DesktopVirtualizationScalingPlanResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan", id.ID())
-		}
-	}
+			log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan create")
 
-	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+			id := scalingplan.NewScalingPlanID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s): %+v", id, err)
+				}
+			}
 
-	hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
-	payload := scalingplan.ScalingPlan{
-		Name:     utils.String(d.Get("name").(string)),
-		Location: location,
-		Tags:     tags.Expand(t),
-		Properties: scalingplan.ScalingPlanProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           d.Get("time_zone").(string),
-			HostPoolType:       &hostPoolType,
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
-			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
-			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
-		},
-	}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
-	if _, err := client.Create(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
+			hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
+			payload := scalingplan.ScalingPlan{
+				Name:     pointer.To(model.Name),
+				Location: location.Normalize(model.Location),
+				Tags:     pointer.To(model.Tags),
+				Properties: scalingplan.ScalingPlanProperties{
+					Description:        pointer.To(model.Description),
+					FriendlyName:       pointer.To(model.FriendlyName),
+					TimeZone:           model.TimeZone,
+					HostPoolType:       &hostPoolType,
+					ExclusionTag:       pointer.To(model.ExclusionTag),
+					Schedules:          expandScalingPlanSchedule(model.Schedule),
+					HostPoolReferences: expandScalingPlanHostpoolReference(model.HostPool),
+				},
+			}
 
-	d.SetId(id.ID())
+			if _, err := client.Create(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
-	return resourceVirtualDesktopScalingPlanRead(d, meta)
-}
+			metadata.SetID(id)
 
-func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan update")
-
-	id, err := scalingplan.ParseScalingPlanID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	t := d.Get("tags").(map[string]interface{})
-
-	payload := scalingplan.ScalingPlanPatch{
-		Tags: tags.Expand(t),
-		Properties: &scalingplan.ScalingPlanPatchProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           utils.String(d.Get("time_zone").(string)),
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
-			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
-			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
-		},
-	}
-
-	if _, err := client.Update(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	return resourceVirtualDesktopScalingPlanRead(d, meta)
-}
-
-func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := scalingplan.ParseScalingPlanID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
-			d.SetId("")
 			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		},
 	}
-
-	d.Set("name", id.ScalingPlanName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("description", model.Properties.Description)
-		d.Set("friendly_name", model.Properties.FriendlyName)
-		d.Set("time_zone", model.Properties.TimeZone)
-		d.Set("exclusion_tag", model.Properties.ExclusionTag)
-		d.Set("schedule", flattenScalingPlanSchedule(model.Properties.Schedules))
-		d.Set("host_pool", flattenScalingHostpoolReference(model.Properties.HostPoolReferences))
-
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
-func resourceVirtualDesktopScalingPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationScalingPlanResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
 
-	id, err := scalingplan.ParseScalingPlanID(d.Id())
-	if err != nil {
-		return err
+			state := DesktopVirtualizationScalingPlanResourceModel{}
+
+			id, err := scalingplan.ParseScalingPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - removing from state!", id)
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state.Name = id.ScalingPlanName
+			state.ResourceGroupName = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Description = pointer.From(model.Properties.Description)
+				state.FriendlyName = pointer.From(model.Properties.FriendlyName)
+				state.TimeZone = model.Properties.TimeZone
+				state.ExclusionTag = pointer.From(model.Properties.ExclusionTag)
+				state.Schedule = flattenScalingPlanSchedule(model.Properties.Schedules)
+				state.HostPool = flattenScalingHostpoolReference(model.Properties.HostPoolReferences)
+				state.Tags = pointer.From(model.Tags)
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	if _, err = client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return nil
 }
 
-func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedule {
+func (r DesktopVirtualizationScalingPlanResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
+
+			var model DesktopVirtualizationScalingPlanResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan update")
+
+			id, err := scalingplan.ParseScalingPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			payload := scalingplan.ScalingPlanPatch{
+				Tags: pointer.To(model.Tags),
+				Properties: &scalingplan.ScalingPlanPatchProperties{
+					Description:        pointer.To(model.Description),
+					FriendlyName:       pointer.To(model.FriendlyName),
+					TimeZone:           pointer.To(model.TimeZone),
+					ExclusionTag:       pointer.To(model.ExclusionTag),
+					Schedules:          expandScalingPlanSchedule(model.Schedule),
+					HostPoolReferences: expandScalingPlanHostpoolReference(model.HostPool),
+				},
+			}
+
+			if _, err := client.Update(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r DesktopVirtualizationScalingPlanResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.ScalingPlansClient
+
+			id, err := scalingplan.ParseScalingPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err = client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandScalingPlanSchedule(input []DesktopVirtualizationScalingPlanSchedule) *[]scalingplan.ScalingSchedule {
 	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]scalingplan.ScalingSchedule, 0)
 	for _, item := range input {
-		if item == nil {
-			continue
-		}
-
-		v := item.(map[string]interface{})
-		name := v["name"].(string)
-		daysOfWeekRaw := v["days_of_week"].(*pluginsdk.Set).List()
+		name := item.Name
+		daysOfWeekRaw := item.DaysOfWeek
 		daysOfWeek := make([]scalingplan.DaysOfWeek, 0)
 		for _, weekday := range daysOfWeekRaw {
-			daysOfWeek = append(daysOfWeek, scalingplan.DaysOfWeek(weekday.(string)))
+			daysOfWeek = append(daysOfWeek, scalingplan.DaysOfWeek(weekday))
 		}
 
-		rampUpStartTime := v["ramp_up_start_time"].(string)
-		rampUpLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["ramp_up_load_balancing_algorithm"].(string))
-		rampUpMinimumHostsPct := v["ramp_up_minimum_hosts_percent"].(int)
-		rampUpCapacityThresholdPct := v["ramp_up_capacity_threshold_percent"].(int)
-		peakStartTime := v["peak_start_time"].(string)
-		peakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["peak_load_balancing_algorithm"].(string))
-		rampDownStartTime := v["ramp_down_start_time"].(string)
-		rampDownLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["ramp_down_load_balancing_algorithm"].(string))
-		rampDownMinimumHostsPct := v["ramp_down_minimum_hosts_percent"].(int)
-		rampDownCapacityThresholdPct := v["ramp_down_capacity_threshold_percent"].(int)
-		rampDownForceLogoffUsers := v["ramp_down_force_logoff_users"].(bool)
-		rampDownStopHostsWhen := scalingplan.StopHostsWhen(v["ramp_down_stop_hosts_when"].(string))
-		rampDownWaitTimeMinutes := v["ramp_down_wait_time_minutes"].(int)
-		rampDownNotificationMessage := v["ramp_down_notification_message"].(string)
-		offPeakStartTime := v["off_peak_start_time"].(string)
-		offPeakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["off_peak_load_balancing_algorithm"].(string))
-
 		results = append(results, scalingplan.ScalingSchedule{
-			Name:                           utils.String(name),
-			DaysOfWeek:                     &daysOfWeek,
-			RampUpStartTime:                expandScalingPlanScheduleTime(rampUpStartTime),
-			RampUpLoadBalancingAlgorithm:   &rampUpLoadBalancingAlgorithm,
-			RampUpMinimumHostsPct:          utils.Int64(int64(rampUpMinimumHostsPct)),
-			RampUpCapacityThresholdPct:     utils.Int64(int64(rampUpCapacityThresholdPct)),
-			PeakStartTime:                  expandScalingPlanScheduleTime(peakStartTime),
-			PeakLoadBalancingAlgorithm:     &peakLoadBalancingAlgorithm,
-			RampDownStartTime:              expandScalingPlanScheduleTime(rampDownStartTime),
-			RampDownLoadBalancingAlgorithm: &rampDownLoadBalancingAlgorithm,
-			RampDownMinimumHostsPct:        utils.Int64(int64(rampDownMinimumHostsPct)),
-			RampDownCapacityThresholdPct:   utils.Int64(int64(rampDownCapacityThresholdPct)),
-			RampDownForceLogoffUsers:       utils.Bool(rampDownForceLogoffUsers),
-			RampDownStopHostsWhen:          &rampDownStopHostsWhen,
-			RampDownWaitTimeMinutes:        utils.Int64(int64(rampDownWaitTimeMinutes)),
-			RampDownNotificationMessage:    utils.String(rampDownNotificationMessage),
-			OffPeakStartTime:               expandScalingPlanScheduleTime(offPeakStartTime),
-			OffPeakLoadBalancingAlgorithm:  &offPeakLoadBalancingAlgorithm,
+			Name:                           pointer.To(name),
+			DaysOfWeek:                     pointer.To(daysOfWeek),
+			RampUpStartTime:                expandScalingPlanScheduleTime(item.RampUpStartTime),
+			RampUpLoadBalancingAlgorithm:   pointer.To(scalingplan.SessionHostLoadBalancingAlgorithm(item.RampUpLoadBalancingAlgorithm)),
+			RampUpMinimumHostsPct:          pointer.To(item.RampUpMinimumHostsPercent),
+			RampUpCapacityThresholdPct:     pointer.To(item.RampUpCapacityThresholdPercent),
+			PeakStartTime:                  expandScalingPlanScheduleTime(item.PeakStartTime),
+			PeakLoadBalancingAlgorithm:     pointer.To(scalingplan.SessionHostLoadBalancingAlgorithm(item.PeakLoadBalancingAlgorithm)),
+			RampDownStartTime:              expandScalingPlanScheduleTime(item.RampDownStartTime),
+			RampDownLoadBalancingAlgorithm: pointer.To(scalingplan.SessionHostLoadBalancingAlgorithm(item.RampDownLoadBalancingAlgorithm)),
+			RampDownMinimumHostsPct:        pointer.To(item.RampDownMinimumHostsPercent),
+			RampDownCapacityThresholdPct:   pointer.To(item.RampDownCapacityThresholdPercent),
+			RampDownForceLogoffUsers:       pointer.To(item.RampDownForceLogoffUsers),
+			RampDownStopHostsWhen:          pointer.To(scalingplan.StopHostsWhen(item.RampDownStopHostsWhen)),
+			RampDownWaitTimeMinutes:        pointer.To(item.RampDownWaitTimeMinutes),
+			RampDownNotificationMessage:    pointer.To(item.RampDownNotificationMessage),
+			OffPeakStartTime:               expandScalingPlanScheduleTime(item.OffPeakStartTime),
+			OffPeakLoadBalancingAlgorithm:  pointer.To(scalingplan.SessionHostLoadBalancingAlgorithm(item.OffPeakLoadBalancingAlgorithm)),
 		})
 	}
 
@@ -464,31 +471,26 @@ func expandScalingPlanScheduleTime(input string) *scalingplan.Time {
 	}
 }
 
-func expandScalingPlanHostpoolReference(input []interface{}) *[]scalingplan.ScalingHostPoolReference {
+func expandScalingPlanHostpoolReference(input []DesktopVirtualizationScalingPlanHostPool) *[]scalingplan.ScalingHostPoolReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]scalingplan.ScalingHostPoolReference, 0)
 	for _, item := range input {
-		if item == nil {
-			continue
-		}
-
-		v := item.(map[string]interface{})
-		hostPoolArmPath := v["hostpool_id"].(string)
-		scalingPlanEnabled := v["scaling_plan_enabled"].(bool)
+		hostPoolArmPath := item.HostpoolId
+		scalingPlanEnabled := item.ScalingPlanEnabled
 
 		results = append(results, scalingplan.ScalingHostPoolReference{
-			HostPoolArmPath:    utils.String(hostPoolArmPath),
-			ScalingPlanEnabled: utils.Bool(scalingPlanEnabled),
+			HostPoolArmPath:    pointer.To(hostPoolArmPath),
+			ScalingPlanEnabled: pointer.To(scalingPlanEnabled),
 		})
 	}
 	return &results
 }
 
-func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []DesktopVirtualizationScalingPlanSchedule {
+	results := make([]DesktopVirtualizationScalingPlanSchedule, 0)
 	if input == nil {
 		return results
 	}
@@ -549,32 +551,32 @@ func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []interfac
 			}
 		}
 
-		results = append(results, map[string]interface{}{
-			"name":                                 name,
-			"days_of_week":                         daysOfWeek,
-			"ramp_up_start_time":                   rampUpStartTime,
-			"ramp_up_load_balancing_algorithm":     item.RampUpLoadBalancingAlgorithm,
-			"ramp_up_minimum_hosts_percent":        rampUpMinimumHostsPct,
-			"ramp_up_capacity_threshold_percent":   rampUpCapacityThresholdPct,
-			"peak_start_time":                      peakStartTime,
-			"peak_load_balancing_algorithm":        item.PeakLoadBalancingAlgorithm,
-			"ramp_down_start_time":                 rampDownStartTime,
-			"ramp_down_load_balancing_algorithm":   item.RampDownLoadBalancingAlgorithm,
-			"ramp_down_minimum_hosts_percent":      rampDownMinimumHostsPct,
-			"ramp_down_capacity_threshold_percent": rampDownCapacityThresholdPct,
-			"ramp_down_force_logoff_users":         rampDownForceLogoffUsers,
-			"ramp_down_stop_hosts_when":            item.RampDownStopHostsWhen,
-			"ramp_down_wait_time_minutes":          rampDownWaitTimeMinutes,
-			"ramp_down_notification_message":       rampDownNotificationMessage,
-			"off_peak_start_time":                  offPeakStartTime,
-			"off_peak_load_balancing_algorithm":    item.OffPeakLoadBalancingAlgorithm,
+		results = append(results, DesktopVirtualizationScalingPlanSchedule{
+			Name:                             name,
+			DaysOfWeek:                       daysOfWeek,
+			RampUpStartTime:                  rampUpStartTime,
+			RampUpLoadBalancingAlgorithm:     string(pointer.From(item.RampUpLoadBalancingAlgorithm)),
+			RampUpMinimumHostsPercent:        rampUpMinimumHostsPct,
+			RampUpCapacityThresholdPercent:   rampUpCapacityThresholdPct,
+			PeakStartTime:                    peakStartTime,
+			PeakLoadBalancingAlgorithm:       string(pointer.From(item.PeakLoadBalancingAlgorithm)),
+			RampDownStartTime:                rampDownStartTime,
+			RampDownLoadBalancingAlgorithm:   string(pointer.From(item.RampDownLoadBalancingAlgorithm)),
+			RampDownMinimumHostsPercent:      rampDownMinimumHostsPct,
+			RampDownCapacityThresholdPercent: rampDownCapacityThresholdPct,
+			RampDownForceLogoffUsers:         rampDownForceLogoffUsers,
+			RampDownStopHostsWhen:            string(pointer.From(item.RampDownStopHostsWhen)),
+			RampDownWaitTimeMinutes:          rampDownWaitTimeMinutes,
+			RampDownNotificationMessage:      rampDownNotificationMessage,
+			OffPeakStartTime:                 offPeakStartTime,
+			OffPeakLoadBalancingAlgorithm:    string(pointer.From(item.OffPeakLoadBalancingAlgorithm)),
 		})
 	}
 	return results
 }
 
-func flattenScalingHostpoolReference(input *[]scalingplan.ScalingHostPoolReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenScalingHostpoolReference(input *[]scalingplan.ScalingHostPoolReference) []DesktopVirtualizationScalingPlanHostPool {
+	results := make([]DesktopVirtualizationScalingPlanHostPool, 0)
 	if input == nil {
 		return results
 	}
@@ -588,9 +590,9 @@ func flattenScalingHostpoolReference(input *[]scalingplan.ScalingHostPoolReferen
 		if item.ScalingPlanEnabled != nil {
 			scalingPlanEnabled = *item.ScalingPlanEnabled
 		}
-		results = append(results, map[string]interface{}{
-			"hostpool_id":          hostPoolArmPath,
-			"scaling_plan_enabled": scalingPlanEnabled,
+		results = append(results, DesktopVirtualizationScalingPlanHostPool{
+			HostpoolId:         hostPoolArmPath,
+			ScalingPlanEnabled: scalingPlanEnabled,
 		})
 	}
 	return results
