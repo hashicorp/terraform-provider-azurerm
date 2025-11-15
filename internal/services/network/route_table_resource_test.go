@@ -225,7 +225,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
-func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err

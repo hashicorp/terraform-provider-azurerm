@@ -219,13 +219,21 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if err := resourceRouteTableFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceRouteTableFlatten(d *pluginsdk.ResourceData, id *routetables.RouteTableId, table *routetables.RouteTable) error {
 	d.Set("name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+	if table != nil {
+		d.Set("location", location.NormalizeNilable(table.Location))
 
-		if props := model.Properties; props != nil {
+		if props := table.Properties; props != nil {
 			d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation))
 			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 				return err
@@ -236,7 +244,7 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, table.Tags); err != nil {
 			return err
 		}
 	}
