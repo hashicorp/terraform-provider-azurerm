@@ -599,6 +599,16 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockMultipleByName(routeTables, routeTableResourceName)
 	}
 
+	if payload.Properties.Subnets != nil {
+		// remove readonly properties as they are not managed by TF - large networks can cause ARM API limit errors
+		for i := range *payload.Properties.Subnets {
+			if (*payload.Properties.Subnets)[i].Properties != nil {
+				(*payload.Properties.Subnets)[i].Properties.IPConfigurations = nil
+				(*payload.Properties.Subnets)[i].Properties.PrivateEndpoints = nil
+			}
+		}
+	}
+
 	if d.HasChange("private_endpoint_vnet_policies") {
 		payload.Properties.PrivateEndpointVNetPolicies = pointer.To(virtualnetworks.PrivateEndpointVNetPolicies(d.Get("private_endpoint_vnet_policies").(string)))
 	}
