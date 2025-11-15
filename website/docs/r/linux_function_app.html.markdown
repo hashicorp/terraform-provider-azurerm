@@ -185,7 +185,7 @@ A `application_stack` block supports the following:
 
 ~> **Note:** The value `21` is currently in Preview for `java_version`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` `20` and `22`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
 * `python_version` - (Optional) The version of Python to run. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
