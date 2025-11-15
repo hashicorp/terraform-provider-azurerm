@@ -18,10 +18,140 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_firewall_policy" "example" {
-  name                = "example-policy"
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+}
+
+# Supporting resources for the example
+resource "azurerm_firewall_policy" "parent" {
+  name                = "parent-firewall-policy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
+
+  # Intrusion detection and prevention (moved from child policy)
+  intrusion_detection {
+    mode = "Alert"
+
+    signature_overrides {
+      id    = "2525004"
+      state = "Off"
+    }
+
+    signature_overrides {
+      id    = "2525005"
+      state = "Alert"
+    }
+
+    traffic_bypass {
+      name                  = "bypass-internal-traffic"
+      description           = "Bypass internal traffic from IDS"
+      protocol              = "TCP"
+      source_addresses      = ["10.0.0.0/8", "172.16.0.0/12"]
+      destination_addresses = ["10.0.0.0/8", "172.16.0.0/12"]
+      destination_ports     = ["80", "443", "8080"]
+    }
+
+    traffic_bypass {
+      name                  = "bypass-management-traffic"
+      description           = "Bypass management traffic"
+      protocol              = "UDP"
+      source_ip_groups      = [azurerm_ip_group.management.id]
+      destination_ip_groups = [azurerm_ip_group.management.id]
+      destination_ports     = ["53", "123"]
+    }
+
+    private_ranges = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"]
+  }
+}
+
+resource "azurerm_ip_group" "management" {
+  name                = "management-ips"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  cidrs = [
+    "192.168.1.0/24",
+    "192.168.10.0/24"
+  ]
+}
+
+resource "azurerm_log_analytics_workspace" "backup" {
+  name                = "backup-law"
+  location            = "North Europe"
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+# Main firewall policy with all configurations
+resource "azurerm_firewall_policy" "example" {
+  name                = "example-firewall-policy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
+
+  # Base policy for hierarchical policies
+  base_policy_id = azurerm_firewall_policy.parent.id
+
+  # DNS settings
+  dns {
+    servers       = ["8.8.8.8", "8.8.4.4"]
+    proxy_enabled = true
+  }
+
+  # Threat intelligence settings
+  threat_intelligence_mode = "Deny"
+
+  threat_intelligence_allowlist {
+    ip_addresses = ["10.0.0.0/8", "192.168.1.100", "203.0.113.0/24"]
+    fqdns        = ["*.trusted.com", "internal.company.com", "partner.org"]
+  }
+
+  # SNAT configuration
+  private_ip_ranges = [
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+    "169.254.169.0/24"
+  ]
+  auto_learn_private_ranges_enabled = true
+
+  # SQL traffic filtering
+  sql_redirect_allowed = false
+
+  # Analytics and monitoring
+  insights {
+    enabled                            = true
+    retention_in_days                  = 30
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+
+    log_analytics_workspace {
+      id                = azurerm_log_analytics_workspace.example.id
+      firewall_location = azurerm_resource_group.example.location
+    }
+
+    log_analytics_workspace {
+      id                = azurerm_log_analytics_workspace.backup.id
+      firewall_location = "North Europe"
+    }
+  }
+
+  # Managed identity for Key Vault access
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
 }
 ```
 
