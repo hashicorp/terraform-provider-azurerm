@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -142,15 +143,21 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: HashCaseInsensitiveStringNSG,
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type:             pluginsdk.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
+							},
+							Set: HashCaseInsensitiveStringNSG,
 						},
 
 						"access": {
@@ -535,4 +542,9 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+// HashCaseInsensitiveStringNSG provides case-insensitive hashing for TypeSet elements in NSG
+func HashCaseInsensitiveStringNSG(v interface{}) int {
+	return pluginsdk.HashString(strings.ToLower(v.(string)))
 }
