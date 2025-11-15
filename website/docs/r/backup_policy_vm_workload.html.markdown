@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `settings` - (Required) A `settings` block as defined below.
 
-* `workload_type` - (Required) The VM Workload type for the Backup Policy. Possible values are `SQLDataBase` and `SAPHanaDatabase`. Changing this forces a new resource to be created.
+* `workload_type` - (Required) The VM Workload type for the Backup Policy. Possible values are `SQLDataBase`,  `SAPHanaDatabase` and `SAPAseDatabase`. Changing this forces a new resource to be created.
 
 ---
 
