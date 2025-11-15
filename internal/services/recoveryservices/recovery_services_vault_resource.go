@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/backupprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/backupresourcevaultconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -289,13 +289,13 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+	err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, updatePatch)
+		err := client.UpdateThenPoll(ctx, id, updatePatch, vaults.UpdateOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
@@ -322,7 +322,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg, backupresourcevaultconfigs.UpdateOperationOptions{})
 	if err != nil {
 		return err
 	}
@@ -441,7 +441,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			vault.Sku.Tier = utils.String("Standard")
 		}
 
-		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+		err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.CreateOrUpdateOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v", id.String(), err)
 		}
@@ -507,13 +507,13 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.UpdateThenPoll(ctx, id, vault)
+	err = client.UpdateThenPoll(ctx, id, vault, vaults.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
+		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch, vaults.UpdateOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
@@ -534,7 +534,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg, backupresourcevaultconfigs.UpdateOperationOptions{})
 	if err != nil {
 		return err
 	}
@@ -699,7 +699,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 
