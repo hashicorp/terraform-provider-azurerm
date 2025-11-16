@@ -1394,6 +1394,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	dnsEndpointType := d.Get("dns_endpoint_type").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
+
 	payload := storageaccounts.StorageAccountCreateParameters{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Kind:             accountKind,
@@ -1419,7 +1420,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
 			Tier: pointer.To(accountTier),
 		},
-		Tags: tags.Expand(providerTags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, d.Get("tags").(map[string]interface{}))),
+		Tags: tags.Expand(providerTags.EnsureTagsAllSet(d, meta.(*clients.Client))),
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
@@ -1891,8 +1892,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("identity") {
 		payload.Identity = expandedIdentity
 	}
+
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(providerTags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, d.Get("tags").(map[string]interface{})))
+		payload.Tags = tags.Expand(providerTags.EnsureTagsAllSet(d, meta.(*clients.Client)))
 	}
 
 	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
@@ -2271,22 +2273,12 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		// Set tags_all to all tags from Azure (includes defaults)
-		if err := d.Set("tags_all", tags.Flatten(account.Tags)); err != nil {
-			return fmt.Errorf("setting `tags_all`: %+v", err)
-		}
-
-		// Set tags to only resource-specific tags (remove defaults)
-		// Convert SDK tags (map[string]string) to provider format (map[string]*string)
-		allTagsConverted := make(map[string]*string)
+		// Handle tag flattening and separation (tags_all with all tags, tags with only resource-specific)
+		// account.Tags is map[string]string, so use the StringMap variant
 		if account.Tags != nil {
-			for k, v := range *account.Tags {
-				allTagsConverted[k] = pointer.To(v)
+			if err := providerTags.EnsureTagsAllReadSetFromStringMap(d, *account.Tags, meta.(*clients.Client)); err != nil {
+				return fmt.Errorf("setting tags: %+v", err)
 			}
-		}
-		resourceTags := providerTags.RemoveDefaultTags(allTagsConverted, meta.(*clients.Client).DefaultTags)
-		if err := providerTags.FlattenAndSet(d, resourceTags); err != nil {
-			return err
 		}
 	}
 

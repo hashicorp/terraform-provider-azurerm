@@ -78,3 +78,52 @@ func SetTagsDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{
 	d.SetNew("tags_all", mergedTags)
 	return nil
 }
+
+// EnsureTagsAllSet merges provider default tags with resource-specific tags and sets tags_all in state.
+// This is a convenience helper for Create/Update operations to avoid boilerplate code.
+// Usage: mergedTags := tags.EnsureTagsAllSet(d, client)
+func EnsureTagsAllSet(d *pluginsdk.ResourceData, client *clients.Client) map[string]interface{} {
+	resourceTags := make(map[string]interface{})
+	if tagsRaw := d.Get("tags"); tagsRaw != nil {
+		resourceTags = tagsRaw.(map[string]interface{})
+	}
+	mergedTags := MergeDefaultTags(client.DefaultTags, resourceTags)
+
+	// Set tags_all early so it shows in plan output
+	d.Set("tags_all", mergedTags)
+
+	return mergedTags
+}
+
+// EnsureTagsAllReadSet handles tag flattening and separation for Read operations.
+// It sets tags_all to all tags from Azure (includes defaults) and tags to only resource-specific tags.
+// This is a convenience helper for Read operations for APIs that return map[string]*string tags.
+// Usage: return tags.EnsureTagsAllReadSet(d, resp.Tags, client)
+func EnsureTagsAllReadSet(d *pluginsdk.ResourceData, apiTags map[string]*string, client *clients.Client) error {
+	// Set tags_all to all tags from Azure (includes defaults)
+	if err := d.Set("tags_all", Flatten(apiTags)); err != nil {
+		return err
+	}
+
+	// Set tags to only resource-specific tags (remove defaults)
+	resourceTags := RemoveDefaultTags(apiTags, client.DefaultTags)
+	return FlattenAndSet(d, resourceTags)
+}
+
+// EnsureTagsAllReadSetFromStringMap handles tag flattening and separation for Read operations.
+// It sets tags_all to all tags from Azure (includes defaults) and tags to only resource-specific tags.
+// This is a convenience helper for Read operations for APIs that return map[string]string tags (e.g., Storage Account).
+// Usage: return tags.EnsureTagsAllReadSetFromStringMap(d, resp.Tags, client)
+func EnsureTagsAllReadSetFromStringMap(d *pluginsdk.ResourceData, apiTags map[string]string, client *clients.Client) error {
+	// Convert map[string]string to map[string]*string for internal handling
+	convertedTags := make(map[string]*string)
+	if apiTags != nil {
+		for k, v := range apiTags {
+			v := v // capture loop variable
+			convertedTags[k] = &v
+		}
+	}
+
+	// Now use the standard handler
+	return EnsureTagsAllReadSet(d, convertedTags, client)
+}

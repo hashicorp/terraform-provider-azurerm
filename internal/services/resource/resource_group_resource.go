@@ -71,13 +71,9 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
-	// Merge default_tags with resource-specific tags
-	mergedTags := tags.MergeDefaultTags(meta.(*clients.Client).DefaultTags, t)
-
-	// Set tags_all early so it shows in plan output
-	d.Set("tags_all", mergedTags)
+	// Merge default_tags with resource-specific tags and set tags_all
+	mergedTags := tags.EnsureTagsAllSet(d, meta.(*clients.Client))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -192,14 +188,8 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("managed_by", pointer.From(resp.ManagedBy))
 
-	// Set tags_all to all tags from Azure (includes defaults)
-	if err := d.Set("tags_all", tags.Flatten(resp.Tags)); err != nil {
-		return fmt.Errorf("setting `tags_all`: %s", err)
-	}
-
-	// Set tags to only resource-specific tags (remove defaults)
-	resourceTags := tags.RemoveDefaultTags(resp.Tags, meta.(*clients.Client).DefaultTags)
-	return tags.FlattenAndSet(d, resourceTags)
+	// Handle tag flattening and separation (tags_all with all tags, tags with only resource-specific)
+	return tags.EnsureTagsAllReadSet(d, resp.Tags, meta.(*clients.Client))
 }
 
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
