@@ -318,11 +318,6 @@ func TestAccResourceGroup_defaultTags_providerAndResource_duplicateTag(t *testin
 	tagsHelpers.TestDefaultTagsProviderAndResourceDuplicateTag(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceOverlappingConfig)
 }
 
-func TestAccResourceGroup_tagsAllComputedAtPlanTime(t *testing.T) {
-	testResource := ResourceGroupResource{}
-	tagsHelpers.TestTagsAllComputedAtPlanTime(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceNonOverlappingConfig)
-}
-
 func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -33,6 +33,8 @@ func MergeDefaultTags(defaultTags map[string]*string, resourceTags map[string]in
 
 // RemoveDefaultTags removes default tags from a tag map, returning only resource-specific tags.
 // This is used to separate user-defined tags from provider default_tags.
+// Only removes tags that have both the same key AND value as defaults.
+// If a resource tag overrides a default (same key, different value), it's kept as a resource-specific tag.
 func RemoveDefaultTags(allTags, defaultTags map[string]*string) map[string]*string {
 	resourceTags := make(map[string]*string)
 
@@ -43,10 +45,15 @@ func RemoveDefaultTags(allTags, defaultTags map[string]*string) map[string]*stri
 		}
 	}
 
-	// Remove any tags that match defaults
+	// Remove only tags that exactly match defaults (same key AND value)
 	if defaultTags != nil {
-		for k := range defaultTags {
-			delete(resourceTags, k)
+		for k, defaultValue := range defaultTags {
+			if resourceValue, exists := resourceTags[k]; exists {
+				// Only remove if the value matches the default
+				if resourceValue != nil && defaultValue != nil && *resourceValue == *defaultValue {
+					delete(resourceTags, k)
+				}
+			}
 		}
 	}
 
