@@ -206,7 +206,7 @@ func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VpnSiteProperties{
 			VirtualWAN: &virtualwans.SubResource{
-				Id: utils.String(d.Get("virtual_wan_id").(string)),
+				Id: pointer.To(d.Get("virtual_wan_id").(string)),
 			},
 			DeviceProperties: expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string)),
 			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
@@ -407,7 +407,7 @@ func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 		}
 		e := e.(map[string]interface{})
 		link := virtualwans.VpnSiteLink{
-			Name: utils.String(e["name"].(string)),
+			Name: pointer.To(e["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkProperties{
 				LinkProperties: &virtualwans.VpnLinkProviderProperties{
 					LinkSpeedInMbps: pointer.To(int64(e["speed_in_mbps"].(int))),
@@ -505,8 +505,8 @@ func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *virtualwans.VpnLinkBg
 	v := input[0].(map[string]interface{})
 
 	return &virtualwans.VpnLinkBgpSettings{
-		Asn:               utils.Int64(int64(v["asn"].(int))),
-		BgpPeeringAddress: utils.String(v["peering_address"].(string)),
+		Asn:               pointer.To(int64(int64(v["asn"].(int)))),
+		BgpPeeringAddress: pointer.To(v["peering_address"].(string)),
 	}
 }
 
@@ -553,9 +553,9 @@ func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *virtualwans.O3
 	trafficCategory := input[0].(map[string]interface{})
 
 	return &virtualwans.O365BreakOutCategoryPolicies{
-		Allow:    utils.Bool(trafficCategory["allow_endpoint_enabled"].(bool)),
-		Default:  utils.Bool(trafficCategory["default_endpoint_enabled"].(bool)),
-		Optimize: utils.Bool(trafficCategory["optimize_endpoint_enabled"].(bool)),
+		Allow:    pointer.To(trafficCategory["allow_endpoint_enabled"].(bool)),
+		Default:  pointer.To(trafficCategory["default_endpoint_enabled"].(bool)),
+		Optimize: pointer.To(trafficCategory["optimize_endpoint_enabled"].(bool)),
 	}
 }
 

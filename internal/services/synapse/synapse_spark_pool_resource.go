@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -285,28 +286,28 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
-			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			CacheSize:                 pointer.To(int32(int32(d.Get("cache_size").(int)))),
+			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
+				Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: pointer.To(int32(int32(d.Get("min_executors").(int)))),
+				MaxExecutors: pointer.To(int32(int32(d.Get("max_executors").(int)))),
 			},
-			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			DefaultSparkLogFolder:       pointer.To(d.Get("spark_log_folder").(string)),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
 			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
-			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:                utils.String(d.Get("spark_version").(string)),
+			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
+			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if !*autoScale.Enabled {
-		bigDataPoolInfo.NodeCount = utils.Int32(int32(d.Get("node_count").(int)))
+		bigDataPoolInfo.NodeCount = pointer.To(int32(int32(d.Get("node_count").(int))))
 	}
 
-	force := utils.Bool(false)
+	force := pointer.To(false)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
@@ -406,29 +407,29 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
-			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			CacheSize:                 pointer.To(int32(int32(d.Get("cache_size").(int)))),
+			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
+				Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: pointer.To(int32(int32(d.Get("min_executors").(int)))),
+				MaxExecutors: pointer.To(int32(int32(d.Get("max_executors").(int)))),
 			},
-			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			DefaultSparkLogFolder:       pointer.To(d.Get("spark_log_folder").(string)),
 			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
 			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
-			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:                utils.String(d.Get("spark_version").(string)),
+			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
+			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if !*autoScale.Enabled {
-		bigDataPoolInfo.NodeCount = utils.Int32(int32(d.Get("node_count").(int)))
+		bigDataPoolInfo.NodeCount = pointer.To(int32(int32(d.Get("node_count").(int))))
 	}
 
-	force := utils.Bool(false)
+	force := pointer.To(false)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -466,27 +467,27 @@ func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 func expandArmSparkPoolAutoPauseProperties(input []interface{}) *synapse.AutoPauseProperties {
 	if len(input) == 0 {
 		return &synapse.AutoPauseProperties{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		}
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.AutoPauseProperties{
-		DelayInMinutes: utils.Int32(int32(v["delay_in_minutes"].(int))),
-		Enabled:        utils.Bool(true),
+		DelayInMinutes: pointer.To(int32(int32(v["delay_in_minutes"].(int)))),
+		Enabled:        pointer.To(true),
 	}
 }
 
 func expandArmSparkPoolAutoScaleProperties(input []interface{}) *synapse.AutoScaleProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &synapse.AutoScaleProperties{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		}
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.AutoScaleProperties{
-		MinNodeCount: utils.Int32(int32(v["min_node_count"].(int))),
-		Enabled:      utils.Bool(true),
-		MaxNodeCount: utils.Int32(int32(v["max_node_count"].(int))),
+		MinNodeCount: pointer.To(int32(int32(v["min_node_count"].(int)))),
+		Enabled:      pointer.To(true),
+		MaxNodeCount: pointer.To(int32(int32(v["max_node_count"].(int)))),
 	}
 }
 
@@ -496,8 +497,8 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.LibraryRequirements{
-		Content:  utils.String(v["content"].(string)),
-		Filename: utils.String(v["filename"].(string)),
+		Content:  pointer.To(v["content"].(string)),
+		Filename: pointer.To(v["filename"].(string)),
 	}
 }
 
@@ -507,8 +508,8 @@ func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigPropert
 	}
 	value := input[0].(map[string]interface{})
 	return &synapse.SparkConfigProperties{
-		Content:  utils.String(value["content"].(string)),
-		Filename: utils.String(value["filename"].(string)),
+		Content:  pointer.To(value["content"].(string)),
+		Filename: pointer.To(value["filename"].(string)),
 	}
 }
 

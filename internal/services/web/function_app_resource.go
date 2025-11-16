@@ -270,7 +270,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(id.SiteName),
+		Name: pointer.To(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -322,17 +322,17 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			ClientCertEnabled:    utils.Bool(clientCertEnabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			ClientCertEnabled:    pointer.To(clientCertEnabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(int32(dailyMemoryTimeQuota))),
 			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -380,7 +380,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -462,17 +462,17 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			ClientCertEnabled:    utils.Bool(clientCertEnabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			ClientCertEnabled:    pointer.To(clientCertEnabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(int32(dailyMemoryTimeQuota))),
 			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -555,7 +555,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 

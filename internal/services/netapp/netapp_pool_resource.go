@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppPool() *pluginsdk.Resource {
@@ -224,7 +223,7 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		sizeInMB := sizeInTB * 1024 * 1024
 		sizeInBytes := sizeInMB * 1024 * 1024
 
-		update.Properties.Size = utils.Int64(sizeInBytes)
+		update.Properties.Size = pointer.To(int64(sizeInBytes))
 	}
 
 	if d.HasChange("qos_type") {

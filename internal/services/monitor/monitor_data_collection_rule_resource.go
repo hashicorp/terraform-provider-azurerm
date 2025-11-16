@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -964,11 +963,11 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 				Identity: identityValue,
 				Kind:     expandDataCollectionRuleKind(state.Kind),
 				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionrules.DataCollectionRule{
 					DataFlows:          expandDataCollectionRuleDataFlows(state.DataFlows),
 					DataSources:        dataSources,
-					Description:        utils.String(state.Description),
+					Description:        pointer.To(state.Description),
 					Destinations:       expandDataCollectionRuleDestinations(state.Destinations),
 					StreamDeclarations: expandDataCollectionRuleStreamDeclarations(state.StreamDeclaration),
 				},
@@ -976,7 +975,7 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = pointer.To(state.DataCollectionEndpointId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -1109,14 +1108,14 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if state.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = pointer.To(state.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("destinations") {
@@ -1186,15 +1185,15 @@ func expandDataCollectionRuleDataFlows(input []DataFlow) *[]datacollectionrules.
 		}
 
 		if v.BuiltInTransform != "" {
-			dataFlow.BuiltInTransform = utils.String(v.BuiltInTransform)
+			dataFlow.BuiltInTransform = pointer.To(v.BuiltInTransform)
 		}
 
 		if v.OutputStream != "" {
-			dataFlow.OutputStream = utils.String(v.OutputStream)
+			dataFlow.OutputStream = pointer.To(v.OutputStream)
 		}
 
 		if v.TransformKql != "" {
-			dataFlow.TransformKql = utils.String(v.TransformKql)
+			dataFlow.TransformKql = pointer.To(v.TransformKql)
 		}
 
 		result = append(result, dataFlow)
@@ -1245,13 +1244,13 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 
 	result := &datacollectionrules.DataImportSources{
 		EventHub: &datacollectionrules.EventHubDataSource{
-			Name:   utils.String(input[0].EventHubDataSource[0].Name),
-			Stream: utils.String(input[0].EventHubDataSource[0].Stream),
+			Name:   pointer.To(input[0].EventHubDataSource[0].Name),
+			Stream: pointer.To(input[0].EventHubDataSource[0].Stream),
 		},
 	}
 
 	if consumerGroup := input[0].EventHubDataSource[0].ConsumerGroup; consumerGroup != "" {
-		result.EventHub.ConsumerGroup = utils.String(consumerGroup)
+		result.EventHub.ConsumerGroup = pointer.To(consumerGroup)
 	}
 
 	return result
@@ -1277,7 +1276,7 @@ func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacol
 			ExtensionName:     v.ExtensionName,
 			ExtensionSettings: &extensionSettings,
 			InputDataSources:  pointer.To(v.InputDataSources),
-			Name:              utils.String(v.Name),
+			Name:              pointer.To(v.Name),
 			Streams:           expandDataCollectionRuleDataSourceExtensionStreams(v.Streams),
 		})
 	}
@@ -1304,7 +1303,7 @@ func expandDataCollectionRuleDataSourceIisLogs(input []IisLog) *[]datacollection
 	result := make([]datacollectionrules.IisLogsDataSource, 0)
 	for _, v := range input {
 		iisLog := datacollectionrules.IisLogsDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1326,7 +1325,7 @@ func expandDataCollectionRuleDataSourceLogFiles(input []LogFile) *[]datacollecti
 	result := make([]datacollectionrules.LogFilesDataSource, 0)
 	for _, v := range input {
 		logFile := datacollectionrules.LogFilesDataSource{
-			Name:         utils.String(v.Name),
+			Name:         pointer.To(v.Name),
 			Streams:      v.Streams,
 			FilePatterns: v.FilePatterns,
 			Format:       datacollectionrules.KnownLogFilesDataSourceFormat(v.Format),
@@ -1355,8 +1354,8 @@ func expandDataCollectionRuleDataSourcePerfCounters(input []PerfCounter) *[]data
 	for _, v := range input {
 		result = append(result, datacollectionrules.PerfCounterDataSource{
 			CounterSpecifiers:          pointer.To(v.CounterSpecifiers),
-			Name:                       utils.String(v.Name),
-			SamplingFrequencyInSeconds: utils.Int64(v.SamplingFrequencyInSeconds),
+			Name:                       pointer.To(v.Name),
+			SamplingFrequencyInSeconds: pointer.To(int64(v.SamplingFrequencyInSeconds)),
 			Streams:                    expandDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
 	}
@@ -1384,7 +1383,7 @@ func expandDataCollectionRuleDataSourcePlatformTelemetry(input []PlatformTelemet
 	result := make([]datacollectionrules.PlatformTelemetryDataSource, 0)
 	for _, v := range input {
 		platformTelemetry := datacollectionrules.PlatformTelemetryDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1407,7 +1406,7 @@ func expandDataCollectionRuleDataSourcePrometheusForwarder(input []PrometheusFor
 		}
 
 		prometheusForwarder := datacollectionrules.PrometheusForwarderDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: &streams,
 		}
 
@@ -1436,7 +1435,7 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 		result = append(result, datacollectionrules.SyslogDataSource{
 			FacilityNames: expandDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
 			LogLevels:     expandDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
-			Name:          utils.String(v.Name),
+			Name:          pointer.To(v.Name),
 			Streams:       expandDataCollectionRuleDataSourceSyslogStreams(v.Streams),
 		})
 	}
@@ -1487,7 +1486,7 @@ func expandDataCollectionRuleDataSourceWindowsEventLogs(input []WindowsEventLog)
 	result := make([]datacollectionrules.WindowsEventLogDataSource, 0)
 	for _, v := range input {
 		result = append(result, datacollectionrules.WindowsEventLogDataSource{
-			Name:         utils.String(v.Name),
+			Name:         pointer.To(v.Name),
 			Streams:      expandDataCollectionRuleDataSourceWindowsEventLogsStreams(v.Streams),
 			XPathQueries: pointer.To(v.XPathQueries),
 		})
@@ -1515,7 +1514,7 @@ func expandDataCollectionRuleDataSourceWindowsFirewallLogs(input []WindowsFirewa
 	result := make([]datacollectionrules.WindowsFirewallLogsDataSource, 0)
 	for _, v := range input {
 		windowsFirewallLog := datacollectionrules.WindowsFirewallLogsDataSource{
-			Name:    utils.String(v.Name),
+			Name:    pointer.To(v.Name),
 			Streams: v.Streams,
 		}
 
@@ -1548,7 +1547,7 @@ func expandDataCollectionRuleDestinationMetrics(input []AzureMonitorMetric) *dat
 	}
 
 	return &datacollectionrules.AzureMonitorMetricsDestination{
-		Name: utils.String(input[0].Name),
+		Name: pointer.To(input[0].Name),
 	}
 }
 
@@ -1560,8 +1559,8 @@ func expandDataCollectionRuleDestinationEventHubs(input []EventHub) *[]datacolle
 	result := make([]datacollectionrules.EventHubDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDestination{
-			Name:               utils.String(v.Name),
-			EventHubResourceId: utils.String(v.EventHubResourceId),
+			Name:               pointer.To(v.Name),
+			EventHubResourceId: pointer.To(v.EventHubResourceId),
 		}
 
 		result = append(result, eventhub)
@@ -1578,8 +1577,8 @@ func expandDataCollectionRuleDestinationEventHubsDirect(input []EventHub) *[]dat
 	result := make([]datacollectionrules.EventHubDirectDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDirectDestination{
-			Name:               utils.String(v.Name),
-			EventHubResourceId: utils.String(v.EventHubResourceId),
+			Name:               pointer.To(v.Name),
+			EventHubResourceId: pointer.To(v.EventHubResourceId),
 		}
 
 		result = append(result, eventhub)
@@ -1596,8 +1595,8 @@ func expandDataCollectionRuleDestinationLogAnalytics(input []LogAnalytic) *[]dat
 	result := make([]datacollectionrules.LogAnalyticsDestination, 0)
 	for _, v := range input {
 		result = append(result, datacollectionrules.LogAnalyticsDestination{
-			Name:                utils.String(v.Name),
-			WorkspaceResourceId: utils.String(v.WorkspaceResourceId),
+			Name:                pointer.To(v.Name),
+			WorkspaceResourceId: pointer.To(v.WorkspaceResourceId),
 		})
 	}
 	return &result
@@ -1611,8 +1610,8 @@ func expandDataCollectionRuleDestinationMonitoringAccounts(input []MonitorAccoun
 	result := make([]datacollectionrules.MonitoringAccountDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.MonitoringAccountDestination{
-			Name:              utils.String(v.Name),
-			AccountResourceId: utils.String(v.AccountId),
+			Name:              pointer.To(v.Name),
+			AccountResourceId: pointer.To(v.AccountId),
 		}
 
 		result = append(result, monitorAccount)
@@ -1629,9 +1628,9 @@ func expandDataCollectionRuleDestinationStorageBlobs(input []StorageBlob) *[]dat
 	result := make([]datacollectionrules.StorageBlobDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.StorageBlobDestination{
-			Name:                     utils.String(v.Name),
-			StorageAccountResourceId: utils.String(v.StorageAccountId),
-			ContainerName:            utils.String(v.ContainerName),
+			Name:                     pointer.To(v.Name),
+			StorageAccountResourceId: pointer.To(v.StorageAccountId),
+			ContainerName:            pointer.To(v.ContainerName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1648,9 +1647,9 @@ func expandDataCollectionRuleDestinationStorageTableDirect(input []StorageTableD
 	result := make([]datacollectionrules.StorageTableDestination, 0)
 	for _, v := range input {
 		monitorAccount := datacollectionrules.StorageTableDestination{
-			Name:                     utils.String(v.Name),
-			StorageAccountResourceId: utils.String(v.StorageAccountId),
-			TableName:                utils.String(v.TableName),
+			Name:                     pointer.To(v.Name),
+			StorageAccountResourceId: pointer.To(v.StorageAccountId),
+			TableName:                pointer.To(v.TableName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1670,7 +1669,7 @@ func expandDataCollectionRuleStreamDeclarations(input []StreamDeclaration) *map[
 		for _, column := range v.Column {
 			columnType := datacollectionrules.KnownColumnDefinitionType(column.Type)
 			columns = append(columns, datacollectionrules.ColumnDefinition{
-				Name: utils.String(column.Name),
+				Name: pointer.To(column.Name),
 				Type: &columnType,
 			})
 		}

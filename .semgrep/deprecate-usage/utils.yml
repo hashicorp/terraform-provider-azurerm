@@ -1,0 +1,57 @@
+rules:
+  - id: deprecated-utils-pointer-non-int
+    languages: [go]
+    message: Do not use github.com/hashicorp/terraform-provider-azurerm/utils for converting non integer types to pointer
+    paths:
+      include:
+        - "/internal"
+    patterns:
+      - pattern: |
+          import (
+            ...
+            "github.com/hashicorp/terraform-provider-azurerm/utils"
+            ...
+          )
+          ...
+      - pattern: utils.$METHOD($...ARGS)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: ^(Bool|Float|String|StringSlice)$
+    fix: pointer.To($...ARGS)
+    severity: ERROR
+
+  - id: deprecated-utils-pointer-int32
+    languages: [go]
+    message: Do not use github.com/hashicorp/terraform-provider-azurerm/utils for converting int32 to pointer
+    paths:
+      include:
+        - "/internal"
+    patterns:
+      - pattern: |
+          import (
+            ...
+            "github.com/hashicorp/terraform-provider-azurerm/utils"
+            ...
+          )
+          ...
+      - pattern: utils.Int32($...ARGS)
+    fix: pointer.To(int32($...ARGS))
+    severity: ERROR
+
+  - id: deprecated-utils-pointer-int64
+    languages: [go]
+    message: Do not use github.com/hashicorp/terraform-provider-azurerm/utils for converting int64 to pointer
+    paths:
+      include:
+        - "/internal"
+    patterns:
+      - pattern: |
+          import (
+            ...
+            "github.com/hashicorp/terraform-provider-azurerm/utils"
+            ...
+          )
+          ...
+      - pattern: utils.Int64($...ARGS)
+    fix: pointer.To(int64($...ARGS))
+    severity: ERROR

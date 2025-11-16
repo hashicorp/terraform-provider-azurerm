@@ -160,7 +160,7 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 	iotHubDataConnectionProperties := expandKustoIotHubDataConnectionProperties(d)
 
 	dataConnection := dataconnections.IotHubDataConnection{
-		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location:   pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: iotHubDataConnectionProperties,
 	}
 
@@ -251,11 +251,11 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		iotHubDataConnectionProperties.TableName = utils.String(tableName.(string))
+		iotHubDataConnectionProperties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		iotHubDataConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+		iotHubDataConnectionProperties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {

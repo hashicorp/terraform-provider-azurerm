@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -198,12 +199,12 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v := d.Get("app_service_environment_id").(string); v != "" {
 		appServicePlan.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: utils.String(v),
+			ID: pointer.To(v),
 		}
 	}
 
 	if v := d.Get("per_site_scaling").(bool); v {
-		appServicePlan.PerSiteScaling = utils.Bool(v)
+		appServicePlan.PerSiteScaling = pointer.To(v)
 	}
 
 	reserved := d.Get("reserved").(bool)
@@ -216,15 +217,15 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
-		appServicePlan.MaximumElasticWorkerCount = utils.Int32(int32(v))
+		appServicePlan.MaximumElasticWorkerCount = pointer.To(int32(int32(v)))
 	}
 
 	if v := d.Get("zone_redundant").(bool); v {
-		appServicePlan.ZoneRedundant = utils.Bool(v)
+		appServicePlan.ZoneRedundant = pointer.To(v)
 	}
 
 	if reserved {
-		appServicePlan.Reserved = utils.Bool(reserved)
+		appServicePlan.Reserved = pointer.To(reserved)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerFarmName, appServicePlan)
@@ -339,14 +340,14 @@ func expandAppServicePlanSku(d *pluginsdk.ResourceData) web.SkuDescription {
 	size := config["size"].(string)
 
 	sku := web.SkuDescription{
-		Name: utils.String(size),
-		Tier: utils.String(tier),
-		Size: utils.String(size),
+		Name: pointer.To(size),
+		Tier: pointer.To(tier),
+		Size: pointer.To(size),
 	}
 
 	if v, ok := config["capacity"]; ok {
 		capacity := v.(int)
-		sku.Capacity = utils.Int32(int32(capacity))
+		sku.Capacity = pointer.To(int32(int32(capacity)))
 	}
 
 	return sku

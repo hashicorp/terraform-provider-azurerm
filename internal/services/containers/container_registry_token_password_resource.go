@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTokenPasswordResource struct{}
@@ -315,7 +314,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 			password := password[0]
 			ret := &tokens.TokenPassword{
 				Name:  pointer.To(tokens.TokenPasswordName(name)),
-				Value: utils.String(password.Value),
+				Value: pointer.To(password.Value),
 			}
 			if v := password.Expiry; v != "" {
 				t, err := time.Parse(time.RFC3339, v)
@@ -451,7 +450,7 @@ PasswordGenLoop:
 		}
 
 		param := registries.GenerateCredentialsParameters{
-			TokenId: utils.String(id.ID()),
+			TokenId: pointer.To(id.ID()),
 			Expiry:  password.Expiry,
 			Name:    (*registries.TokenPasswordName)(password.Name),
 		}

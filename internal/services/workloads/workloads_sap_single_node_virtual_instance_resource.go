@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkloadsSAPSingleNodeVirtualInstanceModel struct {
@@ -471,10 +470,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 				Location: location.Normalize(model.Location),
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Configuration: sapvirtualinstances.DeploymentWithOSConfiguration{
-						AppLocation:                 utils.String(location.Normalize(model.AppLocation)),
+						AppLocation:                 pointer.To(location.Normalize(model.AppLocation)),
 						InfrastructureConfiguration: expandSingleServerConfiguration(model.SingleServerConfiguration),
 						OsSapConfiguration: &sapvirtualinstances.OsSapConfiguration{
-							SapFqdn: utils.String(model.SapFqdn),
+							SapFqdn: pointer.To(model.SapFqdn),
 						},
 					},
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
@@ -486,7 +485,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 
 			if v := model.ManagedResourceGroupName; v != "" {
 				parameters.Properties.ManagedResourceGroupConfiguration = &sapvirtualinstances.ManagedRGConfiguration{
-					Name: utils.String(v),
+					Name: pointer.To(v),
 				}
 			}
 
@@ -660,10 +659,10 @@ func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageR
 	imageReference := input[0]
 
 	result := &sapvirtualinstances.ImageReference{
-		Offer:     utils.String(imageReference.Offer),
-		Publisher: utils.String(imageReference.Publisher),
-		Sku:       utils.String(imageReference.Sku),
-		Version:   utils.String(imageReference.Version),
+		Offer:     pointer.To(imageReference.Offer),
+		Publisher: pointer.To(imageReference.Publisher),
+		Sku:       pointer.To(imageReference.Sku),
+		Version:   pointer.To(imageReference.Version),
 	}
 
 	return result
@@ -677,12 +676,12 @@ func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) 
 	osProfile := input[0]
 
 	result := &sapvirtualinstances.OSProfile{
-		AdminUsername: utils.String(osProfile.AdminUsername),
+		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
-			DisablePasswordAuthentication: utils.Bool(true),
+			DisablePasswordAuthentication: pointer.To(true),
 			SshKeyPair: &sapvirtualinstances.SshKeyPair{
-				PrivateKey: utils.String(osProfile.SshPrivateKey),
-				PublicKey:  utils.String(osProfile.SshPublicKey),
+				PrivateKey: pointer.To(osProfile.SshPrivateKey),
+				PublicKey:  pointer.To(osProfile.SshPublicKey),
 			},
 		},
 	}
@@ -705,15 +704,15 @@ func expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(input []S
 	}
 
 	if v := virtualMachineFullResourceNames.HostName; v != "" {
-		result.VirtualMachine.HostName = utils.String(v)
+		result.VirtualMachine.HostName = pointer.To(v)
 	}
 
 	if v := virtualMachineFullResourceNames.OSDiskName; v != "" {
-		result.VirtualMachine.OsDiskName = utils.String(v)
+		result.VirtualMachine.OsDiskName = pointer.To(v)
 	}
 
 	if v := virtualMachineFullResourceNames.VMName; v != "" {
-		result.VirtualMachine.VirtualMachineName = utils.String(v)
+		result.VirtualMachine.VirtualMachineName = pointer.To(v)
 	}
 
 	return result
@@ -727,7 +726,7 @@ func expandSAPSingleNodeVirtualInstanceNetworkInterfaceNames(input []string) *[]
 
 	for _, v := range input {
 		networkInterfaceName := sapvirtualinstances.NetworkInterfaceResourceNames{
-			NetworkInterfaceName: utils.String(v),
+			NetworkInterfaceName: pointer.To(v),
 		}
 
 		result = append(result, networkInterfaceName)
@@ -760,8 +759,8 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(v.NumberOfDisks),
-			SizeGB: utils.Int64(v.SizeGb),
+			Count:  pointer.To(int64(v.NumberOfDisks)),
+			SizeGB: pointer.To(int64(v.SizeGb)),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -785,7 +784,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 		CustomResourceNames: expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineResourceNames),
 		DbDiskConfiguration: expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(singleServerConfiguration.DiskVolumeConfigurations),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
-			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
+			IsSecondaryIPEnabled: pointer.To(singleServerConfiguration.IsSecondaryIpEnabled),
 		},
 		SubnetId:                    singleServerConfiguration.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration)),

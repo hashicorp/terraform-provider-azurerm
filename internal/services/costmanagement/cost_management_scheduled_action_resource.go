@@ -184,8 +184,8 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 				Frequency:    scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string)),
 				WeeksOfMonth: &weeksOfMonth,
 				DaysOfWeek:   &daysOfWeek,
-				HourOfDay:    utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int))),
-				DayOfMonth:   utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int))),
+				HourOfDay:    pointer.To(int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))),
+				DayOfMonth:   pointer.To(int64(int64(metadata.ResourceData.Get("day_of_month").(int)))),
 				StartDate:    metadata.ResourceData.Get("start_date").(string),
 				EndDate:      metadata.ResourceData.Get("end_date").(string),
 			}
@@ -199,10 +199,10 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 					FileDestination: &scheduledactions.FileDestination{
 						FileFormats: &[]scheduledactions.FileFormat{},
 					},
-					NotificationEmail: utils.String(metadata.ResourceData.Get("email_address_sender").(string)),
+					NotificationEmail: pointer.To(metadata.ResourceData.Get("email_address_sender").(string)),
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{})),
 					},
 					Schedule: schedule,
@@ -327,7 +327,7 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("email_address_sender") {
-					model.Properties.NotificationEmail = utils.String(metadata.ResourceData.Get("email_address_sender").(string))
+					model.Properties.NotificationEmail = pointer.To(metadata.ResourceData.Get("email_address_sender").(string))
 				}
 
 				if metadata.ResourceData.HasChange("email_subject") {
@@ -339,7 +339,7 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("message") {
-					model.Properties.Notification.Message = utils.String(metadata.ResourceData.Get("message").(string))
+					model.Properties.Notification.Message = pointer.To(metadata.ResourceData.Get("message").(string))
 				}
 
 				if metadata.ResourceData.HasChange("frequency") {
@@ -377,11 +377,11 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("hour_of_day") {
-					model.Properties.Schedule.HourOfDay = utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))
+					model.Properties.Schedule.HourOfDay = pointer.To(int64(int64(metadata.ResourceData.Get("hour_of_day").(int))))
 				}
 
 				if metadata.ResourceData.HasChange("day_of_month") {
-					model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
+					model.Properties.Schedule.DayOfMonth = pointer.To(int64(int64(metadata.ResourceData.Get("day_of_month").(int))))
 				}
 
 				if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {

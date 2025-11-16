@@ -198,13 +198,13 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
 	hsm := managedhsms.ManagedHsm{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
-			EnableSoftDelete:          utils.Bool(true),
-			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
-			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			EnableSoftDelete:          pointer.To(true),
+			SoftDeleteRetentionInDays: pointer.To(int64(int64(d.Get("soft_delete_retention_days").(int)))),
+			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},

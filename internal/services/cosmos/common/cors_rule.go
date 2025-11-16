@@ -96,12 +96,12 @@ func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 		corsRuleAttr := attr.(map[string]interface{})
 		corsRule := cosmosdb.CorsPolicy{}
 		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
-		corsRule.ExposedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
-		corsRule.AllowedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
-		corsRule.AllowedMethods = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ","))
+		corsRule.ExposedHeaders = pointer.To(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
+		corsRule.AllowedHeaders = pointer.To(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
+		corsRule.AllowedMethods = pointer.To(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ","))
 
 		if corsRuleAttr["max_age_in_seconds"].(int) != 0 {
-			corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+			corsRule.MaxAgeInSeconds = pointer.To(int64(int64(corsRuleAttr["max_age_in_seconds"].(int))))
 		}
 
 		corsRules = append(corsRules, corsRule)

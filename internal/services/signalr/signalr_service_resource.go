@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -148,14 +149,14 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			Upstream:                 expandUpstreamSettings(upstreamSettings),
 			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
 			ResourceLogConfiguration: resourceLogsData,
-			PublicNetworkAccess:      utils.String(publicNetworkAcc),
-			DisableAadAuth:           utils.Bool(!d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:         utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess:      pointer.To(publicNetworkAcc),
+			DisableAadAuth:           pointer.To(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:         pointer.To(!d.Get("local_auth_enabled").(bool)),
 			Tls: &signalr.SignalRTlsSettings{
-				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+				ClientCertEnabled: pointer.To(tlsClientCertEnabled),
 			},
 			Serverless: &signalr.ServerlessSettings{
-				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+				ConnectionTimeoutInSeconds: pointer.To(int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int)))),
 			},
 		},
 		Sku:  expandSignalRServiceSku(sku),
@@ -372,7 +373,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("serverless_connection_timeout_in_seconds") {
 			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
-				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+				ConnectionTimeoutInSeconds: pointer.To(int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int)))),
 			}
 		}
 
@@ -392,21 +393,21 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
 				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
 			}
-			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
+			resourceType.Properties.PublicNetworkAccess = pointer.To(publicNetworkAcc)
 		}
 
 		if d.HasChange("local_auth_enabled") {
-			resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
+			resourceType.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
 		}
 
 		if d.HasChange("aad_auth_enabled") {
-			resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
+			resourceType.Properties.DisableAadAuth = pointer.To(!d.Get("aad_auth_enabled").(bool))
 		}
 
 		if d.HasChange("tls_client_cert_enabled") {
 			tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
 			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
-				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+				ClientCertEnabled: pointer.To(tlsClientCertEnabled),
 			}
 			if currentSku == "Free_F1" && tlsClientCertEnabled {
 				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
@@ -545,9 +546,9 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			Type: &authTypeNone,
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
-			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
-			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
-			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
+			HubPattern:      pointer.To(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
+			EventPattern:    pointer.To(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
+			CategoryPattern: pointer.To(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
 			Auth:            &auth,
 		}
@@ -556,7 +557,7 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
 				Type: &authTypeManagedIdentity,
 				ManagedIdentity: &signalr.ManagedIdentitySettings{
-					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
+					Resource: pointer.To(setting["user_assigned_identity_id"].(string)),
 				},
 			}
 		}
@@ -655,7 +656,7 @@ func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
 	v := input[0].(map[string]interface{})
 	return &signalr.ResourceSku{
 		Name:     v["name"].(string),
-		Capacity: utils.Int64(int64(v["capacity"].(int))),
+		Capacity: pointer.To(int64(int64(v["capacity"].(int)))),
 	}
 }
 
@@ -695,8 +696,8 @@ func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfigu
 		messageLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
-		Name:    utils.String("MessagingLogs"),
-		Enabled: utils.String(messageLogEnabled),
+		Name:    pointer.To("MessagingLogs"),
+		Enabled: pointer.To(messageLogEnabled),
 	})
 
 	connectivityLogEnabled := "false"
@@ -704,8 +705,8 @@ func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfigu
 		connectivityLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
-		Name:    utils.String("ConnectivityLogs"),
-		Enabled: utils.String(connectivityLogEnabled),
+		Name:    pointer.To("ConnectivityLogs"),
+		Enabled: pointer.To(connectivityLogEnabled),
 	})
 
 	httpLogEnabled := "false"
@@ -713,8 +714,8 @@ func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfigu
 		httpLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
-		Name:    utils.String("HttpRequestLogs"),
-		Enabled: utils.String(httpLogEnabled),
+		Name:    pointer.To("HttpRequestLogs"),
+		Enabled: pointer.To(httpLogEnabled),
 	})
 
 	return &signalr.LiveTraceConfiguration{
@@ -780,8 +781,8 @@ func expandSignalRResourceLogConfig(connectivityLogEnabled bool, messagingLogEna
 		messagingLog = "true"
 	}
 	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
-		Name:    utils.String("MessagingLogs"),
-		Enabled: utils.String(messagingLog),
+		Name:    pointer.To("MessagingLogs"),
+		Enabled: pointer.To(messagingLog),
 	})
 
 	connectivityLog := "false"
@@ -789,8 +790,8 @@ func expandSignalRResourceLogConfig(connectivityLogEnabled bool, messagingLogEna
 		connectivityLog = "true"
 	}
 	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
-		Name:    utils.String("ConnectivityLogs"),
-		Enabled: utils.String(connectivityLog),
+		Name:    pointer.To("ConnectivityLogs"),
+		Enabled: pointer.To(connectivityLog),
 	})
 
 	httpLog := "false"
@@ -798,8 +799,8 @@ func expandSignalRResourceLogConfig(connectivityLogEnabled bool, messagingLogEna
 		httpLog = "true"
 	}
 	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
-		Name:    utils.String("HttpRequestLogs"),
-		Enabled: utils.String(httpLog),
+		Name:    pointer.To("HttpRequestLogs"),
+		Enabled: pointer.To(httpLog),
 	})
 
 	return &signalr.ResourceLogConfiguration{

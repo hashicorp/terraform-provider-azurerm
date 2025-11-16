@@ -468,13 +468,13 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Kind:     utils.String(kind),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Kind:     pointer.To(kind),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
-			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
+			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
@@ -543,7 +543,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
-			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
+			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
@@ -849,7 +849,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		subnetIds = append(subnetIds, subnetId)
 		rule := cognitiveservicesaccounts.VirtualNetworkRule{
 			Id:                               subnetId,
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
+			IgnoreMissingVnetServiceEndpoint: pointer.To(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 		networkRules = append(networkRules, rule)
 	}
@@ -876,8 +876,8 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	for _, v := range input {
 		value := v.(map[string]interface{})
 		results = append(results, cognitiveservicesaccounts.UserOwnedStorage{
-			ResourceId:       utils.String(value["storage_account_id"].(string)),
-			IdentityClientId: utils.String(value["identity_client_id"].(string)),
+			ResourceId:       pointer.To(value["storage_account_id"].(string)),
+			IdentityClientId: pointer.To(value["identity_client_id"].(string)),
 		})
 	}
 	return &results
@@ -888,21 +888,21 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 	kind := d.Get("kind")
 	if kind == "QnAMaker" {
 		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.QnaRuntimeEndpoint = utils.String(v.(string))
+			props.QnaRuntimeEndpoint = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
 		if kind == "TextAnalytics" {
-			props.QnaAzureSearchEndpointId = utils.String(v.(string))
+			props.QnaAzureSearchEndpointId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
 		if kind == "TextAnalytics" {
-			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+			props.QnaAzureSearchEndpointKey = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
@@ -910,28 +910,28 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 		if kind == "MetricsAdvisor" {
-			props.AadClientId = utils.String(v.(string))
+			props.AadClientId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
 		if kind == "MetricsAdvisor" {
-			props.AadTenantId = utils.String(v.(string))
+			props.AadTenantId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
 		if kind == "MetricsAdvisor" {
-			props.SuperUser = utils.String(v.(string))
+			props.SuperUser = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
 		if kind == "MetricsAdvisor" {
-			props.WebsiteName = utils.String(v.(string))
+			props.WebsiteName = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
 		}
@@ -1014,10 +1014,10 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	return &cognitiveservicesaccounts.Encryption{
 		KeySource: &keySource,
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
-			KeyName:          utils.String(keyId.Name),
-			KeyVersion:       utils.String(keyId.Version),
-			KeyVaultUri:      utils.String(keyId.KeyVaultBaseUrl),
-			IdentityClientId: utils.String(identity),
+			KeyName:          pointer.To(keyId.Name),
+			KeyVersion:       pointer.To(keyId.Version),
+			KeyVaultUri:      pointer.To(keyId.KeyVaultBaseUrl),
+			IdentityClientId: pointer.To(identity),
 		},
 	}
 }

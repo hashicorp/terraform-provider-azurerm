@@ -182,7 +182,7 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &clusters.ClusterUpdateProperties{},
 	}
 	if d.HasChange("cluster_node_count") {
-		clusterUpdate.Properties.ClusterSize = utils.Int64(int64(d.Get("cluster_node_count").(int)))
+		clusterUpdate.Properties.ClusterSize = pointer.To(int64(int64(d.Get("cluster_node_count").(int))))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, clusterUpdate); err != nil {

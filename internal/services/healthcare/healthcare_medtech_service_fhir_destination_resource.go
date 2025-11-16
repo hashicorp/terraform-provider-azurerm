@@ -10,6 +10,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -117,7 +118,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	}
 
 	iotFhirServiceParameters := iotconnectors.IotFhirDestination{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: iotconnectors.IotFhirDestinationProperties{
 			FhirServiceResourceId:          d.Get("destination_fhir_service_id").(string),
 			ResourceIdentityResolutionType: iotconnectors.IotIdentityResolutionType(d.Get("destination_identity_resolution_type").(string)),
@@ -209,7 +210,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
 	medTechFhirServiceParameters := iotconnectors.IotFhirDestination{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: iotconnectors.IotFhirDestinationProperties{
 			FhirServiceResourceId:          d.Get("destination_fhir_service_id").(string),
 			ResourceIdentityResolutionType: iotconnectors.IotIdentityResolutionType(d.Get("destination_identity_resolution_type").(string)),

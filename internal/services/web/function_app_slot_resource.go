@@ -281,10 +281,10 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(int32(dailyMemoryTimeQuota))),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -313,7 +313,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -381,10 +381,10 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(int32(dailyMemoryTimeQuota))),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -433,7 +433,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -732,7 +732,7 @@ func expandFunctionAppSlotConnectionStrings(d *pluginsdk.ResourceData) map[strin
 		csValue := vals["value"].(string)
 
 		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
+			Value: pointer.To(csValue),
 			Type:  web.ConnectionStringType(csType),
 		}
 	}

@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func GetThroughputFromResultLegacy(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {
@@ -41,11 +41,11 @@ func GetThroughputFromResult(throughputResponse cosmosdb.ThroughputSettingsGetRe
 }
 
 func ConvertThroughputFromResourceDataLegacy(throughput interface{}) *int32 {
-	return utils.Int32(int32(throughput.(int)))
+	return pointer.To(int32(int32(throughput.(int))))
 }
 
 func ConvertThroughputFromResourceData(throughput interface{}) *int64 {
-	return utils.Int64(int64(throughput.(int)))
+	return pointer.To(int64(int64(throughput.(int))))
 }
 
 func ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d *pluginsdk.ResourceData) *documentdb.ThroughputSettingsUpdateParameters {

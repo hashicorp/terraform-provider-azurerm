@@ -282,12 +282,12 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
 		Properties: scheduledqueryrules.LogSearchRule{
-			Description:  utils.String(description),
+			Description:  pointer.To(description),
 			Enabled:      pointer.To(enabled),
 			Source:       source,
 			Schedule:     schedule,
 			Action:       action,
-			AutoMitigate: utils.Bool(autoMitigate),
+			AutoMitigate: pointer.To(autoMitigate),
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -406,7 +406,7 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	}
 
 	if throttling, ok := d.Get("throttling").(int); ok && throttling != 0 {
-		action.ThrottlingInMin = utils.Int64(int64(throttling))
+		action.ThrottlingInMin = pointer.To(int64(int64(throttling)))
 	}
 
 	return &action
@@ -429,9 +429,9 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduled
 		}
 		actionGroups := v["action_group"].(*pluginsdk.Set).List()
 		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
-		result.EmailSubject = utils.String(v["email_subject"].(string))
+		result.EmailSubject = pointer.To(v["email_subject"].(string))
 		if v := v["custom_webhook_payload"].(string); v != "" {
-			result.CustomWebhookPayload = utils.String(v)
+			result.CustomWebhookPayload = pointer.To(v)
 		}
 	}
 
@@ -453,9 +453,9 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *sc
 			continue
 		}
 		result.ThresholdOperator = pointer.To(scheduledqueryrules.ConditionalOperator(v["operator"].(string)))
-		result.Threshold = utils.Float(v["threshold"].(float64))
+		result.Threshold = pointer.To(v["threshold"].(float64))
 		result.MetricTriggerType = pointer.To(scheduledqueryrules.MetricTriggerType(v["metric_trigger_type"].(string)))
-		result.MetricColumn = utils.String(v["metric_column"].(string))
+		result.MetricColumn = pointer.To(v["metric_column"].(string))
 	}
 
 	return &result

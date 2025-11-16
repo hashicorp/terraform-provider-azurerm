@@ -134,7 +134,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Name:     pointer.To(name),
 		Location: pointer.To(location),
 		Properties: &caches.CacheProperties{
-			CacheSizeGB:     utils.Int64(int64(cacheSize)),
+			CacheSizeGB:     pointer.To(int64(int64(cacheSize))),
 			Subnet:          pointer.To(subnet),
 			NetworkSettings: expandStorageCacheNetworkSettings(d),
 			SecuritySettings: &caches.CacheSecuritySettings{
@@ -456,7 +456,7 @@ func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interfac
 
 func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheNetworkSettings {
 	out := &caches.CacheNetworkSettings{
-		Mtu:       utils.Int64(int64(d.Get("mtu").(int))),
+		Mtu:       pointer.To(int64(int64(d.Get("mtu").(int)))),
 		NtpServer: pointer.To(d.Get("ntp_server").(string)),
 	}
 

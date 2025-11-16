@@ -179,10 +179,10 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 			}
 
 			input := networkmanagers.NetworkManager{
-				Location: utils.String(azure.NormalizeLocation(state.Location)),
-				Name:     utils.String(state.Name),
+				Location: pointer.To(azure.NormalizeLocation(state.Location)),
+				Name:     pointer.To(state.Name),
 				Properties: &networkmanagers.NetworkManagerProperties{
-					Description:                 utils.String(state.Description),
+					Description:                 pointer.To(state.Description),
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
@@ -277,7 +277,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Model.Properties.Description = utils.String(state.Description)
+				existing.Model.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("scope") {
@@ -312,7 +312,7 @@ func (r ManagerResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s..", *id)
 			err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

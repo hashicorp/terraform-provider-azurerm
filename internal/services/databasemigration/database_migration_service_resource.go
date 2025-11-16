@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatabaseMigrationService() *pluginsdk.Resource {
@@ -106,9 +106,9 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 			VirtualSubnetId: d.Get("subnet_id").(string),
 		},
 		Sku: &serviceresource.ServiceSku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Kind: utils.String("Cloud"), // currently only "Cloud" is supported, hence hardcode here
+		Kind: pointer.To("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
 	if t, ok := d.GetOk("tags"); ok {
 		parameters.Tags = tags.Expand(t.(map[string]interface{}))
@@ -191,7 +191,7 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	opts := serviceresource.ServicesDeleteOperationOptions{
-		DeleteRunningTasks: utils.Bool(false),
+		DeleteRunningTasks: pointer.To(false),
 	}
 	if err := client.ServicesDeleteThenPoll(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

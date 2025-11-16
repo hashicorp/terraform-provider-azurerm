@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
@@ -212,7 +211,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMSize:                 pointer.To(d.Get("vm_size").(string)),
 		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
@@ -232,9 +231,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// to configuration files 'location' field...
 	computeClusterProperties := machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		ComputeLocation:  pointer.To(d.Get("location").(string)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'ComputeResource' 'Location' field should always point
@@ -426,8 +425,8 @@ func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.
 
 	return &machinelearningcomputes.UserAccountCredentials{
 		AdminUserName:         v["admin_username"].(string),
-		AdminUserPassword:     utils.String(v["admin_password"].(string)),
-		AdminUserSshPublicKey: utils.String(v["key_value"].(string)),
+		AdminUserPassword:     pointer.To(v["admin_password"].(string)),
+		AdminUserSshPublicKey: pointer.To(v["key_value"].(string)),
 	}
 }
 

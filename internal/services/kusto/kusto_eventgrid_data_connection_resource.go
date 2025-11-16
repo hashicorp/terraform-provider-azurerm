@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
@@ -209,12 +208,12 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	dataConnection := dataconnections.EventGridDataConnection{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &dataconnections.EventGridConnectionProperties{
 			StorageAccountResourceId: d.Get("storage_account_id").(string),
 			EventHubResourceId:       d.Get("eventhub_id").(string),
 			ConsumerGroup:            d.Get("eventhub_consumer_group_name").(string),
-			IgnoreFirstRecord:        utils.Bool(d.Get("skip_first_record").(bool)),
+			IgnoreFirstRecord:        pointer.To(d.Get("skip_first_record").(bool)),
 		},
 	}
 
@@ -222,11 +221,11 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	dataConnection.Properties.BlobStorageEventType = &blobStorageEventType
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		dataConnection.Properties.TableName = utils.String(tableName.(string))
+		dataConnection.Properties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		dataConnection.Properties.MappingRuleName = utils.String(mappingRuleName.(string))
+		dataConnection.Properties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
@@ -240,19 +239,19 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {
-		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
+		dataConnection.Properties.EventGridResourceId = pointer.To(eventGridRID.(string))
 	}
 
 	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); !features.FivePointOh() && ok {
-		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
+		dataConnection.Properties.EventGridResourceId = pointer.To(eventGridRID.(string))
 	}
 
 	if managedIdentityRID, ok := d.GetOk("managed_identity_id"); ok {
-		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
+		dataConnection.Properties.ManagedIdentityResourceId = pointer.To(managedIdentityRID.(string))
 	}
 
 	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); !features.FivePointOh() && ok {
-		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
+		dataConnection.Properties.ManagedIdentityResourceId = pointer.To(managedIdentityRID.(string))
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection)

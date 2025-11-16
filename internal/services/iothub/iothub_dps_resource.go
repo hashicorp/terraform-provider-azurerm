@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -231,12 +231,12 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	allocationPolicy := iotdpsresource.AllocationPolicy(d.Get("allocation_policy").(string))
 	iotdps := iotdpsresource.ProvisioningServiceDescription{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Name:     utils.String(id.ProvisioningServiceName),
+		Name:     pointer.To(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: iotdpsresource.IotDpsPropertiesDescription{
 			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 			AllocationPolicy:    &allocationPolicy,
-			EnableDataResidency: utils.Bool(d.Get("data_residency_enabled").(bool)),
+			EnableDataResidency: pointer.To(d.Get("data_residency_enabled").(bool)),
 			IPFilterRules:       expandDpsIPFilterRules(d),
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
@@ -436,7 +436,7 @@ func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo 
 	skuName := iotdpsresource.IotDpsSku(skuMap["name"].(string))
 	return iotdpsresource.IotDpsSkuInfo{
 		Name:     &skuName,
-		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
+		Capacity: pointer.To(int64(int64(skuMap["capacity"].(int)))),
 	}
 }
 
@@ -447,8 +447,8 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iotdpsresource.IotHubDefinit
 		linkedHubConfig := attr.(map[string]interface{})
 		linkedHub := iotdpsresource.IotHubDefinitionDescription{
 			ConnectionString:      linkedHubConfig["connection_string"].(string),
-			AllocationWeight:      utils.Int64(int64(linkedHubConfig["allocation_weight"].(int))),
-			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
+			AllocationWeight:      pointer.To(int64(int64(linkedHubConfig["allocation_weight"].(int)))),
+			ApplyAllocationPolicy: pointer.To(linkedHubConfig["apply_allocation_policy"].(bool)),
 			Location:              azure.NormalizeLocation(linkedHubConfig["location"].(string)),
 		}
 

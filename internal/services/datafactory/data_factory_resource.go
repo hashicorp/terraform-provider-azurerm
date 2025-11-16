@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactory() *pluginsdk.Resource {
@@ -259,7 +258,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	location := location.Normalize(d.Get("location").(string))
 	payload := factories.Factory{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &factories.FactoryProperties{
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
@@ -284,7 +283,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &factories.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
+				UserAssignedIdentity: pointer.To(d.Get("customer_managed_key_identity_id").(string)),
 			},
 		}
 	}
@@ -303,7 +302,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]interface{}))
 	if githubConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: githubConfiguration,
 		}
 		locationId := factories.NewLocationID(id.SubscriptionId, location)
@@ -314,7 +313,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]interface{}))
 	if vstsConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: vstsConfiguration,
 		}
 		locationId := factories.NewLocationID(id.SubscriptionId, location)

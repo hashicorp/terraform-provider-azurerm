@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_id,resource_group_name:gallery_id,gallery_name:gallery_id"
@@ -159,7 +158,7 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.Description != "" {
-				payload.Properties.Description = utils.String(state.Description)
+				payload.Properties.Description = pointer.To(state.Description)
 			}
 
 			if state.EndOfLifeDate != "" {
@@ -168,15 +167,15 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.Eula != "" {
-				payload.Properties.Eula = utils.String(state.Eula)
+				payload.Properties.Eula = pointer.To(state.Eula)
 			}
 
 			if state.PrivacyStatementURI != "" {
-				payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
+				payload.Properties.PrivacyStatementUri = pointer.To(state.PrivacyStatementURI)
 			}
 
 			if state.ReleaseNoteURI != "" {
-				payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
+				payload.Properties.ReleaseNoteUri = pointer.To(state.ReleaseNoteURI)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -291,7 +290,7 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("description") {
-					payload.Properties.Description = utils.String(state.Description)
+					payload.Properties.Description = pointer.To(state.Description)
 				}
 
 				if metadata.ResourceData.HasChange("end_of_life_date") {
@@ -300,15 +299,15 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("eula") {
-					payload.Properties.Eula = utils.String(state.Eula)
+					payload.Properties.Eula = pointer.To(state.Eula)
 				}
 
 				if metadata.ResourceData.HasChange("privacy_statement_uri") {
-					payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
+					payload.Properties.PrivacyStatementUri = pointer.To(state.PrivacyStatementURI)
 				}
 
 				if metadata.ResourceData.HasChange("release_note_uri") {
-					payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
+					payload.Properties.ReleaseNoteUri = pointer.To(state.ReleaseNoteURI)
 				}
 			}
 

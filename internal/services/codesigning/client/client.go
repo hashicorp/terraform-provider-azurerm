@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	codesigning_v2024_09_30_preview "github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview"
-
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

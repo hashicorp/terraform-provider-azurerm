@@ -83,7 +83,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	parameters := resources.Group{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Tags:     tags.Expand(t),
 	}
 
@@ -199,7 +199,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		resourceClient := meta.(*clients.Client).Resource.LegacyResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", pointer.To(int32(500)))
 			if err != nil {
 				if response.WasNotFound(results.Response().Response.Response) {
 					return nil

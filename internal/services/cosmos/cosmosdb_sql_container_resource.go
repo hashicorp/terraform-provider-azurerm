@@ -205,7 +205,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+		db.Properties.Resource.PartitionKey.Version = pointer.To(int64(int64(partitionKeyVersion.(int))))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -215,11 +215,11 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(analyticalStorageTTL.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(int64(analyticalStorageTTL.(int))))
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(int64(defaultTTL.(int))))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -282,7 +282,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+		db.Properties.Resource.PartitionKey.Version = pointer.To(int64(int64(partitionKeyVersion.(int))))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -292,11 +292,11 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(analyticalStorageTTL.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(int64(analyticalStorageTTL.(int))))
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(int64(defaultTTL.(int))))
 	}
 
 	err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db)

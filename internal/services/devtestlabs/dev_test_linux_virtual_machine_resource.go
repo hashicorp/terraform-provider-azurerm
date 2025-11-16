@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
@@ -209,22 +209,22 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 
 	authenticateViaSsh := sshKey != ""
 	parameters := virtualmachines.LabVirtualMachine{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: virtualmachines.LabVirtualMachineProperties{
-			AllowClaim:                 utils.Bool(allowClaim),
-			IsAuthenticationWithSshKey: utils.Bool(authenticateViaSsh),
-			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
+			AllowClaim:                 pointer.To(allowClaim),
+			IsAuthenticationWithSshKey: pointer.To(authenticateViaSsh),
+			DisallowPublicIPAddress:    pointer.To(disallowPublicIPAddress),
 			GalleryImageReference:      galleryImageReference,
-			LabSubnetName:              utils.String(labSubnetName),
-			LabVirtualNetworkId:        utils.String(labVirtualNetworkId),
+			LabSubnetName:              pointer.To(labSubnetName),
+			LabVirtualNetworkId:        pointer.To(labVirtualNetworkId),
 			NetworkInterface:           &nic,
-			OsType:                     utils.String("Linux"),
-			Notes:                      utils.String(notes),
-			Password:                   utils.String(password),
-			Size:                       utils.String(size),
-			SshKey:                     utils.String(sshKey),
-			StorageType:                utils.String(storageType),
-			UserName:                   utils.String(username),
+			OsType:                     pointer.To("Linux"),
+			Notes:                      pointer.To(notes),
+			Password:                   pointer.To(password),
+			Size:                       pointer.To(size),
+			SshKey:                     pointer.To(sshKey),
+			StorageType:                pointer.To(storageType),
+			UserName:                   pointer.To(username),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
