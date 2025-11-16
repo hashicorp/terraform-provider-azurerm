@@ -5624,11 +5624,9 @@ func (r StorageAccountResource) defaultTagsProviderOnlyConfig(data acceptance.Te
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
+  default_tags = {
       managed_by  = "terraform"
       environment = "test"
-    }
   }
 }
 
@@ -5678,11 +5676,9 @@ func (r StorageAccountResource) defaultTagsProviderAndResourceNonOverlappingConf
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
+  default_tags = {
       managed_by  = "terraform"
       environment = "test"
-    }
   }
 }
 
@@ -5711,11 +5707,9 @@ func (r StorageAccountResource) defaultTagsProviderAndResourceOverlappingConfig(
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
+  default_tags = {
       managed_by  = "terraform"
       environment = "test"
-    }
   }
 }
 
@@ -5744,12 +5738,10 @@ func (r StorageAccountResource) defaultTagsProviderUpdatedConfig(data acceptance
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
+  default_tags = {
       managed_by  = "terraform-updated"
       environment = "test"
       owner       = "platform"
-    }
   }
 }
 
@@ -5773,11 +5765,9 @@ func (r StorageAccountResource) defaultTagsResourceUpdateConfig(data acceptance.
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
+  default_tags = {
       managed_by  = "terraform"
       environment = "test"
-    }
   }
 }
 

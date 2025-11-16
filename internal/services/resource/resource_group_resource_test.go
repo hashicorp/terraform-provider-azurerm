@@ -318,6 +318,11 @@ func TestAccResourceGroup_defaultTags_providerAndResource_duplicateTag(t *testin
 	tagsHelpers.TestDefaultTagsProviderAndResourceDuplicateTag(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceOverlappingConfig)
 }
 
+func TestAccResourceGroup_tagsAllComputedAtPlanTime(t *testing.T) {
+	testResource := ResourceGroupResource{}
+	tagsHelpers.TestTagsAllComputedAtPlanTime(t, "azurerm_resource_group", testResource, testResource.defaultTagsProviderAndResourceNonOverlappingConfig)
+}
+
 func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -338,11 +343,9 @@ func (t ResourceGroupResource) defaultTagsProviderOnlyConfig(data acceptance.Tes
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
-      managed_by  = "terraform"
-      environment = "test"
-    }
+  default_tags = {
+    managed_by  = "terraform"
+    environment = "test"
   }
 }
 
@@ -376,11 +379,9 @@ func (t ResourceGroupResource) defaultTagsProviderAndResourceNonOverlappingConfi
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
-      managed_by  = "terraform"
-      environment = "test"
-    }
+  default_tags = {
+    managed_by  = "terraform"
+    environment = "test"
   }
 }
 
@@ -401,11 +402,9 @@ func (t ResourceGroupResource) defaultTagsProviderAndResourceOverlappingConfig(d
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
-      managed_by  = "terraform"
-      environment = "test"
-    }
+  default_tags = {
+    managed_by  = "terraform"
+    environment = "test"
   }
 }
 
@@ -426,12 +425,10 @@ func (t ResourceGroupResource) defaultTagsProviderUpdatedConfig(data acceptance.
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
-      managed_by  = "terraform-updated"
-      environment = "test"
-      owner       = "platform"
-    }
+  default_tags = {
+    managed_by  = "terraform-updated"
+    environment = "test"
+    owner       = "platform"
   }
 }
 
@@ -447,11 +444,9 @@ func (t ResourceGroupResource) defaultTagsResourceUpdateConfig(data acceptance.T
 provider "azurerm" {
   features {}
 
-  default_tags {
-    tags = {
-      managed_by  = "terraform"
-      environment = "test"
-    }
+  default_tags = {
+    managed_by  = "terraform"
+    environment = "test"
   }
 }
 
