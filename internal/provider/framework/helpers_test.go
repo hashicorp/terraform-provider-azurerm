@@ -4,9 +4,11 @@
 package framework
 
 import (
+	"context"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -287,5 +289,116 @@ func Test_decodeCertificateExpectError(t *testing.T) {
 	}
 	if !strings.HasPrefix(err.Error(), "could not decode client certificate data:") {
 		t.Fatalf("did not get expected error, got '%v'", err)
+	}
+}
+
+func Test_extractDefaultTags_Null(t *testing.T) {
+	frameworkTags := basetypes.NewMapNull(basetypes.StringType{})
+	var diags diag.Diagnostics
+
+	result := extractDefaultTags(context.Background(), frameworkTags, &diags)
+
+	if len(result) != 0 {
+		t.Fatalf("expected empty map for null, got %d items", len(result))
+	}
+	if diags.HasError() {
+		t.Fatalf("expected no diagnostics for null, got %v", diags.Errors())
+	}
+}
+
+func Test_extractDefaultTags_Unknown(t *testing.T) {
+	frameworkTags := basetypes.NewMapUnknown(basetypes.StringType{})
+	var diags diag.Diagnostics
+
+	result := extractDefaultTags(context.Background(), frameworkTags, &diags)
+
+	if len(result) != 0 {
+		t.Fatalf("expected empty map for unknown, got %d items", len(result))
+	}
+	if diags.HasError() {
+		t.Fatalf("expected no diagnostics for unknown, got %v", diags.Errors())
+	}
+}
+
+func Test_extractDefaultTags_SingleTag(t *testing.T) {
+	expectedKey := "env"
+	expectedValue := "dev"
+
+	elements := map[string]basetypes.StringValue{
+		expectedKey: basetypes.NewStringValue(expectedValue),
+	}
+	frameworkTags, _ := basetypes.NewMapValueFrom(context.Background(), basetypes.StringType{}, elements)
+	var diags diag.Diagnostics
+
+	result := extractDefaultTags(context.Background(), frameworkTags, &diags)
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 tag, got %d", len(result))
+	}
+	if diags.HasError() {
+		t.Fatalf("expected no diagnostics, got %v", diags.Errors())
+	}
+	if result[expectedKey] == nil {
+		t.Fatalf("expected tag %s to exist", expectedKey)
+	}
+	if *result[expectedKey] != expectedValue {
+		t.Fatalf("expected %s=%s, got %s=%s", expectedKey, expectedValue, expectedKey, *result[expectedKey])
+	}
+}
+
+func Test_extractDefaultTags_MultipleTags(t *testing.T) {
+	elements := map[string]basetypes.StringValue{
+		"managed_by": basetypes.NewStringValue("terraform"),
+		"owner":      basetypes.NewStringValue("platform"),
+		"env":        basetypes.NewStringValue("prod"),
+	}
+	frameworkTags, _ := basetypes.NewMapValueFrom(context.Background(), basetypes.StringType{}, elements)
+	var diags diag.Diagnostics
+
+	result := extractDefaultTags(context.Background(), frameworkTags, &diags)
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 tags, got %d", len(result))
+	}
+	if diags.HasError() {
+		t.Fatalf("expected no diagnostics, got %v", diags.Errors())
+	}
+
+	expectedTags := map[string]string{
+		"managed_by": "terraform",
+		"owner":      "platform",
+		"env":        "prod",
+	}
+
+	for key, expectedValue := range expectedTags {
+		if result[key] == nil {
+			t.Fatalf("expected tag %s to exist", key)
+		}
+		if *result[key] != expectedValue {
+			t.Fatalf("expected %s=%s, got %s", key, expectedValue, *result[key])
+		}
+	}
+}
+
+func Test_extractDefaultTags_PointerCapture(t *testing.T) {
+	// This test verifies that pointers correctly capture unique values
+	// and don't all point to the same address (a common Go gotcha)
+	elements := map[string]basetypes.StringValue{
+		"tag1": basetypes.NewStringValue("value1"),
+		"tag2": basetypes.NewStringValue("value2"),
+	}
+	frameworkTags, _ := basetypes.NewMapValueFrom(context.Background(), basetypes.StringType{}, elements)
+	var diags diag.Diagnostics
+
+	result := extractDefaultTags(context.Background(), frameworkTags, &diags)
+
+	tag1Ptr := result["tag1"]
+	tag2Ptr := result["tag2"]
+
+	if tag1Ptr == tag2Ptr {
+		t.Fatal("pointers should not be equal (indicates loop variable capture bug)")
+	}
+	if *tag1Ptr == *tag2Ptr {
+		t.Fatal("values should not be equal (indicates loop variable capture bug)")
 	}
 }
