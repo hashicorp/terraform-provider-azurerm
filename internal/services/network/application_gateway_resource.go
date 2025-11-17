@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -4760,9 +4761,9 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
-	oldTierInterface, newTierInterface := d.GetChange("sku.0.tier")
-	oldTier := oldTierInterface.(string)
-	tier := newTierInterface.(string)
+	oldSkuTier, newSkuTier := d.GetChange("sku.0.tier")
+	oldTier := oldSkuTier.(string)
+	tier := newSkuTier.(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
 		err := checkBasicSkuFeatures(d)
@@ -4803,8 +4804,16 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
-	if oldTier != tier && (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierBasic)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAF))) {
-		return fmt.Errorf("the creation of new %q V1 SKU is no longer supported, please use V2 SKU with \"Basic\", \"Standard_v2\" or \"WAF_v2\" tier instead", tier)
+	if tier != "" && oldTier != tier && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
+		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\"", tier)
+	}
+
+	oldSkuNameTmp, newSkuNameTmp := d.GetChange("sku.0.name")
+	oldSkuName := oldSkuNameTmp.(string)
+	newSkuName := newSkuNameTmp.(string)
+
+	if newSkuName != "" && oldSkuName != newSkuName && slices.Contains(networkValidate.DeprecatedV1SkuNames, newSkuName) {
+		return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\"", newSkuName)
 	}
 
 	return nil
