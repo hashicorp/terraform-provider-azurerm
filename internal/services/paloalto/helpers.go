@@ -42,7 +42,7 @@ func flattenPaloAltoUserAssignedToLegacyIdentity(input *identity.LegacySystemAnd
 
 	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
 	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+		return nil, fmt.Errorf("flattening `identity`: %+v", err)
 	}
 
 	return *output, nil
