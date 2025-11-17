@@ -426,9 +426,18 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_storage_account`
 
+* The deprecated `customer_managed_key.managed_hsm_key_id` has been removed in favour of the `customer_managed_key.key_vault_key_id` property.
+* The property `min_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
-* The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
+
+### `azurerm_storage_account_customer_managed_key`
+
+* The deprecated `key_vault_uri` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_name` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_version` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_vault_id` property has been removed in favour of the `key_vault_key_id` property.
 
 ### `azurerm_synapse_spark_pool`
 

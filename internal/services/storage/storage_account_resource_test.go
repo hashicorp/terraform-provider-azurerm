@@ -1577,6 +1577,7 @@ func TestAccStorageAccount_customerManagedKeyForHSM(t *testing.T) {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -4624,7 +4625,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r StorageAccountResource) customerManagedKeyForHSM(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account" "test" {
@@ -4644,6 +4646,36 @@ resource "azurerm_storage_account" "test" {
 
   customer_managed_key {
     managed_hsm_key_id        = azurerm_key_vault_managed_hardware_security_module_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.user,
+  ]
+}
+`, r.hsmKeyTemplate(data), data.RandomString)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_managed_hardware_security_module_key.test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -5357,8 +5389,7 @@ resource "azurerm_storage_account" "test" {
 
 func (r StorageAccountResource) hsmKeyTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-KV-%[1]s"
