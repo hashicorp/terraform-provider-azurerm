@@ -293,6 +293,10 @@ func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
+resource "time_offset" "test" {
+  offset_minutes = 15
+}
+
 resource "azurerm_mongo_cluster" "point_in_time_restore" {
   name                   = "acctest-mc-restore%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -303,12 +307,11 @@ resource "azurerm_mongo_cluster" "point_in_time_restore" {
 
   restore {
     source_id         = azurerm_mongo_cluster.test.id
-    point_in_time_utc = timeadd(timestamp(), "-1s")
+    point_in_time_utc = time_offset.test.rfc3339
   }
 
-  // As "point_in_time_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
-    ignore_changes = [restore.0.point_in_time_utc, source_server_id, high_availability_mode, preview_features, shard_count, storage_size_in_gb, compute_tier, version]
+    ignore_changes = [source_server_id, high_availability_mode, preview_features, shard_count, storage_size_in_gb, compute_tier, version]
   }
 }
 `, r.source(data), data.RandomInteger)

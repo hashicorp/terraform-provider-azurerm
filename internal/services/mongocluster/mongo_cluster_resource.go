@@ -396,7 +396,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
+					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
 			}
 
@@ -641,7 +641,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)
-						state.StorageType = string(pointer.From(v.Type))
+						state.StorageType = pointer.FromEnum(v.Type)
 					}
 					if v := props.PreviewFeatures; v != nil {
 						state.PreviewFeatures = flattenMongoClusterPreviewFeatures(v)
