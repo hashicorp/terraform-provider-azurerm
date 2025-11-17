@@ -162,7 +162,7 @@ func (EventGridPartnerNamespaceChannelResource) CustomizeDiff() sdk.ResourceFunc
 				return rd.ForceNew("expiration_time_if_not_activated_in_utc")
 			}
 
-			if v := rd.Get("partner_topic.0.event_type_definitions.0.inline_event_type"); v != nil {
+			if v := rd.Get("partner_topic.0.inline_event_type"); v != nil {
 				inlineEventTypes := v.(*pluginsdk.Set).List()
 				if err := validate.ValidateUniqueInlineEventTypeNames(inlineEventTypes); err != nil {
 					return err

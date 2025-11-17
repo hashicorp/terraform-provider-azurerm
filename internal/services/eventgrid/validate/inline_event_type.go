@@ -13,7 +13,7 @@ func ValidateUniqueInlineEventTypeNames(input []interface{}) error {
 		name := eventType["name"].(string)
 
 		if seen[name] {
-			return errors.New("invalid value for `partner_topic.0.event_type_definitions.0.inline_event_type` - `name` must be unique")
+			return errors.New("invalid value for `partner_topic.0.inline_event_type` - `name` must be unique")
 		}
 		seen[name] = true
 	}
