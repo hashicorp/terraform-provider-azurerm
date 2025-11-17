@@ -151,7 +151,7 @@ The following arguments are supported:
 
 * `pool_name` - (Required) The name of the NetApp pool in which the NetApp Volume should be created.
 
-* `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
+* `service_level` - (Required) The target performance of the file system. Possible values are `Premium`, `Standard`, `Ultra` and `Flexible`.
 
 ~> **Note:** When updating `service_level` by migrating it to another Capacity Pool, both `service_level` and `pool_name` must be changed, otherwise the volume will be recreated with the specified `service_level`.
 
