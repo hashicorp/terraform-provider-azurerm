@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+var _ sdk.DataSource = ExascaleDatabaseVirtualMachineClusterDataSource{}
+
 type ExascaleDatabaseVirtualMachineClusterDataSource struct{}
 
 type ExascaleDatabaseVirtualMachineClusterDataModel struct {
@@ -86,14 +88,9 @@ type ExascaleDatabaseIormConfigModel struct {
 	Share           int64  `tfschema:"share"`
 }
 
-type ExascaleDatabaseVirtualMachineClusterStorageModel struct {
-	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
-}
-
 func (d ExascaleDatabaseVirtualMachineClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-		"zones":               commonschema.ZonesMultipleOptional(),
 
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -440,6 +437,8 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"zones": commonschema.ZonesMultipleComputed(),
 	}
 }
 
@@ -495,9 +494,9 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
 					state.IormConfigCache = flattenIormConfig(props.IormConfigCache)
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
-					state.LifecycleState = string(*props.LifecycleState)
+					state.LifecycleState = pointer.FromEnum(props.LifecycleState)
 					state.ListenerPort = pointer.From(props.ListenerPort)
 					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
 					state.NodeCount = props.NodeCount
@@ -520,7 +519,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.TotalEcpuCount = props.TotalEcpuCount
 					state.TotalFileSystemStorage = flattenExadbVmClusterStorage(props.TotalFileSystemStorage)
-					state.VirtualIpIds = *props.VipIds
+					state.VirtualIpIds = pointer.From(props.VipIds)
 					state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
 					state.VnetId = props.VnetId
 					state.ZoneOcid = pointer.From(props.ZoneOcid)

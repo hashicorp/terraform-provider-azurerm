@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_zone_ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the zone the Exadata VM cluster on Exascale Infrastructure is associated with.
 
-* `scan_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
+* `single_client_access_name_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
 
 * `single_client_access_name_dns_record_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DNS record for the SCAN IP addresses that are associated with the Exadata VM Cluster.
 
@@ -124,6 +124,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `virtual_network_id` - The ID to an Azure Resource Manager Virtual Network resource.
 
 * `zone_ocid` - The OCID of the zone the Exadata VM cluster on Exascale Infrastructure is associated with.
+
+* `zones` - A list of Availability Zones in which this Exadata VM cluster is located.
 
 ---
 
@@ -181,7 +183,7 @@ A `file_system_storage_details` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Exadata VM Cluster.
 

@@ -14,6 +14,10 @@ type ExascaleDatabaseDataCollectionModel struct {
 	IncidentLogsEnabled      bool `tfschema:"incident_logs_enabled"`
 }
 
+type ExascaleDatabaseVirtualMachineClusterStorageModel struct {
+	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
+}
+
 type NetworkSecurityGroupCidrModel struct {
 	DestinationPortRange []PortRangeModel `tfschema:"destination_port_range"`
 	Source               string           `tfschema:"source"`

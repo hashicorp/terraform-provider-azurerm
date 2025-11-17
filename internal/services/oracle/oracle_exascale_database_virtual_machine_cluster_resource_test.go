@@ -39,6 +39,8 @@ func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ocid").Exists(),
+				check.That(data.ResourceName).Key("zone_ocid").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -53,6 +55,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_cidr.#").HasValue("2"),
 			),
 		},
 		data.ImportStep("data_collection", "system_version"),
@@ -146,6 +149,20 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
     diagnostics_events_enabled = true
     health_monitoring_enabled  = true
     incident_logs_enabled      = true
+  }
+  network_security_group_cidr {
+    source = "10.0.0.0/16"
+    destination_port_range {
+      min = 10000
+      max = 10100
+    }
+  }
+  network_security_group_cidr {
+    source = "10.0.0.0/16"
+    destination_port_range {
+      min = 12000
+      max = 12100
+    }
   }
   domain                                          = "ociactsubnet.ociactvnet.oraclevcn.com"
   grid_image_ocid                                 = local.grid_image_ocid

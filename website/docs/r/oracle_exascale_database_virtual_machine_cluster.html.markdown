@@ -89,13 +89,13 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly name for the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created. The name does not need to be unique.
 
-* `enabled_ecpu_count` - (Required) The number of ECPUs to enable for an Exadata VM cluster on Exascale Infrastructure. Changing this forces a new resource to be created.
+* `enabled_ecpu_count` - (Required) The number of ECPUs to enable for an Exadata VM cluster on Exascale Infrastructure. Possible values range between `8` and `200`, and must be divisible by `4`. Changing this forces a new resource to be created.
 
 * `exascale_database_storage_vault_id` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exadata Database Storage Vault. Changing this forces a new Exadata VM Cluster to be created.
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
 
-* `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure.
+* `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
 * `shape` - (Required) The shape of the Exadata VM cluster on Exascale Infrastructure resource.Possible values is `EXADBXS`.  Changing this forces a new resource to be created.
 
@@ -103,13 +103,13 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet associated with the Exadata VM Cluster. This subnet must belong to the specified virtual_network_id. Changing this value forces a new Exadata VM Cluster to be created.
 
-* `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure. Changing this forces a new resource to be created.
+* `total_ecpu_count` - (Required) The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure. Possible values range between `8` and `200`, and must be divisible by `4`. Changing this forces a new resource to be created.
 
 * `virtual_machine_file_system_storage` - (Required) A `virtual_machine_file_system_storage` block as defined below. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Exadata VM Cluster that the specified subnet belongs to. Changing this value forces a new Exadata VM Cluster to be created.
 
-* `zones` - (Required) Cloud Exadata Infrastructure zones. Changing this forces a new Cloud Exadata Infrastructure to be created.
+* `zones` - (Required) Specifies a list of Availability Zones in which this Exadata VM Cluster should be located. Changing this forces a new Exadata VM Cluster to be created.
 
 ---
 
@@ -127,11 +127,11 @@ The following arguments are supported:
 
 * `network_security_group_cidr` - (Optional) A `network_security_group_cidr` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
 
-* `private_zone_ocid` - (Optional) The The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
+* `private_zone_ocid` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
 
-* `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. Defaults to `1521`. Changing this forces a new Exadata VM Cluster to be created.
+* `single_client_access_name_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. Possible values range between `1024` and `8999`. Defaults to `1521`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. Defaults to `2484`. Changing this forces a new Exadata VM Cluster to be created.
+* `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. Possible values range between `1024` and `8999`. Defaults to `2484`. Changing this forces a new Exadata VM Cluster to be created.
 
 * `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX). Changing this forces a new resource to be created.
 
@@ -149,15 +149,15 @@ A `virtual_machine_file_system_storage` block supports the following:
 
 A `data_collection` block supports the following:
 
-* `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM cluster. Defaults to `false`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM cluster. Defaults to `false`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM cluster, Cloud VM cluster or VMBM DBCS. Changing this forces a new Cloud VM Cluster to be created.
+* `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM cluster. Defaults to `false`. Changing this forces a new Exadata VM Cluster to be created.
 
 ---
 
-A `network_security_group_cidr` block exports the following:
+A `network_security_group_cidr` block supports the following:
 
 * `destination_port_range` - (Required) A `destination_port_range` block as defined below.
 
@@ -165,11 +165,11 @@ A `network_security_group_cidr` block exports the following:
 
 ---
 
-A `destination_port_range` block exports the following:
+A `destination_port_range` block supports the following:
 
-* `max` - (Required) The maximum port number, which must not be less than the minimum port number. Changing this forces a new resource to be created.
+* `max` - (Required) The maximum port number, which must not be less than the minimum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
 
-* `min` - (Required) The minimum port number, which must not be greater than the maximum port number. Changing this forces a new resource to be created.
+* `min` - (Required) The minimum port number, which must not be greater than the maximum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -183,7 +183,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Exadata VM Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Exadata VM Cluster.
