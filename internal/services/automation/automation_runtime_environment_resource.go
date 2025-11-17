@@ -205,7 +205,6 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 			}
 
 			return meta.Encode(&output)
-
 		},
 	}
 }
