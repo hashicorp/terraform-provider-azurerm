@@ -185,7 +185,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstances.StatusConfiguringProtection), "UpdatingProtection"},
 		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
-		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
+		Refresh:    resourceDataProtectionBackupInstanceProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}
@@ -255,4 +255,22 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	}
 
 	return nil
+}
+
+func resourceDataProtectionBackupInstanceProtectionStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
+		}
+		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.ProtectionStatus == nil || res.Model.Properties.ProtectionStatus.Status == nil {
+			return nil, "", fmt.Errorf("reading DataProtection BackupInstance (%q) protection status: %+v", id, err)
+		}
+
+		if *res.Model.Properties.ProtectionStatus.Status == "ProtectionError" {
+			return nil, "", fmt.Errorf("DataProtection BackupInstance (%q) encountered a protection error: %s Recommended action: %s", id, *res.Model.Properties.ProtectionErrorDetails.Message, *res.Model.Properties.ProtectionErrorDetails.RecommendedAction)
+		}
+
+		return res, string(*res.Model.Properties.ProtectionStatus.Status), nil
+	}
 }
