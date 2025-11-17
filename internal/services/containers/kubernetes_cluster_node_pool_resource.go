@@ -431,27 +431,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"security_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enable_vtpm": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
-					},
-					"enable_secure_boot": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
-					},
-				},
-			},
-		},
+		"security_profile": schemaSecurityProfile(),
 	}
 
 	return s
@@ -1894,12 +1874,12 @@ func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSe
 	v := input[0].(map[string]interface{})
 	result := &agentpools.AgentPoolSecurityProfile{}
 
-	if enableVTPM := v["enable_vtpm"].(bool); enableVTPM {
-		result.EnableVTPM = pointer.To(enableVTPM)
+	if vtpmEnabled, ok := v["vtpm_enabled"].(bool); ok {
+		result.EnableVTPM = pointer.To(vtpmEnabled)
 	}
 
-	if enableSecureBoot := v["enable_secure_boot"].(bool); enableSecureBoot {
-		result.EnableSecureBoot = pointer.To(enableSecureBoot)
+	if secureBootEnabled, ok := v["secure_boot_enabled"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(secureBootEnabled)
 	}
 
 	return result
@@ -1910,20 +1890,10 @@ func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile)
 		return []interface{}{}
 	}
 
-	enableVTPM := false
-	if input.EnableVTPM != nil {
-		enableVTPM = *input.EnableVTPM
-	}
-
-	enableSecureBoot := false
-	if input.EnableSecureBoot != nil {
-		enableSecureBoot = *input.EnableSecureBoot
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enable_vtpm":        enableVTPM,
-			"enable_secure_boot": enableSecureBoot,
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
 		},
 	}
 }

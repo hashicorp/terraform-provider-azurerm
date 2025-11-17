@@ -30,6 +30,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func schemaSecurityProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vtpm_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+				},
+				"secure_boot_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+				},
+			},
+		},
+	}
+}
+
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -279,6 +303,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+
+					"security_profile": schemaSecurityProfile(),
 				}
 			}(),
 		},
@@ -1006,6 +1032,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := raw["security_profile"].([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandManagedClusterSecurityProfile(securityProfile)
+	}
+
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
 		profile,
 	}, nil
@@ -1364,6 +1394,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	securityProfile := flattenManagedClusterSecurityProfile(agentPool.SecurityProfile)
 
 	out := map[string]interface{}{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1403,6 +1434,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+		"security_profile":              securityProfile,
 	}
 
 	return &[]interface{}{
@@ -1908,4 +1940,36 @@ func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.I
 	}
 
 	return out
+}
+
+func expandManagedClusterSecurityProfile(input []interface{}) *managedclusters.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &managedclusters.AgentPoolSecurityProfile{}
+
+	if vtpmEnabled, ok := v["vtpm_enabled"].(bool); ok {
+		result.EnableVTPM = pointer.To(vtpmEnabled)
+	}
+
+	if secureBootEnabled, ok := v["secure_boot_enabled"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(secureBootEnabled)
+	}
+
+	return result
+}
+
+func flattenManagedClusterSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+		},
+	}
 }
