@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_db_system_versions"
 description: |-
-  Gets information about an existing  Oracle Dbsystem Versions.
+  Gets information about an existing  Oracle Database Systems Versions.
 ---
 
 # Data Source: azurerm_oracle_db_system_versions
 
-Use this data source to access information about an existing  Oracle Dbsystem Versions.
+Use this data source to access information about an existing  Oracle Database Systems Versions.
 
 ## Example Usage
 
@@ -26,7 +26,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region to query for the  Oracle Dbsystem Versions .
+* `location` - (Required) The Azure Region to query for the  Oracle Database Systems Versions .
 
 ---
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the azurerm Oracle Dbsystem Versions.
+* `id` - The ID of the azurerm Oracle Database Systems Versions.
 
 * `versions` - A `versions` block as defined below.
 
@@ -66,7 +66,7 @@ A `versions` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the azurerm Oracle Dbsystem Versions.
+* `read` - (Defaults to 5 minutes) Used when retrieving the azurerm Oracle Database Systems Versions.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

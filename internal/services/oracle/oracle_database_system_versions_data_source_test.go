@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DbVersionsDataSource struct{}
+type DatabaseVersionsDataSource struct{}
 
 func TestDbVersionsDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_versions", "test")
-	r := DbVersionsDataSource{}
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
+	r := DatabaseVersionsDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -26,8 +26,8 @@ func TestDbVersionsDataSource_basic(t *testing.T) {
 }
 
 func TestDbVersionsDataSource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_versions", "test")
-	r := DbVersionsDataSource{}
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
+	r := DatabaseVersionsDataSource{}
 
 	const testShape = "VM.Standard.x86"
 
@@ -43,8 +43,8 @@ func TestDbVersionsDataSource_complete(t *testing.T) {
 }
 
 func TestDbVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_versions", "test")
-	r := DbVersionsDataSource{}
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
+	r := DatabaseVersionsDataSource{}
 
 	const testFamily = "VIRTUALMACHINE"
 
@@ -59,25 +59,25 @@ func TestDbVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
 	})
 }
 
-func (d DbVersionsDataSource) basic(data acceptance.TestData) string {
+func (d DatabaseVersionsDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_oracle_db_system_versions" "test" {
+data "azurerm_oracle_database_system_versions" "test" {
   location = "%s"
 }
 `, data.Locations.Primary)
 }
 
-func (d DbVersionsDataSource) complete(data acceptance.TestData, shape string) string {
+func (d DatabaseVersionsDataSource) complete(data acceptance.TestData, shape string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_oracle_db_system_versions" "test" {
+data "azurerm_oracle_database_system_versions" "test" {
   location                          = "%[1]s"
   database_system_shape             = "%[2]s"
   upgrade_supported                 = true
@@ -86,13 +86,13 @@ data "azurerm_oracle_db_system_versions" "test" {
 `, data.Locations.Primary, shape)
 }
 
-func (d DbVersionsDataSource) shapeFamilyFilter(data acceptance.TestData, family string) string {
+func (d DatabaseVersionsDataSource) shapeFamilyFilter(data acceptance.TestData, family string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_oracle_db_system_versions" "test" {
+data "azurerm_oracle_database_system_versions" "test" {
   location                          = "%[1]s"
   shape_family                      = "%[2]s"
   upgrade_supported                 = true

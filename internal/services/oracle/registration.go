@@ -24,7 +24,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		DBNodesDataSource{},
 		DBServersDataSource{},
 		DbSystemShapesDataSource{},
-		DbVersionsDataSource{},
+		DatabaseVersionsDataSource{},
 		ExadataInfraDataSource{},
 		ExascaleDatabaseStorageVaultDataSource{},
 		GiVersionsDataSource{},

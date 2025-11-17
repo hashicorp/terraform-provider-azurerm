@@ -15,26 +15,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type DbVersionsDataSource struct{}
+type DatabaseVersionsDataSource struct{}
 
-type DbVersionsModel struct {
-	Location                       string               `tfschema:"location"`
-	DatabaseSystemShape            string               `tfschema:"database_system_shape"`
-	DatabaseSoftwareImageSupported *bool                `tfschema:"database_software_image_supported"`
-	UpgradeSupported               *bool                `tfschema:"upgrade_supported"`
-	ShapeFamily                    string               `tfschema:"shape_family"`
-	StorageManagement              string               `tfschema:"storage_management"`
-	Versions                       []DbVersionItemModel `tfschema:"versions"`
+type DatabaseVersionsModel struct {
+	Location                       string                     `tfschema:"location"`
+	DatabaseSystemShape            string                     `tfschema:"database_system_shape"`
+	DatabaseSoftwareImageSupported *bool                      `tfschema:"database_software_image_supported"`
+	ShapeFamily                    string                     `tfschema:"shape_family"`
+	StorageManagement              string                     `tfschema:"storage_management"`
+	UpgradeSupported               *bool                      `tfschema:"upgrade_supported"`
+	Versions                       []DatabaseVersionItemModel `tfschema:"versions"`
 }
 
-type DbVersionItemModel struct {
+type DatabaseVersionItemModel struct {
 	Name                  string `tfschema:"name"`
-	Version               string `tfschema:"version"`
 	LatestForMajorVersion bool   `tfschema:"latest_for_major_version"`
 	SupportsPdb           bool   `tfschema:"supports_pdb"`
+	Version               string `tfschema:"version"`
 }
 
-func (d DbVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
@@ -50,11 +50,6 @@ func (d DbVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Description: "Whether to filter versions that support database software images.",
 		},
-		"upgrade_supported": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Description: "Whether to filter versions that support upgrades.",
-		},
 		"shape_family": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -67,10 +62,15 @@ func (d DbVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForStorageManagementType(), false),
 			Description:  "The storage management type to filter versions by.",
 		},
+		"upgrade_supported": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Description: "Whether to filter versions that support upgrades.",
+		},
 	}
 }
 
-func (d DbVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"versions": {
 			Type:        pluginsdk.TypeList,
@@ -82,10 +82,6 @@ func (d DbVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
 					"latest_for_major_version": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
@@ -94,32 +90,36 @@ func (d DbVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
+					"version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
 	}
 }
 
-func (d DbVersionsDataSource) ModelObject() interface{} {
-	return &DbVersionsModel{}
+func (d DatabaseVersionsDataSource) ModelObject() interface{} {
+	return &DatabaseVersionsModel{}
 }
 
-func (d DbVersionsDataSource) ResourceType() string {
-	return "azurerm_oracle_db_system_versions"
+func (d DatabaseVersionsDataSource) ResourceType() string {
+	return "azurerm_oracle_database_system_versions"
 }
 
-func (d DbVersionsDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d DatabaseVersionsDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dbversions.ValidateDbSystemDbVersionID
 }
 
-func (d DbVersionsDataSource) Read() sdk.ResourceFunc {
+func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.DbVersions
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state DbVersionsModel
+			var state DatabaseVersionsModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -157,12 +157,12 @@ func (d DbVersionsDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state.Versions = make([]DbVersionItemModel, 0)
+			state.Versions = make([]DatabaseVersionItemModel, 0)
 
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
-						item := DbVersionItemModel{
+						item := DatabaseVersionItemModel{
 							Name:                  pointer.From(element.Name),
 							Version:               props.Version,
 							LatestForMajorVersion: pointer.From(props.IsLatestForMajorVersion),
