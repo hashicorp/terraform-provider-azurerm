@@ -12,45 +12,48 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = NetAppVolumeGroupSapHanaDataSource{}
+var _ sdk.DataSource = NetAppVolumeGroupSAPHanaDataSource{}
 
-type NetAppVolumeGroupSapHanaDataSource struct{}
+type NetAppVolumeGroupSAPHanaDataSource struct{}
 
-func (r NetAppVolumeGroupSapHanaDataSource) ResourceType() string {
+func (r NetAppVolumeGroupSAPHanaDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_sap_hana"
 }
 
-func (r NetAppVolumeGroupSapHanaDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeGroupSapHanaDataSourceModel{}
+func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() interface{} {
+	return &netAppModels.NetAppVolumeGroupSAPHanaDataSourceModel{}
 }
 
-func (r NetAppVolumeGroupSapHanaDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeGroupSAPHanaDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumegroups.ValidateVolumeGroupID
 }
 
-func (r NetAppVolumeGroupSapHanaDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupSAPHanaDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.VolumeGroupName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.AccountName,
 		},
 	}
 }
 
-func (r NetAppVolumeGroupSapHanaDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -233,13 +236,13 @@ func (r NetAppVolumeGroupSapHanaDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeGroupSAPHanaDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
 
-			var state netAppModels.NetAppVolumeGroupSapHanaDataSourceModel
+			var state netAppModels.NetAppVolumeGroupSAPHanaDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -262,7 +265,7 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 						state.GroupDescription = pointer.From(groupMetaData.GroupDescription)
 					}
 
-					volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
+					volumes, err := flattenNetAppVolumeGroupSAPHanaVolumes(ctx, props.Volumes, metadata)
 					if err != nil {
 						return fmt.Errorf("setting `volume`: %+v", err)
 					}

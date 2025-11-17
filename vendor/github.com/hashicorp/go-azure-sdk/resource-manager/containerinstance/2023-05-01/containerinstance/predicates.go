@@ -54,14 +54,14 @@ func (p CapabilitiesOperationPredicate) Matches(input Capabilities) bool {
 	return true
 }
 
-type ContainerGroupOperationPredicate struct {
+type ListResultContainerGroupOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p ContainerGroupOperationPredicate) Matches(input ContainerGroup) bool {
+func (p ListResultContainerGroupOperationPredicate) Matches(input ListResultContainerGroup) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false

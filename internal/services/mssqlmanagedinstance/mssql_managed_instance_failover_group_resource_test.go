@@ -89,6 +89,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
+  secondary_type              = "Standby"
 
   readonly_endpoint_failover_policy_enabled = true
 

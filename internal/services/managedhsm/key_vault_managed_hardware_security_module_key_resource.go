@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -122,6 +123,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 					string(keyvault.JSONWebKeyOperationUnwrapKey),
 					string(keyvault.JSONWebKeyOperationVerify),
 					string(keyvault.JSONWebKeyOperationWrapKey),
+					string(keyvault.JSONWebKeyOperationImport),
 				}, false),
 			},
 		},
@@ -138,7 +140,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -273,7 +275,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						log.Printf("[DEBUG] Key %q recovered with ID: %q", config.Name, *kid)
 					}
 				} else {
-					return fmt.Errorf("Creating Key: %+v", err)
+					return fmt.Errorf("creating Key: %+v", err)
 				}
 			}
 
@@ -328,7 +330,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				if key.N != nil {
 					nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 					if err != nil {
-						return fmt.Errorf("Could not decode N: %+v", err)
+						return fmt.Errorf("could not decode N: %+v", err)
 					}
 					schema.KeySize = int64(len(nBytes) * 8)
 				}

@@ -28,14 +28,12 @@ func FrontDoorSecurityPolicyDomainID(i interface{}, k string) (_ []string, error
 	// Fix for issue #18551: If the ID failed to parse try it again but case insensitively.
 	// I believe this is ok because it is just a pass through value and the service doesn't care
 	// about the passed values casing...
-	if err != nil {
-		if _, err := parse.FrontDoorCustomDomainIDInsensitively(v); err == nil {
-			return nil, nil
-		}
+	if _, err := parse.FrontDoorCustomDomainIDInsensitively(v); err == nil {
+		return nil, nil
+	}
 
-		if _, err := parse.FrontDoorEndpointIDInsensitively(v); err == nil {
-			return nil, nil
-		}
+	if _, err := parse.FrontDoorEndpointIDInsensitively(v); err == nil {
+		return nil, nil
 	}
 
 	return nil, []error{fmt.Errorf("%q is invalid: the %q needs to be a valid CDN Front Door Custom Domain ID or a valid CDN Front Door Endpoint ID: Unable to parse passed domain resource ID value %q", "domain", k, v)}

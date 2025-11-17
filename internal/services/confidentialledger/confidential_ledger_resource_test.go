@@ -8,21 +8,32 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ConfidentialLedgerResource struct{}
 
-func TestAccConfidentialLedger_public(t *testing.T) {
+func TestAccConfidentialLedgerSequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"confidentialLedger": {
+			"public":         testAccConfidentialLedger_public,
+			"private":        testAccConfidentialLedger_private,
+			"requiresImport": testAccConfidentialLedger_requiresImport,
+			"certBased":      testAccConfidentialLedger_certBased,
+		},
+	})
+}
+
+func testAccConfidentialLedger_public(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,11 +58,11 @@ func TestAccConfidentialLedger_public(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_private(t *testing.T) {
+func testAccConfidentialLedger_private(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -76,11 +87,11 @@ func TestAccConfidentialLedger_private(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_requiresImport(t *testing.T) {
+func testAccConfidentialLedger_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.public(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,11 +102,11 @@ func TestAccConfidentialLedger_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_certBased(t *testing.T) {
+func testAccConfidentialLedger_certBased(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			// add it
 			Config: r.certBased(data),
@@ -134,7 +145,7 @@ func (ConfidentialLedgerResource) Exists(ctx context.Context, clients *clients.C
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ConfidentialLedgerResource) public(data acceptance.TestData) string {
@@ -307,7 +318,7 @@ resource "azurerm_confidential_ledger" "test" {
   name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ledger_type         = "Public"
+  ledger_type         = "Private"
 
   azuread_based_service_principal {
     ledger_role_name = "Administrator"
@@ -367,5 +378,5 @@ resource "azurerm_user_assigned_identity" "second" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }

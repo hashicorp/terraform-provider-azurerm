@@ -6,12 +6,14 @@ package privatedns
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
@@ -29,12 +30,12 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsSrvRecordCreateUpdate,
 		Delete: resourcePrivateDnsSrvRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			resourceId, err := recordsets.ParseRecordTypeID(id)
+			resourceId, err := privatedns.ParseRecordTypeID(id)
 			if err != nil {
 				return err
 			}
-			if resourceId.RecordType != recordsets.RecordTypeSRV {
-				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeSRV, resourceId.RecordType)
+			if resourceId.RecordType != privatedns.RecordTypeSRV {
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, privatedns.RecordTypeSRV, resourceId.RecordType)
 			}
 			return nil
 		}),
@@ -102,7 +103,7 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 			"ttl": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 2147483647),
+				ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 			},
 
 			"fqdn": {
@@ -121,9 +122,9 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeSRV, d.Get("name").(string))
+	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.RecordSetsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
@@ -135,20 +136,20 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	parameters := recordsets.RecordSet{
-		Name: utils.String(id.RelativeRecordSetName),
-		Properties: &recordsets.RecordSetProperties{
+	parameters := privatedns.RecordSet{
+		Name: pointer.To(id.RelativeRecordSetName),
+		Properties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
-			Ttl:        utils.Int64(int64(d.Get("ttl").(int))),
+			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
 			SrvRecords: expandAzureRmPrivateDnsSrvRecords(d),
 		},
 	}
 
-	options := recordsets.CreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+	options := privatedns.RecordSetsCreateOrUpdateOperationOptions{
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
-	if _, err := client.CreateOrUpdate(ctx, id, parameters, options); err != nil {
+	if _, err := client.RecordSetsCreateOrUpdate(ctx, id, parameters, options); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -161,12 +162,12 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, *id)
+	resp, err := dnsClient.RecordSetsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -199,21 +200,21 @@ func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	options := recordsets.DeleteOperationOptions{IfMatch: utils.String("")}
+	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: pointer.To("")}
 
-	if _, err = dnsClient.Delete(ctx, *id, options); err != nil {
+	if _, err = dnsClient.RecordSetsDelete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenAzureRmPrivateDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]interface{} {
+func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
@@ -237,18 +238,18 @@ func flattenAzureRmPrivateDnsSrvRecords(records *[]recordsets.SrvRecord) []map[s
 	return results
 }
 
-func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvRecord {
+func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]privatedns.SrvRecord {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
-	records := make([]recordsets.SrvRecord, len(recordStrings))
+	records := make([]privatedns.SrvRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
 
-		srvRecord := recordsets.SrvRecord{
-			Priority: utils.Int64(int64(record["priority"].(int))),
-			Weight:   utils.Int64(int64(record["weight"].(int))),
-			Port:     utils.Int64(int64(record["port"].(int))),
-			Target:   utils.String(record["target"].(string)),
+		srvRecord := privatedns.SrvRecord{
+			Priority: pointer.To(int64(record["priority"].(int))),
+			Weight:   pointer.To(int64(record["weight"].(int))),
+			Port:     pointer.To(int64(record["port"].(int))),
+			Target:   pointer.To(record["target"].(string)),
 		}
 
 		records[i] = srvRecord

@@ -20,6 +20,12 @@ if [[ ! -f CHANGELOG.md ]]; then
   exit 2
 fi
 
+echo "Formatting changelog..."
+(
+  set -x
+  go run internal/tools/changelog-formatter/main.go CHANGELOG.md
+)
+
 # Get the next release
 RELEASE="$($SED -n 's/^## v?([0-9.]+) \(Unreleased\)/\1/p' CHANGELOG.md)"
 if [[ "${RELEASE}" == "" ]]; then

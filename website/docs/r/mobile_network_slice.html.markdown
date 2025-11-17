@@ -28,14 +28,11 @@ resource "azurerm_mobile_network" "example" {
 
 
 resource "azurerm_mobile_network_slice" "example" {
-  name              = "example-mns"
-  mobile_network_id = azurerm_mobile_network.example.id
-  location          = azurerm_resource_group.example.location
-  description       = "an example slice"
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "example-mns"
+  mobile_network_id  = azurerm_mobile_network.example.id
+  location           = azurerm_resource_group.example.location
+  description        = "an example slice"
+  slice_service_type = 1
 
   tags = {
     key = "value"
@@ -54,19 +51,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Slice should exist. Changing this forces a new Mobile Network Slice to be created.
 
-* `single_network_slice_selection_assistance_information` - (Required) A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+
+* `slice_service_type` - (Optional) Slice/service type (SST). Must be between `0` and `255`. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
 * `description` - (Optional) A description for this Mobile Network Slice.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Slice.
-
----
-
-A `single_network_slice_selection_assistance_information` block supports the following:
-
-* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string.
-
-* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`.
 
 ## Attributes Reference
 
@@ -78,12 +69,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Slice.
+* `create` - (Defaults to 3 hours) Used when creating the Mobile Network Slice.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Slice.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Slice.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Slice.
+* `update` - (Defaults to 3 hours) Used when updating the Mobile Network Slice.
+* `delete` - (Defaults to 3 hours) Used when deleting the Mobile Network Slice.
 
 ## Import
 
@@ -92,3 +83,9 @@ Mobile Network Slice can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mobile_network_slice.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/mobileNetworks/mobileNetwork1/slices/slice1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

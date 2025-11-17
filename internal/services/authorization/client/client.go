@@ -6,9 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck //nolint: staticcheck
-
-	// To swap sdk for `azurerm_role_definition` without changing API version
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
@@ -23,7 +20,6 @@ import (
 )
 
 type Client struct {
-	RoleAssignmentsClient                  *authorization.RoleAssignmentsClient
 	RoleAssignmentScheduleRequestClient    *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
 	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
 	RoleAssignmentSchedulesClient          *roleassignmentschedules.RoleAssignmentSchedulesClient
@@ -37,9 +33,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	roleAssignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&roleAssignmentsClient.Client, o.ResourceManagerAuthorizer)
-
 	roleAssignmentScheduleRequestsClient, err := roleassignmentschedulerequests.NewRoleAssignmentScheduleRequestsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("creating roleAssignmentScheduleRequestsClient: %+v", err)
@@ -102,7 +95,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(scopedRoleDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		RoleAssignmentsClient:                  &roleAssignmentsClient,
 		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
 		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
 		RoleAssignmentSchedulesClient:          roleAssignmentSchedulesClient,

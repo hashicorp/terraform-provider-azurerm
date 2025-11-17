@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RoleAssignmentResource struct{}
@@ -281,19 +282,21 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RoleAssignmentID(state.ID)
+	id, err := parse.ScopedRoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Role Assignment for role %q: %+v", id.Name, err)
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
 	}
-	return utils.Bool(true), nil
+
+	resp, err := client.Authorization.ScopedRoleAssignmentsClient.Get(ctx, id.ScopedId, options)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RoleAssignmentResource) emptyNameConfig() string {
@@ -487,7 +490,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -515,7 +518,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -548,7 +551,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -641,7 +644,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {

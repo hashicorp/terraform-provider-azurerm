@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,7 +23,7 @@ import (
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceSynapseSparkPoolCreate,
 		Read:   resourceSynapseSparkPoolRead,
 		Update: resourceSynapseSparkPoolUpdate,
@@ -216,15 +218,36 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"3.2",
-					"3.3",
 					"3.4",
+					"3.5",
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["spark_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.All(validation.StringInSlice([]string{
+				"3.2",
+				"3.3",
+				"3.4",
+				"3.5",
+			}, false),
+				func(v interface{}, k string) (warnings []string, errors []error) {
+					if val, ok := v.(string); ok && (val == "3.2" || val == "3.3") {
+						warnings = append(warnings, fmt.Sprintf("Spark version %s is deprecated and will be removed in a future version of the AzureRM provider. Please consider upgrading to version 3.4 or later.", val))
+					}
+					return
+				},
+			),
+		}
+	}
+
+	return r
 }
 
 func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {

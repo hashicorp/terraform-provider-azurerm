@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RedisCacheAccessPolicyAssignmentResource struct{}
@@ -65,17 +65,17 @@ func TestAccRedisCacheAccessPolicyAssignment_requiresImport(t *testing.T) {
 }
 
 func (t RedisCacheAccessPolicyAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := redis.ParseAccessPolicyAssignmentID(state.ID)
+	id, err := rediscacheaccesspolicyassignments.ParseAccessPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Redis.AccessPolicyAssignmentGet(ctx, *id)
+	resp, err := clients.Redis.CacheAccessPolicyAssignmentsClient.AccessPolicyAssignmentGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RedisCacheAccessPolicyAssignmentResource) basic(data acceptance.TestData) string {

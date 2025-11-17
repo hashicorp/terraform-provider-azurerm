@@ -11,12 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type Field struct {
@@ -135,14 +134,14 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 			param := connectiontype.ConnectionTypeCreateOrUpdateParameters{
 				Name: model.Name,
 				Properties: connectiontype.ConnectionTypeCreateOrUpdateProperties{
-					IsGlobal:         utils.Bool(model.IsGlobal),
+					IsGlobal:         pointer.To(model.IsGlobal),
 					FieldDefinitions: map[string]connectiontype.FieldDefinition{},
 				},
 			}
 			for _, field := range model.Field {
 				param.Properties.FieldDefinitions[field.Name] = connectiontype.FieldDefinition{
-					IsEncrypted: utils.Bool(field.IsEncrypted),
-					IsOptional:  utils.Bool(field.IsOptional),
+					IsEncrypted: pointer.To(field.IsEncrypted),
+					IsOptional:  pointer.To(field.IsOptional),
 					Type:        field.Type,
 				}
 			}

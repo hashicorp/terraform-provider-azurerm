@@ -5,8 +5,10 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -19,12 +21,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privatednszonegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
 	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,16 +42,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_endpoint -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePrivateEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateEndpointCreate,
-		Read:   resourcePrivateEndpointRead,
-		Update: resourcePrivateEndpointUpdate,
-		Delete: resourcePrivateEndpointDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privateendpoints.ParsePrivateEndpointID(id)
-			return err
-		}),
+		Create:   resourcePrivateEndpointCreate,
+		Read:     resourcePrivateEndpointRead,
+		Update:   resourcePrivateEndpointUpdate,
+		Delete:   resourcePrivateEndpointDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&privateendpoints.PrivateEndpointId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privateendpoints.PrivateEndpointId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -349,27 +356,43 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-			switch {
-			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
-				{
+		result, err := client.CreateOrUpdate(ctx, id, parameters)
+		if err != nil {
+			return &pluginsdk.RetryError{
+				Err:       fmt.Errorf("creating %s: %+v", id, err),
+				Retryable: false,
+			}
+		}
+
+		if err := result.Poller.PollUntilDone(ctx); err != nil {
+			var lroFailError pollers.PollingFailedError
+			if errors.As(err, &lroFailError) {
+				type lroErrorType struct {
+					Error struct {
+						Code    string `json:"code"`
+						Message string `json:"message"`
+					} `json:"error"`
+				}
+
+				var lroError lroErrorType
+				if err := lroFailError.HttpResponse.Unmarshal(&lroError); err != nil {
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("creating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
+						Err:       fmt.Errorf("unmarshaling lro error response: %v", err),
 						Retryable: false,
 					}
 				}
-			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
-				{
+
+				retryableErrorCodes := []string{"RetryableError", "StorageAccountOperationInProgress"}
+				if slices.Contains(retryableErrorCodes, lroError.Error.Code) {
+					log.Printf("[WARN] Retry polling %q on error code: %q", id, lroError.Error.Code)
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("creating Private Endpoint %s: %+v", id, err),
 						Retryable: true,
 					}
 				}
-			default:
-				return &pluginsdk.RetryError{
-					Err:       fmt.Errorf("creating %s: %+v", id, err),
-					Retryable: false,
-				}
+			}
+			return &pluginsdk.RetryError{
+				Err:       fmt.Errorf("waiting for the creation of %s: %+v", id, err),
+				Retryable: false,
 			}
 		}
 
@@ -545,9 +568,19 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		newDnsZoneGroups := d.Get("private_dns_zone_group").([]interface{})
 		newDnsZoneName := ""
+		idHasBeenChanged := false
 		if len(newDnsZoneGroups) > 0 {
 			groupRaw := newDnsZoneGroups[0].(map[string]interface{})
 			newDnsZoneName = groupRaw["name"].(string)
+
+			// it is possible to add or remove a private_dns_zone_id, but if an id is added at the same time as one as been removed and the name has not been changed
+			// an existing entry is updated, which is not allowed, so we need to delete the existing private dns zone groups
+			if d.HasChange("private_dns_zone_group.0.private_dns_zone_ids") {
+				o, n := d.GetChange("private_dns_zone_group.0.private_dns_zone_ids")
+				if len(o.([]interface{})) == len(n.([]interface{})) {
+					idHasBeenChanged = true
+				}
+			}
 		}
 
 		needToRemove := newDnsZoneName == ""
@@ -564,7 +597,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if needToRemove || nameHasChanged {
+		if needToRemove || nameHasChanged || idHasBeenChanged {
 			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with %s..", id)
 			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
 				return err
@@ -684,10 +717,12 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `private_dns_zone_group`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {

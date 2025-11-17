@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,7 +103,7 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -130,7 +130,7 @@ func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *
 		return err
 	}
 
-	read, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	read, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -139,7 +139,7 @@ func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *
 
 	read.Model.Properties.RouteTable = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
+	if err := client.Network.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

@@ -42,95 +42,6 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 	}
 }
 
-func TestDataFactoryDeserializePipelineActivities(t *testing.T) {
-	cases := []struct {
-		Json                string
-		ExpectActivityCount int
-		ExpectErr           bool
-	}{
-		{
-			Json:                "{}",
-			ExpectActivityCount: 0,
-			ExpectErr:           true,
-		},
-		{
-			Json: `[
-				{
-				  "type": "ForEach",
-				  "typeProperties": {
-					"isSequential": true,
-					"items": {
-					  "value": "@pipeline().parameters.OutputBlobNameList",
-					  "type": "Expression"
-					},
-					"activities": [
-					  {
-						"type": "Copy",
-						"typeProperties": {
-						  "source": {
-							"type": "BlobSource"
-						  },
-						  "sink": {
-							"type": "BlobSink"
-						  },
-						  "dataIntegrationUnits": 32
-						},
-						"inputs": [
-						  {
-							"referenceName": "exampleDataset",
-							"parameters": {
-							  "MyFolderPath": "examplecontainer",
-							  "MyFileName": "examplecontainer.csv"
-							},
-							"type": "DatasetReference"
-						  }
-						],
-						"outputs": [
-						  {
-							"referenceName": "exampleDataset",
-							"parameters": {
-							  "MyFolderPath": "examplecontainer",
-							  "MyFileName": {
-								"value": "@item()",
-								"type": "Expression"
-							  }
-							},
-							"type": "DatasetReference"
-						  }
-						],
-						"name": "ExampleCopyActivity"
-					  }
-					]
-				  },
-				  "name": "ExampleForeachActivity"
-				}
-			  ]`,
-			ExpectActivityCount: 1,
-			ExpectErr:           false,
-		},
-	}
-
-	for _, tc := range cases {
-		items, err := deserializeDataFactoryPipelineActivities(tc.Json)
-		if err != nil {
-			if tc.ExpectErr {
-				t.Log("Expected error and got error")
-				return
-			}
-
-			t.Fatal(err)
-		}
-
-		if items == nil {
-			if !tc.ExpectErr {
-				t.Fatal("Expected items got nil")
-			}
-		} else if len(*items) != tc.ExpectActivityCount {
-			t.Fatal("Failed to deserialise pipeline")
-		}
-	}
-}
-
 func TestNormalizeJSON(t *testing.T) {
 	cases := []struct {
 		Old      string
@@ -203,6 +114,34 @@ func TestNormalizeJSON(t *testing.T) {
 
 		if suppress != tc.Suppress {
 			t.Fatalf("Expected JsonOrderingDifference to be '%t' for '%s' '%s' - got '%t'", tc.Suppress, tc.Old, tc.New, suppress)
+		}
+	}
+}
+
+func TestExpandCompressionType(t *testing.T) {
+	cases := []struct {
+		input          string
+		expectedOutput string
+	}{
+		{
+			input:          "Gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "TarGZip",
+			expectedOutput: "TarGZip",
+		},
+	}
+
+	for _, tc := range cases {
+		output := expandCompressionType(tc.input)
+
+		if output != tc.expectedOutput {
+			t.Fatalf("Expected expandCompressionType to be '%s' for '%s' - got '%s'", tc.expectedOutput, tc.input, output)
 		}
 	}
 }

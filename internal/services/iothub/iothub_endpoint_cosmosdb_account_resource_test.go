@@ -124,7 +124,7 @@ func TestAccIotHubEndpointCosmosDBAccount_partitionKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithPartitionKey(data, "keyName1", "{deviceid}-{YYYY}-{MM}"),
+			Config: r.basicWithPartitionKey(data, "partiitionKey", "{deviceid}-{YYYY}-{MM}"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -138,7 +138,7 @@ func TestAccIotHubEndpointCosmosDBAccount_partitionKey(t *testing.T) {
 		},
 		data.ImportStep("primary_key", "secondary_key"),
 		{
-			Config: r.basicWithPartitionKey(data, "keyName2", "{deviceid}-{MM}-{YYYY}"),
+			Config: r.basicWithPartitionKey(data, "partiitionKey", "{deviceid}-{MM}-{YYYY}"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -342,6 +342,7 @@ resource "azurerm_iothub_endpoint_cosmosdb_account" "test" {
   endpoint_uri        = azurerm_cosmosdb_account.test.endpoint
   primary_key         = azurerm_cosmosdb_account.test.primary_key
   secondary_key       = azurerm_cosmosdb_account.test.secondary_key
+  subscription_id     = data.azurerm_client_config.current.subscription_id
 
   partition_key_name     = "%s"
   partition_key_template = "%s"
@@ -375,6 +376,8 @@ func (IotHubEndpointCosmosDBAccountResource) dependencies(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "iothub" {
   name     = "acctestRG-iothub-%[2]d"
@@ -414,7 +417,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_paths = ["/definition/id"]
+  partition_key_paths = ["/partiitionKey"]
 }
 `, data.Locations.Primary, data.RandomInteger)
 }

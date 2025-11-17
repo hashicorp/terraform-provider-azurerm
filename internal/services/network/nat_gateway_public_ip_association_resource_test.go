@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,7 +92,7 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
+	resp, err := clients.Network.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -126,7 +126,7 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	resp, err := client.Network.Client.NatGateways.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
+	resp, err := client.Network.NatGateways.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -148,7 +148,7 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 	}
 	resp.Model.Properties.PublicIPAddresses = &updatedAddresses
 
-	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
+	if err := client.Network.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
 		return nil, fmt.Errorf("removing Association between %s and %s: %+v", id.First, id.Second, err)
 	}
 

@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `regenerate_key_automatically` - (Optional) Should Storage Account access key be regenerated periodically?
 
-~> **NOTE:** Azure Key Vault application needs to have access to Storage Account for auto regeneration to work. Example can be found above.
+~> **Note:** Azure Key Vault application needs to have access to Storage Account for auto regeneration to work. Example can be found above.
 
 * `regeneration_period` - (Optional) How often Storage Account access key should be regenerated. Value needs to be in [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
@@ -168,7 +168,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Storage Account.

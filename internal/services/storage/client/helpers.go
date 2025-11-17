@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 )
 
 var (
@@ -182,6 +182,32 @@ func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName 
 	}
 
 	return nil, nil
+}
+
+func (c Client) GetAccount(ctx context.Context, id commonids.StorageAccountId) (*AccountDetails, error) {
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
+
+	if existing, ok := storageAccountsCache[id.StorageAccountName]; ok {
+		return &existing, nil
+	}
+
+	resp, err := c.ResourceManager.StorageAccounts.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
+	}
+
+	if resp.Model == nil {
+		return nil, fmt.Errorf("unexpected null model of %s", id)
+	}
+
+	account, err := populateAccountDetails(id, *resp.Model)
+	if err != nil {
+		return nil, fmt.Errorf("populating details for %s: %+v", id, err)
+	}
+
+	storageAccountsCache[id.StorageAccountName] = *account
+	return account, nil
 }
 
 func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*AccountDetails, error) {

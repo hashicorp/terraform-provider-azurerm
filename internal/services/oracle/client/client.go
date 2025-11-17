@@ -1,11 +1,12 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package client
 
 import (
 	"fmt"
 
-	oracle "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01"
+	oracle "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -25,6 +26,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Database client: %+v", err)
 	}
+
 	return &Client{
 		OracleClient: oracleClient,
 	}, nil

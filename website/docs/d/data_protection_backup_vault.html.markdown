@@ -57,8 +57,16 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Backup Vault.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2024-04-01

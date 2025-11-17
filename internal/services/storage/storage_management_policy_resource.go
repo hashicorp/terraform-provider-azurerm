@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -11,7 +12,7 @@ import (
 	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/managementpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/managementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -500,7 +501,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				cnt++
 			}
 			if cnt > 1 {
-				return nil, fmt.Errorf("Only one of `tier_to_cool_after_days_since_modification_greater_than`, `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_cool_after_days_since_creation_greater_than` can be specified at the same time")
+				return nil, errors.New("only one of `tier_to_cool_after_days_since_modification_greater_than`, `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_cool_after_days_since_creation_greater_than` can be specified at the same time")
 			}
 
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
@@ -537,7 +538,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				cnt++
 			}
 			if cnt > 1 {
-				return nil, fmt.Errorf("Only one of `tier_to_archive_after_days_since_modification_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `tier_to_archive_after_days_since_creation_greater_than` can be specified at the same time")
+				return nil, errors.New("only one of `tier_to_archive_after_days_since_modification_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `tier_to_archive_after_days_since_creation_greater_than` can be specified at the same time")
 			}
 
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
@@ -574,7 +575,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				cnt++
 			}
 			if cnt > 1 {
-				return nil, fmt.Errorf("Only one of `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can be specified at the same time")
+				return nil, errors.New("only one of `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can be specified at the same time")
 			}
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.Delete = &managementpolicies.DateAfterModification{}
@@ -607,7 +608,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				cnt++
 			}
 			if cnt > 1 {
-				return nil, fmt.Errorf("Only one of `tier_to_cold_after_days_since_modification_greater_than`, `tier_to_cold_after_days_since_last_access_time_greater_than` and `tier_to_cold_after_days_since_creation_greater_than` can be specified at the same time")
+				return nil, errors.New("only one of `tier_to_cold_after_days_since_modification_greater_than`, `tier_to_cold_after_days_since_last_access_time_greater_than` and `tier_to_cold_after_days_since_creation_greater_than` can be specified at the same time")
 			}
 
 			if sinceModOK || sinceAccessOK || sinceCreateOK {

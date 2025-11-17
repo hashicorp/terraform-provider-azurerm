@@ -15,13 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridTopic() *pluginsdk.Resource {
@@ -231,7 +230,7 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			InputSchema:         pointer.To(topics.InputSchema(d.Get("input_schema").(string))),
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			InboundIPRules:      inboundIPRules,
-			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -605,7 +604,7 @@ func expandTopicInboundIPRules(input []interface{}) *[]topics.InboundIPRule {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, topics.InboundIPRule{
 			Action: pointer.To(topics.IPActionType(rawRule["action"].(string))),
-			IPMask: utils.String(rawRule["ip_mask"].(string)),
+			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}
 	return &rules

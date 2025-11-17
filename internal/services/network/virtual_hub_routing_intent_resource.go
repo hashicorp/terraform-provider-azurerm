@@ -9,12 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_routing_intent -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 type VirtualHubRoutingIntentModel struct {
 	Name            string          `tfschema:"name"`
@@ -30,7 +33,14 @@ type RoutingPolicy struct {
 
 type VirtualHubRoutingIntentResource struct{}
 
-var _ sdk.ResourceWithUpdate = VirtualHubRoutingIntentResource{}
+var (
+	_ sdk.ResourceWithIdentity = VirtualHubRoutingIntentResource{}
+	_ sdk.ResourceWithUpdate   = VirtualHubRoutingIntentResource{}
+)
+
+func (r VirtualHubRoutingIntentResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RoutingIntentId{}
+}
 
 func (r VirtualHubRoutingIntentResource) ResourceType() string {
 	return "azurerm_virtual_hub_routing_intent"
@@ -207,6 +217,10 @@ func (r VirtualHubRoutingIntentResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.RoutingPolicies = flattenRoutingPolicy(props.RoutingPolicies)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

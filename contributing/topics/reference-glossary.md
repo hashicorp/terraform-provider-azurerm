@@ -6,14 +6,16 @@ This document contains a summary of the terminology used within the Azure Provid
 
 An Azure Resource ID is used to uniquely identify this Resource within Azure - in almost all cases this is a Path of Key-Value Pairs, for example:
 
-> /subscriptions/11112222-3333-4444-555566667777/resourceGroups/myGroup
+`/subscriptions/11112222-3333-4444-555566667777/resourceGroups/myGroup`
 
 Contains the Key-Value pairs:
 
-> `subscriptions`: `11112222-3333-4444-555566667777`
-> `resourceGroups`: `myGroup`
+```
+subscriptions: 11112222-3333-4444-555566667777
+resourceGroups: myGroup
+```
 
-As the Azure Resource ID is comprised of user-specified Key-Value Pairs, the Azure Resource ID is predictable.
+As the Azure Resource ID consists of user-specified Key-Value Pairs, the Azure Resource ID is predictable.
 
 ### Data Plane API
 
@@ -32,13 +34,13 @@ Whilst we generally vendor SDKs instead, we have a number of SDKs which aren't a
 
 A Resource ID Formatter is a Resource ID Struct which implements the `ID()` method - returning the (Azure) Resource ID as a string - which must be parseable using the associated Resource ID Parser.
 
-These are generally (but not always) auto-generated - see Terraform Managed Resource ID’s below for more information.
+These are generally (but not always) auto-generated - see [Terraform Managed Resource ID](#terraform-managed-resource-id) for more information.
 
 ### Resource ID Parser
 
-A Resource ID Parser parses an (Azure) Resource ID into a Resource ID Struct - generally case-sensitively (since both Terraform Core and some downstream Azure API’s are case sensitive), but optionally case-insensitively where required.
+A Resource ID Parser parses an (Azure) Resource ID into a Resource ID Struct - generally case-sensitively (since both Terraform Core and some downstream Azure APIs are case sensitive), but optionally case-insensitively where required.
 
-These are generally (but not always) auto-generated - see Terraform Managed Resource ID’s below for more information.
+These are generally (but not always) auto-generated - see [Terraform Managed Resource ID](#terraform-managed-resource-id) for more information.
 
 ### Resource ID Struct
 
@@ -46,7 +48,7 @@ A Resource ID Struct is a Golang Struct defining the user-specifiable values wit
 
 A Resource ID Struct should have an associated Resource ID Formatter, Parser and (optionally) Validator.
 
-These are generally (but not always) auto-generated - see Terraform Managed Resource ID’s below for more information.
+These are generally (but not always) auto-generated - see [Terraform Managed Resource ID](#terraform-managed-resource-id) for more information.
 
 ### Resource ID Validator
 
@@ -56,7 +58,7 @@ The value is parsed case-sensitively (in some cases, an optional case-insensitiv
 
 This Resource ID Validator can then be used as a validation function within Terraform Schema fields as necessary - to confirm that the user-specified value (for example, for a Subnet ID) is actually the specified type (for example, a Subnet ID) and not another Resource ID or value (for example, a Virtual Network ID).
 
-These are generally (but not always) auto-generated - see Terraform Managed Resource ID’s below for more information.
+These are generally (but not always) auto-generated - see [Terraform Managed Resource ID](#terraform-managed-resource-id) for more information.
 
 ### Resource Manager API
 
@@ -90,7 +92,7 @@ A State Migration is used when a resource has been changed to expect something d
 
 A Terraform Managed Resource ID is a Resource ID defined in Terraform, rather than set by the Remote API.
 
-The Azure Provider is moving to use Terraform Managed Resource ID’s for all resources, since these are known ahead of time - which avoids issues with API’s changing these Resource ID’s over time (either in casing, or renaming segments altogether).
+The Azure Provider is moving to use Terraform Managed Resource IDs for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource IDs over time (either in casing, or renaming segments altogether).
 
 At present these are defined in a `resourceids.go` file within each Service Package, which generates a Resource ID Formatter, Parser and Validator for this Resource ID.
 
@@ -98,7 +100,7 @@ At present these are defined in a `resourceids.go` file within each Service Pack
 
 Terraform Resource Data is a wrapper around the values within either the Terraform Configuration/State, depending on when this is called.
 
-Values within the Resource Data can be accessed using `d.Get` (for example `d.Get(“some_field”).(string)`) and set using `d.Set` (for example `d.Set(“some_field”, “hello”)`.
+Values within the Resource Data can be accessed using `d.Get` (for example `d.Get(“some_field”).(string)`) and set using `d.Set` (for example `d.Set(“some_field”, “hello”)`).
 
 ### Terraform Resource ID
 

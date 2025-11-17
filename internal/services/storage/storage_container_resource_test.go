@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ import (
 type StorageContainerResource struct{}
 
 func TestAccStorageContainer_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -72,7 +73,7 @@ func TestAccStorageContainer_complete(t *testing.T) {
 }
 
 func TestAccStorageContainer_deleteAndRecreateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -127,7 +128,7 @@ func TestAccStorageContainer_deleteAndRecreate(t *testing.T) {
 }
 
 func TestAccStorageContainer_basicAzureADAuthDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -161,7 +162,7 @@ func TestAccStorageContainer_basicAzureADAuth(t *testing.T) {
 }
 
 func TestAccStorageContainer_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -195,7 +196,7 @@ func TestAccStorageContainer_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageContainer_updateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -245,7 +246,7 @@ func TestAccStorageContainer_update(t *testing.T) {
 }
 
 func TestAccStorageContainer_encryptionScopeDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -279,7 +280,7 @@ func TestAccStorageContainer_encryptionScope(t *testing.T) {
 }
 
 func TestAccStorageContainer_metaDataDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -341,7 +342,7 @@ func TestAccStorageContainer_metaData(t *testing.T) {
 }
 
 func TestAccStorageContainer_rootDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -361,7 +362,7 @@ func TestAccStorageContainer_rootDeprecated(t *testing.T) {
 }
 
 func TestAccStorageContainer_webDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -396,8 +397,63 @@ func TestAccStorageContainer_web(t *testing.T) {
 	})
 }
 
+func TestAccStorageContainer_migrateToStorageID(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccountName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_migrateFromStorageIDShouldFail(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.withAccountName(data),
+			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+		},
+	})
+}
+
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOhBeta() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := containers.ParseContainerID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
@@ -450,7 +506,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -459,11 +514,10 @@ resource "azurerm_storage_container" "test" {
   storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -485,7 +539,7 @@ resource "azurerm_storage_container" "test" {
     k2 = "v2"
   }
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StorageContainerResource) basicAzureADAuthDeprecated(data acceptance.TestData) string {
@@ -565,7 +619,6 @@ resource "azurerm_storage_container" "import" {
 }
 
 func (r StorageContainerResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -574,11 +627,10 @@ resource "azurerm_storage_container" "import" {
   storage_account_id    = azurerm_storage_container.test.storage_account_id
   container_access_type = azurerm_storage_container.test.container_access_type
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StorageContainerResource) updateDeprecated(data acceptance.TestData, accessType, metadataVal string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -591,11 +643,10 @@ resource "azurerm_storage_container" "test" {
     test = "%s"
   }
 }
-`, template, accessType, metadataVal)
+`, r.template(data), accessType, metadataVal)
 }
 
 func (r StorageContainerResource) update(data acceptance.TestData, accessType, metadataVal string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -608,11 +659,10 @@ resource "azurerm_storage_container" "test" {
     test = "%s"
   }
 }
-`, template, accessType, metadataVal)
+`, r.template(data), accessType, metadataVal)
 }
 
 func (r StorageContainerResource) encryptionScopeDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -629,11 +679,10 @@ resource "azurerm_storage_container" "test" {
 
   default_encryption_scope = azurerm_storage_encryption_scope.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageContainerResource) encryptionScope(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -650,11 +699,10 @@ resource "azurerm_storage_container" "test" {
 
   default_encryption_scope = azurerm_storage_encryption_scope.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageContainerResource) metaDataDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -667,11 +715,10 @@ resource "azurerm_storage_container" "test" {
     hello = "world"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -684,11 +731,10 @@ resource "azurerm_storage_container" "test" {
     hello = "world"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) metaDataUpdatedDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -702,11 +748,10 @@ resource "azurerm_storage_container" "test" {
     panda = "pops"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) metaDataUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -720,11 +765,10 @@ resource "azurerm_storage_container" "test" {
     panda = "pops"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) metaDataEmptyDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -735,11 +779,10 @@ resource "azurerm_storage_container" "test" {
 
   metadata = {}
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) metaDataEmpty(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -750,7 +793,7 @@ resource "azurerm_storage_container" "test" {
 
   metadata = {}
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) rootDeprecated(data acceptance.TestData) string {
@@ -766,7 +809,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) webDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -775,11 +817,10 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) web(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -788,7 +829,7 @@ resource "azurerm_storage_container" "test" {
   storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StorageContainerResource) template(data acceptance.TestData) string {
@@ -847,4 +888,16 @@ func TestValidateStorageContainerName(t *testing.T) {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
 	}
+}
+
+func (r StorageContainerResource) withAccountName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, r.template(data))
 }

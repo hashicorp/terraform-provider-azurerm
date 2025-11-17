@@ -76,7 +76,7 @@ resource "azurerm_iothub_fallback_route" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -100,11 +100,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Fallback Route.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Fallback Route.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Fallback Route.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Fallback Route.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Fallback Route.
 
 ## Import
@@ -115,4 +115,4 @@ IoTHub Fallback Route can be imported using the `resource id`, e.g.
 terraform import azurerm_iothub_fallback_route.route1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/fallbackRoute/default
 ```
 
-~> **NOTE:** As there may only be a single fallback route per IoTHub, the id always ends with `/fallbackRoute/default`.
+~> **Note:** As there may only be a single fallback route per IoTHub, the id always ends with `/fallbackRoute/default`.

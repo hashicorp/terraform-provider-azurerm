@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,6 +56,8 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	}
 
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_database` data source has been deprecated in favor of `azurerm_managed_redis_database`",
+
 		Read: dataSourceRedisEnterpriseDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

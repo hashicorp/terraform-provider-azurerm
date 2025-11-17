@@ -20,6 +20,7 @@ import (
 type ProtectedFileData struct {
 	Content     string `tfschema:"content,removedInNextMajorVersion"`
 	VirtualPath string `tfschema:"virtual_path"`
+	ContentHash string `tfschema:"content_hash"`
 }
 
 type ConfigurationDataSourceModel struct {
@@ -69,6 +70,11 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"content_hash": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
 					"virtual_path": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -88,7 +94,7 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataSource["protected_file"].Elem.(*pluginsdk.Resource).Schema["content"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
@@ -159,6 +165,7 @@ func (m ConfigurationDataSource) Read() sdk.ResourceFunc {
 					for _, file := range *files {
 						output.ProtectedFile = append(output.ProtectedFile, ProtectedFileData{
 							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
 						})
 					}
 				}
