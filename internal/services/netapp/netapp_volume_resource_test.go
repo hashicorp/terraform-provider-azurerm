@@ -1406,6 +1406,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
   throughput_in_mibps = 64
+  unix_permissions    = "0775"
 
   export_policy_rule {
     rule_index      = 1
@@ -1456,6 +1457,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
   throughput_in_mibps = 63
+  unix_permissions    = "0770"
 
   export_policy_rule {
     rule_index      = 1

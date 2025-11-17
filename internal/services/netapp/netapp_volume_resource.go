@@ -440,7 +440,15 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"unix_permissions": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "0770",
+				ValidateFunc: validation.StringLenBetween(4, 4),
+			},
 		},
+
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
 			isLargeVolume := d.Get("large_volume_enabled").(bool)
@@ -797,6 +805,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
 			IsLargeVolume:            pointer.To(d.Get("large_volume_enabled").(bool)),
+			UnixPermissions:          pointer.To(d.Get("unix_permissions").(string)),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
@@ -998,6 +1007,10 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	if d.HasChange("unix_permissions") {
+		update.Properties.UnixPermissions = pointer.To(d.Get("unix_permissions").(string))
+	}
+
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
@@ -1092,6 +1105,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
 		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
+		d.Set("unix_permissions", pointer.From(props.UnixPermissions))
 
 		if pointer.From(props.CoolAccess) {
 			// enums returned from the API are inconsistent so normalize them here
