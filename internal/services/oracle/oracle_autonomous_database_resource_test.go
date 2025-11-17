@@ -59,7 +59,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updateBasic(t *testing.T) {
+func TestAdbsRegularResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
