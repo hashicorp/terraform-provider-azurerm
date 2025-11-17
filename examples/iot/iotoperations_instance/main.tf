@@ -6,14 +6,12 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
     }
   }
 }
 
 provider "azurerm" {
   features {}
-  subscription_id = "d4ccd08b-0809-446d-a8b7-7af8a90109cd"
 }
 
 # Use existing resource group

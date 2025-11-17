@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iotoperations_test
 
 import (
@@ -25,6 +28,8 @@ func TestAccIotOperationsDataflowProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-dfp-%s", data.RandomString)),
+				check.That(data.ResourceName).Key("properties.0.instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -42,10 +47,7 @@ func TestAccIotOperationsDataflowProfile_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_iotoperations_dataflow_profile"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -58,6 +60,11 @@ func TestAccIotOperationsDataflowProfile_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-dfp-%s", data.RandomString)),
+				check.That(data.ResourceName).Key("properties.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("properties.0.diagnostics.0.logs.0.level").HasValue("Info"),
+				check.That(data.ResourceName).Key("properties.0.diagnostics.0.metrics.0.prometheus_port").HasValue("9090"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -73,6 +80,7 @@ func TestAccIotOperationsDataflowProfile_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("properties.0.instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -80,6 +88,9 @@ func TestAccIotOperationsDataflowProfile_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("properties.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("properties.0.diagnostics.0.logs.0.level").HasValue("Info"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -87,6 +98,7 @@ func TestAccIotOperationsDataflowProfile_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("properties.0.instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -108,8 +120,7 @@ func (IotOperationsDataflowProfileResource) Exists(ctx context.Context, c *clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-// template builds the minimal provider + resource_group.
-func (IotOperationsDataflowProfileResource) template(data acceptance.TestData) string {
+func (r IotOperationsDataflowProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -117,23 +128,39 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iotops-%d"
+  location = "%s"
 }
-`, data.RandomInteger)
+
+resource "azurerm_iotoperations_instance" "test" {
+  name                = "acctest-instance-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  
+  extended_location {
+    name = "acctest-custom-location-%s"
+    type = "CustomLocation"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r IotOperationsDataflowProfileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-# TODO: create or reference an IoT Operations instance here (azurerm_iotoperations_instance).
-
 resource "azurerm_iotoperations_dataflow_profile" "test" {
   name                = "acctest-dfp-%s"
   resource_group_name = azurerm_resource_group.test.name
-  instance_name       = "REPLACE_WITH_INSTANCE_NAME"
+  instance_name       = azurerm_iotoperations_instance.test.name
+  location            = azurerm_resource_group.test.location
 
   properties {
     instance_count = 1
+  }
+
+  extended_location {
+    name = azurerm_iotoperations_instance.test.extended_location[0].name
+    type = azurerm_iotoperations_instance.test.extended_location[0].type
   }
 }
 `, r.template(data), data.RandomString)
@@ -147,9 +174,15 @@ resource "azurerm_iotoperations_dataflow_profile" "import" {
   name                = azurerm_iotoperations_dataflow_profile.test.name
   resource_group_name = azurerm_iotoperations_dataflow_profile.test.resource_group_name
   instance_name       = azurerm_iotoperations_dataflow_profile.test.instance_name
+  location            = azurerm_iotoperations_dataflow_profile.test.location
 
   properties {
-    instance_count = 1
+    instance_count = azurerm_iotoperations_dataflow_profile.test.properties[0].instance_count
+  }
+
+  extended_location {
+    name = azurerm_iotoperations_dataflow_profile.test.extended_location[0].name
+    type = azurerm_iotoperations_dataflow_profile.test.extended_location[0].type
   }
 }
 `, r.basic(data))
@@ -159,17 +192,11 @@ func (r IotOperationsDataflowProfileResource) complete(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-# TODO: replace the placeholder instance name with an actual one.
-
 resource "azurerm_iotoperations_dataflow_profile" "test" {
   name                = "acctest-dfp-%s"
   resource_group_name = azurerm_resource_group.test.name
-  instance_name       = "REPLACE_WITH_INSTANCE_NAME"
+  instance_name       = azurerm_iotoperations_instance.test.name
   location            = azurerm_resource_group.test.location
-
-  tags = {
-    ENV = "Test"
-  }
 
   properties {
     instance_count = 3
@@ -179,9 +206,19 @@ resource "azurerm_iotoperations_dataflow_profile" "test" {
         level = "Info"
       }
       metrics {
-        prometheus_port = 7581
+        prometheus_port = 9090
       }
     }
+  }
+
+  extended_location {
+    name = azurerm_iotoperations_instance.test.extended_location[0].name
+    type = azurerm_iotoperations_instance.test.extended_location[0].type
+  }
+
+  tags = {
+    environment = "testing"
+    purpose     = "dataflow-profile-acceptance-test"
   }
 }
 `, r.template(data), data.RandomString)

@@ -1,9 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iotoperations_test
 
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotoperations/2024-11-01/brokerlistener"
@@ -128,15 +130,19 @@ func (r IotOperationsBrokerListenerResource) basic(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-# TODO: create or reference an IoT Operations instance and broker here.
+# NOTE: These values should be replaced with actual IoT Operations instance and broker names
+# that exist in your test environment. You can either:
+# 1. Set environment variables: IOT_OPERATIONS_INSTANCE_NAME, IOT_OPERATIONS_BROKER_NAME
+# 2. Create the instance and broker resources in this template
+# 3. Reference existing resources in your test subscription
 
 resource "azurerm_iotoperations_broker_listener" "test" {
   name                = "acctest-bl-%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  # Replace with the actual instance and broker names created in this template:
-  instance_name = "REPLACE_WITH_INSTANCE_NAME"
-  broker_name   = "REPLACE_WITH_BROKER_NAME"
+  # TODO: Replace these with actual values or environment variables
+  instance_name = "test-instance-%d"  # or use: os.Getenv("IOT_OPERATIONS_INSTANCE_NAME")
+  broker_name   = "test-broker-%d"    # or use: os.Getenv("IOT_OPERATIONS_BROKER_NAME")
 
   properties {
     ports {
@@ -144,7 +150,7 @@ resource "azurerm_iotoperations_broker_listener" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r IotOperationsBrokerListenerResource) requiresImport(data acceptance.TestData) string {
@@ -170,13 +176,13 @@ func (r IotOperationsBrokerListenerResource) complete(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 
-# See TODO in basic template for instance and broker creation.
+# NOTE: Same as basic template - replace with actual IoT Operations instance and broker names
 
 resource "azurerm_iotoperations_broker_listener" "test" {
   name                = "acctest-bl-%s"
   resource_group_name = azurerm_resource_group.test.name
-  instance_name       = "REPLACE_WITH_INSTANCE_NAME"
-  broker_name         = "REPLACE_WITH_BROKER_NAME"
+  instance_name       = "test-instance-%s"  # TODO: Replace with actual value or env var
+  broker_name         = "test-broker-%s"    # TODO: Replace with actual value or env var
   location            = azurerm_resource_group.test.location
 
   tags = {
@@ -221,35 +227,7 @@ resource "azurerm_iotoperations_broker_listener" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
-// parseBrokerListenerID extracts resource group, instance name, broker name, and listener name from a full ARM resource id.
-// Expected pattern:
-// /subscriptions/.../resourceGroups/{rg}/providers/Microsoft.IoTOperations/instances/{instance}/brokers/{broker}/listeners/{listener}
-func parseBrokerListenerID(id string) (rg, instance, broker, listener string, err error) {
-	if id == "" {
-		return "", "", "", "", fmt.Errorf("empty id")
-	}
-	parts := strings.Split(id, "/")
-	start := 0
-	if parts[0] == "" {
-		start = 1
-	}
-	for i := start; i < len(parts)-1; i++ {
-		switch strings.ToLower(parts[i]) {
-		case "resourcegroups":
-			rg = parts[i+1]
-		case "instances":
-			instance = parts[i+1]
-		case "brokers":
-			broker = parts[i+1]
-		case "listeners":
-			listener = parts[i+1]
-		}
-	}
-	if rg == "" || instance == "" || broker == "" || listener == "" {
-		return "", "", "", "", fmt.Errorf("failed to parse id: %s", id)
-	}
-	return rg, instance, broker, listener, nil
-}
+
