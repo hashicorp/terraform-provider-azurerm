@@ -114,7 +114,6 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			// Validate that the Strata Cloud Manager tenant exists
 			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
 				return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
 			}
@@ -284,7 +283,6 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			}
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
-				// Validate that the new Strata Cloud Manager tenant exists
 				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
 					return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
 				}
