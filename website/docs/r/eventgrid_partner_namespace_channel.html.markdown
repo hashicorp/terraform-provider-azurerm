@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `channel_type` - (Optional) The type of the channel which represents the direction flow of events. The only possible value is `PartnerTopic`. Defaults to `PartnerTopic`. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
-* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`).
+* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`). Defaults to 7 days from the time this Event Grid Partner Namespace Channel is created if not specified.
 
 ~> **Note:** Once `readiness_state` is `Activated`, this field can no longer be updated.
 
@@ -77,15 +77,7 @@ A `partner_topic` block supports the following:
 
 * `source` - (Required) The source information to determine the scope or context from which events are originating. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
-* `event_type_definitions` - (Optional) An `event_type_definitions` block as defined below.
-
----
-
-An `event_type_definitions` block supports the following:
-
-* `inline_event_type` - (Required) One or more `inline_event_type` blocks as defined below.
-
-* `kind` - (Optional) The kind of event type definition. The only possible value is `Inline`. Defaults to `Inline`.
+* `inline_event_type` - (Optional) One or more `inline_event_type` blocks as defined below.
 
 ---
 

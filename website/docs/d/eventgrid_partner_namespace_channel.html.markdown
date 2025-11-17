@@ -54,15 +54,7 @@ A `partner_topic` block exports the following:
 
 * `source` - The source information to determine the scope or context from which events are originating.
 
-* `event_type_definitions` - An `event_type_definitions` block as defined below.
-
----
-
-An `event_type_definitions` block exports the following:
-
 * `inline_event_type` - One or more `inline_event_type` blocks as defined below.
-
-* `kind` - The kind of event type definition.
 
 ---
 

@@ -77,40 +77,28 @@ func (r EventGridPartnerNamespaceChannelDataSource) Attributes() map[string]*plu
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"event_type_definitions": {
-						Type:     pluginsdk.TypeList,
+					"inline_event_type": {
+						Type:     pluginsdk.TypeSet,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"inline_event_type": {
-									Type:     pluginsdk.TypeSet,
+								"name": {
+									Type:     pluginsdk.TypeString,
 									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"display_name": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"data_schema_url": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"description": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-											"documentation_url": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
 								},
-								"kind": {
+								"display_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"data_schema_url": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"description": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"documentation_url": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},

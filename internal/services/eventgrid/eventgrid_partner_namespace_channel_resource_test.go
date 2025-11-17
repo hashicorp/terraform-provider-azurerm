@@ -45,10 +45,7 @@ func TestAccEventGridPartnerNamespaceChannel_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_partner_namespace_channel"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -167,15 +164,12 @@ resource "azurerm_eventgrid_partner_namespace_channel" "test" {
     resource_group_name = azurerm_resource_group.test.name
     name                = "acctest-egpt-%[2]d"
     source              = "https://example.com/partner-topic"
-    event_type_definitions {
-      inline_event_type {
-        name              = "SampleEventType"
-        display_name      = "Sample Event Type"
-        description       = "This is a sample event type"
-        data_schema_url   = "https://example.com/sample-event-type-schema"
-        documentation_url = "https://example.com/sample-event-type-docs"
-      }
-      kind = "Inline"
+    inline_event_type {
+      name              = "SampleEventType"
+      display_name      = "Sample Event Type"
+      description       = "This is a sample event type"
+      data_schema_url   = "https://example.com/sample-event-type-schema"
+      documentation_url = "https://example.com/sample-event-type-docs"
     }
   }
 }`, r.template(data), data.RandomInteger, data.Subscriptions.Primary)
@@ -200,22 +194,19 @@ resource "azurerm_eventgrid_partner_namespace_channel" "test" {
     resource_group_name = azurerm_resource_group.test.name
     name                = "acctest-egpt-%[2]d"
     source              = "https://example.com/partner-topic"
-    event_type_definitions {
-      inline_event_type {
-        name              = "SampleEventType"
-        display_name      = "Sample Event Type"
-        description       = "This is a sample event type update"
-        data_schema_url   = "https://example.com/sample-event-type-schema"
-        documentation_url = "https://example.com/sample-event-type-docs"
-      }
-      inline_event_type {
-        name              = "SampleEventType2"
-        display_name      = "Sample Event Type 2"
-        description       = "This is a sample event type 2"
-        data_schema_url   = "https://example.com/sample-event-type-schema"
-        documentation_url = "https://example.com/sample-event-type-docs"
-      }
-      kind = "Inline"
+    inline_event_type {
+      name              = "SampleEventType"
+      display_name      = "Sample Event Type"
+      description       = "This is a sample event type update"
+      data_schema_url   = "https://example.com/sample-event-type-schema"
+      documentation_url = "https://example.com/sample-event-type-docs"
+    }
+    inline_event_type {
+      name              = "SampleEventType2"
+      display_name      = "Sample Event Type 2"
+      description       = "This is a sample event type 2"
+      data_schema_url   = "https://example.com/sample-event-type-schema"
+      documentation_url = "https://example.com/sample-event-type-docs"
     }
   }
 }`, r.template(data), data.RandomInteger, data.Subscriptions.Primary, expiryTime)

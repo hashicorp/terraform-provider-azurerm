@@ -37,16 +37,11 @@ type EventGridPartnerNamespaceChannelResourceModel struct {
 }
 
 type PartnerTopicModel struct {
-	SubscriptionId       string                `tfschema:"subscription_id"`
-	ResourceGroupName    string                `tfschema:"resource_group_name"`
-	Name                 string                `tfschema:"name"`
-	Source               string                `tfschema:"source"`
-	EventTypeDefinitions []EventTypeDefinition `tfschema:"event_type_definitions"`
-}
-
-type EventTypeDefinition struct {
-	InlineEventTypes []InlineEventTypeModel `tfschema:"inline_event_type"`
-	Kind             string                 `tfschema:"kind"`
+	SubscriptionId    string                 `tfschema:"subscription_id"`
+	ResourceGroupName string                 `tfschema:"resource_group_name"`
+	Name              string                 `tfschema:"name"`
+	Source            string                 `tfschema:"source"`
+	InlineEventTypes  []InlineEventTypeModel `tfschema:"inline_event_type"`
 }
 
 type InlineEventTypeModel struct {
@@ -102,50 +97,35 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"event_type_definitions": {
-						Type:     pluginsdk.TypeList,
+					"inline_event_type": {
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"inline_event_type": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 128),
-											},
-											"display_name": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringLenBetween(1, 128),
-											},
-											"data_schema_url": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-											},
-											"description": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringLenBetween(1, 256),
-											},
-											"documentation_url": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-											},
-										},
-									},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
 								},
-								"kind": {
+								"display_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
+								},
+								"data_schema_url": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.StringInSlice(channels.PossibleValuesForEventDefinitionKind(), false),
-									Default:      channels.EventDefinitionKindInline,
+									ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+								},
+								"description": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringLenBetween(1, 256),
+								},
+								"documentation_url": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 								},
 							},
 						},
@@ -388,10 +368,10 @@ func expandPartnerNamespaceChannelPartnerTopic(input []PartnerTopicModel) *chann
 	partnerTopic := input[0]
 	var eventTypeInfo *channels.EventTypeInfo
 
-	if len(partnerTopic.EventTypeDefinitions) > 0 {
+	if len(partnerTopic.InlineEventTypes) > 0 {
 		eventTypeInfo = &channels.EventTypeInfo{
-			InlineEventTypes: pointer.To(expandInlineEventTypes(partnerTopic.EventTypeDefinitions[0].InlineEventTypes)),
-			Kind:             pointer.ToEnum[channels.EventDefinitionKind](partnerTopic.EventTypeDefinitions[0].Kind),
+			InlineEventTypes: pointer.To(expandInlineEventTypes(partnerTopic.InlineEventTypes)),
+			Kind:             pointer.To(channels.EventDefinitionKindInline),
 		}
 	}
 
@@ -409,24 +389,19 @@ func flattenPartnerNamespaceChannelPartnerTopic(input *channels.PartnerTopicInfo
 		return []PartnerTopicModel{}
 	}
 
-	var eventTypeDefinitions []EventTypeDefinition
+	var inlineEventTypes []InlineEventTypeModel
 
 	if input.EventTypeInfo != nil {
-		eventTypeDefinitions = []EventTypeDefinition{
-			{
-				InlineEventTypes: flattenInlineEventTypes(pointer.From(input.EventTypeInfo.InlineEventTypes)),
-				Kind:             pointer.FromEnum(input.EventTypeInfo.Kind),
-			},
-		}
+		inlineEventTypes = flattenInlineEventTypes(pointer.From(input.EventTypeInfo.InlineEventTypes))
 	}
 
 	return []PartnerTopicModel{
 		{
-			SubscriptionId:       pointer.From(input.AzureSubscriptionId),
-			ResourceGroupName:    pointer.From(input.ResourceGroupName),
-			Name:                 pointer.From(input.Name),
-			Source:               pointer.From(input.Source),
-			EventTypeDefinitions: eventTypeDefinitions,
+			SubscriptionId:    pointer.From(input.AzureSubscriptionId),
+			ResourceGroupName: pointer.From(input.ResourceGroupName),
+			Name:              pointer.From(input.Name),
+			Source:            pointer.From(input.Source),
+			InlineEventTypes:  inlineEventTypes,
 		},
 	}
 }
