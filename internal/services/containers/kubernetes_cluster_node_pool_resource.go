@@ -692,8 +692,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
-	if virtualMachineProfile := d.Get("virtual_machine_profile").([]interface{}); len(virtualMachineProfile) > 0 {
-		profile.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(virtualMachineProfile)
+	if securityProfile := d.Get("security_profile").([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
 	}
 
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
@@ -927,8 +927,8 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
 	}
 
-	if d.HasChange("virtual_machine_profile") {
-		props.VirtualMachinesProfile = expandAgentPoolVirtualMachinesProfile(d.Get("virtual_machine_profile").([]interface{}))
+	if d.HasChange("security_profile") {
+		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security_profile").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -1242,8 +1242,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		if err := d.Set("virtual_machine_profile", flattenAgentPoolVirtualMachinesProfile(props.VirtualMachinesProfile)); err != nil {
-			return fmt.Errorf("setting `virtual_machine_profile`: %+v", err)
+		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}
 
