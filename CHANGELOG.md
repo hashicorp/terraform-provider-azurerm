@@ -1,6 +1,7 @@
 ## 4.54.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_managed_redis` - add support for `persistence_append_only_file_backup_frequency` and `persistence_redis_database_backup_frequency` properties  [GH-30964]
 
 FEATURES:
 
