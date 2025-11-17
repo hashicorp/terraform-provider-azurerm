@@ -152,6 +152,21 @@ func TestAccMongoCluster_customerManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccMongoCluster_dataApiModeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataApiModeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
 func (r MongoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongoclusters.ParseMongoClusterID(state.ID)
 	if err != nil {
@@ -407,6 +422,26 @@ resource "azurerm_mongo_cluster" "test" {
   }
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r MongoClusterResource) dataApiModeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123basic"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+  data_api_mode_enabled  = true
+}
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {
