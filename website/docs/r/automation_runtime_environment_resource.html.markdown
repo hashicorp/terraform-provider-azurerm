@@ -30,11 +30,11 @@ resource "azurerm_automation_runtime_environment" "example" {
   resource_group_name     = azurerm_resource_group.example.name
   automation_account_name = azurerm_automation_account.example.name
 
-  runtime_language        = "PowerShell"
-  runtime_version         = "7.2"
+  runtime_language = "PowerShell"
+  runtime_version  = "7.2"
 
-  location                = azurerm_resource_group.example.location
-  description             = "Thats my test subscription"
+  location    = azurerm_resource_group.example.location
+  description = "Thats my test subscription"
 
   runtime_default_packages = {
     "az"        = "11.2.0"

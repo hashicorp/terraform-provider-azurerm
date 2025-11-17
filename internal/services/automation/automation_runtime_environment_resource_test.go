@@ -50,7 +50,7 @@ func TestAccAutomationRuntimeEnvironment_basicPowerShell(t *testing.T) {
 	r := AutomationRuntimeEnvironmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicPowerShell(data, "PowerShell", "7.2"),
+			Config: r.basic(data, "PowerShell", "7.2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -64,7 +64,7 @@ func TestAccAutomationRuntimeEnvironment_basicPython(t *testing.T) {
 	r := AutomationRuntimeEnvironmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicPython(data, "Python", "3.10"),
+			Config: r.basic(data, "Python", "3.10"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,10 +117,10 @@ func (a AutomationRuntimeEnvironmentResource) completePowerShell(data acceptance
     }
   }
 
-`, a.template(data), data.RandomInteger)
+`, a.template(data))
 }
 
-func (a Python3PackageResource) template(data acceptance.TestData) string {
+func (a AutomationRuntimeEnvironmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
