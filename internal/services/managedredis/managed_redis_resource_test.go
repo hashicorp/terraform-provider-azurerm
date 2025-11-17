@@ -110,6 +110,20 @@ func TestAccManagedRedis_withModuleArgs(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedis_withNoCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withNoCluster(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagedRedis_skuDoesNotSupportGeoReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
@@ -459,6 +473,31 @@ resource "azurerm_managed_redis" "test" {
       name = "RedisBloom"
       args = "ERROR_RATE 0.20 INITIAL_SIZE 400"
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisResource) withNoCluster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    clustering_policy = "NoCluster"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
