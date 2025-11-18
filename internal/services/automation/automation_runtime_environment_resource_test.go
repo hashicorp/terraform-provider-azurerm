@@ -24,7 +24,7 @@ func (a AutomationRuntimeEnvironmentResource) Exists(ctx context.Context, client
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.RuntimeEnvironmentClient.Get(ctx, *id)
+	resp, err := client.Automation.RuntimeEnvironment.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving runtime environment %s: %+v", id, err)
 	}
@@ -117,13 +117,13 @@ func (a AutomationRuntimeEnvironmentResource) requiredImport(data acceptance.Tes
 
   resource "azurerm_automation_runtime_environment" "import" {
     name                    = azurerm_automation_runtime_environment.example.name
-	resource_group_name     = azurerm_automation_runtime_environment.example.resource_group_name
-	automation_account_name = azurerm_automation_runtime_environment.example.automation_account_name
+    resource_group_name     = azurerm_automation_runtime_environment.example.resource_group_name
+    automation_account_name = azurerm_automation_runtime_environment.example.automation_account_name
 
-	runtime_language        = azurerm_automation_runtime_environment.example.runtime_language
-	runtime_version         = azurerm_automation_runtime_environment.example.runtime_version
+    runtime_language        = azurerm_automation_runtime_environment.example.runtime_language
+    runtime_version         = azurerm_automation_runtime_environment.example.runtime_version
 
-	location                = azurerm_automation_runtime_environment.example.location
+    location                = azurerm_automation_runtime_environment.example.location
   }
 }
 `, template)

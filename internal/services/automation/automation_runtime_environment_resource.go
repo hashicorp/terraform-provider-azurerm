@@ -127,7 +127,7 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.Client.RuntimeEnvironment
+			client := meta.Client.Automation.RuntimeEnvironment
 
 			var model AutomationRuntimeEnvironmentResourceModel
 			if err := meta.Decode(&model); err != nil {
@@ -174,7 +174,7 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.Client.RuntimeEnvironment
+			client := meta.Client.Automation.RuntimeEnvironment
 
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
@@ -213,7 +213,7 @@ func (m AutomationRuntimeEnvironmentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.Client.RuntimeEnvironment
+			client := meta.Client.Automation.RuntimeEnvironment
 
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
@@ -261,7 +261,7 @@ func (m AutomationRuntimeEnvironmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.Client.RuntimeEnvironment
+			client := meta.Client.Automation.RuntimeEnvironment
 
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
