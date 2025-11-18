@@ -15,7 +15,11 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/go-cty/cty/gocty"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/hcl2shim"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugin/convert"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -28,18 +32,20 @@ import (
 // The most relevant methods to take a look at are Get and Set.
 type ResourceData struct {
 	// Settable (internally)
-	schema       map[string]*Schema
-	config       *terraform.ResourceConfig
-	state        *terraform.InstanceState
-	diff         *terraform.InstanceDiff
-	meta         map[string]interface{}
-	timeouts     *ResourceTimeout
-	providerMeta cty.Value
+	schema         map[string]*Schema
+	identitySchema map[string]*Schema
+	config         *terraform.ResourceConfig
+	state          *terraform.InstanceState
+	diff           *terraform.InstanceDiff
+	meta           map[string]interface{}
+	timeouts       *ResourceTimeout
+	providerMeta   cty.Value
 
 	// Don't set
 	multiReader *MultiLevelFieldReader
 	setWriter   *MapFieldWriter
 	newState    *terraform.InstanceState
+	newIdentity *IdentityData
 	partial     bool
 	once        sync.Once
 	isNew       bool
@@ -55,6 +61,105 @@ type getResult struct {
 	Computed       bool
 	Exists         bool
 	Schema         *Schema
+}
+
+// TfTypeIdentityState returns the identity data as a tftypes.Value.
+func (d *ResourceData) TfTypeIdentityState() (*tftypes.Value, error) {
+	s := schemaMap(d.identitySchema).CoreConfigSchema()
+
+	state := d.State()
+
+	if state == nil {
+		return nil, fmt.Errorf("state is nil, call SetId() on ResourceData first")
+	}
+
+	stateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Identity, s.ImpliedType())
+	if err != nil {
+		return nil, fmt.Errorf("converting identity flatmap to cty value: %+v", err)
+	}
+
+	return convert.ToTfValue(stateVal)
+}
+
+// TfTypeResourceState returns the resource data as a tftypes.Value.
+func (d *ResourceData) TfTypeResourceState() (*tftypes.Value, error) {
+	s := schemaMap(d.schema).CoreConfigSchema()
+
+	// The CoreConfigSchema method on schemaMaps doesn't automatically handle adding the id
+	// attribute or timeouts like the method on Resource does
+	if _, ok := s.Attributes["id"]; !ok {
+		s.Attributes["id"] = &configschema.Attribute{
+			Type:     cty.String,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	_, timeoutsAttr := s.Attributes[TimeoutsConfigKey]
+	_, timeoutsBlock := s.BlockTypes[TimeoutsConfigKey]
+
+	if d.timeouts != nil && !timeoutsAttr && !timeoutsBlock {
+		timeouts := configschema.Block{
+			Attributes: map[string]*configschema.Attribute{},
+		}
+
+		if d.timeouts.Create != nil {
+			timeouts.Attributes[TimeoutCreate] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Read != nil {
+			timeouts.Attributes[TimeoutRead] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Update != nil {
+			timeouts.Attributes[TimeoutUpdate] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Delete != nil {
+			timeouts.Attributes[TimeoutDelete] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if d.timeouts.Default != nil {
+			timeouts.Attributes[TimeoutDefault] = &configschema.Attribute{
+				Type:     cty.String,
+				Optional: true,
+			}
+		}
+
+		if len(timeouts.Attributes) != 0 {
+			s.BlockTypes[TimeoutsConfigKey] = &configschema.NestedBlock{
+				Nesting: configschema.NestingSingle,
+				Block:   timeouts,
+			}
+		}
+	}
+
+	state := d.State()
+	if state == nil {
+		return nil, fmt.Errorf("state is nil, call SetId() on ResourceData first")
+	}
+
+	// Although we handle adding/omitting timeouts to the schema depending on how it's been defined on the resource
+	// we don't process or convert the timeout values since they reside in Meta and aren't needed for the purposes
+	// of this function and in the context of a List.
+	stateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, s.ImpliedType())
+	if err != nil {
+		return nil, fmt.Errorf("converting resource state flatmap to cty value: %+v", err)
+	}
+
+	return convert.ToTfValue(stateVal)
 }
 
 // Get returns the data for the given key, or nil if the key doesn't exist
@@ -409,6 +514,36 @@ func (d *ResourceData) State() *terraform.InstanceState {
 		result.Tainted = d.state.Tainted
 	}
 
+	// If the ResourceData has an identitySchema:
+	// copy over identity data (by getting it so we also include changes)
+	// In order to build the final state attributes, we read the full
+	// attribute set as a map[string]interface{}, write it to a MapFieldWriter,
+	// and then use that map.
+	if d.identitySchema != nil {
+		rawMapIdentity := make(map[string]interface{})
+		identityData, err := d.Identity()
+		// This error shouldn't happen, as we check for the identity schema first
+		if err == nil {
+			for k := range d.identitySchema {
+				raw := identityData.get([]string{k})
+				if raw.Exists {
+					rawMapIdentity[k] = raw.Value
+					if raw.ValueProcessed != nil {
+						rawMapIdentity[k] = raw.ValueProcessed
+					}
+				}
+			}
+
+			mapWIdentity := &MapFieldWriter{Schema: d.identitySchema}
+			if err := mapWIdentity.WriteField(nil, rawMapIdentity); err != nil {
+				log.Printf("[ERR] Error writing identity fields: %s", err)
+				return nil
+			}
+
+			result.Identity = mapWIdentity.Map()
+		}
+	}
+
 	return &result
 }
 
@@ -700,4 +835,33 @@ func (d *ResourceData) GetRawPlan() cty.Value {
 		return d.state.RawPlan
 	}
 	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// IdentityData is only available for managed resources, data sources
+// will return an error. // TODO: return error in case of data sources
+func (d *ResourceData) Identity() (*IdentityData, error) {
+	// return memoized value if available
+	if d.newIdentity != nil {
+		return d.newIdentity, nil
+	}
+
+	if d.identitySchema == nil {
+		return nil, fmt.Errorf("Resource does not have Identity schema. Please set one in order to use Identity(). This is always a problem in the provider code.")
+	}
+
+	var identityData map[string]string
+	if d.state != nil && d.state.Identity != nil {
+		identityData = d.state.Identity
+	}
+	if d.diff != nil && d.diff.Identity != nil {
+		identityData = d.diff.Identity
+	}
+
+	d.newIdentity = &IdentityData{
+		schema:       d.identitySchema,
+		raw:          identityData,
+		panicOnError: d.panicOnError,
+	}
+
+	return d.newIdentity, nil
 }

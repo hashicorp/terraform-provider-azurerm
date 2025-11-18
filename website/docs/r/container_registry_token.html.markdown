@@ -9,7 +9,9 @@ description: |-
 
 # azurerm_container_registry_token
 
-Manages an Azure Container Registry token. Tokens are a preview feature only available in Premium SKU Container registries.
+Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
+
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -21,7 +23,7 @@ resource "azurerm_container_registry" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Premium"
+  sku                 = "Basic"
   admin_enabled       = false
 
   georeplications {
@@ -74,11 +76,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry token.
-* `update` - (Defaults to 30 minutes) Used when updating the Container Registry token.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry token.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry token.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry token.
 
 ## Import
@@ -88,3 +90,9 @@ Container Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/tokens/token1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

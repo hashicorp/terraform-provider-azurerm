@@ -49,7 +49,7 @@ func TestAccAppConfiguration_standard(t *testing.T) {
 	})
 }
 
-func TestAccAppConfiguration_upgradesku(t *testing.T) {
+func TestAccAppConfiguration_skuUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -63,6 +63,13 @@ func TestAccAppConfiguration_upgradesku(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -316,6 +323,13 @@ func TestAccAppConfiguration_encryptionUpdated(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -737,7 +751,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled                               = true
   public_network_access                            = "Enabled"
   purge_protection_enabled                         = false
-  soft_delete_retention_days                       = 1
+  soft_delete_retention_days                       = 7
 
   identity {
     type = "UserAssigned"
@@ -919,7 +933,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled         = true
   public_network_access      = "Enabled"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 1
+  soft_delete_retention_days = 7
 
   identity {
     type = "UserAssigned"
@@ -956,7 +970,6 @@ provider "azurerm" {
     }
   }
 }
-
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appconfig-%[1]d"

@@ -104,6 +104,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -157,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},
@@ -186,6 +188,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtestservice.Registration{},
 		loganalytics.Registration{},
+		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
@@ -206,6 +209,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		policy.Registration{},
 		postgres.Registration{},
 		privatednsresolver.Registration{},
+		qumulo.Registration{},
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
@@ -213,6 +217,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		search.Registration{},
 		securitycenter.Registration{},
 		sentinel.Registration{},
+		servicebus.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		servicenetworking.Registration{},
@@ -336,12 +341,15 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	}()
 }
 
-func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
-	services := []sdk.FrameworkTypedServiceRegistration{
+func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
+	services := []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		compute.Registration{},
 		keyvault.Registration{},
+		network.Registration{},
+		storage.Registration{},
 	}
 
 	return services

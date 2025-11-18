@@ -45,11 +45,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The number of compute servers for the Cloud Exadata Infrastructure.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `custom_action_timeout_enabled` - If true, enables the configuration of a custom action timeout (waiting period) between database servers patching operations.
 
 * `cpu_count` - The total number of CPU cores allocated.
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
+
+* `database_server_type` - The database server model type of the cloud Exadata infrastructure resource.
 
 * `data_storage_size_in_tbs` - The data storage size in terabytes of the DATA disk group.
 
@@ -97,6 +101,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_count` - The number of storage servers for the Cloud Exadata Infrastructure.
 
+* `storage_server_type` - The storage server model type of the cloud Exadata infrastructure resource.
+
 * `storage_server_version` - The software version of the storage servers (cells) in the Cloud Exadata Infrastructure.
 
 * `tags` - A mapping of tags assigned to the Cloud Exadata Infrastructure.
@@ -106,6 +112,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `total_storage_size_in_gbs` -  The total storage allocated to the Cloud Exadata Infrastructure resource, in gigabytes (GB).
 
 * `zones` - The Cloud Exadata Infrastructure Azure zones.
+
+* `defined_file_system_configuration` - A `defined_file_system_configuration` block as defined below.
 
 ---
 
@@ -139,8 +147,26 @@ A `maintenance_window` block exports the following:
 
 ---
 
+A `defined_file_system_configuration` block exports the following:
+
+* `backup_partition_enabled` - Whether the backup partition is enabled.
+
+* `resizable_enabled` - Whether the resizable is enabled.
+
+* `minimum_size_in_gb` - The minimum size of the file system in GB.
+
+* `mount_point` - Mount path for the file system.
+
+---
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Exadata Infrastructure.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-03-01

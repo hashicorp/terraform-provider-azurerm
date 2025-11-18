@@ -85,11 +85,11 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Backup Vault.
 
--> You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity[0].tenant_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity[0].tenant_id}`
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault.
@@ -103,3 +103,9 @@ Backup Vaults can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_protection_backup_vault.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2024-04-01
