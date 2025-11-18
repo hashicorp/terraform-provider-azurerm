@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -24,21 +23,13 @@ type ManagedRedisAccessPolicyAssignmentResource struct{}
 var _ sdk.Resource = ManagedRedisAccessPolicyAssignmentResource{}
 
 type ManagedRedisAccessPolicyAssignmentResourceModel struct {
-	Name             string `tfschema:"name"`
-	ManagedRedisID   string `tfschema:"managed_redis_id"`
-	AccessPolicyName string `tfschema:"access_policy_name"`
-	ObjectID         string `tfschema:"object_id"`
+	ManagedRedisID string `tfschema:"managed_redis_id"`
+	DatabaseName   string `tfschema:"database_name"`
+	ObjectID       string `tfschema:"object_id"`
 }
 
 func (r ManagedRedisAccessPolicyAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ManagedRedisAccessPolicyAssignmentName,
-		},
-
 		"managed_redis_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -46,11 +37,11 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Arguments() map[string]*plug
 			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
 		},
 
-		"access_policy_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ManagedRedisAccessPolicyName,
+		"database_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  defaultDatabaseName,
 		},
 
 		"object_id": {
@@ -94,9 +85,10 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing managed redis ID: %+v", err)
 			}
 
-			// Access policy assignments are created on the default database
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
-			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName, model.Name)
+			// Access policy assignments are created on the specified database
+			// Use object_id as the assignment name to ensure one assignment per user per database
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.DatabaseName)
+			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.DatabaseName, model.ObjectID)
 
 			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -117,9 +109,9 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			createInput := databases.AccessPolicyAssignment{
-				Name: pointer.To(model.Name),
+				Name: pointer.To(model.ObjectID),
 				Properties: &databases.AccessPolicyAssignmentProperties{
-					AccessPolicyName: model.AccessPolicyName,
+					AccessPolicyName: "default",
 					User: databases.AccessPolicyAssignmentPropertiesUser{
 						ObjectId: pointer.To(model.ObjectID),
 					},
@@ -161,15 +153,11 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 			state := ManagedRedisAccessPolicyAssignmentResourceModel{}
 
 			if model := resp.Model; model != nil {
-				if model.Name != nil {
-					state.Name = *model.Name
-				}
-
 				clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 				state.ManagedRedisID = clusterId.ID()
+				state.DatabaseName = id.DatabaseName
 
 				if props := model.Properties; props != nil {
-					state.AccessPolicyName = props.AccessPolicyName
 					if props.User.ObjectId != nil {
 						state.ObjectID = *props.User.ObjectId
 					}

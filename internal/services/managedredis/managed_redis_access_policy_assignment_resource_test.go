@@ -69,12 +69,10 @@ func (r ManagedRedisAccessPolicyAssignmentResource) basic(data acceptance.TestDa
 data "azuread_client_config" "current" {}
 
 resource "azurerm_managed_redis_access_policy_assignment" "test" {
-  name               = "acctestassignment%d"
-  managed_redis_id   = azurerm_managed_redis.test.id
-  access_policy_name = "default"
-  object_id          = data.azuread_client_config.current.object_id
+  managed_redis_id = azurerm_managed_redis.test.id
+  object_id        = data.azuread_client_config.current.object_id
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r ManagedRedisAccessPolicyAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -82,10 +80,8 @@ func (r ManagedRedisAccessPolicyAssignmentResource) requiresImport(data acceptan
 %s
 
 resource "azurerm_managed_redis_access_policy_assignment" "import" {
-  name               = azurerm_managed_redis_access_policy_assignment.test.name
-  managed_redis_id   = azurerm_managed_redis_access_policy_assignment.test.managed_redis_id
-  access_policy_name = azurerm_managed_redis_access_policy_assignment.test.access_policy_name
-  object_id          = azurerm_managed_redis_access_policy_assignment.test.object_id
+  managed_redis_id = azurerm_managed_redis_access_policy_assignment.test.managed_redis_id
+  object_id        = azurerm_managed_redis_access_policy_assignment.test.object_id
 }
 `, r.basic(data))
 }

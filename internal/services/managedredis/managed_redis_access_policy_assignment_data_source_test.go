@@ -21,8 +21,6 @@ func TestAccManagedRedisAccessPolicyAssignmentDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestassignment%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("access_policy_name").HasValue("default"),
 				check.That(data.ResourceName).Key("object_id").IsNotEmpty(),
 			),
 		},
@@ -34,7 +32,7 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) basic(data acceptance.Test
 %s
 
 data "azurerm_managed_redis_access_policy_assignment" "test" {
-  name                = azurerm_managed_redis_access_policy_assignment.test.name
+  object_id           = azurerm_managed_redis_access_policy_assignment.test.object_id
   managed_redis_name  = azurerm_managed_redis.test.name
   resource_group_name = azurerm_resource_group.test.name
 }

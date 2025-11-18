@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ManagedRedisAccessPolicyAssignmentDataSource struct{}
@@ -21,19 +22,18 @@ type ManagedRedisAccessPolicyAssignmentDataSource struct{}
 var _ sdk.DataSource = ManagedRedisAccessPolicyAssignmentDataSource{}
 
 type ManagedRedisAccessPolicyAssignmentDataSourceModel struct {
-	Name             string `tfschema:"name"`
 	ManagedRedisName string `tfschema:"managed_redis_name"`
 	ResourceGroup    string `tfschema:"resource_group_name"`
-	AccessPolicyName string `tfschema:"access_policy_name"`
+	DatabaseName     string `tfschema:"database_name"`
 	ObjectID         string `tfschema:"object_id"`
 }
 
 func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
+		"object_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ManagedRedisAccessPolicyAssignmentName,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"managed_redis_name": {
@@ -42,17 +42,18 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pl
 			ValidateFunc: validate.ManagedRedisClusterName,
 		},
 
+		"database_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  defaultDatabaseName,
+		},
+
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (r ManagedRedisAccessPolicyAssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"access_policy_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"object_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -80,7 +81,7 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ManagedRedis.DatabaseClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := databases.NewAccessPolicyAssignmentID(subscriptionId, state.ResourceGroup, state.ManagedRedisName, defaultDatabaseName, state.Name)
+			id := databases.NewAccessPolicyAssignmentID(subscriptionId, state.ResourceGroup, state.ManagedRedisName, state.DatabaseName, state.ObjectID)
 
 			resp, err := client.AccessPolicyAssignmentGet(ctx, id)
 			if err != nil {
@@ -94,7 +95,6 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.AccessPolicyName = props.AccessPolicyName
 					if props.User.ObjectId != nil {
 						state.ObjectID = *props.User.ObjectId
 					}

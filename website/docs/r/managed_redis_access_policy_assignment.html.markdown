@@ -9,7 +9,6 @@ description: |-
 # azurerm_managed_redis_access_policy_assignment
 
 Manages a Managed Redis Access Policy Assignment.
-
 ## Example Usage
 
 ```hcl
@@ -32,10 +31,8 @@ resource "azurerm_managed_redis" "example" {
 }
 
 resource "azurerm_managed_redis_access_policy_assignment" "example" {
-  name               = "example
-  managed_redis_id   = azurerm_managed_redis.example.id
-  access_policy_name = "Data Contributor"
-  object_id          = data.azuread_client_config.current.object_id
+  managed_redis_id = azurerm_managed_redis.example.id
+  object_id        = data.azuread_client_config.current.object_id
 }
 ```
 
@@ -43,13 +40,11 @@ resource "azurerm_managed_redis_access_policy_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Access Policy Assignment. Changing this forces a new Access Policy Assignment to be created.
-
 * `managed_redis_id` - (Required) The ID of the Managed Redis instance. Changing this forces a new Access Policy Assignment to be created.
 
-* `access_policy_name` - (Required) The name of the Access Policy to be assigned. Changing this forces a new Redis Cache Access Policy Assignment to be created.
-
 * `object_id` - (Required) The object ID of the Azure Active Directory user, group, service principal, or managed identity to assign the access policy to. Changing this forces a new Access Policy Assignment to be created.
+
+* `database_name` - (Optional) The name of the database within the Managed Redis instance. Defaults to `default`. Changing this forces a new Access Policy Assignment to be created.
 
 ## Attributes Reference
 
