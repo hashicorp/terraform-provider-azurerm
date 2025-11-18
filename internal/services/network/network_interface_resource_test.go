@@ -399,7 +399,7 @@ func TestAccNetworkInterface_tagsOfNicAttachedToPrivateEndpointCanBeUpdated(t *t
 	})
 }
 
-func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err
