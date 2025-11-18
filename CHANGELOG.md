@@ -1,6 +1,7 @@
 ## 4.54.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_service_plan` - suppress casing difference on `sku_name` [GH-30907]
 * dependencies: `go-azure-sdk` - update to `v0.20251107.1191907` [GH-31095]
 * `azurerm_managed_redis` - add support for `persistence_append_only_file_backup_frequency` and `persistence_redis_database_backup_frequency` properties  [GH-30964]
 * `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties [GH-29426]
