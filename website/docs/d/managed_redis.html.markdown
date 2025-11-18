@@ -97,6 +97,10 @@ A `default_database` block exports the following:
 
 * `module` - A list of `module` blocks as defined below.
 
+* `persistence_append_only_file_backup_frequency` - The frequency of Append Only File (AOF) backups.
+
+* `persistence_redis_database_backup_frequency` - The frequency of Redis Database (RDB) backups.
+
 * `port` - The TCP port of the database endpoint.
 
 * `primary_access_key` - The Primary Access Key for the Managed Redis Database instance.

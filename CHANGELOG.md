@@ -1,3 +1,34 @@
+## 4.53.0 (November 14, 2025)
+
+FEATURES:
+
+* **New Resource**: `azurerm_api_management_workspace_certificate` ([#30628](https://github.com/hashicorp/terraform-provider-azurerm/issues/30628))
+* **New Resource**: `azurerm_mongo_cluster_firewall_rule` ([#31062](https://github.com/hashicorp/terraform-provider-azurerm/issues/31062))
+
+ENHANCEMENTS:
+
+* dependencies: `automation` - update to API version `2024-10-23` ([#30890](https://github.com/hashicorp/terraform-provider-azurerm/issues/30890))
+* dependencies: `go-azure-sdk` - update to `v0.20251029.1173336` ([#31051](https://github.com/hashicorp/terraform-provider-azurerm/issues/31051))
+* dependencies: `managedredis` - update to API Version `2025-07-01` ([#31051](https://github.com/hashicorp/terraform-provider-azurerm/issues/31051))
+* dependencies: `mongocluster` - update to API version `2025-09-01` ([#30982](https://github.com/hashicorp/terraform-provider-azurerm/issues/30982))
+* `azurerm_api_management_backend` - add support for the `circuit_breaker_rule` block  ([#30471](https://github.com/hashicorp/terraform-provider-azurerm/issues/30471))
+* `azurerm_dynatrace_monitor` - support for the `YEARLY` value in the `billing_cycle` property ([#31078](https://github.com/hashicorp/terraform-provider-azurerm/issues/31078))
+* `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties ([#30563](https://github.com/hashicorp/terraform-provider-azurerm/issues/30563))
+* `azurerm_managed_disk` - support expanding Ultra Disks and Premium SSD v2 disk without downtime ([#30593](https://github.com/hashicorp/terraform-provider-azurerm/issues/30593))
+* `azurerm_managed_redis` - add support for `public_network_access` ([#31051](https://github.com/hashicorp/terraform-provider-azurerm/issues/31051))
+* `azurerm_storage_table_entity` - resource is now removed from state if it no longer exists in Azure ([#31064](https://github.com/hashicorp/terraform-provider-azurerm/issues/31064))
+* `azurerm_synapse_spark_pool` - add support for `spark_version` `3.5` ([#30900](https://github.com/hashicorp/terraform-provider-azurerm/issues/30900))
+* `data.azurerm_postgresql_flexible_server` - add support for `zone` and `high_availability` ([#31034](https://github.com/hashicorp/terraform-provider-azurerm/issues/31034))
+
+BUG FIXES:
+
+* `azurerm_dynatrace_monitor` -  the `phone_number` and `country` properties are no longer Required ([#31077](https://github.com/hashicorp/terraform-provider-azurerm/issues/31077))
+* `azurerm_dynatrace_tag_rules` - the `log_rule.filtering_tag` property is no longer required ([#31065](https://github.com/hashicorp/terraform-provider-azurerm/issues/31065))
+* `azurerm_dynatrace_tag_rules` - the `metric_rule.filtering_tag` property is no longer required ([#31065](https://github.com/hashicorp/terraform-provider-azurerm/issues/31065))
+* `azurerm_kubernetes_cluster` - fix crash in use of `azure_active_directory_role_based_access_control` ([#31101](https://github.com/hashicorp/terraform-provider-azurerm/issues/31101))
+* `azurerm_logic_app_workflow` - fix inaccurate error messages ([#30963](https://github.com/hashicorp/terraform-provider-azurerm/issues/30963))
+* `azurerm_virtual_network_gateway` - fix validation for `policy_group.name` and `vpn_client_configuration.virtual_network_gateway_client_connection.policy_group_names` ([#30454](https://github.com/hashicorp/terraform-provider-azurerm/issues/30454))
+
 ## 4.52.0 (November 06, 2025)
 
 **NOTE:** This release removes the `azurerm_spatial_anchors_account` resource and data source due to Azure having retired the service
