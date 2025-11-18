@@ -119,10 +119,8 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 			}
 
 			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -194,11 +192,8 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 
 			if model := existing.Model; model != nil {
 				props := model.Properties
-
 				state.Location = location.Normalize(model.Location)
-
 				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
-
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				networkProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
@@ -208,7 +203,6 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 				state.NetworkProfile = []schema.NetworkProfileVHub{*networkProfile}
 
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
-
 				state.PlanId = props.PlanData.PlanId
 
 				flattenedIdentity, err := flattenPaloAltoUserAssignedToLegacyIdentity(model.Identity)

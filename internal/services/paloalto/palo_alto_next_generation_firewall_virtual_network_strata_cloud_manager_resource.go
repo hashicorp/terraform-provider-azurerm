@@ -192,17 +192,11 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 			state.ResourceGroupName = id.ResourceGroupName
 			if model := existing.Model; model != nil {
 				props := model.Properties
-
 				state.Location = location.Normalize(model.Location)
-
 				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
-
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
-
 				state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
-
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
-
 				state.PlanId = props.PlanData.PlanId
 
 				flattenedIdentity, err := flattenPaloAltoUserAssignedToLegacyIdentity(model.Identity)
