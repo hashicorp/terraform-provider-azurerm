@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,21 +35,24 @@ type ManagedRedisDataSourceModel struct {
 	Hostname                string                                     `tfschema:"hostname"`
 	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Location                string                                     `tfschema:"location"`
+	PublicNetworkAccess     string                                     `tfschema:"public_network_access"`
 	SkuName                 string                                     `tfschema:"sku_name"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 }
 
 type DefaultDatabaseDataSourceModel struct {
-	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string        `tfschema:"client_protocol"`
-	ClusteringPolicy                string        `tfschema:"clustering_policy"`
-	EvictionPolicy                  string        `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
-	GeoReplicationLinkedDatabaseIds []string      `tfschema:"geo_replication_linked_database_ids"`
-	Module                          []ModuleModel `tfschema:"module"`
-	Port                            int64         `tfschema:"port"`
-	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
-	SecondaryAccessKey              string        `tfschema:"secondary_access_key"`
+	AccessKeysAuthenticationEnabled          bool          `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                           string        `tfschema:"client_protocol"`
+	ClusteringPolicy                         string        `tfschema:"clustering_policy"`
+	EvictionPolicy                           string        `tfschema:"eviction_policy"`
+	GeoReplicationGroupName                  string        `tfschema:"geo_replication_group_name"`
+	GeoReplicationLinkedDatabaseIds          []string      `tfschema:"geo_replication_linked_database_ids"`
+	Module                                   []ModuleModel `tfschema:"module"`
+	PersistenceAppendOnlyFileBackupFrequency string        `tfschema:"persistence_append_only_file_backup_frequency"`
+	PersistenceRedisDatabaseBackupFrequency  string        `tfschema:"persistence_redis_database_backup_frequency"`
+	Port                                     int64         `tfschema:"port"`
+	PrimaryAccessKey                         string        `tfschema:"primary_access_key"`
+	SecondaryAccessKey                       string        `tfschema:"secondary_access_key"`
 }
 
 func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -145,6 +148,16 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
+					"persistence_append_only_file_backup_frequency": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"persistence_redis_database_backup_frequency": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
 					"port": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -178,6 +191,11 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"location": commonschema.LocationComputed(),
+
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
@@ -244,19 +262,22 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
+					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}
 			}
 
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					defaultDb := DefaultDatabaseDataSourceModel{
-						AccessKeysAuthenticationEnabled: strings.EqualFold(pointer.FromEnum(props.AccessKeysAuthentication), string(databases.AccessKeysAuthenticationEnabled)),
-						ClientProtocol:                  pointer.FromEnum(props.ClientProtocol),
-						ClusteringPolicy:                pointer.FromEnum(props.ClusteringPolicy),
-						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
-						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
-						Module:                          flattenModules(props.Modules),
-						Port:                            pointer.From(props.Port),
+						AccessKeysAuthenticationEnabled:          strings.EqualFold(pointer.FromEnum(props.AccessKeysAuthentication), string(databases.AccessKeysAuthenticationEnabled)),
+						ClientProtocol:                           pointer.FromEnum(props.ClientProtocol),
+						ClusteringPolicy:                         pointer.FromEnum(props.ClusteringPolicy),
+						EvictionPolicy:                           pointer.FromEnum(props.EvictionPolicy),
+						GeoReplicationGroupName:                  flattenGeoReplicationGroupName(props.GeoReplication),
+						Module:                                   flattenModules(props.Modules),
+						PersistenceAppendOnlyFileBackupFrequency: flattenPersistenceAOF(props.Persistence),
+						PersistenceRedisDatabaseBackupFrequency:  flattenPersistenceRDB(props.Persistence),
+						Port:                                     pointer.From(props.Port),
 					}
 
 					if props.GeoReplication != nil {

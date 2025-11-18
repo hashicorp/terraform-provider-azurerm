@@ -42,7 +42,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Oracle Resource Anchor.
 
-* `location` - The Azure Region where the Oracle Resource Anchor  exists. 
+* `location` - The Azure Region where the Oracle Resource Anchor exists. 
 
 * `linked_compartment_id` - Oracle Cloud Infrastructure compartment [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) which was created or linked by customer with Resource Anchor.
 
@@ -60,7 +60,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Oracle Resource Anchors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracle_resource_anchor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/resourceanchors/example
+terraform import azurerm_oracle_resource_anchor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/resourceAnchors/example
 ```
 
 ## API Providers
