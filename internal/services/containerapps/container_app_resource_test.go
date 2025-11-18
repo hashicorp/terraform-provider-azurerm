@@ -1386,10 +1386,10 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 2
-    max_replicas     			= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
-    polling_interval_in_seconds	= 10
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
 
@@ -1635,10 +1635,10 @@ resource "azurerm_container_app" "test" {
       storage_type = "EmptyDir"
     }
 
-    min_replicas     			= 2
-    max_replicas     			= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
-    polling_interval_in_seconds	= 10
+    polling_interval_in_seconds = 10
 
     revision_suffix = "%[3]s"
   }
@@ -1735,8 +1735,8 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 2
-    max_replicas     			= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
     polling_interval_in_seconds = 10
 
@@ -1832,8 +1832,8 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 2
-    max_replicas   				= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
     polling_interval_in_seconds = 10
 
@@ -1961,8 +1961,8 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 2
-    max_replicas     			= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
     polling_interval_in_seconds = 10
 
@@ -2089,8 +2089,8 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 2
-    max_replicas     			= 3
+    min_replicas                = 2
+    max_replicas                = 3
     cooldown_period_in_seconds  = 1000
     polling_interval_in_seconds = 10
 
@@ -2200,7 +2200,7 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    max_replicas     			= 4
+    max_replicas                = 4
     cooldown_period_in_seconds  = 500
     polling_interval_in_seconds = 5
 
@@ -2333,8 +2333,8 @@ resource "azurerm_container_app" "test" {
       mount_options = "dir_mode=0777,file_mode=0666"
     }
 
-    min_replicas     			= 1
-    max_replicas     			= 4
+    min_replicas                = 1
+    max_replicas                = 4
     cooldown_period_in_seconds  = 1000
     polling_interval_in_seconds = 10
 
