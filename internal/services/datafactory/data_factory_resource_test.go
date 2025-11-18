@@ -6,6 +6,7 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -259,6 +260,18 @@ func TestAccDataFactory_keyVaultKeyEncryptionWithExistingDataFactoryAndManagedSe
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactory_keyVaultKeyEncryptionMissingKeyIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultKeyEncryptionMissingKeyIdentity(),
+			ExpectError: regexp.MustCompile("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`"),
+		},
 	})
 }
 
@@ -869,6 +882,22 @@ resource "azurerm_data_factory" "test" {
   }
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionMissingKeyIdentity() string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF"
+  location            = "eastus"
+  resource_group_name = "acctestRG"
+
+  customer_managed_key_id = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+}
+	`)
 }
 
 func (DataFactoryResource) globalParameter(data acceptance.TestData) string {

@@ -220,6 +220,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			validate.CMKIdentityIdRequiredAtCreation,
 		),
 	}
 }
