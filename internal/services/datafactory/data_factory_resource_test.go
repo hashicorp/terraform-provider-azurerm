@@ -885,7 +885,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 func (DataFactoryResource) keyVaultKeyEncryptionMissingKeyIdentity() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -897,7 +897,7 @@ resource "azurerm_data_factory" "test" {
 
   customer_managed_key_id = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
 }
-	`)
+	`
 }
 
 func (DataFactoryResource) globalParameter(data acceptance.TestData) string {
