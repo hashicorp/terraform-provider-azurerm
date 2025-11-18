@@ -73,6 +73,62 @@ func TestAccAutomationRuntimeEnvironment_basicPython(t *testing.T) {
 	})
 }
 
+func TestAccAutomationRuntimeEnvironment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
+	r := AutomationRuntimeEnvironmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePowerShell(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completePowerShellAddPackage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationRuntimeEnvironment_import(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
+	r := AutomationRuntimeEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePowerShell(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiredImport),
+	})
+}
+
+func (a AutomationRuntimeEnvironmentResource) requiredImport(data acceptance.TestData) string {
+	template := a.completePowerShell(data)
+
+	return fmt.Sprintf(`
+%[1]s
+
+  resource "azurerm_automation_runtime_environment" "import" {
+    name                    = azurerm_automation_runtime_environment.example.name
+	resource_group_name     = azurerm_automation_runtime_environment.example.resource_group_name
+	automation_account_name = azurerm_automation_runtime_environment.example.automation_account_name
+
+	runtime_language        = azurerm_automation_runtime_environment.example.runtime_language
+	runtime_version         = azurerm_automation_runtime_environment.example.runtime_version
+
+	location                = azurerm_automation_runtime_environment.example.location
+  }
+}
+`, template)
+}
+
 func (a AutomationRuntimeEnvironmentResource) basic(data acceptance.TestData, runtime, version string) string {
 	return fmt.Sprintf(`
 
@@ -110,6 +166,35 @@ func (a AutomationRuntimeEnvironmentResource) completePowerShell(data acceptance
 
     runtime_default_packages = {
       "az" = "11.2.0"
+    }
+
+    tags = {
+      test = "value"
+    }
+  }
+
+`, a.template(data))
+}
+
+func (a AutomationRuntimeEnvironmentResource) completePowerShellAddPackage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+  resource azurerm_automation_runtime_environment "example" {
+    name                    = "powershell_complete"
+    resource_group_name     = azurerm_resource_group.test.name
+    automation_account_name = azurerm_automation_account.test.name
+
+    runtime_language        = "PowerShell"
+    runtime_version         = "7.2"
+
+    location                = azurerm_resource_group.test.location
+    description             = "Test automation runtime environment"
+
+    runtime_default_packages = {
+      "az" 			= "11.2.0",
+      "azure cli" 	= "2.56.0",
     }
 
     tags = {

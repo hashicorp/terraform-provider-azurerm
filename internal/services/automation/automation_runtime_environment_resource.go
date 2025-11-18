@@ -33,7 +33,10 @@ type AutomationRuntimeEnvironmentResourceModel struct {
 
 type AutomationRuntimeEnvironmentResource struct{}
 
-var _ sdk.Resource = (*AutomationRuntimeEnvironmentResource)(nil)
+var (
+	_ sdk.ResourceWithUpdate        = AutomationRuntimeEnvironmentResource{}
+	_ sdk.ResourceWithCustomizeDiff = AutomationRuntimeEnvironmentResource{}
+)
 
 func (m AutomationRuntimeEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -124,20 +127,22 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.RuntimeEnvironmentClient
+			client := meta.Client.Automation.Client.RuntimeEnvironment
 
 			var model AutomationRuntimeEnvironmentResourceModel
 			if err := meta.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
 			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
+
 			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
-				}
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
@@ -169,42 +174,37 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.Automation.Client.RuntimeEnvironment
+
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := meta.Client.Automation.RuntimeEnvironmentClient
-			result, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(result.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return meta.MarkAsGone(id)
 				}
-				return err
+
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
+			state := AutomationRuntimeEnvironmentResourceModel{
+				Name: id.RuntimeEnvironmentName,
 			}
 
-			var stateModel AutomationRuntimeEnvironmentResourceModel
-			if err = meta.Decode(&stateModel); err != nil {
-				return err
+			if model := resp.Model; model != nil {
+				state.AutomationAccountName = id.AutomationAccountName
+				state.RuntimeLanguage = *resp.Model.Properties.Runtime.Language
+				state.RuntimeVersion = *resp.Model.Properties.Runtime.Version
+				state.RuntimeDefaultPackages = *resp.Model.Properties.DefaultPackages
+				state.Description = *resp.Model.Properties.Description
+				state.Location = resp.Model.Location
+				state.Tags = *resp.Model.Tags
 			}
 
-			output := AutomationRuntimeEnvironmentResourceModel{
-				Name:                   id.RuntimeEnvironmentName,
-				ResourceGroupName:      stateModel.ResourceGroupName,
-				AutomationAccountName:  id.AutomationAccountName,
-				RuntimeLanguage:        *result.Model.Properties.Runtime.Language,
-				RuntimeVersion:         *result.Model.Properties.Runtime.Version,
-				RuntimeDefaultPackages: *result.Model.Properties.DefaultPackages,
-				Description:            *result.Model.Properties.Description,
-				Location:               result.Model.Location,
-				Tags:                   *result.Model.Tags,
-			}
-
-			return meta.Encode(&output)
+			return meta.Encode(&state)
 		},
 	}
 }
@@ -213,25 +213,42 @@ func (m AutomationRuntimeEnvironmentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.RuntimeEnvironmentClient
+			client := meta.Client.Automation.Client.RuntimeEnvironment
+
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var stateModel AutomationRuntimeEnvironmentResourceModel
-			if err = meta.Decode(&stateModel); err != nil {
+			var state AutomationRuntimeEnvironmentResourceModel
+			if err = meta.Decode(&state); err != nil {
 				return err
 			}
 
-			var upd runtimeenvironment.RuntimeEnvironmentUpdateParameters
-			if meta.ResourceData.HasChange("runtime_default_packages") {
-				upd.Properties = &runtimeenvironment.RuntimeEnvironmentUpdateProperties{
-					DefaultPackages: &stateModel.RuntimeDefaultPackages,
-				}
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if _, err = client.Update(ctx, *id, upd); err != nil {
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			if meta.ResourceData.HasChange("runtime_default_packages") {
+				existing.Model.Properties.DefaultPackages = pointer.To(state.RuntimeDefaultPackages)
+			}
+
+			param := runtimeenvironment.RuntimeEnvironmentUpdateParameters{
+				Properties: &runtimeenvironment.RuntimeEnvironmentUpdateProperties{
+					DefaultPackages: pointer.To(state.RuntimeDefaultPackages),
+				},
+			}
+
+			if _, err = client.Update(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
@@ -244,13 +261,13 @@ func (m AutomationRuntimeEnvironmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.Automation.Client.RuntimeEnvironment
+
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.Automation.RuntimeEnvironmentClient
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
