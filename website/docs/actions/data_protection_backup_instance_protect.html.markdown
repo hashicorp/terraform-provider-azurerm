@@ -17,6 +17,10 @@ Changes the Protection state of a Data Protection Backup Instance to the specifi
 ```terraform
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "example" {
   # ... Backup Instance configuration
+}
+
+resource "terraform_data" "example" {
+  input = azurerm_data_protection_backup_instance_postgresql_flexible_server.example.id
 
   lifecycle {
     action_trigger {
@@ -25,6 +29,8 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "e
     }
   }
 }
+
+
 
 action "azurerm_data_protection_backup_instance_protect" "stop_protection" {
   config {
