@@ -45,7 +45,6 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		// Keep the storage_share_id for compatibility.
 		schema["storage_share_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -103,17 +102,20 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if features.FivePointOh() {
-		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
-	} else {
+	if !features.FivePointOh() {
 		storageShareURL := d.Get("storage_share_url")
 		if storageShareURL == "" {
 			storageShareURL = d.Get("storage_share_id")
 		}
 		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+	} else {
+		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
 	}
 
 	if storageShareId == nil {
@@ -260,7 +262,7 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("name", id.DirectoryPath)
 	d.Set("storage_share_url", storageShareId.ID())
 	if !features.FivePointOh() {
-		d.Set("storage_share_id", d.Get("storage_share_url"))
+		d.Set("storage_share_id", storageShareId.ID())
 	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
@@ -304,7 +306,7 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interfa
 func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, id directories.DirectoryId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
-		if err != nil {
+		if err != nil && !response.WasNotFound(res.HttpResponse) {
 			state := "unknown"
 			if res.HttpResponse != nil {
 				state = strconv.Itoa(res.HttpResponse.StatusCode)

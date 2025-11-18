@@ -88,7 +88,6 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		// Keep the storage_share_id for compatibility.
 		schema["storage_share_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -140,17 +139,20 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if features.FivePointOh() {
-		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
-	} else {
+	if !features.FivePointOh() {
 		storageShareURL := d.Get("storage_share_url")
 		if storageShareURL == "" {
 			storageShareURL = d.Get("storage_share_id")
 		}
 		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+	} else {
+		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
 	}
 
 	fileName := d.Get("name").(string)
@@ -331,7 +333,7 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("path", id.DirectoryPath)
 	d.Set("storage_share_url", shares.NewShareID(id.AccountId, id.ShareName).ID())
 	if !features.FivePointOh() {
-		d.Set("storage_share_id", d.Get("storage_share_url"))
+		d.Set("storage_share_id", shares.NewShareID(id.AccountId, id.ShareName).ID())
 	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
