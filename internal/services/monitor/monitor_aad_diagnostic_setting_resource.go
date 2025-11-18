@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -185,6 +186,13 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
+	pollerType := custompollers.NewAadDiagnosticSettingCreatePoller(client, id)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
