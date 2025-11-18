@@ -567,6 +567,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+			osType = virtualmachinescalesets.OperatingSystemTypesWindows
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -844,7 +845,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{}
 	update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{}
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 
 	if !isLegacy {
 		updateProps = virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
@@ -912,6 +913,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+				osType = virtualmachinescalesets.OperatingSystemTypesWindows
 				winConfig := winConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)

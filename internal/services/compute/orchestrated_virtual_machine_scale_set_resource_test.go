@@ -941,8 +941,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) specializedImage(data acceptance.TestData) string {
-	template := SharedImageVersionResource{}.imageVersionSpecializedByVM(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -977,7 +975,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     Type        = "Orchestrated"
   }
 }
-`, template, data.RandomInteger)
+`, SharedImageVersionResource{}.imageVersionSpecializedByVM(data), data.RandomInteger)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
