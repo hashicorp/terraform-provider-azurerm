@@ -209,11 +209,12 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		keyName := ""
 		keyVersion := ""
 		keyVaultURI := ""
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_uri") {
+		switch {
+		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_uri"):
 			keyName = d.Get("key_name").(string)
 			keyVersion = d.Get("key_version").(string)
 			keyVaultURI = d.Get("key_vault_uri").(string)
-		} else if !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_id") {
+		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_id"):
 			keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 			if err != nil {
 				return err
@@ -246,7 +247,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyName = d.Get("key_name").(string)
 			keyVersion = d.Get("key_version").(string)
 			keyVaultURI = *keyVaultBaseURL
-		} else if !pluginsdk.IsExplicitlyNullInConfig(d, "managed_hsm_key_id") {
+		case !pluginsdk.IsExplicitlyNullInConfig(d, "managed_hsm_key_id"):
 			keyID, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
@@ -255,7 +256,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyName = keyID.Name
 			keyVersion = keyID.Version
 			keyVaultURI = keyID.KeyVaultBaseURL
-		} else if !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_key_id") {
+		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_key_id"):
 			keyID, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
@@ -264,6 +265,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyName = keyID.Name
 			keyVersion = keyID.Version
 			keyVaultURI = keyID.KeyVaultBaseURL
+
 		}
 
 		userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
@@ -394,7 +396,6 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 					d.Set("user_assigned_identity_id", userAssignedIdentity)
 					d.Set("federated_identity_client_id", federatedIdentityClientID)
 				}
-
 			}
 		}
 	}
