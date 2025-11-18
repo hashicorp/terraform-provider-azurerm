@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
+    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -31,7 +31,7 @@ A patch/delta update would look similar to below:
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
   // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
+  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -53,7 +53,7 @@ if resp.Model == nil {
 
 payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {

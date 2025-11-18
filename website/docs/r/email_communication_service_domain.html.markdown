@@ -60,6 +60,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `verification_records` - (Optional) An `verification_records` block as defined below.
 
+---
+
 An `verification_records` block supports the following arguments:
 
 * `domain` - (Optional) An `domain` block as defined below.
@@ -72,6 +74,8 @@ An `verification_records` block supports the following arguments:
 
 * `spf` - (Optional) An `spf` block as defined below.
 
+---
+
 An `domain` block supports the following arguments:
 
 * `name` - Name of the DNS record.
@@ -81,6 +85,8 @@ An `domain` block supports the following arguments:
 * `type` - Type of the DNS record. Example: TXT
 
 * `value` - Value of the DNS record.
+
+---
 
 An `dkim` block supports the following arguments:
 
@@ -92,6 +98,8 @@ An `dkim` block supports the following arguments:
 
 * `value` - Value of the DNS record.
 
+---
+
 An `dkim2` block supports the following arguments:
 
 * `name` - Name of the DNS record.
@@ -102,6 +110,8 @@ An `dkim2` block supports the following arguments:
 
 * `value` - Value of the DNS record.
 
+---
+
 An `dmarc` block supports the following arguments:
 
 * `name` - Name of the DNS record.
@@ -111,6 +121,8 @@ An `dmarc` block supports the following arguments:
 * `type` - Type of the DNS record. Example: TXT
 
 * `value` - Value of the DNS record.
+
+---
 
 An `spf` block supports the following arguments:
 

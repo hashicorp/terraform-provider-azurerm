@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_peering" "remote" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

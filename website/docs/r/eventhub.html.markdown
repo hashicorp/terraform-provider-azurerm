@@ -38,13 +38,13 @@ resource "azurerm_eventhub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
+* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
@@ -82,7 +82,7 @@ A `capture_description` block supports the following:
 
 A `retention_description` block supports the following:
 
-* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`.
+* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`. Changing this forces a new resource to be created.
 
 * `retention_time_in_hours` - (Optional) Specifies the number of hours to retain the events for this Event Hub. The value is only used when `cleanup_policy` is `Delete`.
 

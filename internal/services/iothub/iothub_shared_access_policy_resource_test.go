@@ -46,7 +46,7 @@ func TestAccIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.writeWithoutRead(data),
-			ExpectError: regexp.MustCompile("If `registry_write` is set to true, `registry_read` must also be set to true"),
+			ExpectError: regexp.MustCompile("if `registry_write` is set to true, `registry_read` must also be set to true"),
 		},
 	})
 }

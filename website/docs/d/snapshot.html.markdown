@@ -19,7 +19,7 @@ data "azurerm_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Snapshot.
 
