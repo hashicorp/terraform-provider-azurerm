@@ -252,12 +252,10 @@ func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofile
 				return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 			}
 		}
-
 		d.Set("location", location.NormalizeNilable(profile.Location))
 		if err := tags.FlattenAndSet(d, profile.Tags); err != nil {
 			return err
 		}
-
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
