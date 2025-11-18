@@ -963,8 +963,8 @@ type ContainerTemplate struct {
 	Suffix                 string                `tfschema:"revision_suffix"`
 	MinReplicas            int64                 `tfschema:"min_replicas"`
 	MaxReplicas            int64                 `tfschema:"max_replicas"`
-	CooldownPeriod         int64                 `tfschema:"cooldown_period"`
-	PollingInterval        int64                 `tfschema:"polling_interval"`
+	CooldownPeriod         int64                 `tfschema:"cooldown_period_in_seconds"`
+	PollingInterval        int64                 `tfschema:"polling_interval_in_seconds"`
 	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -1000,7 +1000,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Description:  "The maximum number of replicas for this container.",
 				},
 
-				"cooldown_period": {
+				"cooldown_period_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      300,
@@ -1008,7 +1008,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Description:  "The number of seconds to wait before scaling down the number of instances again.",
 				},
 
-				"polling_interval": {
+				"polling_interval_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      30,
@@ -1067,20 +1067,16 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Description: "The maximum number of replicas for this container.",
 				},
 
-				"cooldown_period": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      300,
-					ValidateFunc: validation.IntAtLeast(1),
-					Description:  "The number of seconds load should be below the scale up threshold before scaling back again.",
+				"cooldown_period_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds to wait before scaling down the number of instances again.",
 				},
 
-				"polling_interval": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      30,
-					ValidateFunc: validation.IntAtLeast(1),
-					Description:  "The interval in seconds used for polling KEDA.",
+				"polling_interval_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),

@@ -114,9 +114,9 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
-* `cooldown_period` - The number of seconds to wait before scaling down the number of instances again.
+* `cooldown_period_in_seconds` - (Optional) The number of seconds to wait before scaling down the number of instances again. Defaults to `300`.
 
-* `polling_interval` - The interval in seconds used for polling KEDA.
+* `polling_interval_in_seconds` - (Optional) The interval in seconds used for polling KEDA. Defaults to `30`.
 
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
