@@ -349,6 +349,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		compute.Registration{},
 		keyvault.Registration{},
 		network.Registration{},
+		managedredis.Registration{},
 		storage.Registration{},
 	}
 
