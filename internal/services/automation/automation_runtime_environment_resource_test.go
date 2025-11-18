@@ -105,26 +105,22 @@ func TestAccAutomationRuntimeEnvironment_import(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiredImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (a AutomationRuntimeEnvironmentResource) requiredImport(data acceptance.TestData) string {
+func (a AutomationRuntimeEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	template := a.completePowerShell(data)
-
 	return fmt.Sprintf(`
 %[1]s
 
-  resource "azurerm_automation_runtime_environment" "import" {
-    name                    = azurerm_automation_runtime_environment.example.name
-    resource_group_name     = azurerm_automation_runtime_environment.example.resource_group_name
-    automation_account_name = azurerm_automation_runtime_environment.example.automation_account_name
-
-    runtime_language        = azurerm_automation_runtime_environment.example.runtime_language
-    runtime_version         = azurerm_automation_runtime_environment.example.runtime_version
-
-    location                = azurerm_automation_runtime_environment.example.location
-  }
+resource "azurerm_automation_runtime_environment" "import" {
+  name                    = azurerm_automation_runtime_environment.example.name
+  resource_group_name     = azurerm_automation_runtime_environment.example.resource_group_name
+  automation_account_name = azurerm_automation_runtime_environment.example.automation_account_name
+  runtime_language        = azurerm_automation_runtime_environment.example.runtime_language
+  runtime_version         = azurerm_automation_runtime_environment.example.runtime_version
+  location                = azurerm_automation_runtime_environment.example.location
 }
 `, template)
 }
