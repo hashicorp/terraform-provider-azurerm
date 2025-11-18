@@ -387,10 +387,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					customerManagedKeyId = keyId.ID()
 				}
 
-				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil && *encIdentity.UserAssignedIdentity != "" {
-					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+				if encIdentity := enc.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
+					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 					if err != nil {
-						return fmt.Errorf("parsing %q: %+v", "customer_managed_key_identity_id", err)
+						return err
 					}
 					customerManagedKeyIdentityId = parsed.ID()
 				}
