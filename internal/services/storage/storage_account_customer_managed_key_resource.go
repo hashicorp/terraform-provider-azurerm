@@ -262,7 +262,6 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyName = keyID.Name
 			keyVersion = keyID.Version
 			keyVaultURI = keyID.KeyVaultBaseURL
-
 		}
 
 		userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
