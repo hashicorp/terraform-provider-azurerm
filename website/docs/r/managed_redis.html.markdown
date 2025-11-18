@@ -200,6 +200,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `default_database` block exports the following:
 
+* `id` - The ID of the Managed Redis Database Instance.
+
 * `port` - TCP port of the database endpoint.
 
 * `primary_access_key` - The Primary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.

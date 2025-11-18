@@ -47,6 +47,7 @@ type DefaultDatabaseDataSourceModel struct {
 	EvictionPolicy                  string        `tfschema:"eviction_policy"`
 	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
 	GeoReplicationLinkedDatabaseIds []string      `tfschema:"geo_replication_linked_database_ids"`
+	ID                              string        `tfschema:"id"`
 	Module                          []ModuleModel `tfschema:"module"`
 	Port                            int64         `tfschema:"port"`
 	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
@@ -90,6 +91,11 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
 					"access_keys_authentication_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
@@ -256,7 +262,13 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {
+					databaseId, err := redisenterprise.ParseDatabaseID(pointer.From(model.Id))
+					if err != nil {
+						return fmt.Errorf("parsing Managed Redis Database ID %q: %+v", pointer.From(model.Id), err)
+					}
+
 					defaultDb := DefaultDatabaseDataSourceModel{
+						ID:                              databaseId.ID(),
 						AccessKeysAuthenticationEnabled: strings.EqualFold(pointer.FromEnum(props.AccessKeysAuthentication), string(databases.AccessKeysAuthenticationEnabled)),
 						ClientProtocol:                  pointer.FromEnum(props.ClientProtocol),
 						ClusteringPolicy:                pointer.FromEnum(props.ClusteringPolicy),

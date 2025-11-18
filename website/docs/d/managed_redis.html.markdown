@@ -93,6 +93,8 @@ A `default_database` block exports the following:
 
 * `geo_replication_linked_database_ids` - A list of linked database IDs for geo-replication.
 
+* `id` - The ID of the Managed Redis Database Instance.
+
 * `module` - A list of `module` blocks as defined below.
 
 * `port` - The TCP port of the database endpoint.
