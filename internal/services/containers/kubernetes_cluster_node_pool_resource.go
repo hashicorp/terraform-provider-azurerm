@@ -523,6 +523,11 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 
+	upgradeSettings, err := expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{}), priority)
+	if err != nil {
+		return err
+	}
+
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 pointer.To(agentpools.OSType(osType)),
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
@@ -536,7 +541,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Tags:                   tags.Expand(t),
 		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
-		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
+		UpgradeSettings:        upgradeSettings,
 		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
@@ -879,7 +884,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("upgrade_settings") {
 		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
-		props.UpgradeSettings = expandAgentPoolUpgradeSettings(upgradeSettingsRaw)
+		priority := d.Get("priority").(string)
+		upgradeSettings, err := expandAgentPoolUpgradeSettings(upgradeSettingsRaw, priority)
+		if err != nil {
+			return err
+		}
+		props.UpgradeSettings = upgradeSettings
 	}
 
 	if d.HasChange("scale_down_mode") {
@@ -1268,7 +1278,8 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
+					Description:  "The maximum number of nodes that can be created during upgrade. This cannot be set when `priority` is set to `Spot`.",
 				},
 				"drain_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1279,7 +1290,8 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
+					Description:  "The maximum number of nodes that can be unavailable during upgrade. This cannot be set when `priority` is set to `Spot`.",
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1368,20 +1380,40 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	return result
 }
 
-func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUpgradeSettings {
+func expandAgentPoolUpgradeSettings(input []interface{}, priority string) (*agentpools.AgentPoolUpgradeSettings, error) {
 	setting := &agentpools.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
-	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
-		setting.MaxSurge = pointer.To(maxSurgeRaw)
-		setting.MaxUnavailable = pointer.To("0")
+	isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
+	
+	maxSurgeRaw := v["max_surge"].(string)
+	maxUnavailableRaw := v["max_unavailable"].(string)
+	
+	if isSpot {
+		if maxSurgeRaw != "" {
+			return nil, fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+		}
+		if maxUnavailableRaw != "" {
+			return nil, fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+		}
 	}
-	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
-		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
-		setting.MaxSurge = pointer.To("0")
+	
+	if !isSpot {
+		if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+			return nil, fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+		}
+		
+		if maxSurgeRaw != "" {
+			setting.MaxSurge = pointer.To(maxSurgeRaw)
+			setting.MaxUnavailable = pointer.To("0")
+		}
+		if maxUnavailableRaw != "" {
+			setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+			setting.MaxSurge = pointer.To("0")
+		}
 	}
 
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
@@ -1393,7 +1425,7 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
 		setting.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
-	return setting
+	return setting, nil
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
