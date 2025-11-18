@@ -122,7 +122,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_profile", id.ID())
+		return tf.ImportAsExistsError(azureNetworkProfileResourceName, id.ID())
 	}
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
@@ -233,28 +233,28 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		return fmt.Errorf("requesting %s: %+v", *id, err)
 	}
+	return resourceNetworkProfileFlatten(d, id, resp.Model)
+}
 
+func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofiles.NetworkProfileId, profile *networkprofiles.NetworkProfile) error {
 	d.Set("name", id.NetworkProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.NormalizeNilable(profile.Location))
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		if props := model.Properties; props != nil {
-			cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
-			if err := d.Set("container_network_interface", cniConfigs); err != nil {
-				return fmt.Errorf("setting `container_network_interface`: %+v", err)
-			}
-
-			cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
-			if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
-				return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
-			}
+	if profile.Properties != nil {
+		cniConfigs := flattenNetworkProfileContainerNetworkInterface(profile.Properties.ContainerNetworkInterfaceConfigurations)
+		if err := d.Set("container_network_interface", cniConfigs); err != nil {
+			return fmt.Errorf("setting `container_network_interface`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
+		cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(profile.Properties.ContainerNetworkInterfaces)
+		if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
+			return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 		}
+	}
+
+	if err := tags.FlattenAndSet(d, profile.Tags); err != nil {
+		return err
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
