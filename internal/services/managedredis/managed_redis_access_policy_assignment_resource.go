@@ -41,7 +41,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Arguments() map[string]*plug
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  defaultDatabaseName,
+			Default:  "default",
 		},
 
 		"object_id": {
