@@ -113,7 +113,7 @@ variable "extension_name" {
 }
 
 variable "sequence_version" {
-  description = "sequence version of the bitlocker operation. Increment this everytime an operation is performed on the same VM"
+  description = "sequence version of the bitlocker operation. Increment this every time an operation is performed on the same VM"
   default     = 1
 }
 
