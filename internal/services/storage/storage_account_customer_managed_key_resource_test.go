@@ -278,7 +278,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
   storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault_key.first.id
+  key_vault_key_id   = azurerm_key_vault_key.first.id
 }
 `, r.template(data))
 }

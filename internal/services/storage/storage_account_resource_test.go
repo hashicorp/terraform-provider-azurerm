@@ -953,7 +953,7 @@ func TestAccStorageAccount_hnsWithPremiumStorage(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
+func TestAccStorageAccount_azureFilesAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1008,7 +1008,7 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_routing(t *testing.T) {
+func TestAccStorageAccount_routing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1054,7 +1054,7 @@ func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
+func TestAccStorageAccount_shareProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1069,7 +1069,7 @@ func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
+func TestAccStorageAccount_sharePropertiesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1112,7 +1112,7 @@ func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
+func TestAccStorageAccount_shareSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 	sourceBlob, err := os.CreateTemp("", "")
