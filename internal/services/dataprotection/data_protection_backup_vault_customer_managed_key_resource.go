@@ -11,11 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,7 +41,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) IDValidationFunc() 
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"data_protection_backup_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -52,9 +52,19 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Arguments() map[str
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema["key_vault_key_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+		}
+	}
+
+	return schema
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Attributes() map[string]*pluginsdk.Schema {
@@ -98,7 +108,12 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 
 			payload := resp.Model
 
-			keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+			nestedType := keyvault.NestedItemTypeKey
+			if !features.FivePointOh() {
+				nestedType = keyvault.NestedItemTypeAny
+			}
+
+			keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, nestedType)
 			if err != nil {
 				return err
 			}
@@ -209,7 +224,12 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("key_vault_key_id") {
-				keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+				nestedType := keyvault.NestedItemTypeKey
+				if !features.FivePointOh() {
+					nestedType = keyvault.NestedItemTypeAny
+				}
+
+				keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, nestedType)
 				if err != nil {
 					return err
 				}

@@ -287,7 +287,7 @@ resource "azurerm_key_vault_key" "test2" {
 
 resource "azurerm_data_protection_backup_vault_customer_managed_key" "test" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  key_vault_key_id                = azurerm_key_vault_key.test2.id
+  key_vault_key_id                = azurerm_key_vault_key.test2.versionless_id
 }
 `, template, data.RandomString, data.RandomString)
 }
