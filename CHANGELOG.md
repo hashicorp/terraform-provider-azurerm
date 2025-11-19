@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties [GH-29426]
 
 FEATURES:
+**New Action**: `azurerm_managed_redis_databases_flush` [GH-31132]
 * **New Action**: `azurerm_mssql_execute_job` [GH-31095]
 * **New List Resource**: `azurerm_route_table` [GH-31015]
 * **New List Resource**: `azurerm_network_security_group` [GH-31014]
