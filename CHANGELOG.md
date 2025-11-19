@@ -26,6 +26,7 @@ FEATURES:
 * **New List Resource**: `azurerm_route_table` [GH-31015]
 * **New List Resource**: `azurerm_network_security_group` [GH-31014]
 * **New List Resource**: `azurerm_network_interface` [GH-31012]
+* **New List Resource**: `azurerm_network_profile` [GH-31127]
 
 BUG FIXES:
 * `azurerm_virtual_network` - remove RO values from update to avoid issues with API payload size limitation [GH-30945]
