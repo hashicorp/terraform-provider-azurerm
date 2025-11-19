@@ -40,8 +40,8 @@ func (d ApiManagementWorkspaceDataSource) Arguments() map[string]*pluginsdk.Sche
 func (d ApiManagementWorkspaceDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			Description: "The display name of the API Management Workspace.",
 		},
 	}
