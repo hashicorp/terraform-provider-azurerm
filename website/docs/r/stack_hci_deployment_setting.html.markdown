@@ -517,8 +517,6 @@ A `scale_unit` block supports the following:
 
 * `secrets_location` - (Required) The URI to the Key Vault or secret store. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `security_setting` - (Required) A `security_setting` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
-
 * `storage` - (Required) A `storage` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `episodic_data_upload_enabled` - (Optional) Whether to collect log data to facilitate quicker issue resolution. Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
