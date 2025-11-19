@@ -283,7 +283,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 					state.Location = location.NormalizeNilable(properties.DataSourceInfo.ResourceLocation)
 					state.BackupPolicyId = properties.PolicyInfo.PolicyId
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
-					state.ProtectionState = string(pointer.From(properties.CurrentProtectionState))
+					state.ProtectionState = pointer.FromEnum(properties.CurrentProtectionState)
 
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {

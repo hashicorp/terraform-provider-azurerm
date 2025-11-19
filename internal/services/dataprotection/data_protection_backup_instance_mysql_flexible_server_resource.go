@@ -211,7 +211,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Read() sdk.Reso
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
 
-					state.ProtectionState = string(pointer.From(props.CurrentProtectionState))
+					state.ProtectionState = pointer.FromEnum(props.CurrentProtectionState)
 				}
 			}
 

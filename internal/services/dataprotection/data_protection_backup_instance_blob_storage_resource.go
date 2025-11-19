@@ -207,7 +207,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			d.Set("storage_account_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
-			d.Set("protection_state", string(pointer.From(props.CurrentProtectionState)))
+			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 			if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
 				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
 					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {

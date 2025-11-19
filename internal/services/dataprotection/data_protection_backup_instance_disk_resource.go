@@ -224,7 +224,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			d.Set("disk_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 
-			d.Set("protection_state", string(pointer.From(props.CurrentProtectionState)))
+			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			if props.PolicyInfo.PolicyParameters != nil && props.PolicyInfo.PolicyParameters.DataStoreParametersList != nil && len(*props.PolicyInfo.PolicyParameters.DataStoreParametersList) > 0 {
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)

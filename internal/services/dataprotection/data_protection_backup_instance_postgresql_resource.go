@@ -205,7 +205,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			d.Set("database_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
-			d.Set("protection_state", string(pointer.From(props.CurrentProtectionState)))
+			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 
 			if props.DatasourceAuthCredentials != nil {
 				credential := props.DatasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials)
