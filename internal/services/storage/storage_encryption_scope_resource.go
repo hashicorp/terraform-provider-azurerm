@@ -213,9 +213,11 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
 			d.Set("source", string(pointer.From(props.Source)))
 
+			keyVaultKeyUri := ""
 			if props.KeyVaultProperties != nil {
-				d.Set("key_vault_key_id", pointer.From(props.KeyVaultProperties.KeyUri))
+				keyVaultKeyUri = pointer.From(props.KeyVaultProperties.KeyUri)
 			}
+			d.Set("key_vault_key_id", keyVaultKeyUri)
 		}
 	}
 
