@@ -1035,8 +1035,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtual
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2024-06-19/filesystems
-github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/vaultcertificates
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs
