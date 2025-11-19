@@ -61,7 +61,7 @@ func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaReq
 				},
 			},
 
-			"timeout": schema.Int64Attribute{
+			"timeout": schema.StringAttribute{
 				Optional:            true,
 				Description:         "Timeout duration for the action to complete. Defaults to `30m`.",
 				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.",
