@@ -155,18 +155,25 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			req := runtimeenvironment.RuntimeEnvironment{}
-
 			req.Properties = &runtimeenvironment.RuntimeEnvironmentProperties{
 				Runtime: &runtimeenvironment.RuntimeProperties{
 					Language: pointer.FromString(model.RuntimeLanguage),
 					Version:  pointer.FromString(model.RuntimeVersion),
 				},
-				DefaultPackages: &model.RuntimeDefaultPackages,
-				Description:     pointer.FromString(model.Description),
+			}
+			req.Location = azure.NormalizeLocation(model.Location)
+
+			if model.Tags != nil {
+				req.Tags = &model.Tags
 			}
 
-			req.Location = azure.NormalizeLocation(model.Location)
-			req.Tags = &model.Tags
+			if model.RuntimeDefaultPackages != nil {
+				req.Properties.DefaultPackages = pointer.To(model.RuntimeDefaultPackages)
+			}
+
+			if model.Description != "" {
+				req.Properties.Description = pointer.FromString(model.Description)
+			}
 
 			if _, err = client.Create(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
@@ -203,13 +210,23 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
+				state.ResourceGroupName = id.ResourceGroupName
 				state.AutomationAccountName = id.AutomationAccountName
 				state.RuntimeLanguage = *resp.Model.Properties.Runtime.Language
 				state.RuntimeVersion = *resp.Model.Properties.Runtime.Version
-				state.RuntimeDefaultPackages = *resp.Model.Properties.DefaultPackages
-				state.Description = *resp.Model.Properties.Description
 				state.Location = resp.Model.Location
-				state.Tags = *resp.Model.Tags
+
+				if resp.Model.Properties.DefaultPackages != nil {
+					state.RuntimeDefaultPackages = *resp.Model.Properties.DefaultPackages
+				}
+
+				if resp.Model.Properties.Description != nil {
+					state.Description = *resp.Model.Properties.Description
+				}
+
+				if resp.Model.Tags != nil {
+					state.Tags = *resp.Model.Tags
+				}
 			}
 
 			return meta.Encode(&state)
