@@ -812,10 +812,10 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	read, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
-			// resource already removed, no need to delete
+			// key vault does not exist, no need to delete
 			return nil
 		}
-		return fmt.Errorf("checking if key vault %s exists: %+v", *id, err)
+		return fmt.Errorf("checking if key vault %q exists: %v", *id, err)
 	}
 
 	location := ""
