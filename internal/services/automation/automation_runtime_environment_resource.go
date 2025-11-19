@@ -74,13 +74,16 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"automation_account_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AutomationAccount(),
 		},
+
 		"runtime_language": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -90,23 +93,28 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 				string("PowerShell"),
 			}, false),
 		},
+
 		"runtime_version": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"runtime_default_packages": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
+
 		"location": commonschema.Location(),
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"tags": commonschema.Tags(),
 	}
 }

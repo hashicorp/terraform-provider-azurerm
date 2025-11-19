@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
-* `name` - (Required)
+* `name` - (Required) The name for the Automation Runtime Environment. Changing this forces a new Automation Runtime Environment to be created.
 
 * `location` - (Required) The location where the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
