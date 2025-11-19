@@ -144,6 +144,7 @@ github.com/hashicorp/errwrap
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
+github.com/hashicorp/go-azure-helpers/framework/convert
 github.com/hashicorp/go-azure-helpers/framework/fwdiag
 github.com/hashicorp/go-azure-helpers/framework/typehelpers
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -353,6 +354,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilities
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilitytypes
@@ -1350,7 +1352,7 @@ github.com/hashicorp/terraform-exec/tfexec
 # github.com/hashicorp/terraform-json v0.27.2
 ## explicit; go 1.21
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-framework v1.16.0
+# github.com/hashicorp/terraform-plugin-framework v1.16.1
 ## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-framework/action
 github.com/hashicorp/terraform-plugin-framework/action/schema
@@ -1396,8 +1398,8 @@ github.com/hashicorp/terraform-plugin-framework/schema/validator
 github.com/hashicorp/terraform-plugin-framework/tfsdk
 github.com/hashicorp/terraform-plugin-framework/types
 github.com/hashicorp/terraform-plugin-framework/types/basetypes
-# github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
-## explicit; go 1.22.0
+# github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
+## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts
 github.com/hashicorp/terraform-plugin-framework-timeouts/internal/validators
 github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts
