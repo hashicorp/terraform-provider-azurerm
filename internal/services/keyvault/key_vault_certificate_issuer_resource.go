@@ -272,12 +272,11 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist - removing from state", id.Name, id.KeyVaultBaseUrl)
-			d.SetId("")
+			// issuer does not exist, nothing to delete
 			return nil
 		}
 
-		return fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
+		return fmt.Errorf("checking if Issuer %q in key vault %q at url %q exists: %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
 	}
 
 	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
