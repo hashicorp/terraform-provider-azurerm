@@ -1119,7 +1119,7 @@ func TestAccLinuxFunctionApp_appStackDotNet6Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "6.0"),
+			Config: r.appStackDotNetIsolated(data, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1170,7 +1170,7 @@ func TestAccLinuxFunctionApp_appStackDotNet8Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "8.0"),
+			Config: r.appStackDotNetIsolated(data, "8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1187,7 +1187,7 @@ func TestAccLinuxFunctionApp_appStackDotNet9Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "9.0"),
+			Config: r.appStackDotNetIsolated(data, "9.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1204,7 +1204,7 @@ func TestAccLinuxFunctionApp_appStackDotNet10Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "10.0"),
+			Config: r.appStackDotNetIsolated(data, "10.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -2948,7 +2948,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+func (r LinuxFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2974,7 +2974,7 @@ resource "azurerm_linux_function_app" "test" {
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger, version)
+`, r.template(data, SkuBasicPlan), data.RandomInteger, version)
 }
 
 func (r LinuxFunctionAppResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
