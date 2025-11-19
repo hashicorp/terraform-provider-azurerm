@@ -70,10 +70,6 @@ type SecretsManagementSettingsModel struct {
 	ObservedCertificates     []string `tfschema:"observed_certificates"`
 }
 
-type NetworkProfileModel struct {
-	SubnetId string `tfschema:"subnet_id"`
-}
-
 type StorageProfileModel struct {
 	DataDisks                []DataDiskModel `tfschema:"data_disk"`
 	OsDiskStorageAccountType string          `tfschema:"os_disk_storage_account_type"`

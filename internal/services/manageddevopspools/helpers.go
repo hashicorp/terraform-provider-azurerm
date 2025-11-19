@@ -135,12 +135,10 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
 				"all_week_schedule": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
-
 				"sunday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -148,7 +146,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"monday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -156,7 +153,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"tuesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -164,7 +160,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"wednesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -172,7 +167,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"thursday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -180,7 +174,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"friday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -188,7 +181,6 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
-
 				"saturday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -415,17 +407,6 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 	return output
 }
 
-func expandNetworkProfileModel(input []NetworkProfileModel) *pools.NetworkProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	networkProfile := input[0]
-	return &pools.NetworkProfile{
-		SubnetId: networkProfile.SubnetId,
-	}
-}
-
 func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
 	if len(input) == 0 {
 		return nil
@@ -646,18 +627,6 @@ func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabric
 	}
 
 	return []VmssFabricProfileModel{vmssFabricProfileModel}
-}
-
-func flattenNetworkProfileToModel(input *pools.NetworkProfile) []NetworkProfileModel {
-	if input == nil {
-		return nil
-	}
-
-	networkProfileModel := NetworkProfileModel{
-		SubnetId: input.SubnetId,
-	}
-
-	return []NetworkProfileModel{networkProfileModel}
 }
 
 func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
