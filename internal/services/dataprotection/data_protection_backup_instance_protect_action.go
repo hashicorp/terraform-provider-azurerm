@@ -104,21 +104,25 @@ func (v *DataProtectionBackupInstanceProtectAction) Invoke(ctx context.Context, 
 	case StopProtection:
 		if err := client.StopProtectionThenPoll(ctx, *id, backupinstances.StopProtectionRequest{}, backupinstances.DefaultStopProtectionOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping protection %s: %+v", id, err))
+			return
 		}
 
 	case ResumeProtection:
 		if err := client.ResumeProtectionThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming protection %s: %+v", id, err))
+			return
 		}
 
 	case SuspendBackups:
 		if err := client.SuspendBackupsThenPoll(ctx, *id, backupinstances.SuspendBackupRequest{}, backupinstances.DefaultSuspendBackupsOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("suspending backups %s: %+v", id, err))
+			return
 		}
 
 	case ResumeBackups:
 		if err := client.ResumeBackupsThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming backups %s: %+v", id, err))
+			return
 		}
 	}
 
