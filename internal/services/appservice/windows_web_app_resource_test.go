@@ -3976,7 +3976,7 @@ resource "azurerm_windows_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  e2e_encryption_enabled = false
+  e2e_encryption_enabled = true
 
   site_config {}
 }
