@@ -73,7 +73,7 @@ func (r NetworkProfileListResource) List(ctx context.Context, request list.ListR
 
 			id, err := networkprofiles.ParseNetworkProfileID(pointer.From(profile.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Route Table ID", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Profile ID", err)
 				return
 			}
 
