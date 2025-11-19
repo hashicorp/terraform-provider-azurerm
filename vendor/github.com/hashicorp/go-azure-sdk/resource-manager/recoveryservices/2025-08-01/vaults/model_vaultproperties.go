@@ -5,6 +5,7 @@ package vaults
 
 type VaultProperties struct {
 	BackupStorageVersion                *BackupStorageVersion                       `json:"backupStorageVersion,omitempty"`
+	BcdrSecurityLevel                   *BCDRSecurityLevel                          `json:"bcdrSecurityLevel,omitempty"`
 	Encryption                          *VaultPropertiesEncryption                  `json:"encryption,omitempty"`
 	MonitoringSettings                  *MonitoringSettings                         `json:"monitoringSettings,omitempty"`
 	MoveDetails                         *VaultPropertiesMoveDetails                 `json:"moveDetails,omitempty"`
@@ -15,6 +16,7 @@ type VaultProperties struct {
 	ProvisioningState                   *string                                     `json:"provisioningState,omitempty"`
 	PublicNetworkAccess                 *PublicNetworkAccess                        `json:"publicNetworkAccess,omitempty"`
 	RedundancySettings                  *VaultPropertiesRedundancySettings          `json:"redundancySettings,omitempty"`
+	ResourceGuardOperationRequests      *[]string                                   `json:"resourceGuardOperationRequests,omitempty"`
 	RestoreSettings                     *RestoreSettings                            `json:"restoreSettings,omitempty"`
 	SecureScore                         *SecureScoreLevel                           `json:"secureScore,omitempty"`
 	SecuritySettings                    *SecuritySettings                           `json:"securitySettings,omitempty"`
