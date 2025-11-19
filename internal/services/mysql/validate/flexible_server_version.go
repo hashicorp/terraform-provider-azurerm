@@ -3,7 +3,7 @@
 
 package validate
 
+// This constant is not yet on the Open API spec: https://github.com/Azure/azure-rest-api-specs/issues/38382
 const (
 	ServerVersionEightPointFour = "8.4"
-	ServerVersionNinePointThree = "9.3"
 )

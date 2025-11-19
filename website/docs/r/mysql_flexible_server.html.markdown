@@ -141,9 +141,7 @@ The following arguments are supported:
 
 * `storage` - (Optional) A `storage` block as defined below.
 
-* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, `8.0.21`, `8.4` and `9.3` (innovation release). Defaults to `5.7` if not provided.
-
--> **Note:** `9.3` is an innovation release not suitable for production workloads and has a 30-day lifecycle from the date of creation. Please see [Innovation release version support](https://learn.microsoft.com/azure/mysql/concepts-version-policy#innovation-release-version-support).
+* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, `8.0.21` and `8.4`. Defaults to `5.7` if not provided.
 
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 

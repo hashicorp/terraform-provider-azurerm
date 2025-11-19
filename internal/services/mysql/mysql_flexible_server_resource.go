@@ -330,7 +330,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
 					string(validate.ServerVersionEightPointFour),
-					string(validate.ServerVersionNinePointThree),
 				}, false),
 			},
 
