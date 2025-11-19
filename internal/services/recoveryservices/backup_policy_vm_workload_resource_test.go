@@ -55,6 +55,24 @@ func TestAccBackupProtectionPolicyVMWorkload_update(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVMWorkload_tieringPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm_workload", "test")
+	r := BackupProtectionPolicyVMWorkloadResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tieringPolicy(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.mode").HasValue("TierAfter"),
+				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.duration").HasValue("30"),
+				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.duration_type").HasValue("Days"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyVMWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -315,6 +333,73 @@ resource "azurerm_backup_policy_vm_workload" "test" {
 
     simple_retention {
       count = 9
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMWorkloadResource) tieringPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-bpvmw-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-rsv-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  soft_delete_enabled = false
+}
+
+resource "azurerm_backup_policy_vm_workload" "test" {
+  name                = "acctest-bpvmw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  workload_type = "SQLDataBase"
+
+  settings {
+    time_zone           = "UTC"
+    compression_enabled = false
+  }
+
+  protection_policy {
+    policy_type = "Full"
+
+    backup {
+      frequency = "Daily"
+      time      = "15:00"
+    }
+
+    retention_daily {
+      count = 8
+    }
+
+    tiering_policy {
+      archived_restore_point {
+        mode          = "TierAfter"
+        duration      = 30
+        duration_type = "Days"
+      }
+    }
+  }
+
+  protection_policy {
+    policy_type = "Log"
+
+    backup {
+      frequency_in_minutes = 15
+    }
+
+    simple_retention {
+      count = 8
     }
   }
 }
