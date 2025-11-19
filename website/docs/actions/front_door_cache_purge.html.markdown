@@ -86,4 +86,4 @@ This action supports the following arguments:
 
 * `domains` - (Optional) The Custom Domain names associated with and bound to the Front Door Endpoint to purge for the `content_paths`.
 
-* `timeout` - (Optional) Timeout in seconds to wait for the Front Door Cache Purge action to complete. Defaults to 900 seconds (15 minutes). Purge operations typically take up to 10 minutes.
+* `timeout` - (Optional) Timeout duration to wait for the Front Door Cache Purge action to complete. Defaults to `15m`. Purge operations typically take around 10 minutes.

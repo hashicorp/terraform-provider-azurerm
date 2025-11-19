@@ -58,4 +58,4 @@ This action supports the following arguments:
 
 * `power_action` - (Required) The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.
 
-* `timeout` - (Optional) Timeout in seconds to wait for the Virtual Machine Power action to complete. Defaults to 300 seconds (5 minutes).
+* `timeout` - (Optional) Timeout duration to wait for the Virtual Machine Power action to complete. Defaults to `30m`.
