@@ -65,7 +65,7 @@ func TestAccBackupProtectionPolicyVMWorkload_tieringPolicy(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.mode").HasValue("TierAfter"),
-				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.duration").HasValue("30"),
+				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.duration").HasValue("45"),
 				check.That(data.ResourceName).Key("protection_policy.0.tiering_policy.0.archived_restore_point.0.duration_type").HasValue("Days"),
 			),
 		},
@@ -385,7 +385,7 @@ resource "azurerm_backup_policy_vm_workload" "test" {
     tiering_policy {
       archived_restore_point {
         mode          = "TierAfter"
-        duration      = 30
+        duration      = 45
         duration_type = "Days"
       }
     }

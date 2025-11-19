@@ -410,7 +410,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 											"duration": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
-												ValidateFunc: validation.IntAtLeast(3),
+												ValidateFunc: validation.IntAtLeast(45),
 											},
 
 											"duration_type": {

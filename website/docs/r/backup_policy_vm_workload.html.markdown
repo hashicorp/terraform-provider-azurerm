@@ -53,7 +53,7 @@ resource "azurerm_backup_policy_vm_workload" "example" {
     tiering_policy {
       archived_restore_point {
         mode          = "TierAfter"
-        duration      = 30
+        duration      = 45
         duration_type = "Days"
       }
     }
@@ -127,9 +127,11 @@ The `archived_restore_point` block supports the following:
 
 * `mode` - (Required) The tiering mode for the archived restore point. Possible values are `TierAfter` and `TierRecommended`.
 
-* `duration` - (Optional) The duration after which the restore point will be archived. Required when `mode` is `TierAfter`.
+* `duration` - (Optional) The duration after which the restore point will be archived. Must be at least `45` days. Required when `mode` is `TierAfter`.
 
 * `duration_type` - (Optional) The duration type for the archived restore point. Possible values are `Days`, `Weeks`, `Months`, and `Years`. Required when `mode` is `TierAfter`.
+
+~> **Note:** When using `TierAfter` mode, at least one retention policy for full backup (daily, weekly, monthly, or yearly) must be set to a duration of at least 180 days longer than the `duration` value. For example, if `duration` is set to 45 days, at least one full backup retention policy must be configured for 225 days or more (45 + 180).
 
 ---
 
