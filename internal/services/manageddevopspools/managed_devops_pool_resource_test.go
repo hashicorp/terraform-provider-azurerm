@@ -426,7 +426,7 @@ resource "azurerm_managed_devops_pool" "test" {
       well_known_image_name = "ubuntu-22.04"
       buffer                = "100"
     }
-    sku_name = "Standard_B1ms"
+    sku_name  = "Standard_B1ms"
     subnet_id = azurerm_subnet.test.id
     os_profile {
       logon_type = "Interactive"

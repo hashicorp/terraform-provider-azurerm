@@ -57,7 +57,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location":            commonschema.Location(),
+		"location": commonschema.Location(),
 
 		"azure_devops_organization_profile": {
 			Type:     pluginsdk.TypeList,
@@ -337,7 +337,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchema("stateful_agent_profile.0"),
+					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchema("stateful_agent_profile.0"),
 
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateful_agent_profile.0"),
 				},
@@ -351,7 +351,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchema("stateless_agent_profile.0"),
+					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchema("stateless_agent_profile.0"),
 
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateless_agent_profile.0"),
 				},
@@ -361,7 +361,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
-		"tags":     commonschema.Tags(),
+		"tags": commonschema.Tags(),
 	}
 }
 

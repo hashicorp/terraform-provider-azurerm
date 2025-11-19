@@ -146,7 +146,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchemaComputed(),
+					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchemaComputed(),
 
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
 				},
@@ -158,7 +158,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchemaComputed(),
+					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchemaComputed(),
 
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
 				},
