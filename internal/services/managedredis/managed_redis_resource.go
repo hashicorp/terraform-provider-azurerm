@@ -427,7 +427,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 						ClusteringPolicy:                         pointer.FromEnum(props.ClusteringPolicy),
 						EvictionPolicy:                           pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:                  flattenGeoReplicationGroupName(props.GeoReplication),
-            ID:                                       databaseId.ID(),
+						ID:                                       databaseId.ID(),
 						Module:                                   flattenModules(props.Modules),
 						PersistenceAppendOnlyFileBackupFrequency: flattenPersistenceAOF(props.Persistence),
 						PersistenceRedisDatabaseBackupFrequency:  flattenPersistenceRDB(props.Persistence),

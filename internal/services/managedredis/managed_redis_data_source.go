@@ -47,7 +47,7 @@ type DefaultDatabaseDataSourceModel struct {
 	EvictionPolicy                           string        `tfschema:"eviction_policy"`
 	GeoReplicationGroupName                  string        `tfschema:"geo_replication_group_name"`
 	GeoReplicationLinkedDatabaseIds          []string      `tfschema:"geo_replication_linked_database_ids"`
-  ID                                       string        `tfschema:"id"`
+	ID                                       string        `tfschema:"id"`
 	Module                                   []ModuleModel `tfschema:"module"`
 	PersistenceAppendOnlyFileBackupFrequency string        `tfschema:"persistence_append_only_file_backup_frequency"`
 	PersistenceRedisDatabaseBackupFrequency  string        `tfschema:"persistence_redis_database_backup_frequency"`
@@ -285,7 +285,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 						ClusteringPolicy:                         pointer.FromEnum(props.ClusteringPolicy),
 						EvictionPolicy:                           pointer.FromEnum(props.EvictionPolicy),
 						GeoReplicationGroupName:                  flattenGeoReplicationGroupName(props.GeoReplication),
-            ID:                                       databaseId.ID(),
+						ID:                                       databaseId.ID(),
 						Module:                                   flattenModules(props.Modules),
 						PersistenceAppendOnlyFileBackupFrequency: flattenPersistenceAOF(props.Persistence),
 						PersistenceRedisDatabaseBackupFrequency:  flattenPersistenceRDB(props.Persistence),
