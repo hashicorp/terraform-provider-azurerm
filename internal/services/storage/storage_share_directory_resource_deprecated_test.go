@@ -12,16 +12,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
 )
 
-type StorageShareDirectoryResource struct{}
+type StorageShareDirectoryResourceDeprecated struct{}
 
-func TestAccStorageShareDirectory_basic(t *testing.T) {
+func TestAccStorageShareDirectory_basic_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,9 +39,13 @@ func TestAccStorageShareDirectory_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_basicAzureADAuth(t *testing.T) {
+func TestAccStorageShareDirectory_basicAzureADAuth_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +58,13 @@ func TestAccStorageShareDirectory_basicAzureADAuth(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_uppercase(t *testing.T) {
+func TestAccStorageShareDirectory_uppercase_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,9 +77,13 @@ func TestAccStorageShareDirectory_uppercase(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_requiresImport(t *testing.T) {
+func TestAccStorageShareDirectory_requiresImport_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,9 +96,13 @@ func TestAccStorageShareDirectory_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_complete(t *testing.T) {
+func TestAccStorageShareDirectory_complete_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,9 +115,13 @@ func TestAccStorageShareDirectory_complete(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_update(t *testing.T) {
+func TestAccStorageShareDirectory_update_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -116,9 +141,13 @@ func TestAccStorageShareDirectory_update(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_nested(t *testing.T) {
+func TestAccStorageShareDirectory_nested_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "parent")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,9 +163,13 @@ func TestAccStorageShareDirectory_nested(t *testing.T) {
 	})
 }
 
-func TestAccStorageShareDirectory_nestedWithBackslashes(t *testing.T) {
+func TestAccStorageShareDirectory_nestedWithBackslashes_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "dos")
-	r := StorageShareDirectoryResource{}
+	r := StorageShareDirectoryResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -151,7 +184,7 @@ func TestAccStorageShareDirectory_nestedWithBackslashes(t *testing.T) {
 	})
 }
 
-func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageShareDirectoryResourceDeprecated) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := directories.ParseDirectoryID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
@@ -177,19 +210,19 @@ func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func (r StorageShareDirectoryResource) basic(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name              = "dir"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
 
-func (r StorageShareDirectoryResource) basicAzureADAuth(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) basicAzureADAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
@@ -210,50 +243,50 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name               = "fileshare"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 50
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
 }
 
 resource "azurerm_storage_share_directory" "test" {
-  name              = "dir"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageShareDirectoryResource) uppercase(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) uppercase(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name              = "UpperCaseCharacterS"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "UpperCaseCharacterS"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
 
-func (r StorageShareDirectoryResource) requiresImport(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "import" {
-  name              = azurerm_storage_share_directory.test.name
-  storage_share_url = azurerm_storage_share.test.url
+  name             = azurerm_storage_share_directory.test.name
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
 
-func (r StorageShareDirectoryResource) complete(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name              = "dir"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello = "world"
@@ -262,14 +295,14 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func (r StorageShareDirectoryResource) updated(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) updated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name              = "dir"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello    = "world"
@@ -279,52 +312,52 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func (r StorageShareDirectoryResource) nested(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) nested(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name              = "123--parent-dir"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "123--parent-dir"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "child_one" {
-  name              = "${azurerm_storage_share_directory.parent.name}/child1"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "${azurerm_storage_share_directory.parent.name}/child1"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-  name              = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "multiple_child_one" {
-  name              = "${azurerm_storage_share_directory.parent.name}/c"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "${azurerm_storage_share_directory.parent.name}/c"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
 
-func (r StorageShareDirectoryResource) nestedWithBackslashes(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) nestedWithBackslashes(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "c" {
-  name              = "c"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "c"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "dos" {
-  name              = "c\\dos"
-  storage_share_url = azurerm_storage_share.test.url
-  depends_on        = [azurerm_storage_share_directory.c]
+  name             = "c\\dos"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.c]
 }
 `, template)
 }
 
-func (r StorageShareDirectoryResource) template(data acceptance.TestData) string {
+func (r StorageShareDirectoryResourceDeprecated) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -344,9 +377,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name               = "fileshare"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 50
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
