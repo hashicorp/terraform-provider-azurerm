@@ -19,6 +19,8 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_orchestrated_virtual_machine_scale_set` - Fix issue when using a specialized image [GH-30889]
+
 ## 4.53.0 (November 14, 2025)
 
 FEATURES:
