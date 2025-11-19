@@ -458,6 +458,10 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
 
