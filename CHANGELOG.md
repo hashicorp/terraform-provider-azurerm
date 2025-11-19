@@ -19,6 +19,7 @@ FEATURES:
 * **New List Resource**: `azurerm_network_interface` [GH-31012]
 
 BUG FIXES:
+* `azurerm_virtual_network` - remove RO values from update to avoid issues with API payload size limitation [GH-30945]
 
 * `azurerm_orchestrated_virtual_machine_scale_set` - Fix issue when using a specialized image [GH-30889]
 
