@@ -3103,6 +3103,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
+
 func (r WindowsFunctionAppSlotResource) e2eEncryptionEnabled(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
