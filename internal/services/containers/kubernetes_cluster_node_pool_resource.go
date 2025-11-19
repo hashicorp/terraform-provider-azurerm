@@ -1275,11 +1275,11 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
 					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
-					Description:  "The maximum number of nodes that can be created during upgrade. This cannot be set when `priority` is set to `Spot`.",
+					Description:   "The maximum number of nodes that can be created during upgrade. This cannot be set when `priority` is set to `Spot`.",
 				},
 				"drain_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1287,11 +1287,11 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 				"max_unavailable": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
 					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
-					Description:  "The maximum number of nodes that can be unavailable during upgrade. This cannot be set when `priority` is set to `Spot`.",
+					Description:   "The maximum number of nodes that can be unavailable during upgrade. This cannot be set when `priority` is set to `Spot`.",
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1388,10 +1388,10 @@ func expandAgentPoolUpgradeSettings(input []interface{}, priority string) (*agen
 
 	v := input[0].(map[string]interface{})
 	isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
-	
+
 	maxSurgeRaw := v["max_surge"].(string)
 	maxUnavailableRaw := v["max_unavailable"].(string)
-	
+
 	if isSpot {
 		if maxSurgeRaw != "" {
 			return nil, fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
@@ -1400,12 +1400,12 @@ func expandAgentPoolUpgradeSettings(input []interface{}, priority string) (*agen
 			return nil, fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
 		}
 	}
-	
+
 	if !isSpot {
 		if maxSurgeRaw == "" && maxUnavailableRaw == "" {
 			return nil, fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
 		}
-		
+
 		if maxSurgeRaw != "" {
 			setting.MaxSurge = pointer.To(maxSurgeRaw)
 			setting.MaxUnavailable = pointer.To("0")
