@@ -57,9 +57,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"circuit_breaker_rule": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -141,9 +142,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"credentials": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authorization": {
@@ -206,8 +208,9 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"pool"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backend.BackendProtocolHTTP),
 					string(backend.BackendProtocolSoap),
@@ -215,9 +218,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"proxy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"password": {
@@ -241,15 +245,17 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"resource_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 2000),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringLenBetween(1, 2000),
+				ConflictsWith: []string{"pool"},
 			},
 
 			"service_fabric_cluster": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_certificate_id": {
@@ -316,9 +322,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"tls": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"validate_certificate_chain": {
@@ -336,9 +343,48 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"url": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"pool"},
+			},
+
+			"pool": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"credentials", "protocol", "proxy", "resource_id", "service_fabric_cluster", "tls", "url", "circuit_breaker_rule"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 30,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: backend.ValidateBackendID,
+									},
+									"priority": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntAtLeast(1),
+									},
+									"weight": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntAtLeast(1),
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -365,45 +411,49 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	credentialsRaw := d.Get("credentials").([]interface{})
-	credentials := expandApiManagementBackendCredentials(credentialsRaw)
-	protocol := d.Get("protocol").(string)
-	proxyRaw := d.Get("proxy").([]interface{})
-	proxy := expandApiManagementBackendProxy(proxyRaw)
-	tlsRaw := d.Get("tls").([]interface{})
-	tls := expandApiManagementBackendTls(tlsRaw)
-	url := d.Get("url").(string)
+	properties := new(backend.BackendContractProperties)
+
+	// Pool type backends are very particular about what fields can and cannot be set
+	if poolRaw, ok := d.GetOk("pool"); ok {
+		properties.Type = pointer.To(backend.BackendTypePool)
+		properties.Pool = expandApiManagementBackendPool(poolRaw.([]interface{}))
+	} else {
+		properties.Type = pointer.To(backend.BackendTypeSingle) // Set the type to Single if pool is not defined
+		credentialsRaw := d.Get("credentials").([]interface{})
+		properties.Credentials = expandApiManagementBackendCredentials(credentialsRaw)
+		properties.Protocol = pointer.To(backend.BackendProtocol(d.Get("protocol").(string)))
+		proxyRaw := d.Get("proxy").([]interface{})
+		properties.Proxy = expandApiManagementBackendProxy(proxyRaw)
+		tlsRaw := d.Get("tls").([]interface{})
+		properties.Tls = expandApiManagementBackendTls(tlsRaw)
+		properties.Url = pointer.To(d.Get("url").(string))
+
+		if v, ok := d.GetOk("circuit_breaker_rule"); ok {
+			properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
+		}
+		if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
+			serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
+			properties.Properties = &backend.BackendProperties{
+				ServiceFabricCluster: serviceFabricCluster,
+			}
+		}
+		if resourceID, ok := d.GetOk("resource_id"); ok {
+			properties.ResourceId = pointer.To(resourceID.(string))
+		}
+	}
 
 	backendContract := backend.BackendContract{
-		Properties: &backend.BackendContractProperties{
-			Credentials: credentials,
-			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
-			Proxy:       proxy,
-			Tls:         tls,
-			Url:         pointer.To(url),
-		},
+		Properties: properties,
 	}
-	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
-		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
-	}
+
 	if description, ok := d.GetOk("description"); ok {
 		backendContract.Properties.Description = pointer.To(description.(string))
 	}
-	if resourceID, ok := d.GetOk("resource_id"); ok {
-		backendContract.Properties.ResourceId = pointer.To(resourceID.(string))
-	}
 	if title, ok := d.GetOk("title"); ok {
 		backendContract.Properties.Title = pointer.To(title.(string))
-	}
-
-	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
-		if err != nil {
-			return err
-		}
-		backendContract.Properties.Properties = &backend.BackendProperties{
-			ServiceFabricCluster: serviceFabricCluster,
-		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, backendContract, backend.CreateOrUpdateOperationOptions{}); err != nil {
@@ -461,6 +511,9 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			if err := d.Set("tls", flattenApiManagementBackendTls(props.Tls)); err != nil {
 				return fmt.Errorf("setting `tls`: %s", err)
+			}
+			if err := d.Set("pool", flattenApiManagementBackendPool(props.Pool)); err != nil {
+				return fmt.Errorf("setting `pool`: %s", err)
 			}
 		}
 	}
@@ -701,6 +754,38 @@ func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{
 	return &codeRanges
 }
 
+func expandApiManagementBackendPool(input []interface{}) *backend.BackendBaseParametersPool {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	pool := backend.BackendBaseParametersPool{}
+
+	if servicesRaw := v["service"].([]interface{}); len(servicesRaw) > 0 {
+		services := make([]backend.BackendPoolItem, 0)
+		for _, serviceRaw := range servicesRaw {
+			service := serviceRaw.(map[string]interface{})
+			poolItem := backend.BackendPoolItem{
+				Id: service["id"].(string),
+			}
+
+			if priority, ok := service["priority"].(int); ok {
+				poolItem.Priority = pointer.To(int64(priority))
+			}
+
+			if weight, ok := service["weight"].(int); ok {
+				poolItem.Weight = pointer.To(int64(weight))
+			}
+
+			services = append(services, poolItem)
+		}
+		pool.Services = &services
+	}
+
+	return &pool
+}
+
 func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Rules == nil {
@@ -860,4 +945,37 @@ func flattenApiManagementBackendTls(input *backend.BackendTlsProperties) []inter
 	result["validate_certificate_chain"] = pointer.From(input.ValidateCertificateChain)
 	result["validate_certificate_name"] = pointer.From(input.ValidateCertificateName)
 	return append(results, result)
+}
+
+func flattenApiManagementBackendPool(input *backend.BackendBaseParametersPool) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if services := input.Services; services != nil {
+		servicesResult := make([]interface{}, 0)
+
+		for _, service := range *services {
+			serviceResult := make(map[string]interface{})
+
+			serviceResult["id"] = service.Id
+
+			if service.Priority != nil {
+				serviceResult["priority"] = *service.Priority
+			}
+
+			if service.Weight != nil {
+				serviceResult["weight"] = *service.Weight
+			}
+
+			servicesResult = append(servicesResult, serviceResult)
+		}
+
+		result["service"] = servicesResult
+	}
+
+	return []interface{}{result}
 }
