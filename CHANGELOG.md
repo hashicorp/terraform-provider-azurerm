@@ -1,6 +1,7 @@
 ## 4.54.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_resource_group` - refactored from legacy SDK to use `go-azure-sdk` [GH-30616]
 * `azurerm_service_plan` - suppress casing difference on `sku_name` [GH-30907]
 * dependencies: `go-azure-sdk` - update to `v0.20251107.1191907` [GH-31095]
 * `azurerm_managed_redis` - add support for `persistence_append_only_file_backup_frequency` and `persistence_redis_database_backup_frequency` properties  [GH-30964]
