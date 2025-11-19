@@ -14,31 +14,26 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type DeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Vault
 }
 
-// CreateOrUpdate ...
-func (c VaultsClient) CreateOrUpdate(ctx context.Context, id VaultId, input Vault) (result CreateOrUpdateOperationResponse, err error) {
+// Delete ...
+func (c VaultsClient) Delete(ctx context.Context, id VaultId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusCreated,
-			http.StatusOK,
+			http.StatusAccepted,
+			http.StatusNoContent,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -60,15 +55,15 @@ func (c VaultsClient) CreateOrUpdate(ctx context.Context, id VaultId, input Vaul
 	return
 }
 
-// CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c VaultsClient) CreateOrUpdateThenPoll(ctx context.Context, id VaultId, input Vault) error {
-	result, err := c.CreateOrUpdate(ctx, id, input)
+// DeleteThenPoll performs Delete then polls until it's completed
+func (c VaultsClient) DeleteThenPoll(ctx context.Context, id VaultId) error {
+	result, err := c.Delete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+		return fmt.Errorf("performing Delete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+		return fmt.Errorf("polling after Delete: %+v", err)
 	}
 
 	return nil
