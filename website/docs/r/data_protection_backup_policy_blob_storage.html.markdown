@@ -31,6 +31,7 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
   vault_id                               = azurerm_data_protection_backup_vault.example.id
   operational_default_retention_duration = "P30D"
   vault_default_retention_duration       = "P7D"
+  backup_repeating_time_intervals        = ["R/2024-05-08T11:30:00+00:00/P1W"]
 
   retention_rule {
     name     = "Weekly"
