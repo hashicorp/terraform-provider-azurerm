@@ -2,8 +2,10 @@
 
 ENHANCEMENTS:
 * dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
+* `azurerm_mysql_flexible_server` - add support for `version` `8.4` [GH-31099]
 
 FEATURES:
+* **New Data Source**: `azurerm_api_management_workspace` [GH-30241]
 
 BUG FIXES:
 * `azurerm_function_app_hybrid_connection` - remove validation preventing resource import when using an elastic service plan SKU [GH-31134]
