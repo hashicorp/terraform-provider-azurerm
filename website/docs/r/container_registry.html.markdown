@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
@@ -266,7 +266,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.

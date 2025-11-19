@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -63,6 +63,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
+			}),
+			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
 			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -124,6 +127,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 				return nil
 			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
+					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+					}
+					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					}
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -164,6 +178,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
+						},
+						"virtual_network_integration_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 					},
 				},
@@ -1277,6 +1301,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								}, false),
 							},
 						},
+
+						"advanced_networking": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"observability_enabled": {
+										Type:         pluginsdk.TypeBool,
+										Optional:     true,
+										Default:      false,
+										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+									"security_enabled": {
+										Type:         pluginsdk.TypeBool,
+										Optional:     true,
+										Default:      false,
+										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1599,6 +1645,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"ai_toolchain_operator_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1700,7 +1752,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, d)
 	if err != nil {
 		return err
 	}
@@ -1846,6 +1898,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("ai_toolchain_operator_enabled").(bool) {
+		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(true),
+		}
 	}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
@@ -2042,8 +2100,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		azureADProfile := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw)
 
 		props.AadProfile = azureADProfile
-		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
+		if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
+			props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
 			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
 				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
@@ -2250,6 +2309,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				existing.Model.Properties.NetworkProfile.NatGatewayProfile = nil
 			}
 		}
+
+		if d.HasChange("network_profile.0.advanced_networking") {
+			existing.Model.Properties.NetworkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(d.Get("network_profile.0.advanced_networking").([]interface{}), d)
+		}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
@@ -2385,6 +2448,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		} else {
 			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
+		}
+	}
+
+	if d.HasChange("ai_toolchain_operator_enabled") {
+		updateCluster = true
+		existing.Model.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(d.Get("ai_toolchain_operator_enabled").(bool)),
 		}
 	}
 
@@ -2543,10 +2613,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
 			oldOsSku := oldOsSkuRaw.(string)
 			newOsSku := newOsSkuRaw.(string)
-			if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+			if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
 				cycleNodePool = true
 			}
-			if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+			if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
 				cycleNodePool = true
 			}
 		}
@@ -2909,6 +2979,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
+			aiToolchainOperatorEnabled := false
+			if props.AiToolchainOperatorProfile != nil {
+				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
+			}
+			d.Set("ai_toolchain_operator_enabled", aiToolchainOperatorEnabled)
+
 			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
 				if props.SecurityProfile.ImageCleaner.Enabled != nil {
 					d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
@@ -3217,21 +3293,32 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
+	apiAccessProfile.EnableVnetIntegration = pointer.To(config["virtual_network_integration_enabled"].(bool))
+
+	if v, ok := config["subnet_id"]; ok {
+		if s := v.(string); s != "" {
+			apiAccessProfile.SubnetId = pointer.To(s)
+		}
+	}
+
 	return apiAccessProfile
 }
 
 func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
-	if profile == nil || profile.AuthorizedIPRanges == nil {
+	if profile == nil {
 		return []interface{}{}
 	}
 
-	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-
-	return []interface{}{
-		map[string]interface{}{
-			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
-		},
+	// API access profile can be managed by other properties, only return it if one of the properties has been set
+	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+		return []interface{}{}
 	}
+
+	return []interface{}{map[string]interface{}{
+		"authorized_ip_ranges":                utils.FlattenStringSlice(profile.AuthorizedIPRanges),
+		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
+		"subnet_id":                           pointer.From(profile.SubnetId),
+	}}
 }
 
 func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
@@ -3394,7 +3481,7 @@ func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedclusters.ContainerServiceNetworkProfile, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.ResourceData) (*managedclusters.ContainerServiceNetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -3472,7 +3559,66 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
+	if v, ok := config["advanced_networking"]; ok {
+		networkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(v.([]interface{}), d)
+	}
+
 	return &networkProfile, nil
+}
+
+func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.AdvancedNetworking {
+	if len(input) == 0 || input[0] == nil {
+		o, n := d.GetChange("network_profile.0.advanced_networking")
+		if o != nil && len(o.([]interface{})) == 1 && n == nil || len(n.([]interface{})) == 0 {
+			return &managedclusters.AdvancedNetworking{
+				Enabled: pointer.To(false),
+				Observability: &managedclusters.AdvancedNetworkingObservability{
+					Enabled: pointer.To(false),
+				},
+				Security: &managedclusters.AdvancedNetworkingSecurity{
+					Enabled: pointer.To(false),
+				},
+			}
+		}
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	observabilityEnabled := config["observability_enabled"].(bool)
+	securityEnabled := config["security_enabled"].(bool)
+
+	return &managedclusters.AdvancedNetworking{
+		Enabled: pointer.To(true),
+		Observability: &managedclusters.AdvancedNetworkingObservability{
+			Enabled: pointer.To(observabilityEnabled),
+		},
+		Security: &managedclusters.AdvancedNetworkingSecurity{
+			Enabled: pointer.To(securityEnabled),
+		},
+	}
+}
+
+func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
+	if advancedNetworking == nil || !pointer.From(advancedNetworking.Enabled) {
+		return []interface{}{}
+	}
+
+	observabilityEnabled := false
+	if advancedNetworking.Observability != nil {
+		observabilityEnabled = pointer.From(advancedNetworking.Observability.Enabled)
+	}
+
+	securityEnabled := false
+	if advancedNetworking.Security != nil {
+		securityEnabled = pointer.From(advancedNetworking.Security.Enabled)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"observability_enabled": observabilityEnabled,
+			"security_enabled":      securityEnabled,
+		},
+	}
 }
 
 func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterLoadBalancerProfile {
@@ -3737,6 +3883,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		networkDataPlane = string(pointer.From(v))
 	}
 
+	advancedNetworking := flattenKubernetesClusterAdvancedNetworking(profile.AdvancedNetworking)
+
 	result := map[string]interface{}{
 		"dns_service_ip":        dnsServiceIP,
 		"network_data_plane":    networkDataPlane,
@@ -3753,13 +3901,14 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"service_cidr":          serviceCidr,
 		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 		"outbound_type":         outboundType,
+		"advanced_networking":   advancedNetworking,
 	}
 
 	return []interface{}{result}
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) *managedclusters.ManagedClusterAADProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

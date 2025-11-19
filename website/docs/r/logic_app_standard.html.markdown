@@ -101,7 +101,7 @@ resource "azurerm_logic_app_standard" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -209,7 +209,7 @@ The `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
-* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1` and `1.2`.
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1`, `1.2` and `1.3`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -219,7 +219,7 @@ The `site_config` block supports the following:
 
 ~> **Note:** You must set `os_type` in `azurerm_service_plan` to `Linux` when this property is set.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2` for new Logic Apps.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -349,7 +349,7 @@ The `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App

@@ -282,13 +282,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "storagecontainer"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "test2" {
   name                  = "storagecontainer2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -342,8 +342,8 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
   }
 
@@ -433,8 +433,8 @@ resource "azurerm_managed_lustre_file_system" "test" {
   }
 
   hsm_setting {
-    container_id         = azurerm_storage_container.test.resource_manager_id
-    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    container_id         = azurerm_storage_container.test.id
+    logging_container_id = azurerm_storage_container.test2.id
     import_prefix        = "/"
   }
 

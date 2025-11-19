@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -426,7 +427,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
 func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -448,31 +449,26 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceNetworkInterfaceFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func resourceNetworkInterfaceFlatten(d *pluginsdk.ResourceData, id *commonids.NetworkInterfaceId, ni *networkinterfaces.NetworkInterface) error {
 	d.Set("name", id.NetworkInterfaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	if ni != nil {
+		d.Set("location", location.NormalizeNilable(ni.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(ni.ExtendedLocation))
 
-		if props := model.Properties; props != nil {
-			primaryPrivateIPAddress := ""
-			privateIPAddresses := make([]interface{}, 0)
-			if configs := props.IPConfigurations; configs != nil {
-				for i, config := range *props.IPConfigurations {
-					if ipProps := config.Properties; ipProps != nil {
-						v := ipProps.PrivateIPAddress
-						if v == nil {
-							continue
-						}
-
-						if i == 0 {
-							primaryPrivateIPAddress = *v
-						}
-
-						privateIPAddresses = append(privateIPAddresses, *v)
-					}
-				}
+		if props := ni.Properties; props != nil {
+			primaryPrivateIPAddress, privateIPAddresses := flattenNetworkInterfacePrivateIPAddresses(props.IPConfigurations)
+			d.Set("private_ip_address", primaryPrivateIPAddress)
+			if err := d.Set("private_ip_addresses", privateIPAddresses); err != nil {
+				return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
 			}
 
 			appliedDNSServers := make([]string, 0)
@@ -482,19 +478,8 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if dnsSettings := props.DnsSettings; dnsSettings != nil {
 				appliedDNSServers = flattenNetworkInterfaceDnsServers(dnsSettings.AppliedDnsServers)
 				dnsServers = flattenNetworkInterfaceDnsServers(dnsSettings.DnsServers)
-
-				if dnsSettings.InternalDnsNameLabel != nil {
-					internalDnsNameLabel = *dnsSettings.InternalDnsNameLabel
-				}
-
-				if dnsSettings.InternalDomainNameSuffix != nil {
-					internalDomainNameSuffix = *dnsSettings.InternalDomainNameSuffix
-				}
-			}
-
-			virtualMachineId := ""
-			if props.VirtualMachine != nil && props.VirtualMachine.Id != nil {
-				virtualMachineId = *props.VirtualMachine.Id
+				internalDnsNameLabel = pointer.From(dnsSettings.InternalDnsNameLabel)
+				internalDomainNameSuffix = pointer.From(dnsSettings.InternalDomainNameSuffix)
 			}
 
 			if err := d.Set("applied_dns_servers", appliedDNSServers); err != nil {
@@ -504,38 +489,37 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("dns_servers", dnsServers); err != nil {
 				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 			}
+			d.Set("internal_dns_name_label", internalDnsNameLabel)
+			d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
+
+			virtualMachineId := ""
+			if props.VirtualMachine != nil && props.VirtualMachine.Id != nil {
+				virtualMachineId = *props.VirtualMachine.Id
+			}
+			d.Set("virtual_machine_id", virtualMachineId)
 
 			auxiliaryMode := ""
 			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != networkinterfaces.NetworkInterfaceAuxiliaryModeNone {
 				auxiliaryMode = string(*props.AuxiliaryMode)
 			}
-
 			d.Set("auxiliary_mode", auxiliaryMode)
 
 			auxiliarySku := ""
 			if props.AuxiliarySku != nil && *props.AuxiliarySku != networkinterfaces.NetworkInterfaceAuxiliarySkuNone {
 				auxiliarySku = string(*props.AuxiliarySku)
 			}
-
 			d.Set("auxiliary_sku", auxiliarySku)
+
 			d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
 			d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
-			d.Set("internal_dns_name_label", internalDnsNameLabel)
-			d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 			d.Set("mac_address", props.MacAddress)
-			d.Set("private_ip_address", primaryPrivateIPAddress)
-			d.Set("virtual_machine_id", virtualMachineId)
 
 			if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
-
-			if err := d.Set("private_ip_addresses", privateIPAddresses); err != nil {
-				return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
-			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, ni.Tags); err != nil {
 			return err
 		}
 	}
@@ -610,7 +594,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if privateIpAddressVersion == networkinterfaces.IPVersionIPvFour && subnetId == "" {
-			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
+			return nil, errors.New("a Subnet ID must be specified for an IPv4 Network Interface")
 		}
 
 		if subnetId != "" {
@@ -655,7 +639,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if !hasPrimary {
-			return nil, fmt.Errorf("If multiple `ip_configurations` are specified - one must be designated as `primary`.")
+			return nil, errors.New("if multiple `ip_configurations` are specified - one must be designated as `primary`")
 		}
 	}
 
@@ -739,4 +723,26 @@ func flattenNetworkInterfaceDnsServers(input *[]string) []string {
 	}
 
 	return *input
+}
+
+func flattenNetworkInterfacePrivateIPAddresses(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) (string, []any) {
+	primary := ""
+	result := make([]any, 0)
+
+	if input == nil {
+		return primary, result
+	}
+
+	for idx, config := range *input {
+		if props := config.Properties; props != nil && props.PrivateIPAddress != nil {
+			privateIP := *props.PrivateIPAddress
+			if idx == 0 {
+				primary = privateIP
+			}
+
+			result = append(result, privateIP)
+		}
+	}
+
+	return primary, result
 }

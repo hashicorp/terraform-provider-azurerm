@@ -73,7 +73,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_service_tag" 
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `protocol` - (Required) Specifies the network protocol. Possible values are `*`, `TCP`, `UDP` and `ICMP`
 
-* `port_ranges` - (Required) Specifies which ports traffic will be allowed by this rule. You can specify a single port (e.g. ` 80`) ,  a port range  (e.g. `1024-655535`) or a comma-separated list of single ports and/or port ranges(e.g. `80,1024-655535`). `*` can be used to allow traffic on any port.
+* `port_ranges` - (Required) Specifies which ports traffic will be allowed by this rule. You can specify a single port (e.g. ` 80`) , a port range (e.g. `1024-655535`) or a comma-separated list of single ports and/or port ranges(e.g. `80,1024-655535`). `*` can be used to allow traffic on any port.
 
 
 ## Attributes Reference
@@ -96,7 +96,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace Network Outbound Rule Service Tag.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace Network Outbound Rule Service Tag.

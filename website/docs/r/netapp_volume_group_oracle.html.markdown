@@ -350,7 +350,9 @@ A `volume` block supports the following:
 
 * `name` - (Required) The name which should be used for this volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `protocols` - (Required) The target volume protocol expressed as a list. Changing this forces a new Application Volume Group to be created and data will be lost. Supported values for Application Volume Group include `NFSv3` or `NFSv4.1`.
+* `protocols` - (Required) The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Supported values include `NFSv3` or `NFSv4.1`.
+
+~> **Note:** When converting protocols between NFSv3 and NFSv4.1, ensure that export policy rules are updated accordingly to avoid configuration drift. Update the `nfsv3_enabled` and `nfsv41_enabled` flags to match the new protocol.
 
 * `proximity_placement_group_id` - (Optional) The ID of the proximity placement group (PPG). Changing this forces a new Application Volume Group to be created and data will be lost. 
 
@@ -372,11 +374,11 @@ A `volume` block supports the following:
 
 * `volume_path` - (Required) A unique file path for the volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1` through `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-backup` and `ora-binary`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `volume_spec_name` - (Required) Volume specification name. Possible values are `ora-data1`, `ora-data2`, `ora-data3`, `ora-data4`, `ora-data5`, `ora-data6`, `ora-data7`, `ora-data8`, `ora-log`, `ora-log-mirror`, `ora-binary` and `ora-backup`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Application Volume Group.
 
-* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
+* `network_features` - (Optional) Indicates which network feature to use, Possible values are `Basic`, `Basic_Standard`, `Standard` and `Standard_Basic`. It defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). This is required if enabling customer managed keys encryption scenario.
 
 * `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
 
@@ -393,7 +395,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -435,7 +437,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Volume Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Volume Group.

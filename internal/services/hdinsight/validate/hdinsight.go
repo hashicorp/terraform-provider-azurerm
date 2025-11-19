@@ -18,7 +18,7 @@ func HDInsightClusterVersion(i interface{}, k string) (warnings []string, errors
 		// otherwise retry using `major minor build release`
 		re = regexp.MustCompile(`^(\d)+(.)(\d)+(.)(\d)+(.)(\d)+$`)
 		if re != nil && !re.MatchString(version) {
-			errors = append(errors, fmt.Errorf("%s must be a version in the format `x.y` or `a.b.c.d` - got %q.", k, version))
+			errors = append(errors, fmt.Errorf("%s must be a version in the format `x.y` or `a.b.c.d` - got %q", k, version))
 		}
 	}
 
@@ -30,7 +30,7 @@ func HDInsightName(v interface{}, k string) (warnings []string, errors []error) 
 
 	// The name must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number).
 	if matched := regexp.MustCompile(`(^[a-zA-Z0-9])([a-zA-Z0-9-]{1,57})([a-zA-Z0-9]$)`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number).", k))
+		errors = append(errors, fmt.Errorf("%q must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number)", k))
 	}
 
 	return warnings, errors

@@ -136,7 +136,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -511,6 +510,57 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			// Validate NFSv3 to NFSv4.1 protocol conversion restrictions
+			if d.HasChange("protocols") {
+				old, new := d.GetChange("protocols")
+				oldProtocols := old.(*pluginsdk.Set).List()
+				newProtocols := new.(*pluginsdk.Set).List()
+
+				// Convert to string slices for validation
+				oldProtocolsStr := make([]string, len(oldProtocols))
+				newProtocolsStr := make([]string, len(newProtocols))
+
+				for i, v := range oldProtocols {
+					oldProtocolsStr[i] = v.(string)
+				}
+				for i, v := range newProtocols {
+					newProtocolsStr[i] = v.(string)
+				}
+
+				kerberosEnabled := d.Get("kerberos_enabled").(bool)
+				dataReplication := d.Get("data_protection_replication").([]interface{})
+
+				// Get the new export policy rules configuration to validate against new protocols
+				// Always use the new configuration when protocols are changing to ensure validation against intended state
+				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
+
+				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				for _, err := range validationErrors {
+					return err
+				}
+			}
+
+			// Validate cross-zone-region replication requirements
+			// According to Azure documentation, for cross-zone replication, both source and destination volumes must have zones
+			dataReplicationRaw := d.Get("data_protection_replication").([]interface{})
+			if len(dataReplicationRaw) > 0 && dataReplicationRaw[0] != nil {
+				// This is a destination volume with data_protection_replication configured
+				dataReplication := dataReplicationRaw[0].(map[string]interface{})
+				remoteVolumeLocation := dataReplication["remote_volume_location"].(string)
+				currentLocation := d.Get("location").(string)
+
+				// Check if this is cross-zone replication (same region)
+				if strings.EqualFold(azure.NormalizeLocation(remoteVolumeLocation), azure.NormalizeLocation(currentLocation)) {
+					// Cross-zone replication: both source and destination must have zones assigned
+					zone := d.Get("zone").(string)
+					if zone == "" {
+						return fmt.Errorf("when configuring cross-zone replication (data_protection_replication with same region), the destination volume must have a `zone` assigned")
+					}
+					// Note: We cannot validate the source volume's zone here since we don't have access to it during plan/diff
+					// The documentation states the source must also have a zone, which users must ensure separately
+				}
+			}
+
 			return nil
 		},
 	}
@@ -707,7 +757,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s", strings.Join(propertyMismatch, "\n"))
 			}
 		}
 
@@ -805,9 +855,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
 		}
 
-		// Wait for volume replication authorization to complete
-		log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
-		if err := waitForReplAuthorization(ctx, replicationClient, *replVolID); err != nil {
+		// Wait for volume replication authorization to complete on the destination volume
+		// Note: We check the destination (current volume being created), not the source
+		// This is important for one-to-many replication where checking the source would fail
+		destinationReplID, err := volumesreplication.ParseVolumeID(id.ID())
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for replication authorization on destination volume %s to complete", id)
+		if err := waitForReplAuthorization(ctx, replicationClient, *destinationReplID); err != nil {
 			return err
 		}
 	}
@@ -848,8 +905,19 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("export_policy_rule") {
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+		var protocolOverride []string
+		// Only override export policy protocols if we're also changing volume protocols
+		if d.HasChange("protocols") {
+			protocols := d.Get("protocols").(*pluginsdk.Set).List()
+			protocolOverride = *utils.ExpandStringSlice(protocols)
+		}
+		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 		update.Properties.ExportPolicy = exportPolicyRule
+	}
+
+	if d.HasChange("protocols") {
+		protocols := d.Get("protocols").(*pluginsdk.Set).List()
+		update.Properties.ProtocolTypes = utils.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -1310,7 +1378,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 	}
 }
 
-func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -1321,25 +1389,24 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-			if vpe := v["protocol"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "cifs":
-								cifsEnabled = true
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
-							}
-						}
+
+			// If overrideProtocols is provided (during protocol conversion), use those protocols
+			// instead of reading from the export policy rule configuration
+			if len(overrideProtocols) > 0 {
+				for _, protocol := range overrideProtocols {
+					switch strings.ToLower(protocol) {
+					case "cifs":
+						cifsEnabled = true
+					case "nfsv3":
+						nfsv3Enabled = true
+					case "nfsv4.1":
+						nfsv41Enabled = true
 					}
 				}
-			}
-			if !features.FivePointOh() {
-				if vpe := v["protocols_enabled"]; vpe != nil {
+			} else {
+				// Use existing logic when no protocol override is provided
+				// This handles both FivePointOh() v5 and !FivePointOh() v4 cases
+				if vpe := v["protocol"]; vpe != nil {
 					protocolsEnabled := vpe.([]interface{})
 					if len(protocolsEnabled) != 0 {
 						for _, protocol := range protocolsEnabled {
@@ -1351,6 +1418,25 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 									nfsv3Enabled = true
 								case "nfsv4.1":
 									nfsv41Enabled = true
+								}
+							}
+						}
+					}
+				}
+				if !features.FivePointOh() {
+					if vpe := v["protocols_enabled"]; vpe != nil {
+						protocolsEnabled := vpe.([]interface{})
+						if len(protocolsEnabled) != 0 {
+							for _, protocol := range protocolsEnabled {
+								if protocol != nil {
+									switch strings.ToLower(protocol.(string)) {
+									case "cifs":
+										cifsEnabled = true
+									case "nfsv3":
+										nfsv3Enabled = true
+									case "nfsv4.1":
+										nfsv41Enabled = true
+									}
 								}
 							}
 						}

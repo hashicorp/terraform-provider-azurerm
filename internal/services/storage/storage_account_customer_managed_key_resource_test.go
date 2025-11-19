@@ -344,12 +344,13 @@ resource "azurerm_resource_group" "remotetest" {
 resource "azurerm_key_vault" "remotetest" {
   provider = azurerm-alt
 
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = "%s"
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.remotetest.location
+  resource_group_name        = azurerm_resource_group.remotetest.name
+  tenant_id                  = "%s"
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -450,12 +451,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -527,12 +529,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -639,12 +642,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azuread_application_federated_identity_credential" "test" {
-  application_object_id = azuread_application.test.object_id
-  display_name          = "acctestcred-%[5]s"
-  description           = "Federated Identity Credential for CMK"
-  audiences             = ["api://AzureADTokenExchange"]
-  issuer                = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
-  subject               = azurerm_user_assigned_identity.test.principal_id
+  application_id = azuread_application.test.id
+  display_name   = "acctestcred-%[5]s"
+  description    = "Federated Identity Credential for CMK"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+  subject        = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_resource_group" "remotetest" {
@@ -662,12 +665,13 @@ resource "azuread_service_principal" "remotetest" {
 resource "azurerm_key_vault" "remotetest" {
   provider = azurerm-alt
 
-  name                     = "acctestkv%[5]s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = data.azurerm_client_config.remote.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[5]s"
+  location                   = azurerm_resource_group.remotetest.location
+  resource_group_name        = azurerm_resource_group.remotetest.name
+  tenant_id                  = data.azurerm_client_config.remote.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.remote.tenant_id

@@ -6,6 +6,7 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -36,6 +37,10 @@ func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 }
 
 func TestAccMsSqlServerTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
 
@@ -278,7 +283,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acc%[2]s"
+  name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -316,7 +321,7 @@ resource "azurerm_key_vault" "test" {
 }
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
-  name         = "acchsmcert${count.index}"
+  name         = "acctesthsmcert${count.index}"
   key_vault_id = azurerm_key_vault.test.id
   certificate_policy {
     issuer_parameters {
@@ -356,7 +361,7 @@ resource "azurerm_key_vault_certificate" "cert" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[2]s"
+  name                     = "acctestkvHsm%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"

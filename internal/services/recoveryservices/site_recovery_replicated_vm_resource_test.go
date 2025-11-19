@@ -785,13 +785,14 @@ resource "azurerm_resource_group" "test2" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                        = "kv%[1]d"
+  name                        = "acctest%[1]d"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 
@@ -1603,13 +1604,14 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_key_vault" "test1" {
-  name                        = "acckv-%[1]d"
+  name                        = "acctest-%[1]d"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {

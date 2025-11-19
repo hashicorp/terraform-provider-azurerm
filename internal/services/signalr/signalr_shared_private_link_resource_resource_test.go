@@ -82,7 +82,7 @@ func (r SignalrSharedPrivateLinkResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 resource "azurerm_key_vault" "test" {
-  name                       = "vault%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -110,7 +110,7 @@ resource "azurerm_signalr_shared_private_link_resource" "test" {
   target_resource_id = azurerm_key_vault.test.id
   request_message    = "please approve"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SignalrSharedPrivateLinkResource) requiresImport(data acceptance.TestData) string {

@@ -132,7 +132,7 @@ func DestructRoleAssignmentId(id string) (string, string) {
 
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("Role Assignment ID is empty string")
+		return nil, errors.New("the Role Assignment ID is an empty string")
 	}
 
 	roleAssignmentId := RoleAssignmentId{}

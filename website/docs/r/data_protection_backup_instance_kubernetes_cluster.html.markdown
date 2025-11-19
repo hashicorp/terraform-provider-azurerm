@@ -211,7 +211,7 @@ The following arguments are supported:
 
 * `snapshot_resource_group_name` - (Required) The name of the Resource Group where snapshots are stored. Changing this forces a new resource to be created.
 
-* `backup_datasource_parameters` - (Optional)  A `backup_datasource_parameters` block as defined below.
+* `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -225,7 +225,7 @@ A `backup_datasource_parameters` block supports the following:
 
 * `included_namespaces` - (Optional) Specifies the namespaces to be included during backup. Changing this forces a new resource to be created.
 
-* `included_resource_types` - (Optional)  Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
+* `included_resource_types` - (Optional) Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
 
 * `label_selectors` - (Optional) Specifies the resources with such label selectors to be included during backup. Changing this forces a new resource to be created.
 
@@ -239,7 +239,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Instance Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance Kubernetes Cluster.

@@ -165,7 +165,7 @@ func newMarkFromString(content string, filepath string) *Mark {
 			}
 		case strings.HasPrefix(line, "```"):
 			result.addLineOrItem(idx, line, ItemExample)
-		case strings.HasPrefix(line, "->"), strings.HasPrefix(line, "~>"):
+		case strings.HasPrefix(line, "->"), strings.HasPrefix(line, "~>"), strings.HasPrefix(line, "!>"):
 			result.addItemWith(idx, line, ItemNote)
 		case isBlockHead(line):
 			result.addItemWith(idx, line, ItemBlockHead)
@@ -317,9 +317,46 @@ func (m *Mark) blockOfName(name string, parent string, pos model.PosType) (b *Bl
 	}
 
 	if len(res) > 1 {
-		msg = fmt.Sprintf("duplicate block exists as name `%s`", util.Blue(name))
+		// Check if these are actual duplicate block definitions or just shared references
+		// Look at the actual block definitions to see if they have different content
+		uniqueDefinitions := make(map[string]Block)
+		for _, block := range res {
+			// Create a key based on the block's actual content/structure
+			key := fmt.Sprintf("%s:%d", block.Name, len(block.Fields))
+			if existing, exists := uniqueDefinitions[key]; exists {
+				// Check if they're actually different blocks
+				if !blocksHaveSameDefinition(existing, block) {
+					msg = fmt.Sprintf("duplicate block exists as name `%s`", util.Blue(name))
+					break
+				}
+			} else {
+				uniqueDefinitions[key] = block
+			}
+		}
+		// If we only have one unique definition, it's just a shared block reference, not a duplicate
 	}
 	return &res[0], msg
+}
+
+// blocksHaveSameDefinition checks if two blocks have the same definition/content
+func blocksHaveSameDefinition(b1, b2 Block) bool {
+	// Blocks are considered the same if they have the same fields
+	if len(b1.Fields) != len(b2.Fields) {
+		return false
+	}
+
+	// Compare each field
+	for i, f1 := range b1.Fields {
+		if i >= len(b2.Fields) {
+			return false
+		}
+		f2 := b2.Fields[i]
+		if f1.Name != f2.Name || f1.Required != f2.Required {
+			return false
+		}
+	}
+
+	return true
 }
 
 // buildStruct build struct of blocks
@@ -357,18 +394,20 @@ func (m *Mark) buildStruct() {
 func (m *Mark) BuildResourceDoc() *model.ResourceDoc {
 	doc := model.NewResourceDoc()
 	for _, f := range m.Fields {
-		if f.Pos == model.PosArgs {
+		switch f.Pos {
+		case model.PosArgs:
 			doc.Args.AddField(f)
-		} else if f.Pos == model.PosAttr {
+		case model.PosAttr:
 			doc.Attr.AddField(f)
 		}
 	}
 
 	doc.ResourceName = m.ResourceType
 	for _, item := range m.Items {
-		if item.Type == ItemExample {
+		switch item.Type {
+		case ItemExample:
 			doc.ExampleHCL = item.content()
-		} else if item.Type == ItemTimeout {
+		case ItemTimeout:
 			doc.SetTimeout(item.FromLine, item.content())
 		}
 	}

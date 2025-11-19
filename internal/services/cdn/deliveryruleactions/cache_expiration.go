@@ -4,7 +4,7 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -52,7 +52,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 
 		if duration := item["duration"].(string); duration != "" {
 			if cacheExpirationAction.Parameters.CacheBehavior == cdn.CacheBehaviorBypassCache {
-				return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
+				return nil, errors.New("cache expiration duration must not be set when using behavior `BypassCache`")
 			}
 
 			cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
@@ -67,7 +67,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleCacheExpirationAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule cache expiration action!")
+		return nil, errors.New("expected a delivery rule cache expiration action")
 	}
 
 	behaviour := ""

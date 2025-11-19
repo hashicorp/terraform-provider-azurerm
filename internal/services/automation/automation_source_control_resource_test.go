@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ resource "azurerm_automation_source_control" "test" {
     token_type = "PersonalAccessToken"
   }
 }
-`, s.template(data), data.RandomInteger, s.githubRepo.url, s.githubRepo.token)
+`, s.template(data), data.RandomInteger, s.url, s.token)
 }
 
 func (s SourceControlResource) update(data acceptance.TestData) string {
@@ -123,7 +123,7 @@ resource "azurerm_automation_source_control" "test" {
     token_type = "PersonalAccessToken"
   }
 }
-`, s.template(data), data.RandomInteger, s.githubRepo.url, s.githubRepo.token)
+`, s.template(data), data.RandomInteger, s.url, s.token)
 }
 
 func TestAccSourceControl_basic(t *testing.T) {
