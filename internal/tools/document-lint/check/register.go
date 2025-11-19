@@ -88,9 +88,9 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			}
 
 			filePath := schema.FileForResource(svc.Create().Func)
-  	  // Skip deprecated resources, as some of these don't have documents
-      sch := schema.NewResource(svc, svc.ResourceType())
-      if shouldSkipFile(filePath) || sch.IsDeprecated() {
+			// Skip deprecated resources, as some of these don't have documents
+			sch := schema.NewResource(svc, svc.ResourceType())
+			if shouldSkipFile(filePath) || sch.IsDeprecated() {
 				continue
 			}
 
@@ -112,9 +112,9 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			}
 
 			filePath := schema.FileForResource(svc.Read, svc.ReadContext) //nolint:staticcheck
-      // Skip deprecated resources, as some of these don't have documents
-      sch := schema.NewResource(svc, name)
-      if shouldSkipFile(filePath) || sch.IsDeprecated() {
+			// Skip deprecated resources, as some of these don't have documents
+			sch := schema.NewResource(svc, name)
+			if shouldSkipFile(filePath) || sch.IsDeprecated() {
 				continue
 			}
 
