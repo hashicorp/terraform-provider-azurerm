@@ -1484,6 +1484,7 @@ func TestAccLinuxFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccLinuxFunctionAppSlot_e2eEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
