@@ -21,6 +21,7 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New Action**: `azurerm_cdn_front_door_cache_purge`  [GH-30765]
+* **New Action**: `azurerm_data_protection_backup_instance_protect` [GH-31085]
 * **New Action**: `azurerm_managed_redis_databases_flush` [GH-31132]
 * **New Action**: `azurerm_mssql_execute_job` [GH-31095]
 * **New List Resource**: `azurerm_route_table` [GH-31015]
