@@ -223,7 +223,7 @@ To work around situations where we need to expose the default value from the Azu
 
 Whilst this works, there are some side effects, for example:
 
-1. It's hard for users to reset a field to its default value: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (for example `subnets = []`) to remove this value
+1. It's hard for users to reset a field to its default value, for example: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (`subnets = []`) to remove
 2. The default value set by the Azure API cannot be documented because it is not set in the Terraform schema, and not possible for [document-lint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/document-lint) to statically check
 
 Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
