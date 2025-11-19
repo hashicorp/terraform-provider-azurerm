@@ -1,12 +1,12 @@
 ---
 subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracle_db_system_versions"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_database_system_versions"
 description: |-
   Gets information about an existing  Oracle Database Systems Versions.
 ---
 
-# Data Source: azurerm_oracle_db_system_versions
+# Data Source: azurerm_oracle_database_system_versions
 
 Use this data source to access information about an existing  Oracle Database Systems Versions.
 
