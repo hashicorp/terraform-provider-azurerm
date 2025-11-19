@@ -34,10 +34,10 @@ resource "azurerm_container_app_environment" "example" {
 }
 
 resource "azurerm_container_app_environment_managed_certificate" "example" {
-  name                          = "example-managed-cert"
-  container_app_environment_id  = azurerm_container_app_environment.example.id
-  subject_name                  = "example.com"
-  domain_control_validation     = "HTTP"
+  name                         = "example-managed-cert"
+  container_app_environment_id = azurerm_container_app_environment.example.id
+  subject_name                 = "example.com"
+  domain_control_validation    = "HTTP"
 }
 ```
 
@@ -83,3 +83,9 @@ A Container App Environment Managed Certificate can be imported using the `resou
 ```shell
 terraform import azurerm_container_app_environment_managed_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/managedCertificates/mycertificate"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-07-01

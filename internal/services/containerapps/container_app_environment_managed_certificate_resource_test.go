@@ -138,10 +138,10 @@ resource "azurerm_container_app_custom_domain" "test" {
 }
 
 resource "azurerm_container_app_environment_managed_certificate" "test" {
-  name                          = "acctest-cacertmgd%[2]d"
-  container_app_environment_id  = azurerm_container_app_environment.test.id
-  subject_name                  = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
-  domain_control_validation     = "HTTP"
+  name                         = "acctest-cacertmgd%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  subject_name                 = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  domain_control_validation    = "HTTP"
 
   depends_on = [azurerm_container_app_custom_domain.test]
 }
@@ -153,10 +153,10 @@ func (r ContainerAppEnvironmentManagedCertificateResource) requiresImport(data a
 %s
 
 resource "azurerm_container_app_environment_managed_certificate" "import" {
-  name                          = azurerm_container_app_environment_managed_certificate.test.name
-  container_app_environment_id  = azurerm_container_app_environment_managed_certificate.test.container_app_environment_id
-  subject_name                  = azurerm_container_app_environment_managed_certificate.test.subject_name
-  domain_control_validation     = "HTTP"
+  name                         = azurerm_container_app_environment_managed_certificate.test.name
+  container_app_environment_id = azurerm_container_app_environment_managed_certificate.test.container_app_environment_id
+  subject_name                 = azurerm_container_app_environment_managed_certificate.test.subject_name
+  domain_control_validation    = "HTTP"
 }
 `, r.basic(data))
 }
@@ -180,10 +180,10 @@ resource "azurerm_container_app_custom_domain" "test" {
 }
 
 resource "azurerm_container_app_environment_managed_certificate" "test" {
-  name                          = "acctest-cacertmgd%[2]d"
-  container_app_environment_id  = azurerm_container_app_environment.test.id
-  subject_name                  = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
-  domain_control_validation     = "HTTP"
+  name                         = "acctest-cacertmgd%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  subject_name                 = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  domain_control_validation    = "HTTP"
 
   tags = {
     environment = "testing"
@@ -212,10 +212,10 @@ resource "azurerm_container_app_custom_domain" "test" {
 }
 
 resource "azurerm_container_app_environment_managed_certificate" "test" {
-  name                          = "acctest-cacertmgd%[2]d"
-  container_app_environment_id  = azurerm_container_app_environment.test.id
-  subject_name                  = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
-  domain_control_validation     = "HTTP"
+  name                         = "acctest-cacertmgd%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  subject_name                 = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  domain_control_validation    = "HTTP"
 
   depends_on = [azurerm_container_app_custom_domain.test]
 }
