@@ -419,6 +419,17 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_site_recovery_replicated_vm`
+
+* The property `network_interface.failover_test_static_ip` has been removed in favour of the `network_interface.ip_configuration.failover_test_static_ip`.
+* The property `network_interface.failover_test_subnet_name` has been removed in favour of the `network_interface.ip_configuration.failover_test_subnet_name`.
+* The property `network_interface.failover_test_public_ip_address_id` has been removed in favour of the `network_interface.ip_configuration.failover_test_public_ip_address_id`.
+* The property `network_interface.target_static_ip` has been removed in favour of the `network_interface.ip_configuration.target_static_ip` property.
+* The property `network_interface.target_subnet_name` has been removed in favour of the `network_interface.ip_configuration.target_subnet_name` property.
+* The property `network_interface.recovery_load_balancer_backend_address_pool_ids` has been removed in favour of the `network_interface.ip_configuration.recovery_load_balancer_backend_address_pool_ids` property.
+* The property `network_interface.recovery_public_ip_address_id` has been removed in favour of the `network_interface.ip_configuration.recovery_public_ip_address_id` property.
+* The property `network_interface.ip_configuration.name` is a new required property, it must be as same as the name of the ip configuration of network interface from the source VM.
+
 ### `azurerm_storage_account`
 
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
