@@ -289,13 +289,13 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+	err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, updatePatch)
+		err := client.UpdateThenPoll(ctx, id, updatePatch, vaults.DefaultUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
@@ -441,7 +441,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			vault.Sku.Tier = utils.String("Standard")
 		}
 
-		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
+		err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v", id.String(), err)
 		}
@@ -507,13 +507,13 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.UpdateThenPoll(ctx, id, vault)
+	err = client.UpdateThenPoll(ctx, id, vault, vaults.DefaultUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
+		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch, vaults.DefaultUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
