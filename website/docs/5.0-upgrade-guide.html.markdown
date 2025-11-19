@@ -223,6 +223,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
+* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
 
 ### `azurerm_container_app_environment`
 
@@ -319,14 +320,6 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
-### `azurerm_log_analytics_linked_storage_account`
-
-* The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
-
-### `azurerm_log_analytics_workspace`
-
-* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
-
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
@@ -394,10 +387,6 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama`
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
-
-### `azurerm_policy_set_definition`
-
-* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
 ### `azurerm_redis_cache`
 
