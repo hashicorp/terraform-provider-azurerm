@@ -135,10 +135,12 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
 				"all_week_schedule": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
+
 				"sunday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -146,6 +148,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"monday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -153,6 +156,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"tuesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -160,6 +164,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"wednesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -167,6 +172,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"thursday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -174,6 +180,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"friday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -181,6 +188,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"saturday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -364,10 +372,15 @@ func expandVmssFabricProfileModel(input []VmssFabricProfileModel) pools.FabricPr
 	fabricProfile := input[0]
 	vmssFabricProfile := pools.VMSSFabricProfile{
 		Images:         expandImageModel(fabricProfile.Images),
-		NetworkProfile: expandNetworkProfileModel(fabricProfile.NetworkProfile),
 		OsProfile:      expandOsProfileModel(fabricProfile.OsProfile),
 		Sku:            pools.DevOpsAzureSku{Name: fabricProfile.SkuName},
 		StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
+	}
+
+	if fabricProfile.SubnetId != "" {
+		vmssFabricProfile.NetworkProfile = &pools.NetworkProfile{
+			SubnetId: fabricProfile.SubnetId,
+		}
 	}
 
 	return vmssFabricProfile
@@ -623,10 +636,13 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabricProfileModel {
 	vmssFabricProfileModel := VmssFabricProfileModel{
 		Images:         flattenImagesToModel(input.Images),
-		NetworkProfile: flattenNetworkProfileToModel(input.NetworkProfile),
 		OsProfile:      flattenOsProfileToModel(input.OsProfile),
 		SkuName:        input.Sku.Name,
 		StorageProfile: flattenStorageProfileToModel(input.StorageProfile),
+	}
+
+	if input.NetworkProfile != nil {
+		vmssFabricProfileModel.SubnetId = input.NetworkProfile.SubnetId
 	}
 
 	return []VmssFabricProfileModel{vmssFabricProfileModel}

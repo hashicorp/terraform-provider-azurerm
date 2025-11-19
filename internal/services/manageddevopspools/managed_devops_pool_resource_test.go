@@ -110,9 +110,9 @@ func TestAccManagedDevOpsPool_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// Intermediate step: remove network profile from pool but keep other resources
+		// Intermediate step: remove subnet_id from pool but keep other resources
 		// This is required to solve the dependency timing issue where Terraform tries to
-		// delete the subnet before updating the pool. By removing the network_profile first,
+		// delete the subnet before updating the pool. By removing the subnet_id first,
 		// the pool no longer references the subnet, allowing safe resource cleanup in the next step.
 		// Without this intermediate step, we get "InUseSubnetCannotBeDeleted" errors because
 		// the pool still has a service association link to the subnet when Terraform tries to delete it.
@@ -427,9 +427,7 @@ resource "azurerm_managed_devops_pool" "test" {
       buffer                = "100"
     }
     sku_name = "Standard_B1ms"
-    network_profile {
-      subnet_id = azurerm_subnet.test.id
-    }
+    subnet_id = azurerm_subnet.test.id
     os_profile {
       logon_type = "Interactive"
       secrets_management {

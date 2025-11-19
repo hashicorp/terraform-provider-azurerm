@@ -54,8 +54,11 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
 			),
 		},
+
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"location":            commonschema.Location(),
+
 		"azure_devops_organization_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -78,11 +81,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										),
 									),
 								},
+
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntBetween(1, 10000),
 								},
+
 								"projects": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -94,6 +99,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"permission_profile": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -105,6 +111,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
+
 								"administrator_account": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -118,7 +125,9 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
 												},
+												AtLeastOneOf: []string{"azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.groups", "azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.users"},
 											},
+
 											"users": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
@@ -126,6 +135,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
 												},
+												AtLeastOneOf: []string{"azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.groups", "azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.users"},
 											},
 										},
 									},
@@ -136,12 +146,15 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 10000),
 		},
+
 		"vmss_fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -161,6 +174,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
+
 								"buffer": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
@@ -169,11 +183,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										`Buffer must be "*" or value between 0 and 100.`,
 									),
 								},
+
 								"resource_id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: azure.ValidateResourceID,
 								},
+
 								"well_known_image_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
@@ -182,25 +198,19 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"sku_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"network_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: commonids.ValidateSubnetID,
-								},
-							},
-						},
+
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
+
 					"os_profile": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -213,6 +223,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Default:      string(pools.LogonTypeService),
 									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
 								},
+
 								"secrets_management": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -223,6 +234,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												Type:     pluginsdk.TypeBool,
 												Required: true,
 											},
+
 											"observed_certificates": {
 												Type:     pluginsdk.TypeList,
 												Required: true,
@@ -231,11 +243,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													ValidateFunc: keyvaultvalidate.NestedItemIdWithOptionalVersion,
 												},
 											},
+
 											"certificate_store_location": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
+
 											"certificate_store_name": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
@@ -247,6 +261,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"storage_profile": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
@@ -264,11 +279,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												Optional:     true,
 												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
 											},
+
 											"disk_size_gb": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
 												ValidateFunc: validation.IntBetween(1, 32767),
 											},
+
 											"drive_letter": {
 												Type:     pluginsdk.TypeString,
 												Optional: true,
@@ -277,6 +294,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													"drive_letter must be a single letter and cannot be A, C, D, or E (case insensitive)",
 												),
 											},
+
 											"storage_account_type": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
@@ -286,6 +304,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										},
 									},
 								},
+
 								"os_disk_storage_account_type": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
@@ -297,6 +316,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -309,18 +329,22 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Default:      "00:00:00",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"max_agent_lifetime": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "7.00:00:00",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchema("stateful_agent_profile.0"),
+
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateful_agent_profile.0"),
 				},
 			},
 			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
 		},
+
 		"stateless_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -328,12 +352,15 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchema("stateless_agent_profile.0"),
+
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateless_agent_profile.0"),
 				},
 			},
 			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
 		},
+
 		"identity": commonschema.UserAssignedIdentityOptional(),
+
 		"tags":     commonschema.Tags(),
 	}
 }
@@ -385,9 +412,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			azureDevOpsOrganizationProfile := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
-
 			fabricProfile := expandVmssFabricProfileModel(config.VmssFabricProfile)
-
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
 				Location: config.Location,

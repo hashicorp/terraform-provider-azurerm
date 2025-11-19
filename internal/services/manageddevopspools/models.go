@@ -45,7 +45,7 @@ type AutomaticResourcePredictionsProfileModel struct {
 
 type VmssFabricProfileModel struct {
 	Images         []ImageModel          `tfschema:"image"`
-	NetworkProfile []NetworkProfileModel `tfschema:"network_profile"`
+	SubnetId       string                `tfschema:"subnet_id"`
 	OsProfile      []OsProfileModel      `tfschema:"os_profile"`
 	SkuName        string                `tfschema:"sku_name"`
 	StorageProfile []StorageProfileModel `tfschema:"storage_profile"`

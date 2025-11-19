@@ -152,9 +152,7 @@ resource "azurerm_managed_devops_pool" "example" {
       }
     }
 
-    network_profile {
-      subnet_id = azurerm_subnet.example.id
-    }
+    subnet_id = azurerm_subnet.example.id
   }
 
   tags = {
@@ -287,12 +285,6 @@ A `manual_resource_predictions_profile` block supports the following:
 
 ---
 
-A `network_profile` block supports the following:
-
-* `subnet_id` - (Required) The subnet ID on which to put all machines created in the pool.
-
----
-
 An `organization` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
@@ -377,7 +369,7 @@ A `vmss_fabric_profile` block supports the following:
 
 * `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer to the [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
 
-* `network_profile` - (Optional) A `network_profile` block as defined below.
+* `subnet_id` - (Optional) The subnet ID on which to put all machines created in the pool.
 
 * `os_profile` - (Optional) An `os_profile` block as defined below.
 

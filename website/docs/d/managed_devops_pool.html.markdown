@@ -133,12 +133,6 @@ A `manual_resource_predictions_profile` block exports the following:
 
 ---
 
-A `network_profile` block exports the following:
-
-* `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
-
----
-
 An `organization` block exports the following:
 
 * `url` - The URL of  The Azure DevOps organization.
@@ -211,7 +205,7 @@ A `vmss_fabric_profile` block exports the following:
 
 * `sku_name` - The Azure SKU of the machines in the pool.
 
-* `network_profile` - A `network_profile` block as defined below.
+* `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
 
 * `os_profile` - An `os_profile` block as defined below.
 

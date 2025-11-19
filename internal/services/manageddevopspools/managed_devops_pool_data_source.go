@@ -62,6 +62,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
 								},
+
 								"projects": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
@@ -69,6 +70,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 										Type: pluginsdk.TypeString,
 									},
 								},
+
 								"url": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
@@ -76,6 +78,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"permission_profile": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -85,6 +88,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"administrator_account": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
@@ -97,6 +101,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 													Type: pluginsdk.TypeString,
 												},
 											},
+
 											"users": {
 												Type:     pluginsdk.TypeList,
 												Computed: true,
@@ -113,15 +118,19 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"identity": commonschema.UserAssignedIdentityComputed(),
+
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -131,26 +140,33 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"max_agent_lifetime": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchemaComputed(),
+
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
 				},
 			},
 		},
+
 		"stateless_agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"manual_resource_predictions_profile":    manualResourcePredictionsProfileSchemaComputed(),
+
 					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
 				},
 			},
 		},
+
 		"tags": commonschema.TagsDataSource(),
+
 		"vmss_fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -168,14 +184,17 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 										Type: pluginsdk.TypeString,
 									},
 								},
+
 								"buffer": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"resource_id": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"well_known_image_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
@@ -183,18 +202,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"network_profile": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"subnet_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
+
 					"os_profile": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -204,6 +212,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"secrets_management": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
@@ -213,14 +222,17 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 												Type:     pluginsdk.TypeString,
 												Computed: true,
 											},
+
 											"certificate_store_name": {
 												Type:     pluginsdk.TypeString,
 												Computed: true,
 											},
+
 											"key_export_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Computed: true,
 											},
+
 											"observed_certificates": {
 												Type:     pluginsdk.TypeList,
 												Computed: true,
@@ -234,10 +246,12 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"sku_name": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"storage_profile": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -252,14 +266,17 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 												Type:     pluginsdk.TypeString,
 												Computed: true,
 											},
+
 											"disk_size_gb": {
 												Type:     pluginsdk.TypeInt,
 												Computed: true,
 											},
+
 											"drive_letter": {
 												Type:     pluginsdk.TypeString,
 												Computed: true,
 											},
+
 											"storage_account_type": {
 												Type:     pluginsdk.TypeString,
 												Computed: true,
@@ -267,12 +284,18 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 										},
 									},
 								},
+
 								"os_disk_storage_account_type": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 							},
 						},
+					},
+
+					"subnet_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
