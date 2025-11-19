@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_storage_share_directory` - Deprecate `storage_share_id` in favour of `storage_share_url` [GH-28457]
+* `azurerm_storage_share_file` - Deprecate `storage_share_id` in favour of `storage_share_url` [GH-28457]
 * `azurerm_resource_group` - refactored from legacy SDK to use `go-azure-sdk` [GH-30616]
 * `azurerm_service_plan` - suppress casing difference on `sku_name` [GH-30907]
 * dependencies: `go-azure-sdk` - update to `v0.20251107.1191907` [GH-31095]
