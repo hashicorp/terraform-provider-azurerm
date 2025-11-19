@@ -1,6 +1,7 @@
 ## 4.55.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
 
 FEATURES:
 
