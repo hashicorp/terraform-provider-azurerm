@@ -69,7 +69,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_protection_backup_instance_blob_storage": resourceDataProtectionBackupInstanceBlobStorage(),
 		"azurerm_data_protection_backup_instance_disk":         resourceDataProtectionBackupInstanceDisk(),
 		"azurerm_data_protection_backup_instance_postgresql":   resourceDataProtectionBackupInstancePostgreSQL(),
-		"azurerm_data_protection_backup_policy_blob_storage":   resourceDataProtectionBackupPolicyBlobStorage(),
 		"azurerm_data_protection_backup_policy_disk":           resourceDataProtectionBackupPolicyDisk(),
 		"azurerm_data_protection_backup_policy_postgresql":     resourceDataProtectionBackupPolicyPostgreSQL(),
 		"azurerm_data_protection_backup_vault":                 resourceDataProtectionBackupVault(),
@@ -86,6 +85,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DataProtectionBackupPolicyKubernatesClusterResource{},
+		DataProtectionBackupPolicyBlobStorageResource{},
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
 		DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{},
 		DataProtectionBackupInstanceKubernatesClusterResource{},
