@@ -300,28 +300,29 @@ func FlattenBackupPolicyRetentionRules(input *[]backuppolicies.BasePolicyRule) [
 	return results
 }
 
-func flattenBackupPolicyDefaultRetentionRule(input *[]backuppolicies.BasePolicyRule) []DefaultRetentionRule {
-	results := make([]DefaultRetentionRule, 0)
-	if input == nil {
-		return results
-	}
+// This function is currently unused, but can be used by either of data_protection_backup_policy_mysql_flexible_server or azurerm_data_protection_backup_policy_kubernetes_cluster at least
+// func FlattenBackupPolicyDefaultRetentionRule(input *[]backuppolicies.BasePolicyRule) []DefaultRetentionRule {
+// 	results := make([]DefaultRetentionRule, 0)
+// 	if input == nil {
+// 		return results
+// 	}
 
-	for _, item := range *input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
-			if pointer.From(retentionRule.IsDefault) {
-				var lifeCycle []LifeCycle
-				if v := retentionRule.Lifecycles; len(v) > 0 {
-					lifeCycle = flattenBackupPolicyBackupLifeCycleArray(v)
-				}
+// 	for _, item := range *input {
+// 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
+// 			if pointer.From(retentionRule.IsDefault) {
+// 				var lifeCycle []LifeCycle
+// 				if v := retentionRule.Lifecycles; len(v) > 0 {
+// 					lifeCycle = flattenBackupPolicyBackupLifeCycleArray(v)
+// 				}
 
-				results = append(results, DefaultRetentionRule{
-					LifeCycle: lifeCycle,
-				})
-			}
-		}
-	}
-	return results
-}
+// 				results = append(results, DefaultRetentionRule{
+// 					LifeCycle: lifeCycle,
+// 				})
+// 			}
+// 		}
+// 	}
+// 	return results
+// }
 
 func FlattenBackupPolicyDefaultRetentionRuleDuration(input *[]backuppolicies.BasePolicyRule, dsType backuppolicies.DataStoreTypes) string {
 	if input == nil {
@@ -365,7 +366,7 @@ func flattenBackupPolicyBackupCriteriaArray(input *[]backuppolicies.BackupCriter
 			if criteria.DaysOfMonth != nil {
 				daysOfMonth = make([]int64, 0)
 				for _, item := range *criteria.DaysOfMonth {
-					daysOfMonth = append(daysOfMonth, (int64)(pointer.From(item.Date)))
+					daysOfMonth = append(daysOfMonth, *item.Date)
 				}
 			}
 			var monthsOfYear []string
