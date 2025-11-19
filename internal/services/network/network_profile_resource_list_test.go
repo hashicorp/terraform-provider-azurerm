@@ -41,7 +41,7 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 }
 
 func (r NetworkProfileResource) basicList(data acceptance.TestData) string {
-	stuff := fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -119,8 +119,6 @@ resource "azurerm_network_profile" "test3" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-	println(stuff)
-	return stuff
 }
 
 func (r NetworkProfileResource) basicQuery() string {
