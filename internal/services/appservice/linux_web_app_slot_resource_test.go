@@ -1516,6 +1516,54 @@ func TestAccLinuxWebAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_e2eEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.e2eEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_e2eEncryptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.e2eEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Exists
 
 func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -2932,6 +2980,25 @@ resource "azurerm_linux_web_app_slot" "test" {
   app_service_id = azurerm_linux_web_app.test.id
 
   public_network_access_enabled = false
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) e2eEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  e2e_encryption_enabled = true
 
   site_config {}
 }

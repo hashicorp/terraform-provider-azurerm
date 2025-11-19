@@ -67,6 +67,7 @@ type WindowsWebAppSlotModel struct {
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
 }
 
 var (
@@ -225,6 +226,12 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
+		"e2e_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -368,15 +375,16 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(webAppSlot.Tags),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					Enabled:                  pointer.To(webAppSlot.Enabled),
-					HTTPSOnly:                pointer.To(webAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    pointer.To(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
-					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
-					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					Enabled:                   pointer.To(webAppSlot.Enabled),
+					HTTPSOnly:                 pointer.To(webAppSlot.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webAppSlot.ClientCertEnabled),
+					ClientCertMode:            pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					ClientCertExclusionPaths:  pointer.To(webAppSlot.ClientCertExclusionPaths),
+					VnetBackupRestoreEnabled:  pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(webAppSlot.E2eEncryptionEnabled),
 				},
 			}
 
@@ -667,6 +675,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
@@ -910,6 +919,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
 			}
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {

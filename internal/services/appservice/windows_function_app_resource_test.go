@@ -1712,6 +1712,54 @@ func TestAccWindowsFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_e2eEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.e2eEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_e2eEncryptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.e2eEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Outputs
 
 func TestAccWindowsFunctionApp_basicOutputs(t *testing.T) {
@@ -4250,6 +4298,30 @@ resource "azurerm_windows_function_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   public_network_access_enabled = false
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) e2eEncryptionEnabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  e2e_encryption_enabled = true
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

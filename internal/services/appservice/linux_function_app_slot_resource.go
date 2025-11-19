@@ -74,6 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -256,6 +257,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"e2e_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -527,16 +534,17 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(servicePlanId.ID()),
-					Enabled:                  pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:                pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
-					DailyMemoryTimeQuota:     pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetBackupRestoreEnabled: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(functionAppSlot.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					ServerFarmId:              pointer.To(servicePlanId.ID()),
+					Enabled:                   pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:                 pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:            pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.E2eEncryptionEnabled),
 				},
 			}
 
@@ -758,6 +766,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -948,6 +957,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {

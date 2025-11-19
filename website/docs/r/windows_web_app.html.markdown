@@ -116,6 +116,8 @@ The following arguments are supported:
 			
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the Azure docs on [running the Web App directly from the Zip package](https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package), or [automating the build for Zip deploy](https://learn.microsoft.com/en-us/azure/app-service/deploy-zip#enable-build-automation-for-zip-deploy) for further details.
 
+* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
+
 ---
 
 A `action` block supports the following:
