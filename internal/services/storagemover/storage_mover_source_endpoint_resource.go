@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverSourceEndpointModel struct {
@@ -135,7 +135,7 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 
 			if model.Description != "" {
 				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}
@@ -178,7 +178,7 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}

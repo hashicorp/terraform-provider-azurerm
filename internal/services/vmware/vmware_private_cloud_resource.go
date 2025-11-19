@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVmwarePrivateCloud() *pluginsdk.Resource {
@@ -235,8 +234,8 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 			},
 			NetworkBlock:    d.Get("network_subnet_cidr").(string),
 			Internet:        &internet,
-			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
-			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
+			NsxtPassword:    pointer.To(d.Get("nsxt_password").(string)),
+			VcenterPassword: pointer.To(d.Get("vcenter_password").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}

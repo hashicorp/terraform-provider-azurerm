@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBatchAccount() *pluginsdk.Resource {
@@ -284,7 +283,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	nodeIdentity := d.Get("storage_account_node_identity").(string)
 	if nodeIdentity != "" {
 		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
-			ResourceId: utils.String(nodeIdentity),
+			ResourceId: pointer.To(nodeIdentity),
 		}
 	}
 
@@ -463,7 +462,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	nodeIdentity := d.Get("storage_account_node_identity").(string)
 	if nodeIdentity != "" {
 		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
-			ResourceId: utils.String(nodeIdentity),
+			ResourceId: pointer.To(nodeIdentity),
 		}
 	}
 

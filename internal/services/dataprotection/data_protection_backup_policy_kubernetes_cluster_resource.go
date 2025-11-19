@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BackupPolicyKubernatesClusterModel struct {
@@ -450,7 +449,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -460,7 +459,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(item.Name + "_"),
+				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
 			},
 		}

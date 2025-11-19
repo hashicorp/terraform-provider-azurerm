@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
@@ -120,7 +119,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 		Properties: &agentpools.AgentPoolProperties{
 			// @favoretti: Only Linux is supported
 			Os:    pointer.To(agentpools.OSLinux),
-			Count: utils.Int64(int64(d.Get("instance_count").(int))),
+			Count: pointer.To(int64(int64(d.Get("instance_count").(int)))),
 			Tier:  pointer.To(d.Get("tier").(string)),
 		},
 
@@ -153,7 +152,7 @@ func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta in
 
 	parameters := agentpools.AgentPoolUpdateParameters{
 		Properties: &agentpools.AgentPoolPropertiesUpdateParameters{
-			Count: utils.Int64(int64(d.Get("instance_count").(int))),
+			Count: pointer.To(int64(int64(d.Get("instance_count").(int)))),
 		},
 	}
 

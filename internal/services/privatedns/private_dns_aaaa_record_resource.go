@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePrivateDnsAaaaRecord() *pluginsdk.Resource {
@@ -106,17 +106,17 @@ func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	parameters := privatedns.RecordSet{
-		Name: utils.String(id.RelativeRecordSetName),
+		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
 			Metadata:    tags.Expand(d.Get("tags").(map[string]interface{})),
-			Ttl:         utils.Int64(int64(d.Get("ttl").(int))),
+			Ttl:         pointer.To(int64(int64(d.Get("ttl").(int)))),
 			AaaaRecords: expandAzureRmPrivateDnsAaaaRecords(d),
 		},
 	}
 
 	options := privatedns.RecordSetsCreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
 	if _, err := client.RecordSetsCreateOrUpdate(ctx, id, parameters, options); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -175,7 +175,7 @@ func resourcePrivateDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: utils.String("")}
+	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: pointer.To("")}
 
 	if _, err := dnsClient.RecordSetsDelete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

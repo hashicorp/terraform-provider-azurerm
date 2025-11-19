@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -137,9 +137,9 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 			input := datacollectionendpoints.DataCollectionEndpointResource{
 				Kind:     expandDataCollectionEndpointKind(state.Kind),
 				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: utils.String(state.Description),
+					Description: pointer.To(state.Description),
 					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
 						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 					},
@@ -253,7 +253,7 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("kind") {

@@ -171,7 +171,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
 		Properties: scheduledqueryrules.LogSearchRule{
-			Description: utils.String(description),
+			Description: pointer.To(description),
 			Enabled:     pointer.To(enabled),
 			Source:      source,
 			Action:      action,

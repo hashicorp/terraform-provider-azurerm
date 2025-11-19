@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -98,15 +99,15 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	channel := botservice.BotChannel{
 		Properties: botservice.SmsChannel{
 			Properties: &botservice.SmsChannelProperties{
-				AccountSID:  utils.String(d.Get("sms_channel_account_security_id").(string)),
-				AuthToken:   utils.String(d.Get("sms_channel_auth_token").(string)),
-				IsValidated: utils.Bool(true),
-				IsEnabled:   utils.Bool(true),
-				Phone:       utils.String(d.Get("phone_number").(string)),
+				AccountSID:  pointer.To(d.Get("sms_channel_account_security_id").(string)),
+				AuthToken:   pointer.To(d.Get("sms_channel_auth_token").(string)),
+				IsValidated: pointer.To(true),
+				IsEnabled:   pointer.To(true),
+				Phone:       pointer.To(d.Get("phone_number").(string)),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSmsChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -174,15 +175,15 @@ func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	channel := botservice.BotChannel{
 		Properties: botservice.SmsChannel{
 			Properties: &botservice.SmsChannelProperties{
-				AccountSID:  utils.String(d.Get("sms_channel_account_security_id").(string)),
-				AuthToken:   utils.String(d.Get("sms_channel_auth_token").(string)),
-				IsValidated: utils.Bool(true),
-				IsEnabled:   utils.Bool(true),
-				Phone:       utils.String(d.Get("phone_number").(string)),
+				AccountSID:  pointer.To(d.Get("sms_channel_account_security_id").(string)),
+				AuthToken:   pointer.To(d.Get("sms_channel_auth_token").(string)),
+				IsValidated: pointer.To(true),
+				IsEnabled:   pointer.To(true),
+				Phone:       pointer.To(d.Get("phone_number").(string)),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSmsChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 

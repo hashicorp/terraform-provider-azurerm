@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connection"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationConnectionCertificate() *pluginsdk.Resource {
@@ -107,9 +107,9 @@ func resourceAutomationConnectionCertificateCreateUpdate(d *pluginsdk.ResourceDa
 	parameters := connection.ConnectionCreateOrUpdateParameters{
 		Name: id.ConnectionName,
 		Properties: connection.ConnectionCreateOrUpdateProperties{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
-				Name: utils.String("Azure"),
+				Name: pointer.To("Azure"),
 			},
 			FieldDefinitionValues: &fieldDefinitionValues,
 		},

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type costManagementExportBaseResource struct{}
@@ -288,7 +287,7 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 				Recurrence: &recurrenceType,
 				RecurrencePeriod: &exports.ExportRecurrencePeriod{
 					From: metadata.ResourceData.Get("recurrence_period_start_date").(string),
-					To:   utils.String(metadata.ResourceData.Get("recurrence_period_end_date").(string)),
+					To:   pointer.To(metadata.ResourceData.Get("recurrence_period_end_date").(string)),
 				},
 				Status: &status,
 			},
@@ -318,9 +317,9 @@ func expandExportDataStorageLocation(input []interface{}) (*exports.ExportDelive
 
 	deliveryInfo := &exports.ExportDeliveryInfo{
 		Destination: exports.ExportDeliveryDestination{
-			ResourceId:     utils.String(storageId.ID()),
+			ResourceId:     pointer.To(storageId.ID()),
 			Container:      containerId.ContainerName,
-			RootFolderPath: utils.String(attrs["root_folder_path"].(string)),
+			RootFolderPath: pointer.To(attrs["root_folder_path"].(string)),
 		},
 	}
 

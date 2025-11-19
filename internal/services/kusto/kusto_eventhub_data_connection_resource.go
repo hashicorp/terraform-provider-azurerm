@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
@@ -289,11 +288,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		eventHubConnectionProperties.TableName = utils.String(tableName.(string))
+		eventHubConnectionProperties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		eventHubConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+		eventHubConnectionProperties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
@@ -315,7 +314,7 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if identityId, ok := d.GetOk("identity_id"); ok {
-		eventHubConnectionProperties.ManagedIdentityResourceId = utils.String(identityId.(string))
+		eventHubConnectionProperties.ManagedIdentityResourceId = pointer.To(identityId.(string))
 	}
 
 	return eventHubConnectionProperties

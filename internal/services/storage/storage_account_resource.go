@@ -2536,9 +2536,9 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			keyVersion = pointer.To(keyId.KeyVersion)
 			keyVaultURI = pointer.To(keyId.BaseUri())
 		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = utils.String(keyId.KeyName)
-			keyVersion = utils.String("")
-			keyVaultURI = utils.String(keyId.BaseUri())
+			keyName = pointer.To(keyId.KeyName)
+			keyVersion = pointer.To("")
+			keyVaultURI = pointer.To(keyId.BaseUri())
 		} else {
 			return nil, fmt.Errorf("parsing %q as HSM key ID", managedHSMKeyId.(string))
 		}
@@ -2562,7 +2562,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			},
 		},
 		Identity: &storageaccounts.EncryptionIdentity{
-			UserAssignedIdentity: utils.String(v["user_assigned_identity_id"].(string)),
+			UserAssignedIdentity: pointer.To(v["user_assigned_identity_id"].(string)),
 		},
 		KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 		Keyvaultproperties: &storageaccounts.KeyVaultProperties{
@@ -2602,7 +2602,7 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 
 	v := input[0].(map[string]interface{})
 	return &storageaccounts.ImmutableStorageAccount{
-		Enabled: utils.Bool(true),
+		Enabled: pointer.To(true),
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
@@ -2636,16 +2636,16 @@ func expandAccountActiveDirectoryProperties(input []interface{}) *storageaccount
 		DomainName: m["domain_name"].(string),
 	}
 	if v := m["storage_sid"]; v != "" {
-		output.AzureStorageSid = utils.String(v.(string))
+		output.AzureStorageSid = pointer.To(v.(string))
 	}
 	if v := m["domain_sid"]; v != "" {
-		output.DomainSid = utils.String(v.(string))
+		output.DomainSid = pointer.To(v.(string))
 	}
 	if v := m["forest_name"]; v != "" {
-		output.ForestName = utils.String(v.(string))
+		output.ForestName = pointer.To(v.(string))
 	}
 	if v := m["netbios_domain_name"]; v != "" {
-		output.NetBiosDomainName = utils.String(v.(string))
+		output.NetBiosDomainName = pointer.To(v.(string))
 	}
 	return output
 }
@@ -2757,7 +2757,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 			CorsRules: &[]blobservice.CorsRule{},
 		},
 		DeleteRetentionPolicy: &blobservice.DeleteRetentionPolicy{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		},
 	}
 

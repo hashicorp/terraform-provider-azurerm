@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountschemas"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
@@ -101,13 +101,13 @@ func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceD
 	parameters := integrationaccountschemas.IntegrationAccountSchema{
 		Properties: integrationaccountschemas.IntegrationAccountSchemaProperties{
 			SchemaType:  integrationaccountschemas.SchemaTypeXml,
-			Content:     utils.String(d.Get("content").(string)),
-			ContentType: utils.String("application/xml"),
+			Content:     pointer.To(d.Get("content").(string)),
+			ContentType: pointer.To("application/xml"),
 		},
 	}
 
 	if v, ok := d.GetOk("file_name"); ok {
-		parameters.Properties.FileName = utils.String(v.(string))
+		parameters.Properties.FileName = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DomainServiceTrustResource struct{}
@@ -132,11 +132,11 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 			}
 
 			existingTrusts = append(existingTrusts, domainservices.ForestTrust{
-				TrustedDomainFqdn: utils.String(plan.TrustedDomainFqdn),
-				TrustDirection:    utils.String("Inbound"),
-				FriendlyName:      utils.String(id.TrustName),
-				RemoteDnsIPs:      utils.String(strings.Join(plan.TrustedDomainDnsIPs, ",")),
-				TrustPassword:     utils.String(plan.Password),
+				TrustedDomainFqdn: pointer.To(plan.TrustedDomainFqdn),
+				TrustDirection:    pointer.To("Inbound"),
+				FriendlyName:      pointer.To(id.TrustName),
+				RemoteDnsIPs:      pointer.To(strings.Join(plan.TrustedDomainDnsIPs, ",")),
+				TrustPassword:     pointer.To(plan.Password),
 			})
 			params := domainservices.DomainService{
 				Properties: &domainservices.DomainServiceProperties{
@@ -352,12 +352,12 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 				if trust.FriendlyName != nil && *trust.FriendlyName == id.TrustName {
 					found = true
 					if metadata.ResourceData.HasChange("trusted_domain_fqdn") {
-						trust.TrustedDomainFqdn = utils.String(plan.TrustedDomainFqdn)
+						trust.TrustedDomainFqdn = pointer.To(plan.TrustedDomainFqdn)
 					}
 					if metadata.ResourceData.HasChange("trusted_domain_dns_ips") {
-						trust.RemoteDnsIPs = utils.String(strings.Join(plan.TrustedDomainDnsIPs, ","))
+						trust.RemoteDnsIPs = pointer.To(strings.Join(plan.TrustedDomainDnsIPs, ","))
 					}
-					trust.TrustPassword = utils.String(plan.Password)
+					trust.TrustPassword = pointer.To(plan.Password)
 				}
 				newTrusts = append(newTrusts, trust)
 			}

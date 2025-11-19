@@ -276,21 +276,21 @@ func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.Re
 		Filters: &remediations.RemediationFilters{
 			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
-		PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_reference_id").(string)),
+		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
+		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
 	}
 	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
 	prop.ResourceDiscoveryMode = &mode
 	if v := d.Get("failure_percentage").(float64); v != 0 {
 		prop.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
-			Percentage: utils.Float(v),
+			Percentage: pointer.To(v),
 		}
 	}
 	if v := d.Get("parallel_deployments").(int); v != 0 {
-		prop.ParallelDeployments = utils.Int64(int64(v))
+		prop.ParallelDeployments = pointer.To(int64(int64(v)))
 	}
 	if v := d.Get("resource_count").(int); v != 0 {
-		prop.ResourceCount = utils.Int64(int64(v))
+		prop.ResourceCount = pointer.To(int64(int64(v)))
 	}
 	return
 }

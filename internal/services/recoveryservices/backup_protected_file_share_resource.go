@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBackupProtectedFileShare() *pluginsdk.Resource {
@@ -236,8 +235,8 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		Properties: &protecteditems.AzureFileshareProtectedItem{
 			PolicyId:         &policyID,
 			WorkloadType:     pointer.To(protecteditems.DataSourceTypeAzureFileShare),
-			SourceResourceId: utils.String(storageAccountID),
-			FriendlyName:     utils.String(fileShareName),
+			SourceResourceId: pointer.To(storageAccountID),
+			FriendlyName:     pointer.To(fileShareName),
 		},
 	}
 

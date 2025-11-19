@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerConnectivityConfigurationModel struct {
@@ -249,7 +249,7 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Description = utils.String(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if metadata.ResourceData.HasChange("hub") {
@@ -328,7 +328,7 @@ func (r ManagerConnectivityConfigurationResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, connectivityconfigurations.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -385,8 +385,8 @@ func expandHubModel(inputList []HubModel) *[]connectivityconfigurations.Hub {
 	for _, v := range inputList {
 		input := v
 		output := connectivityconfigurations.Hub{
-			ResourceId:   utils.String(input.ResourceId),
-			ResourceType: utils.String(input.ResourceType),
+			ResourceId:   pointer.To(input.ResourceId),
+			ResourceType: pointer.To(input.ResourceType),
 		}
 
 		outputList = append(outputList, output)

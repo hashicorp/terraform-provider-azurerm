@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
@@ -149,20 +148,20 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
 				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:   pointer.To(containerName),
+					DateFormat:  pointer.To(dateFormat),
+					PathPattern: pointer.To(pathPattern),
+					TimeFormat:  pointer.To(timeFormat),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
+							AccountName: pointer.To(storageAccountName),
+							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
 					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
@@ -193,7 +192,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Int64(int64(batchMinRows.(int)))
+		props.Properties.SizeWindow = pointer.To(int64(int64(batchMinRows.(int))))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization

@@ -19,7 +19,6 @@ import (
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceExternalEndpoint() *pluginsdk.Resource {
@@ -186,13 +185,13 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	params := endpoints.Endpoint{
-		Name: utils.String(id.EndpointName),
-		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
+		Name: pointer.To(id.EndpointName),
+		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			AlwaysServe:    pointer.To(endpoints.AlwaysServeDisabled),
 			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
-			Target:         utils.String(d.Get("target").(string)),
+			Target:         pointer.To(d.Get("target").(string)),
 			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
 	}
@@ -202,15 +201,15 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
-		params.Properties.Priority = utils.Int64(int64(priority))
+		params.Properties.Priority = pointer.To(int64(int64(priority)))
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {
-		params.Properties.Weight = utils.Int64(int64(weight))
+		params.Properties.Weight = pointer.To(int64(int64(weight)))
 	}
 
 	if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {
-		params.Properties.EndpointLocation = utils.String(endpointLocation)
+		params.Properties.EndpointLocation = pointer.To(endpointLocation)
 	}
 
 	inputMappings := d.Get("geo_mappings").([]interface{})
@@ -327,7 +326,7 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("target") {
-		params.Properties.Target = utils.String(d.Get("target").(string))
+		params.Properties.Target = pointer.To(d.Get("target").(string))
 	}
 
 	if d.HasChange("subnet") {
@@ -336,19 +335,19 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("priority") {
 		if priority := d.Get("priority").(int); priority != 0 {
-			params.Properties.Priority = utils.Int64(int64(priority))
+			params.Properties.Priority = pointer.To(int64(int64(priority)))
 		}
 	}
 
 	if d.HasChange("weight") {
 		if weight := d.Get("weight").(int); weight != 0 {
-			params.Properties.Weight = utils.Int64(int64(weight))
+			params.Properties.Weight = pointer.To(int64(int64(weight)))
 		}
 	}
 
 	if d.HasChange("endpoint_location") {
 		if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {
-			params.Properties.EndpointLocation = utils.String(endpointLocation)
+			params.Properties.EndpointLocation = pointer.To(endpointLocation)
 		} else {
 			params.Properties.EndpointLocation = nil
 		}

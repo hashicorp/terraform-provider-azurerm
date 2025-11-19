@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomDomainWebPubsubModel struct {
@@ -109,7 +109,7 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 				Properties: webpubsub.CustomDomainProperties{
 					DomainName: customDomainWebPubsubModel.DomainName,
 					CustomCertificate: webpubsub.ResourceReference{
-						Id: utils.String(customDomainWebPubsubModel.WebPubsubCustomCertificateId),
+						Id: pointer.To(customDomainWebPubsubModel.WebPubsubCustomCertificateId),
 					},
 				},
 			}

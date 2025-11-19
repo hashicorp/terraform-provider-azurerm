@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -105,7 +106,7 @@ func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -177,7 +178,7 @@ func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -215,8 +216,8 @@ func expandLineChannel(input []interface{}) *[]botservice.LineRegistration {
 		v := item.(map[string]interface{})
 
 		results = append(results, botservice.LineRegistration{
-			ChannelSecret:      utils.String(v["secret"].(string)),
-			ChannelAccessToken: utils.String(v["access_token"].(string)),
+			ChannelSecret:      pointer.To(v["secret"].(string)),
+			ChannelAccessToken: pointer.To(v["access_token"].(string)),
 		})
 	}
 

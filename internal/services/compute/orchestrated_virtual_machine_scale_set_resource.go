@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -1530,7 +1529,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	if resp.Model != nil && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(int64(0)))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
@@ -1604,7 +1603,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(int64(capacity))),
 	}
 
 	if input != SkuNameMix {

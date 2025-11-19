@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
@@ -101,9 +100,9 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 	props.Properties.Encryption.KeyVaultProperties = &cognitiveservicesaccounts.KeyVaultProperties{
-		KeyName:     utils.String(keyId.Name),
-		KeyVersion:  utils.String(keyId.Version),
-		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
+		KeyName:     pointer.To(keyId.Name),
+		KeyVersion:  pointer.To(keyId.Version),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
 	}
 
 	if identityClientId := d.Get("identity_client_id").(string); identityClientId != "" {

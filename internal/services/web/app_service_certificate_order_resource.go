@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -209,11 +210,11 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 	validityInYears := d.Get("validity_in_years").(int)
 
 	properties := web.AppServiceCertificateOrderProperties{
-		DistinguishedName: utils.String(distinguishedName),
-		Csr:               utils.String(csr),
-		KeySize:           utils.Int32(int32(keySize)),
-		AutoRenew:         utils.Bool(autoRenew),
-		ValidityInYears:   utils.Int32(int32(validityInYears)),
+		DistinguishedName: pointer.To(distinguishedName),
+		Csr:               pointer.To(csr),
+		KeySize:           pointer.To(int32(int32(keySize))),
+		AutoRenew:         pointer.To(autoRenew),
+		ValidityInYears:   pointer.To(int32(int32(validityInYears))),
 	}
 
 	switch d.Get("product_type").(string) {
@@ -227,7 +228,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 
 	certificateOrder := web.AppServiceCertificateOrder{
 		AppServiceCertificateOrderProperties: &properties,
-		Location:                             utils.String(location),
+		Location:                             pointer.To(location),
 		Tags:                                 tags.Expand(t),
 	}
 

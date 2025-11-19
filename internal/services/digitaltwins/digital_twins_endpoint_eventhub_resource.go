@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDigitalTwinsEndpointEventHub() *pluginsdk.Resource {
@@ -111,9 +110,9 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData,
 	payload := endpoints.DigitalTwinsEndpointResource{
 		Properties: &endpoints.EventHub{
 			AuthenticationType:           pointer.To(endpoints.AuthenticationTypeKeyBased),
-			ConnectionStringPrimaryKey:   utils.String(d.Get("eventhub_primary_connection_string").(string)),
-			ConnectionStringSecondaryKey: utils.String(d.Get("eventhub_secondary_connection_string").(string)),
-			DeadLetterSecret:             utils.String(d.Get("dead_letter_storage_secret").(string)),
+			ConnectionStringPrimaryKey:   pointer.To(d.Get("eventhub_primary_connection_string").(string)),
+			ConnectionStringSecondaryKey: pointer.To(d.Get("eventhub_secondary_connection_string").(string)),
+			DeadLetterSecret:             pointer.To(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 

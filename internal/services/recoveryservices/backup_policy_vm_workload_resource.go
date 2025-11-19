@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BackupProtectionPolicyVMWorkloadModel struct {
@@ -578,11 +577,11 @@ func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *protectio
 
 	settings := input[0]
 	result := &protectionpolicies.Settings{
-		IsCompression: utils.Bool(settings.CompressionEnabled),
+		IsCompression: pointer.To(settings.CompressionEnabled),
 	}
 
 	if settings.TimeZone != "" {
-		result.TimeZone = utils.String(settings.TimeZone)
+		result.TimeZone = pointer.To(settings.TimeZone)
 	}
 
 	return result
@@ -1013,9 +1012,9 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int64) *
 		}
 
 		if item == 0 {
-			day.IsLast = utils.Bool(true)
+			day.IsLast = pointer.To(true)
 		} else {
-			day.IsLast = utils.Bool(false)
+			day.IsLast = pointer.To(false)
 		}
 
 		days = append(days, day)

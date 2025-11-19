@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -85,8 +86,8 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
-			Token:       utils.String(token),
-			TokenSecret: utils.String(tokenSecret),
+			Token:       pointer.To(token),
+			TokenSecret: pointer.To(tokenSecret),
 		},
 	}
 
@@ -143,8 +144,8 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
-			Token:       utils.String(token),
-			TokenSecret: utils.String(tokenSecret),
+			Token:       pointer.To(token),
+			TokenSecret: pointer.To(tokenSecret),
 		},
 	}
 

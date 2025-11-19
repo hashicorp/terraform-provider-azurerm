@@ -5,8 +5,8 @@ package web
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func SchemaWebCorsSettings() *pluginsdk.Schema {
@@ -54,7 +54,7 @@ func ExpandWebCorsSettings(input interface{}) web.CorsSettings {
 	}
 
 	if v, ok := setting["support_credentials"]; ok {
-		corsSettings.SupportCredentials = utils.Bool(v.(bool))
+		corsSettings.SupportCredentials = pointer.To(v.(bool))
 	}
 
 	return corsSettings

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceFailoverGroupModel struct {
@@ -211,8 +210,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceId: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: pointer.To(managedInstanceId.ID()),
+							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
 					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(model.SecondaryType)),
@@ -291,8 +290,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceId: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: pointer.To(managedInstanceId.ID()),
+							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
 					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(state.SecondaryType)),

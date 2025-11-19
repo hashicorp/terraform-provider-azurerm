@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedservices"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
@@ -111,11 +111,11 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if id.LinkedServiceName == "Automation" {
-		parameters.Properties.ResourceId = utils.String(readAccess)
+		parameters.Properties.ResourceId = pointer.To(readAccess)
 	}
 
 	if id.LinkedServiceName == "Cluster" {
-		parameters.Properties.WriteAccessResourceId = utils.String(writeAccess)
+		parameters.Properties.WriteAccessResourceId = pointer.To(writeAccess)
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)

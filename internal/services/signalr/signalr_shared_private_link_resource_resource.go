@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSignalRSharedPrivateLinkResource() *pluginsdk.Resource {
@@ -115,7 +115,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 
 	requestMessage := d.Get("request_message").(string)
 	if requestMessage != "" {
-		parameters.Properties.RequestMessage = utils.String(requestMessage)
+		parameters.Properties.RequestMessage = pointer.To(requestMessage)
 	}
 
 	if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {

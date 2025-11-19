@@ -517,7 +517,7 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
@@ -953,7 +953,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 		result := webapplicationfirewallpolicies.MatchCondition{
 			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
-			NegationConditon: utils.Bool(negationCondition),
+			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
 			Transforms:       &transforms,
 		}
@@ -971,7 +971,7 @@ func expandWebApplicationFirewallPolicyMatchVariable(input []interface{}) []weba
 		selector := v["selector"].(string)
 
 		result := webapplicationfirewallpolicies.MatchVariable{
-			Selector:     utils.String(selector),
+			Selector:     pointer.To(selector),
 			VariableName: webapplicationfirewallpolicies.WebApplicationFirewallMatchVariable(variableName),
 		}
 

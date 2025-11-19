@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type templateDeploymentDebugLevel string
@@ -40,12 +40,12 @@ var templateDeploymentDebugLevels = []string{
 func expandTemplateDeploymentDebugSetting(debugLevel string) *resources.DebugSetting {
 	if debugLevel == "" {
 		return &resources.DebugSetting{
-			DetailLevel: utils.String(string(debugLevelNone)),
+			DetailLevel: pointer.To(string(debugLevelNone)),
 		}
 	}
 
 	return &resources.DebugSetting{
-		DetailLevel: utils.String(debugLevel),
+		DetailLevel: pointer.To(debugLevel),
 	}
 }
 

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
@@ -117,10 +116,10 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 
 	params := blobauditing.ExtendedDatabaseBlobAuditingPolicy{
 		Properties: &blobauditing.ExtendedDatabaseBlobAuditingPolicyProperties{
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int64(int64(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
+			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               pointer.To(int64(int64(d.Get("retention_in_days").(int)))),
+			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
@@ -131,7 +130,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if _, err = client.ExtendedDatabaseBlobAuditingPoliciesCreateOrUpdate(ctx, *dbId, params); err != nil {

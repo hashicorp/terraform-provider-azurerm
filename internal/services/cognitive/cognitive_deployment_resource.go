@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type cognitiveDeploymentModel struct {
@@ -406,13 +405,13 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		Name: input.Name,
 	}
 	if input.Capacity != 0 {
-		s.Capacity = utils.Int64(input.Capacity)
+		s.Capacity = pointer.To(int64(input.Capacity))
 	}
 	if input.Family != "" {
-		s.Family = utils.String(input.Family)
+		s.Family = pointer.To(input.Family)
 	}
 	if input.Size != "" {
-		s.Size = utils.String(input.Size)
+		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
 		tier := deployments.SkuTier(input.Tier)

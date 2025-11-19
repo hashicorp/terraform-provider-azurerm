@@ -316,10 +316,10 @@ func expandVirtualMachineScaleSetPacketCaptureStorageLocation(input []interface{
 	storageLocation := packetcaptures.PacketCaptureStorageLocation{}
 
 	if v := location["file_path"]; v != "" {
-		storageLocation.FilePath = utils.String(v.(string))
+		storageLocation.FilePath = pointer.To(v.(string))
 	}
 	if v := location["storage_account_id"]; v != "" {
-		storageLocation.StorageId = utils.String(v.(string))
+		storageLocation.StorageId = pointer.To(v.(string))
 	}
 
 	return storageLocation

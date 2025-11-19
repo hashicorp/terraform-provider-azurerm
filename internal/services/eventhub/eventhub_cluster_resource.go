@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventHubCluster() *pluginsdk.Resource {
@@ -97,7 +97,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	sku := expandEventHubClusterSkuName(d.Get("sku_name").(string))
 	cluster := eventhubsclusters.Cluster{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:      &sku,
 	}
@@ -178,7 +178,7 @@ func expandEventHubClusterSkuName(skuName string) eventhubsclusters.ClusterSku {
 	capacity, _ := strconv.Atoi(skuParts[1])
 	return eventhubsclusters.ClusterSku{
 		Name:     eventhubsclusters.ClusterSkuName(name),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(int64(capacity))),
 	}
 }
 

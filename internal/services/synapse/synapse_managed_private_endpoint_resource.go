@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,8 +115,8 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 
 	managedPrivateEndpoint := managedvirtualnetwork.ManagedPrivateEndpoint{
 		Properties: &managedvirtualnetwork.ManagedPrivateEndpointProperties{
-			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
-			GroupID:               utils.String(d.Get("subresource_name").(string)),
+			PrivateLinkResourceID: pointer.To(d.Get("target_resource_id").(string)),
+			GroupID:               pointer.To(d.Get("subresource_name").(string)),
 		},
 	}
 	if _, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint); err != nil {

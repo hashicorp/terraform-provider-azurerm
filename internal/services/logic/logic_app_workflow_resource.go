@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var logicAppResourceName = "azurerm_logic_app"
@@ -337,7 +337,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	properties := workflows.Workflow{
 		Identity: identity,
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &workflows.WorkflowProperties{
 			Definition: &definition,
 			Parameters: parameters,
@@ -352,13 +352,13 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
 		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
-			Id: utils.String(iseID.(string)),
+			Id: pointer.To(iseID.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -431,7 +431,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	properties := workflows.Workflow{
 		Identity: identity,
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &workflows.WorkflowProperties{
 			Definition: &definition,
 			Parameters: parameters,
@@ -446,13 +446,13 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
 		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
-			Id: utils.String(iseID.(string)),
+			Id: pointer.To(iseID.(string)),
 		}
 	}
 
@@ -867,7 +867,7 @@ func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]workflows.IPA
 
 	for _, item := range input {
 		results = append(results, workflows.IPAddressRange{
-			AddressRange: utils.String(item.(string)),
+			AddressRange: pointer.To(item.(string)),
 		})
 	}
 
@@ -904,8 +904,8 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 		v := item.(map[string]interface{})
 
 		results = append(results, workflows.OpenAuthenticationPolicyClaim{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  pointer.To(v["name"].(string)),
+			Value: pointer.To(v["value"].(string)),
 		})
 	}
 	return &results

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerNetworkGroupModel struct {
@@ -204,7 +203,7 @@ func (r ManagerNetworkGroupResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, networkgroups.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

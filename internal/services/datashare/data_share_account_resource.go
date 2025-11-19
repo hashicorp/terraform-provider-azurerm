@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataShareAccount() *pluginsdk.Resource {
@@ -86,8 +86,8 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	account := account.Account{
-		Name:     utils.String(id.AccountName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.AccountName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Identity: *expandedIdentity,
 		Tags:     helperTags.Expand(d.Get("tags").(map[string]interface{})),
 	}

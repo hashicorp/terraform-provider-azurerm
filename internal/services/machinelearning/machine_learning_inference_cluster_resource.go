@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAksInferenceCluster() *pluginsdk.Resource {
@@ -186,7 +185,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	inferenceClusterParameters := machinelearningcomputes.ComputeResource{
 		Properties: expandAksComputeProperties(aksID.ID(), aksModel, d),
 		Identity:   identity,
-		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location:   pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -295,13 +294,13 @@ func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluste
 
 	return machinelearningcomputes.AKS{
 		Properties: &machinelearningcomputes.AKSSchemaProperties{
-			ClusterFqdn:      utils.String(*fqdn),
+			ClusterFqdn:      pointer.To(*fqdn),
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
 			ClusterPurpose:   pointer.To(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
 		},
-		ComputeLocation: utils.String(aks.Location),
-		Description:     utils.String(d.Get("description").(string)),
-		ResourceId:      utils.String(aksId),
+		ComputeLocation: pointer.To(aks.Location),
+		Description:     pointer.To(d.Get("description").(string)),
+		ResourceId:      pointer.To(aksId),
 	}
 }
 
@@ -326,10 +325,10 @@ func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfigurat
 
 	return &machinelearningcomputes.SslConfiguration{
 		Status:                  pointer.To(machinelearningcomputes.SslConfigStatus(sslStatus)),
-		Cert:                    utils.String(v["cert"].(string)),
-		Key:                     utils.String(v["key"].(string)),
-		Cname:                   utils.String(v["cname"].(string)),
-		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
-		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
+		Cert:                    pointer.To(v["cert"].(string)),
+		Key:                     pointer.To(v["key"].(string)),
+		Cname:                   pointer.To(v["cname"].(string)),
+		LeafDomainLabel:         pointer.To(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: pointer.To(v["overwrite_existing_domain"].(bool)),
 	}
 }

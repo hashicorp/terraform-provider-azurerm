@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -113,7 +114,7 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 
 	properties := web.HostNameBinding{
 		HostNameBindingProperties: &web.HostNameBindingProperties{
-			SiteName: utils.String(id.SiteName),
+			SiteName: pointer.To(id.SiteName),
 		},
 	}
 
@@ -122,7 +123,7 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 	}
 
 	if thumbprint != "" {
-		properties.Thumbprint = utils.String(thumbprint)
+		properties.Thumbprint = pointer.To(thumbprint)
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.HostNameBindingName, properties, id.SlotName); err != nil {

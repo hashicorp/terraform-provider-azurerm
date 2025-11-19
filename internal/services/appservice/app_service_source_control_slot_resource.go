@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SourceControlSlotResource struct{}
@@ -201,11 +200,11 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 				}
 
 				if appSourceControlSlot.RepoURL != "" {
-					sourceControl.Properties.RepoURL = utils.String(appSourceControlSlot.RepoURL)
+					sourceControl.Properties.RepoURL = pointer.To(appSourceControlSlot.RepoURL)
 				}
 
 				if appSourceControlSlot.Branch != "" {
-					sourceControl.Properties.Branch = utils.String(appSourceControlSlot.Branch)
+					sourceControl.Properties.Branch = pointer.To(appSourceControlSlot.Branch)
 				}
 
 				if ghaConfig := expandGithubActionConfig(appSourceControlSlot.GithubActionConfiguration, usesLinux); ghaConfig != nil {

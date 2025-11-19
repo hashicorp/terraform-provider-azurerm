@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -175,11 +176,11 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
 			Tier:     service.Sku.Tier,
-			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+			Capacity: pointer.To(int32(int32(d.Get("instance_count").(int)))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: appplatform.BuildResultUserSourceInfo{
-				BuildResultID: utils.String(d.Get("build_result_id").(string)),
+				BuildResultID: pointer.To(d.Get("build_result_id").(string)),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
@@ -290,8 +291,8 @@ func expandSpringCloudBuildDeploymentResourceRequests(input []interface{}) *appp
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU:    utils.String(cpuResult),
-		Memory: utils.String(memResult),
+		CPU:    pointer.To(cpuResult),
+		Memory: pointer.To(memResult),
 	}
 
 	return &result

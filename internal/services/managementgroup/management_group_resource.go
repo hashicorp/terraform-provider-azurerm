@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var managementGroupCacheControl = "no-cache"
@@ -134,19 +133,19 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	log.Printf("[INFO] Creating Management Group %q", groupName)
 
 	properties := managementgroups.CreateManagementGroupRequest{
-		Name: utils.String(groupName),
+		Name: pointer.To(groupName),
 		Properties: &managementgroups.CreateManagementGroupProperties{
-			TenantId: utils.String(armTenantID),
+			TenantId: pointer.To(armTenantID),
 			Details: &managementgroups.CreateManagementGroupDetails{
 				Parent: &managementgroups.CreateParentGroupInfo{
-					Id: utils.String(parentManagementGroupId),
+					Id: pointer.To(parentManagementGroupId),
 				},
 			},
 		},
 	}
 
 	if v := d.Get("display_name"); v != "" {
-		properties.Properties.DisplayName = utils.String(v.(string))
+		properties.Properties.DisplayName = pointer.To(v.(string))
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, properties, managementgroups.CreateOrUpdateOperationOptions{

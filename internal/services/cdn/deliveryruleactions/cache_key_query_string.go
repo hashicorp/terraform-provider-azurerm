@@ -7,9 +7,9 @@ import (
 	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func CacheKeyQueryString() *pluginsdk.Resource {
@@ -43,7 +43,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheKeyQueryString,
 			Parameters: &cdn.CacheKeyQueryStringActionParameters{
-				OdataType:           utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
+				OdataType:           pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
 				QueryStringBehavior: cdn.QueryStringBehavior(item["behavior"].(string)),
 			},
 		}
@@ -53,7 +53,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 				return nil, errors.New("parameters can not be empty if the behaviour is either Include or Exclude")
 			}
 		} else {
-			cacheKeyQueryStringAction.Parameters.QueryParameters = utils.String(parameters)
+			cacheKeyQueryStringAction.Parameters.QueryParameters = pointer.To(parameters)
 		}
 
 		output = append(output, cacheKeyQueryStringAction)

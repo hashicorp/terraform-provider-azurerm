@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -104,8 +105,8 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	storageResource := appplatform.StorageResource{
 		Properties: &appplatform.StorageAccount{
-			AccountName: utils.String(d.Get("storage_account_name").(string)),
-			AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+			AccountName: pointer.To(d.Get("storage_account_name").(string)),
+			AccountKey:  pointer.To(d.Get("storage_account_key").(string)),
 			StorageType: appplatform.StorageTypeStorageAccount,
 		},
 	}

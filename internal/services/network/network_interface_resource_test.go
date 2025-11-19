@@ -1050,14 +1050,12 @@ import {
   id = "/subscriptions/%[2]s/resourceGroups/acctestRG-%[3]d/providers/Microsoft.Network/networkInterfaces/acctestnic-%[3]d"
   to = azurerm_network_interface.test
 }
-
 resource "azurerm_network_interface" "test" {
   accelerated_networking_enabled = false
   ip_forwarding_enabled          = false
   location                       = azurerm_resource_group.test.location
   name                           = "acctestnic-%[3]d"
   resource_group_name            = azurerm_resource_group.test.name
-
   ip_configuration {
     name                          = "test"
     primary                       = true
@@ -1066,12 +1064,10 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_version    = "IPv4"
     subnet_id                     = azurerm_subnet.test.id
   }
-
   lifecycle {
     # The real ip_configuration.name is difficult to get, opt-out instead since we only care about tags update
     ignore_changes = [ip_configuration]
   }
-
 %[4]s
 }
 `, r.privateEndpoint(data, true), data.Client().SubscriptionID, data.RandomInteger, tags)

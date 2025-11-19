@@ -122,7 +122,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 
 	connectionEnvelope := web.SwiftVirtualNetwork{
 		SwiftVirtualNetworkProperties: &web.SwiftVirtualNetworkProperties{
-			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
+			SubnetResourceID: pointer.To(d.Get("subnet_id").(string)),
 		},
 	}
 	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx, resourceGroup, name, connectionEnvelope, slotName); err != nil {

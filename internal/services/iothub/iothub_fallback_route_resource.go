@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -126,10 +127,10 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
-		Source:        utils.String(d.Get("source").(string)),
-		Condition:     utils.String(d.Get("condition").(string)),
+		Source:        pointer.To(d.Get("source").(string)),
+		Condition:     pointer.To(d.Get("condition").(string)),
 		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
-		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
+		IsEnabled:     pointer.To(d.Get("enabled").(bool)),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")

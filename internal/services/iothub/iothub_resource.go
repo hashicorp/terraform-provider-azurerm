@@ -691,10 +691,10 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	} else {
 		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
-			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
-			Condition:     utils.String("true"),
+			Source:        pointer.To(string(devices.RoutingSourceDeviceMessages)),
+			Condition:     pointer.To("true"),
 			EndpointNames: &[]string{"events"},
-			IsEnabled:     utils.Bool(true),
+			IsEnabled:     pointer.To(true),
 		}
 	}
 
@@ -722,8 +722,8 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	props := devices.IotHubDescription{
-		Name:     utils.String(id.Name),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Name:     pointer.To(id.Name),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
 			Routing:                       &routingProperties,
@@ -754,10 +754,10 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if partitionOk || retentionOk {
 		eh := devices.EventHubProperties{}
 		if retentionOk {
-			eh.RetentionTimeInDays = utils.Int64(int64(retention.(int)))
+			eh.RetentionTimeInDays = pointer.To(int64(int64(retention.(int))))
 		}
 		if partitionOk {
-			eh.PartitionCount = utils.Int32(int32(partition.(int)))
+			eh.PartitionCount = pointer.To(int32(int32(partition.(int))))
 		}
 
 		props.Properties.EventHubEndpoints = map[string]*devices.EventHubProperties{
@@ -765,10 +765,10 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	props.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
+	props.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 
 	if v, ok := d.GetOk("min_tls_version"); ok {
-		props.Properties.MinTLSVersion = utils.String(v.(string))
+		props.Properties.MinTLSVersion = pointer.To(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, "")
@@ -848,10 +848,10 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			prop.Routing.FallbackRoute = expandIoTHubFallbackRoute(d)
 		} else {
 			prop.Routing.FallbackRoute = &devices.FallbackRouteProperties{
-				Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
-				Condition:     utils.String("true"),
+				Source:        pointer.To(string(devices.RoutingSourceDeviceMessages)),
+				Condition:     pointer.To("true"),
 				EndpointNames: &[]string{"events"},
-				IsEnabled:     utils.Bool(true),
+				IsEnabled:     pointer.To(true),
 			}
 		}
 	}
@@ -1265,17 +1265,17 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		var connectionStr *string
 		if v := endpoint["identity_id"].(string); v != "" {
 			identity = &devices.ManagedIdentity{
-				UserAssignedIdentity: utils.String(v),
+				UserAssignedIdentity: pointer.To(v),
 			}
 		}
 		if v := endpoint["endpoint_uri"].(string); v != "" {
-			endpointUri = utils.String(v)
+			endpointUri = pointer.To(v)
 		}
 		if v := endpoint["entity_path"].(string); v != "" {
-			entityPath = utils.String(v)
+			entityPath = pointer.To(v)
 		}
 		if v := endpoint["connection_string"].(string); v != "" {
-			connectionStr = utils.String(v)
+			connectionStr = pointer.To(v)
 		}
 
 		if authenticationType == devices.AuthenticationTypeKeyBased {
@@ -1402,7 +1402,7 @@ func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
 
 	return &devices.IotHubSkuInfo{
 		Name:     devices.IotHubSku(skuMap["name"].(string)),
-		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
+		Capacity: pointer.To(int64(int64(skuMap["capacity"].(int)))),
 	}
 }
 
@@ -1416,7 +1416,7 @@ func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDevice
 	defaultTimeToLive := ctdMap["default_ttl"].(string)
 
 	cloudToDevice.DefaultTTLAsIso8601 = &defaultTimeToLive
-	cloudToDevice.MaxDeliveryCount = utils.Int32(int32(ctdMap["max_delivery_count"].(int)))
+	cloudToDevice.MaxDeliveryCount = pointer.To(int32(int32(ctdMap["max_delivery_count"].(int))))
 	feedback := ctdMap["feedback"].([]interface{})
 
 	cloudToDeviceFeedback := devices.FeedbackProperties{}
@@ -1428,7 +1428,7 @@ func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDevice
 
 		cloudToDeviceFeedback.TTLAsIso8601 = &timeToLive
 		cloudToDeviceFeedback.LockDurationAsIso8601 = &lockDuration
-		cloudToDeviceFeedback.MaxDeliveryCount = utils.Int32(int32(feedbackMap["max_delivery_count"].(int)))
+		cloudToDeviceFeedback.MaxDeliveryCount = pointer.To(int32(int32(feedbackMap["max_delivery_count"].(int))))
 	}
 
 	cloudToDevice.Feedback = &cloudToDeviceFeedback
@@ -1849,7 +1849,7 @@ func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkR
 	nrsMap := networkRuleSet[0].(map[string]interface{})
 
 	networkRuleSetProps.DefaultAction = devices.DefaultAction(nrsMap["default_action"].(string))
-	networkRuleSetProps.ApplyToBuiltInEventHubEndpoint = utils.Bool(nrsMap["apply_to_builtin_eventhub_endpoint"].(bool))
+	networkRuleSetProps.ApplyToBuiltInEventHubEndpoint = pointer.To(nrsMap["apply_to_builtin_eventhub_endpoint"].(bool))
 	ipRules := nrsMap["ip_rule"].([]interface{})
 
 	if len(ipRules) != 0 {
@@ -1858,9 +1858,9 @@ func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkR
 		for _, r := range ipRules {
 			rawRule := r.(map[string]interface{})
 			rule := &devices.NetworkRuleSetIPRule{
-				FilterName: utils.String(rawRule["name"].(string)),
+				FilterName: pointer.To(rawRule["name"].(string)),
 				Action:     devices.NetworkRuleIPAction(rawRule["action"].(string)),
-				IPMask:     utils.String(rawRule["ip_mask"].(string)),
+				IPMask:     pointer.To(rawRule["ip_mask"].(string)),
 			}
 			rules = append(rules, *rule)
 		}

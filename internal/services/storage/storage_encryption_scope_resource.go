@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_encryption_scope -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "keyVaultKey"
@@ -118,12 +117,12 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 			Source: pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string))),
 			State:  pointer.To(encryptionscopes.EncryptionScopeStateEnabled),
 			KeyVaultProperties: &encryptionscopes.EncryptionScopeKeyVaultProperties{
-				KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+				KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 			},
 		},
 	}
 	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
-		payload.Properties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+		payload.Properties.RequireInfrastructureEncryption = pointer.To(v.(bool))
 	}
 
 	if _, err := client.Put(ctx, id, payload); err != nil {
@@ -165,7 +164,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	payload.Properties.State = pointer.To(encryptionscopes.EncryptionScopeStateEnabled)
 	if d.HasChange("key_vault_key_id") {
 		payload.Properties.KeyVaultProperties = &encryptionscopes.EncryptionScopeKeyVaultProperties{
-			KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+			KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 		}
 	}
 	if d.HasChange("source") {

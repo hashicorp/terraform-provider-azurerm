@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -203,7 +204,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 			FileName:   expandDataFactoryExpressionResultType(d.Get("filename").(string), d.Get("dynamic_filename_enabled").(bool)),
 		},
 		LinkedServiceName: linkedService,
-		Description:       utils.String(d.Get("description").(string)),
+		Description:       pointer.To(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {

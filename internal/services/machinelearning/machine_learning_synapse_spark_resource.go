@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSpark() *pluginsdk.Resource {
@@ -118,13 +117,13 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: &machinelearningcomputes.SynapseSpark{
 			Properties:       nil,
-			ComputeLocation:  utils.String(d.Get("location").(string)),
-			Description:      utils.String(d.Get("description").(string)),
-			ResourceId:       utils.String(d.Get("synapse_spark_pool_id").(string)),
-			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			ComputeLocation:  pointer.To(d.Get("location").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
+			ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),
+			DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 

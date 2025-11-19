@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -106,8 +107,8 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	domain := appplatform.CustomDomainResource{
 		Properties: &appplatform.CustomDomainProperties{
-			Thumbprint: utils.String(d.Get("thumbprint").(string)),
-			CertName:   utils.String(d.Get("certificate_name").(string)),
+			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
+			CertName:   pointer.To(d.Get("certificate_name").(string)),
 		},
 	}
 

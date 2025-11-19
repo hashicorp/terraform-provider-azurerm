@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -134,7 +135,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 	}
 
 	deployment := resources.ScopedDeployment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
@@ -152,7 +153,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -245,7 +246,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {

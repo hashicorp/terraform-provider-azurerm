@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceFabricCluster() *pluginsdk.Resource {
@@ -624,7 +624,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 			ReliabilityLevel:                   &reliabilityLevel,
 			UpgradeDescription:                 upgradePolicy,
 			UpgradeMode:                        &upgradeMode,
-			VmImage:                            utils.String(vmImage),
+			VmImage:                            pointer.To(vmImage),
 		},
 	}
 
@@ -659,7 +659,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if clusterCodeVersion != "" {
-		clusterModel.Properties.ClusterCodeVersion = utils.String(clusterCodeVersion)
+		clusterModel.Properties.ClusterCodeVersion = pointer.To(clusterCodeVersion)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
@@ -838,9 +838,9 @@ func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *cluste
 	clientApplication := v["client_application_id"].(string)
 
 	config := cluster.AzureActiveDirectory{
-		TenantId:           utils.String(tenantId),
-		ClusterApplication: utils.String(clusterApplication),
-		ClientApplication:  utils.String(clientApplication),
+		TenantId:           pointer.To(tenantId),
+		ClusterApplication: pointer.To(clusterApplication),
+		ClientApplication:  pointer.To(clientApplication),
 	}
 	return &config
 }
@@ -897,7 +897,7 @@ func expandServiceFabricClusterCertificate(input []interface{}) *cluster.Certifi
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -1025,7 +1025,7 @@ func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *clu
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -1182,8 +1182,8 @@ func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) cl
 	}
 
 	v := input[0].(map[string]interface{})
-	healthPolicy.MaxPercentUnhealthyApplications = utils.Int64(int64(v["max_unhealthy_applications_percent"].(int)))
-	healthPolicy.MaxPercentUnhealthyNodes = utils.Int64(int64(v["max_unhealthy_nodes_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyApplications = pointer.To(int64(int64(v["max_unhealthy_applications_percent"].(int))))
+	healthPolicy.MaxPercentUnhealthyNodes = pointer.To(int64(int64(v["max_unhealthy_nodes_percent"].(int))))
 
 	return healthPolicy
 }
@@ -1196,7 +1196,7 @@ func expandServiceFabricClusterUpgradePolicy(input []interface{}) *cluster.Clust
 	policy := &cluster.ClusterUpgradePolicy{}
 	v := input[0].(map[string]interface{})
 
-	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
+	policy.ForceRestart = pointer.To(v["force_restart_enabled"].(bool))
 	policy.HealthCheckStableDuration = v["health_check_stable_duration"].(string)
 	policy.UpgradeDomainTimeout = v["upgrade_domain_timeout"].(string)
 	policy.UpgradeReplicaSetCheckTimeout = v["upgrade_replica_set_check_timeout"].(string)
@@ -1336,11 +1336,11 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 		}
 
 		if isStateless, ok := node["is_stateless"]; ok {
-			result.IsStateless = utils.Bool(isStateless.(bool))
+			result.IsStateless = pointer.To(isStateless.(bool))
 		}
 
 		if multipleAvailabilityZones, ok := node["multiple_availability_zones"]; ok {
-			result.MultipleAvailabilityZones = utils.Bool(multipleAvailabilityZones.(bool))
+			result.MultipleAvailabilityZones = pointer.To(multipleAvailabilityZones.(bool))
 		}
 
 		if props, ok := node["placement_properties"]; ok {
@@ -1362,7 +1362,7 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 		}
 
 		if v := int64(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
-			result.ReverseProxyEndpointPort = utils.Int64(v)
+			result.ReverseProxyEndpointPort = pointer.To(int64(v))
 		}
 
 		applicationPortsRaw := node["application_ports"].([]interface{})

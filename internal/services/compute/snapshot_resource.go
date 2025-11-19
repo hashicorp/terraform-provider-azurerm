@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSnapshot() *pluginsdk.Resource {
@@ -175,21 +174,21 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			CreationData: snapshots.CreationData{
 				CreateOption: snapshots.DiskCreateOption(createOption),
 			},
-			Incremental: utils.Bool(d.Get("incremental_enabled").(bool)),
+			Incremental: pointer.To(d.Get("incremental_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
-		properties.Properties.CreationData.SourceUri = utils.String(v.(string))
+		properties.Properties.CreationData.SourceUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_resource_id"); ok {
-		properties.Properties.CreationData.SourceResourceId = utils.String(v.(string))
+		properties.Properties.CreationData.SourceResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		properties.Properties.CreationData.StorageAccountId = utils.String(v.(string))
+		properties.Properties.CreationData.StorageAccountId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
@@ -197,7 +196,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("disk_access_id"); ok {
-		properties.Properties.DiskAccessId = utils.String(v.(string))
+		properties.Properties.DiskAccessId = pointer.To(v.(string))
 	}
 
 	properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessEnabled)
@@ -207,7 +206,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
-		properties.Properties.DiskSizeGB = utils.Int64(int64(diskSizeGB))
+		properties.Properties.DiskSizeGB = pointer.To(int64(int64(diskSizeGB)))
 	}
 
 	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))

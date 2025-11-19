@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
@@ -170,7 +171,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			SessionAffinityState:  expandEnabledBool(d.Get("session_affinity_enabled").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: pointer.To(int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int)))),
 		},
 	}
 
@@ -259,7 +260,7 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.HasChange("restore_traffic_time_to_healed_or_new_endpoint_in_minutes") {
-		params.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes = utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int)))
+		params.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes = pointer.To(int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))))
 	}
 
 	if d.HasChange("session_affinity_enabled") {
@@ -313,8 +314,8 @@ func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []interface{}) *cd
 	probeProtocolValue := cdn.ProbeProtocol(v["protocol"].(string))
 	probeRequestTypeValue := cdn.HealthProbeRequestType(v["request_type"].(string))
 	return &cdn.HealthProbeParameters{
-		ProbeIntervalInSeconds: utils.Int32(int32(v["interval_in_seconds"].(int))),
-		ProbePath:              utils.String(v["path"].(string)),
+		ProbeIntervalInSeconds: pointer.To(int32(int32(v["interval_in_seconds"].(int)))),
+		ProbePath:              pointer.To(v["path"].(string)),
 		ProbeProtocol:          probeProtocolValue,
 		ProbeRequestType:       probeRequestTypeValue,
 	}
@@ -328,9 +329,9 @@ func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []interf
 	v := input[0].(map[string]interface{})
 
 	return &cdn.LoadBalancingSettingsParameters{
-		AdditionalLatencyInMilliseconds: utils.Int32(int32(v["additional_latency_in_milliseconds"].(int))),
-		SampleSize:                      utils.Int32(int32(v["sample_size"].(int))),
-		SuccessfulSamplesRequired:       utils.Int32(int32(v["successful_samples_required"].(int))),
+		AdditionalLatencyInMilliseconds: pointer.To(int32(int32(v["additional_latency_in_milliseconds"].(int)))),
+		SampleSize:                      pointer.To(int32(int32(v["sample_size"].(int)))),
+		SuccessfulSamplesRequired:       pointer.To(int32(int32(v["successful_samples_required"].(int)))),
 	}
 }
 

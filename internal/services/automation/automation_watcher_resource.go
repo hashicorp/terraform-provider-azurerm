@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WatcherModel struct {
@@ -143,14 +142,14 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 
 			param := watcher.Watcher{
 				Properties: &watcher.WatcherProperties{
-					Description:                 utils.String(model.Description),
-					ExecutionFrequencyInSeconds: utils.Int64(model.ExecutionFrequencyInSeconds),
-					ScriptName:                  utils.String(model.ScriptName),
+					Description:                 pointer.To(model.Description),
+					ExecutionFrequencyInSeconds: pointer.To(int64(model.ExecutionFrequencyInSeconds)),
+					ScriptName:                  pointer.To(model.ScriptName),
 					ScriptParameters:            &scriptParameters,
-					ScriptRunOn:                 utils.String(model.ScriptRunOn),
+					ScriptRunOn:                 pointer.To(model.ScriptRunOn),
 				},
-				Etag:     utils.String(model.Etag),
-				Location: utils.String(model.Location),
+				Etag:     pointer.To(model.Etag),
+				Location: pointer.To(model.Location),
 				Tags:     &tags,
 			}
 
@@ -231,7 +230,7 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 			var upd watcher.WatcherUpdateParameters
 			upd.Properties = &watcher.WatcherUpdateProperties{}
 			if meta.ResourceData.HasChange("execution_frequency_in_seconds") {
-				upd.Properties.ExecutionFrequencyInSeconds = utils.Int64(model.ExecutionFrequencyInSeconds)
+				upd.Properties.ExecutionFrequencyInSeconds = pointer.To(int64(model.ExecutionFrequencyInSeconds))
 			}
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)

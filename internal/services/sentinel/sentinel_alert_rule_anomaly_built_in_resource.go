@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
@@ -227,7 +227,7 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 					IsDefaultSettings:        builtinRule.IsDefaultSettings,
 					AnomalySettingsVersion:   builtinRule.AnomalySettingsVersion,
 					SettingsDefinitionID:     builtinRule.SettingsDefinitionID,
-					Enabled:                  utils.Bool(metaModel.Enabled),
+					Enabled:                  pointer.To(metaModel.Enabled),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: builtinRule.CustomizableObservations,
 				},
@@ -373,7 +373,7 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 					IsDefaultSettings:        existing.IsDefaultSettings,
 					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
 					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  utils.Bool(metaModel.Enabled),
+					Enabled:                  pointer.To(metaModel.Enabled),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: existing.CustomizableObservations,
 				},
@@ -437,7 +437,7 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 					IsDefaultSettings:        existing.IsDefaultSettings,
 					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
 					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  utils.Bool(false),
+					Enabled:                  pointer.To(false),
 					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
 					CustomizableObservations: existing.CustomizableObservations,
 				},

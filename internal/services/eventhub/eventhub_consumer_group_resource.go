@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ConsumerGroupObject struct {
@@ -100,9 +99,9 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &consumergroups.ConsumerGroupProperties{
-					UserMetadata: utils.String(state.UserMetadata),
+					UserMetadata: pointer.To(state.UserMetadata),
 				},
 			}
 
@@ -135,9 +134,9 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
-				Name: utils.String(id.ConsumerGroupName),
+				Name: pointer.To(id.ConsumerGroupName),
 				Properties: &consumergroups.ConsumerGroupProperties{
-					UserMetadata: utils.String(state.UserMetadata),
+					UserMetadata: pointer.To(state.UserMetadata),
 				},
 			}
 

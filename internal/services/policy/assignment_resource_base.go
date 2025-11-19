@@ -45,19 +45,19 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 
 			assignment := policyassignments.PolicyAssignment{
 				Properties: &policyassignments.PolicyAssignmentProperties{
-					PolicyDefinitionId: utils.String(metadata.ResourceData.Get("policy_definition_id").(string)),
-					DisplayName:        utils.String(metadata.ResourceData.Get("display_name").(string)),
-					Scope:              utils.String(id.Scope),
+					PolicyDefinitionId: pointer.To(metadata.ResourceData.Get("policy_definition_id").(string)),
+					DisplayName:        pointer.To(metadata.ResourceData.Get("display_name").(string)),
+					Scope:              pointer.To(id.Scope),
 					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
 				},
 			}
 
 			if v := metadata.ResourceData.Get("description").(string); v != "" {
-				assignment.Properties.Description = utils.String(v)
+				assignment.Properties.Description = pointer.To(v)
 			}
 
 			if v := metadata.ResourceData.Get("location").(string); v != "" {
-				assignment.Location = utils.String(azure.NormalizeLocation(v))
+				assignment.Location = pointer.To(azure.NormalizeLocation(v))
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("identity"); ok {
@@ -252,19 +252,19 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				update.Properties.Description = utils.String(metadata.ResourceData.Get("description").(string))
+				update.Properties.Description = pointer.To(metadata.ResourceData.Get("description").(string))
 			}
 			if metadata.ResourceData.HasChange("display_name") {
-				update.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
+				update.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
 			}
 			if metadata.ResourceData.HasChange("enforce") {
 				update.Properties.EnforcementMode = convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool))
 			}
 			if metadata.ResourceData.HasChange("location") {
-				update.Location = utils.String(metadata.ResourceData.Get("location").(string))
+				update.Location = pointer.To(metadata.ResourceData.Get("location").(string))
 			}
 			if metadata.ResourceData.HasChange("policy_definition_id") {
-				update.Properties.PolicyDefinitionId = utils.String(metadata.ResourceData.Get("policy_definition_id").(string))
+				update.Properties.PolicyDefinitionId = pointer.To(metadata.ResourceData.Get("policy_definition_id").(string))
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -548,7 +548,7 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 				Message: m["content"].(string),
 			}
 			if id := m["policy_definition_reference_id"].(string); id != "" {
-				ncm.PolicyDefinitionReferenceId = utils.String(id)
+				ncm.PolicyDefinitionReferenceId = pointer.To(id)
 			}
 			output = append(output, ncm)
 		}

@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkloadsSAPThreeTierVirtualInstanceModel struct {
@@ -1130,9 +1129,9 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			deploymentWithOSConfiguration := &sapvirtualinstances.DeploymentWithOSConfiguration{
-				AppLocation: utils.String(location.Normalize(model.AppLocation)),
+				AppLocation: pointer.To(location.Normalize(model.AppLocation)),
 				OsSapConfiguration: &sapvirtualinstances.OsSapConfiguration{
-					SapFqdn: utils.String(model.SapFqdn),
+					SapFqdn: pointer.To(model.SapFqdn),
 				},
 			}
 
@@ -1146,7 +1145,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 
 			if v := model.ManagedResourceGroupName; v != "" {
 				parameters.Properties.ManagedResourceGroupConfiguration = &sapvirtualinstances.ManagedRGConfiguration{
-					Name: utils.String(v),
+					Name: pointer.To(v),
 				}
 			}
 
@@ -1319,10 +1318,10 @@ func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageRefe
 	imageReference := input[0]
 
 	result := &sapvirtualinstances.ImageReference{
-		Offer:     utils.String(imageReference.Offer),
-		Publisher: utils.String(imageReference.Publisher),
-		Sku:       utils.String(imageReference.Sku),
-		Version:   utils.String(imageReference.Version),
+		Offer:     pointer.To(imageReference.Offer),
+		Publisher: pointer.To(imageReference.Publisher),
+		Sku:       pointer.To(imageReference.Sku),
+		Version:   pointer.To(imageReference.Version),
 	}
 
 	return result
@@ -1336,12 +1335,12 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 	osProfile := input[0]
 
 	result := &sapvirtualinstances.OSProfile{
-		AdminUsername: utils.String(osProfile.AdminUsername),
+		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
-			DisablePasswordAuthentication: utils.Bool(true),
+			DisablePasswordAuthentication: pointer.To(true),
 			SshKeyPair: &sapvirtualinstances.SshKeyPair{
-				PrivateKey: utils.String(osProfile.SshPrivateKey),
-				PublicKey:  utils.String(osProfile.SshPublicKey),
+				PrivateKey: pointer.To(osProfile.SshPrivateKey),
+				PublicKey:  pointer.To(osProfile.SshPublicKey),
 			},
 		},
 	}
@@ -1357,7 +1356,7 @@ func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkI
 
 	for _, v := range input {
 		networkInterfaceName := sapvirtualinstances.NetworkInterfaceResourceNames{
-			NetworkInterfaceName: utils.String(v),
+			NetworkInterfaceName: pointer.To(v),
 		}
 
 		result = append(result, networkInterfaceName)
@@ -1390,8 +1389,8 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(v.NumberOfDisks),
-			SizeGB: utils.Int64(v.SizeGb),
+			Count:  pointer.To(int64(v.NumberOfDisks)),
+			SizeGB: pointer.To(int64(v.SizeGb)),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -1491,11 +1490,11 @@ func expandTransportCreateAndMount(input []TransportCreateAndMount) (*sapvirtual
 		if err != nil {
 			return nil, err
 		}
-		result.ResourceGroup = utils.String(resourceGroupId.ResourceGroupName)
+		result.ResourceGroup = pointer.To(resourceGroupId.ResourceGroupName)
 	}
 
 	if v := transportCreateAndMount.StorageAccountName; v != "" {
-		result.StorageAccountName = utils.String(v)
+		result.StorageAccountName = pointer.To(v)
 	}
 
 	return result, nil
@@ -1530,7 +1529,7 @@ func expandApplicationServerResourceNames(input []ApplicationServerResourceNames
 	}
 
 	if v := applicationServerResourceNames.AvailabilitySetName; v != "" {
-		result.AvailabilitySetName = utils.String(v)
+		result.AvailabilitySetName = pointer.To(v)
 	}
 
 	return result
@@ -1549,15 +1548,15 @@ func expandVirtualMachinesResourceNames(input []VirtualMachineResourceNames) *[]
 		}
 
 		if v := item.HostName; v != "" {
-			vmResourceNames.HostName = utils.String(v)
+			vmResourceNames.HostName = pointer.To(v)
 		}
 
 		if v := item.OSDiskName; v != "" {
-			vmResourceNames.OsDiskName = utils.String(v)
+			vmResourceNames.OsDiskName = pointer.To(v)
 		}
 
 		if v := item.VMName; v != "" {
-			vmResourceNames.VirtualMachineName = utils.String(v)
+			vmResourceNames.VirtualMachineName = pointer.To(v)
 		}
 
 		result = append(result, vmResourceNames)
@@ -1579,7 +1578,7 @@ func expandCentralServerResourceNames(input []CentralServerResourceNames) *sapvi
 	}
 
 	if v := centralServerResourceNames.AvailabilitySetName; v != "" {
-		result.AvailabilitySetName = utils.String(v)
+		result.AvailabilitySetName = pointer.To(v)
 	}
 
 	return result
@@ -1594,7 +1593,7 @@ func expandLoadBalancerResourceNames(input []LoadBalancer) *sapvirtualinstances.
 	loadBalancerResourceNames := input[0]
 
 	if v := loadBalancerResourceNames.Name; v != "" {
-		result.LoadBalancerName = utils.String(v)
+		result.LoadBalancerName = pointer.To(v)
 	}
 
 	if v := loadBalancerResourceNames.BackendPoolNames; v != nil {
@@ -1625,7 +1624,7 @@ func expandDatabaseServerResourceNames(input []DatabaseServerResourceNames) *sap
 	}
 
 	if v := databaseServerResourceNames.AvailabilitySetName; v != "" {
-		result.AvailabilitySetName = utils.String(v)
+		result.AvailabilitySetName = pointer.To(v)
 	}
 
 	return result
@@ -1640,11 +1639,11 @@ func expandSharedStorage(input []SharedStorage) *sapvirtualinstances.SharedStora
 	sharedStorage := input[0]
 
 	if v := sharedStorage.AccountName; v != "" {
-		result.SharedStorageAccountName = utils.String(v)
+		result.SharedStorageAccountName = pointer.To(v)
 	}
 
 	if v := sharedStorage.PrivateEndpointName; v != "" {
-		result.SharedStorageAccountPrivateEndPointName = utils.String(v)
+		result.SharedStorageAccountPrivateEndPointName = pointer.To(v)
 	}
 
 	return result
@@ -1660,7 +1659,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) (*sapvirtualin
 		CustomResourceNames: expandResourceNames(threeTierConfiguration.ResourceNames),
 		DatabaseServer:      pointer.From(expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration)),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
-			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
+			IsSecondaryIPEnabled: pointer.To(threeTierConfiguration.IsSecondaryIpEnabled),
 		},
 	}
 

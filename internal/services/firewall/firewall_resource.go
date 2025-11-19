@@ -590,13 +590,13 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 		pubID := data["public_ip_address_id"].(string)
 
 		ipConfig := azurefirewalls.AzureFirewallIPConfiguration{
-			Name:       utils.String(name),
+			Name:       pointer.To(name),
 			Properties: &azurefirewalls.AzureFirewallIPConfigurationPropertiesFormat{},
 		}
 
 		if pubID != "" {
 			ipConfig.Properties.PublicIPAddress = &azurefirewalls.SubResource{
-				Id: utils.String(pubID),
+				Id: pointer.To(pubID),
 			}
 		}
 
@@ -615,7 +615,7 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 			}
 
 			ipConfig.Properties.Subnet = &azurefirewalls.SubResource{
-				Id: utils.String(subnetId),
+				Id: pointer.To(subnetId),
 			}
 		}
 		ipConfigs = append(ipConfigs, ipConfig)
@@ -762,10 +762,10 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 		}
 	}
 
-	vhub = &azurefirewalls.SubResource{Id: utils.String(b["virtual_hub_id"].(string))}
+	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
 	ipAddresses = &azurefirewalls.HubIPAddresses{
 		PublicIPs: &azurefirewalls.HubPublicIPAddresses{
-			Count:     utils.Int64(int64(b["public_ip_count"].(int))),
+			Count:     pointer.To(int64(int64(b["public_ip_count"].(int)))),
 			Addresses: addresses,
 		},
 	}

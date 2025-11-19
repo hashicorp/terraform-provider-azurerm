@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
@@ -95,8 +96,8 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
-			Email: utils.String(d.Get("email").(string)),
-			Phone: utils.String(d.Get("phone").(string)),
+			Email: pointer.To(d.Get("email").(string)),
+			Phone: pointer.To(d.Get("phone").(string)),
 		},
 	}
 

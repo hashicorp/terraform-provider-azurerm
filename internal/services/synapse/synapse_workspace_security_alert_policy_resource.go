@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -262,19 +263,19 @@ func expandServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *synapse.ServerS
 	}
 
 	if v, ok := d.GetOk("email_account_admins_enabled"); ok {
-		props.EmailAccountAdmins = utils.Bool(v.(bool))
+		props.EmailAccountAdmins = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("retention_days"); ok {
-		props.RetentionDays = utils.Int32(int32(v.(int)))
+		props.RetentionDays = pointer.To(int32(int32(v.(int))))
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		props.StorageAccountAccessKey = utils.String(v.(string))
+		props.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_endpoint"); ok {
-		props.StorageEndpoint = utils.String(v.(string))
+		props.StorageEndpoint = pointer.To(v.(string))
 	}
 
 	return &policy

@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsSolutionResource struct{}
@@ -325,10 +324,10 @@ func expandAzureRmLogAnalyticsSolutionPlan(plans []SolutionPlanModel) solution.S
 	product := plan.Product
 
 	expandedPlan := solution.SolutionPlan{
-		Name:          utils.String(name),
-		PromotionCode: utils.String(promotionCode),
-		Publisher:     utils.String(publisher),
-		Product:       utils.String(product),
+		Name:          pointer.To(name),
+		PromotionCode: pointer.To(promotionCode),
+		Publisher:     pointer.To(publisher),
+		Product:       pointer.To(product),
 	}
 
 	return expandedPlan

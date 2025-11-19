@@ -216,16 +216,16 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanId),
-			Enabled:               utils.Bool(enabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
+			ServerFarmID:          pointer.To(appServicePlanId),
+			Enabled:               pointer.To(enabled),
+			HTTPSOnly:             pointer.To(httpsOnly),
 			SiteConfig:            siteConfig,
 			ClientAffinityEnabled: &affinity,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -275,19 +275,19 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
+			ServerFarmID: pointer.To(appServicePlanId),
+			Enabled:      pointer.To(enabled),
+			HTTPSOnly:    pointer.To(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
 	}
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
 		enabled := v.(bool)
-		siteEnvelope.ClientAffinityEnabled = utils.Bool(enabled)
+		siteEnvelope.ClientAffinityEnabled = pointer.To(enabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -318,7 +318,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -348,7 +348,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := expandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{
-			ID:                       utils.String(d.Id()),
+			ID:                       pointer.To(d.Id()),
 			SiteLogsConfigProperties: &logs,
 		}
 
@@ -387,7 +387,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		sitePatchResource := web.SitePatchResource{
-			ID:       utils.String(d.Id()),
+			ID:       pointer.To(d.Id()),
 			Identity: appServiceIdentity,
 		}
 		if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatchResource, id.SlotName); err != nil {

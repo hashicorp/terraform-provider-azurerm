@@ -19,7 +19,6 @@ import (
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAzureEndpoint() *pluginsdk.Resource {
@@ -178,13 +177,13 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	params := endpoints.Endpoint{
-		Name: utils.String(id.EndpointName),
-		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
+		Name: pointer.To(id.EndpointName),
+		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			CustomHeaders:    expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			AlwaysServe:      pointer.To(endpoints.AlwaysServeDisabled),
 			EndpointStatus:   &status,
-			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
+			TargetResourceId: pointer.To(d.Get("target_resource_id").(string)),
 			Subnets:          expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
 	}
@@ -194,11 +193,11 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
-		params.Properties.Priority = utils.Int64(int64(priority))
+		params.Properties.Priority = pointer.To(int64(int64(priority)))
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {
-		params.Properties.Weight = utils.Int64(int64(weight))
+		params.Properties.Weight = pointer.To(int64(int64(weight)))
 	}
 
 	inputMappings := d.Get("geo_mappings").([]interface{})
@@ -314,7 +313,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("target_resource_id") {
-		params.Properties.TargetResourceId = utils.String(d.Get("target_resource_id").(string))
+		params.Properties.TargetResourceId = pointer.To(d.Get("target_resource_id").(string))
 	}
 
 	if d.HasChange("subnet") {
@@ -323,13 +322,13 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("priority") {
 		if priority := d.Get("priority").(int); priority != 0 {
-			params.Properties.Priority = utils.Int64(int64(priority))
+			params.Properties.Priority = pointer.To(int64(int64(priority)))
 		}
 	}
 
 	if d.HasChange("weight") {
 		if weight := d.Get("weight").(int); weight != 0 {
-			params.Properties.Weight = utils.Int64(int64(weight))
+			params.Properties.Weight = pointer.To(int64(int64(weight)))
 		}
 	}
 

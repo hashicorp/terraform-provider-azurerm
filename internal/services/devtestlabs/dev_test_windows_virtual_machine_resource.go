@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
@@ -200,21 +200,21 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	parameters := virtualmachines.LabVirtualMachine{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: virtualmachines.LabVirtualMachineProperties{
-			AllowClaim:                 utils.Bool(allowClaim),
-			IsAuthenticationWithSshKey: utils.Bool(false),
-			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
+			AllowClaim:                 pointer.To(allowClaim),
+			IsAuthenticationWithSshKey: pointer.To(false),
+			DisallowPublicIPAddress:    pointer.To(disallowPublicIPAddress),
 			GalleryImageReference:      galleryImageReference,
-			LabSubnetName:              utils.String(labSubnetName),
-			LabVirtualNetworkId:        utils.String(labVirtualNetworkId),
+			LabSubnetName:              pointer.To(labSubnetName),
+			LabVirtualNetworkId:        pointer.To(labVirtualNetworkId),
 			NetworkInterface:           &nic,
-			OsType:                     utils.String("Windows"),
-			Notes:                      utils.String(notes),
-			Password:                   utils.String(password),
-			Size:                       utils.String(size),
-			StorageType:                utils.String(storageType),
-			UserName:                   utils.String(username),
+			OsType:                     pointer.To("Windows"),
+			Notes:                      pointer.To(notes),
+			Password:                   pointer.To(password),
+			Size:                       pointer.To(size),
+			StorageType:                pointer.To(storageType),
+			UserName:                   pointer.To(username),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}

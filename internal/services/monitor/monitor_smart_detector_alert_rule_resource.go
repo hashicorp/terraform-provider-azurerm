@@ -185,7 +185,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 
 	actionRule := smartdetectoralertrules.AlertRule{
 		// the location is always global from the portal
-		Location: utils.String(location.Normalize("Global")),
+		Location: pointer.To(location.Normalize("Global")),
 		Properties: &smartdetectoralertrules.AlertRuleProperties{
 			Description: pointer.To(d.Get("description").(string)),
 			State:       state,
@@ -287,8 +287,8 @@ func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartd
 	}
 	v := input[0].(map[string]interface{})
 	return &smartdetectoralertrules.ActionGroupsInformation{
-		CustomEmailSubject:   utils.String(v["email_subject"].(string)),
-		CustomWebhookPayload: utils.String(v["webhook_payload"].(string)),
+		CustomEmailSubject:   pointer.To(v["email_subject"].(string)),
+		CustomWebhookPayload: pointer.To(v["webhook_payload"].(string)),
 		GroupIds:             pointer.From(utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceWebPubSubSharedPrivateLinkService() *pluginsdk.Resource {
@@ -112,7 +111,7 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 
 	requestMessage := d.Get("request_message").(string)
 	if requestMessage != "" {
-		parameters.Properties.RequestMessage = utils.String(requestMessage)
+		parameters.Properties.RequestMessage = pointer.To(requestMessage)
 	}
 
 	if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {

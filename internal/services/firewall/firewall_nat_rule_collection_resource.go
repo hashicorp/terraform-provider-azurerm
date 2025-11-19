@@ -176,12 +176,12 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 	priority := d.Get("priority").(int)
 	newRuleCollection := azurefirewalls.AzureFirewallNatRuleCollection{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNatRuleCollectionProperties{
 			Action: &azurefirewalls.AzureFirewallNatRCAction{
 				Type: pointer.To(azurefirewalls.AzureFirewallNatRCActionType(d.Get("action").(string))),
 			},
-			Priority: utils.Int64(int64(priority)),
+			Priority: pointer.To(int64(int64(priority))),
 			Rules:    natRules,
 		},
 	}
@@ -423,8 +423,8 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 		translatedPort := rule["translated_port"].(string)
 
 		ruleToAdd := azurefirewalls.AzureFirewallNatRule{
-			Name:                 utils.String(name),
-			Description:          utils.String(description),
+			Name:                 pointer.To(name),
+			Description:          pointer.To(description),
 			SourceAddresses:      &sourceAddresses,
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApplicationInsightsWorkbookTemplateModel struct {
@@ -374,11 +374,11 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 	outputList := make([]workbooktemplates.WorkbookTemplateGallery, 0, len(inputList))
 	for _, input := range inputList {
 		output := workbooktemplates.WorkbookTemplateGallery{
-			Category:     utils.String(input.Category),
-			Name:         utils.String(input.Name),
-			Order:        utils.Int64(input.Order),
-			ResourceType: utils.String(input.ResourceType),
-			Type:         utils.String(input.Type),
+			Category:     pointer.To(input.Category),
+			Name:         pointer.To(input.Name),
+			Order:        pointer.To(int64(input.Order)),
+			ResourceType: pointer.To(input.ResourceType),
+			Type:         pointer.To(input.Type),
 		}
 
 		outputList = append(outputList, output)

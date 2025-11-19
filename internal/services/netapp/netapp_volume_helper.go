@@ -44,20 +44,20 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 		kerberos5pReadWrite := false
 
 		result := volumegroups.ExportPolicyRule{
-			AllowedClients:      utils.String(item.AllowedClients),
-			Cifs:                utils.Bool(cifsEnabled),
-			Nfsv3:               utils.Bool(item.Nfsv3Enabled),
-			Nfsv41:              utils.Bool(item.Nfsv41Enabled),
-			RuleIndex:           utils.Int64(item.RuleIndex),
-			UnixReadOnly:        utils.Bool(item.UnixReadOnly),
-			UnixReadWrite:       utils.Bool(item.UnixReadWrite),
-			HasRootAccess:       utils.Bool(item.RootAccessEnabled),
-			Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
-			Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
-			Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
-			Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
-			Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
-			Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
+			AllowedClients:      pointer.To(item.AllowedClients),
+			Cifs:                pointer.To(cifsEnabled),
+			Nfsv3:               pointer.To(item.Nfsv3Enabled),
+			Nfsv41:              pointer.To(item.Nfsv41Enabled),
+			RuleIndex:           pointer.To(int64(item.RuleIndex)),
+			UnixReadOnly:        pointer.To(item.UnixReadOnly),
+			UnixReadWrite:       pointer.To(item.UnixReadWrite),
+			HasRootAccess:       pointer.To(item.RootAccessEnabled),
+			Kerberos5ReadOnly:   pointer.To(kerberos5ReadOnly),
+			Kerberos5ReadWrite:  pointer.To(kerberos5ReadWrite),
+			Kerberos5iReadOnly:  pointer.To(kerberos5iReadOnly),
+			Kerberos5iReadWrite: pointer.To(kerberos5iReadWrite),
+			Kerberos5pReadOnly:  pointer.To(kerberos5pReadOnly),
+			Kerberos5pReadWrite: pointer.To(kerberos5pReadWrite),
 		}
 
 		results = append(results, result)
@@ -132,9 +132,9 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 		}
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
-			Name: utils.String(name),
+			Name: pointer.To(name),
 			Properties: volumegroups.VolumeProperties{
-				CapacityPoolResourceId:   utils.String(capacityPoolID),
+				CapacityPoolResourceId:   pointer.To(capacityPoolID),
 				CreationToken:            volumePath,
 				ServiceLevel:             &serviceLevel,
 				SubnetId:                 subnetID,
@@ -142,9 +142,9 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 				SecurityStyle:            &securityStyle,
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             exportPolicyRule,
-				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
-				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				VolumeSpecName:           utils.String(item.VolumeSpecName),
+				SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
+				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
+				VolumeSpecName:           pointer.To(item.VolumeSpecName),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
@@ -158,7 +158,7 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 			dataProtectionReplication.Replication != nil &&
 			dataProtectionReplication.Replication.EndpointType != nil &&
 			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-			volumeProperties.Properties.VolumeType = utils.String("DataProtection")
+			volumeProperties.Properties.VolumeType = pointer.To("DataProtection")
 		}
 
 		results = append(results, *volumeProperties)
@@ -200,8 +200,8 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
 				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
-				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				VolumeSpecName:           utils.String(item.VolumeSpecName),
+				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
+				VolumeSpecName:           pointer.To(item.VolumeSpecName),
 				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
 				DataProtection:           dataProtection,
 			},
@@ -227,7 +227,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil &&
 			dataProtectionReplication.Replication.EndpointType != nil &&
 			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-			volumeProperties.Properties.VolumeType = utils.String("DataProtection")
+			volumeProperties.Properties.VolumeType = pointer.To("DataProtection")
 		}
 
 		results = append(results, *volumeProperties)
@@ -287,20 +287,20 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(in
 			}
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				RuleIndex:           utils.Int64(ruleIndex),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
-				Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
-				Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
+				AllowedClients:      pointer.To(allowedClients),
+				Cifs:                pointer.To(cifsEnabled),
+				Nfsv3:               pointer.To(nfsv3Enabled),
+				Nfsv41:              pointer.To(nfsv41Enabled),
+				RuleIndex:           pointer.To(int64(ruleIndex)),
+				UnixReadOnly:        pointer.To(unixReadOnly),
+				UnixReadWrite:       pointer.To(unixReadWrite),
+				HasRootAccess:       pointer.To(rootAccessEnabled),
+				Kerberos5ReadOnly:   pointer.To(kerberos5ReadOnly),
+				Kerberos5ReadWrite:  pointer.To(kerberos5ReadWrite),
+				Kerberos5iReadOnly:  pointer.To(kerberos5iReadOnly),
+				Kerberos5iReadWrite: pointer.To(kerberos5iReadWrite),
+				Kerberos5pReadOnly:  pointer.To(kerberos5pReadOnly),
+				Kerberos5pReadWrite: pointer.To(kerberos5pReadWrite),
 			}
 
 			results = append(results, result)
@@ -326,7 +326,7 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 		replicationObject.EndpointType = pointer.To(endpointType)
 	}
 	if v, ok := replicationRaw["remote_volume_location"]; ok {
-		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
+		replicationObject.RemoteVolumeRegion = pointer.To(v.(string))
 	}
 	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
 		replicationObject.RemoteVolumeResourceId = pointer.To(v.(string))
@@ -351,7 +351,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 	snapshotRaw := input[0].(map[string]interface{})
 
 	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
+		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
 	return &volumes.VolumePropertiesDataProtection{
@@ -373,7 +373,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 	snapshotRaw := input[0].(map[string]interface{})
 
 	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
+		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
 	return &volumes.VolumePatchPropertiesDataProtection{
@@ -391,15 +391,15 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 	backupRaw := input[0].(map[string]interface{})
 
 	if v, ok := backupRaw["backup_policy_id"]; ok {
-		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+		backupPolicyObject.BackupPolicyId = pointer.To(v.(string))
 	}
 
 	if v, ok := backupRaw["policy_enabled"]; ok {
-		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+		backupPolicyObject.PolicyEnforced = pointer.To(v.(bool))
 	}
 
 	if v, ok := backupRaw["backup_vault_id"]; ok {
-		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
 	return &volumes.VolumePropertiesDataProtection{
@@ -417,15 +417,15 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 	backupRaw := input[0].(map[string]interface{})
 
 	if v, ok := backupRaw["backup_policy_id"]; ok {
-		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+		backupPolicyObject.BackupPolicyId = pointer.To(v.(string))
 	}
 
 	if v, ok := backupRaw["policy_enabled"]; ok {
-		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+		backupPolicyObject.PolicyEnforced = pointer.To(v.(bool))
 	}
 
 	if v, ok := backupRaw["backup_vault_id"]; ok {
-		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
 	return &volumes.VolumePatchPropertiesDataProtection{
@@ -718,7 +718,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 			// Breaking replication
 			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
-				ForceBreakReplication: utils.Bool(true),
+				ForceBreakReplication: pointer.To(true),
 			}); err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", pointer.From(replicaVolumeId), err)
 			}
@@ -767,7 +767,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	// Deleting volume and waiting for it to fully complete the operation
 	log.Printf("[INFO] Deleting volume %s", id.String())
 	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
-		ForceDelete: utils.Bool(true),
+		ForceDelete: pointer.To(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
@@ -1136,7 +1136,7 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 
 				// Authorizing
 				if err := replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
-					RemoteVolumeResourceId: utils.String(secondaryId.ID()),
+					RemoteVolumeResourceId: pointer.To(secondaryId.ID()),
 				}); err != nil {
 					return fmt.Errorf("authorizing volume replication for volume %q: %+v", secondaryId.ID(), err)
 				}

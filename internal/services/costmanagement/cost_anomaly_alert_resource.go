@@ -140,7 +140,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 					NotificationEmail: &notificationEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *emailAddresses,
 					},
 					Schedule: schedule,
@@ -209,7 +209,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 					NotificationEmail: &notificationEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *emailAddresses,
 					},
 					Schedule: schedule,

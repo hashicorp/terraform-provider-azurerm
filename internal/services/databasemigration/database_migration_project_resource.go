@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
@@ -180,7 +180,7 @@ func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	opts := projectresource.ProjectsDeleteOperationOptions{
-		DeleteRunningTasks: utils.Bool(false),
+		DeleteRunningTasks: pointer.To(false),
 	}
 	if _, err := client.ProjectsDelete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

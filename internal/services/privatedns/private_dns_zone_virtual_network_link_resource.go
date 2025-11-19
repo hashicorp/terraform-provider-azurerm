@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone_virtual_network_link -service-package-name privatedns -properties "name,private_dns_zone_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -113,13 +112,13 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	parameters := virtualnetworklinks.VirtualNetworkLink{
-		Location: utils.String("global"),
+		Location: pointer.To("global"),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &virtualnetworklinks.VirtualNetworkLinkProperties{
 			VirtualNetwork: &virtualnetworklinks.SubResource{
-				Id: utils.String(d.Get("virtual_network_id").(string)),
+				Id: pointer.To(d.Get("virtual_network_id").(string)),
 			},
-			RegistrationEnabled: utils.Bool(d.Get("registration_enabled").(bool)),
+			RegistrationEnabled: pointer.To(d.Get("registration_enabled").(bool)),
 		},
 	}
 
@@ -128,8 +127,8 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
@@ -190,7 +189,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	options := virtualnetworklinks.DeleteOperationOptions{IfMatch: utils.String("")}
+	options := virtualnetworklinks.DeleteOperationOptions{IfMatch: pointer.To("")}
 
 	if err = client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

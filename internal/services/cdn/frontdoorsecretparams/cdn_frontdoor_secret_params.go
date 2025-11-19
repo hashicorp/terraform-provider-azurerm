@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorSecretParameters struct {
@@ -87,13 +87,13 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 	customerCertificate := &cdn.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,
 		SecretSource: &cdn.ResourceReference{
-			ID: utils.String(secretSource.ID()),
+			ID: pointer.To(secretSource.ID()),
 		},
-		UseLatestVersion: utils.Bool(useLatest),
+		UseLatestVersion: pointer.To(useLatest),
 	}
 
 	if !useLatest {
-		customerCertificate.SecretVersion = utils.String(certificateId.Version)
+		customerCertificate.SecretVersion = pointer.To(certificateId.Version)
 	}
 
 	return customerCertificate, nil
