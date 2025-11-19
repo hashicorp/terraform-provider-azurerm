@@ -12,7 +12,6 @@ description: |-
 
 Flushes all the keys in the Managed Redis Database and also from its linked databases.
 
-
 ## Example Usage
 
 ```terraform
