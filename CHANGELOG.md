@@ -9,6 +9,15 @@ ENHANCEMENTS:
 * `azurerm_managed_redis` - add support for `persistence_append_only_file_backup_frequency` and `persistence_redis_database_backup_frequency` properties  [GH-30964]
 * `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties [GH-29426]
 * Data Source: `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties [GH-29426]
+* `azurerm_linux_function_app` - add support for `dotnet_version` `10.0` [GH-31007]
+* `azurerm_linux_function_app_slot` - add support for `dotnet_version` `10.0` [GH-31007]
+* `azurerm_linux_web_app` - add support for `dotnet_version` `10.0` [GH-31007]
+* `azurerm_linux_web_app_slot` - add support for `dotnet_version` `10.0` [GH-31007]
+* `azurerm_windows_function_app` - add support for `dotnet_version` `v10.0` [GH-31007]
+* `azurerm_windows_function_app_slot` - add support for `dotnet_version` `v10.0` [GH-31007]
+* `azurerm_windows_web_app` - add support for `dotnet_version` `v10.0` [GH-31007]
+* `azurerm_windows_web_app_slot` - add support for `dotnet_version` `v10.0` [GH-31007]
+
 
 FEATURES:
 * **New Action**: `azurerm_cdn_front_door_cache_purge`  [GH-30765]
