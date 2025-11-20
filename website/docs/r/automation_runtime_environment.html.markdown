@@ -47,14 +47,13 @@ resource "azurerm_automation_runtime_environment" "example" {
 }
 
 ```
-
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the resource group in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
-
 * `name` - (Required) The name for the Automation Runtime Environment. Changing this forces a new Automation Runtime Environment to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location where the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
@@ -65,12 +64,12 @@ The following arguments are supported:
 * `runtime_version` - (Required) The version of the runtime environment. Changing this forces a new Automation Runtime Environment to be created.
 
 ---
+
 * `description` - (Optional) A description of the Automation Runtime Environment.
 
 * `runtime_default_packages` - (Optional) A mapping of default packages to be installed in the Automation Runtime Environment. The default packages can only be used with PowerShell runtime environments. Removing packages will force a new Automation Runtime Environment, adding new packages will update the existing Automation Runtime Environment.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Automation Runtime Environment.
-
 
 ## Attributes Reference
 

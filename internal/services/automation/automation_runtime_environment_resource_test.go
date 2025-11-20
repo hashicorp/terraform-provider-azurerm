@@ -95,7 +95,7 @@ func TestAccAutomationRuntimeEnvironment_update(t *testing.T) {
 	})
 }
 
-func TestAccAutomationRuntimeEnvironment_import(t *testing.T) {
+func TestAccAutomationRuntimeEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
 	r := AutomationRuntimeEnvironmentResource{}
 

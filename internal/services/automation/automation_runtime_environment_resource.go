@@ -47,12 +47,12 @@ func (m AutomationRuntimeEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				old, new := rd.GetChange("runtime_default_packages")
 				oldMap, newMap := old.(map[string]interface{}), new.(map[string]interface{})
 
-				// Packages can not be removed, only added
+				// Azure API limitation: Runtime environment packages cannot be removed once added
 				if len(oldMap) > len(newMap) {
 					rd.ForceNew("runtime_default_packages")
 				}
 
-				// Packages changes not the version can not be done in place
+				// Azure API limitation: Package names cannot change, only versions can be updated
 				for k := range oldMap {
 					if _, ok := newMap[k]; !ok {
 						rd.ForceNew("runtime_default_packages")
@@ -76,6 +76,8 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"automation_account_name": {
 			Type:         pluginsdk.TypeString,
@@ -101,18 +103,16 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"runtime_default_packages": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-		},
-
-		"location": commonschema.Location(),
-
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"runtime_default_packages": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"tags": commonschema.Tags(),
@@ -176,7 +176,7 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Create(ctx, id, req); err != nil {
-				return fmt.Errorf("creating %s: %v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			meta.SetID(id)
@@ -212,8 +212,8 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.ResourceGroupName = id.ResourceGroupName
 				state.AutomationAccountName = id.AutomationAccountName
-				state.RuntimeLanguage = *resp.Model.Properties.Runtime.Language
-				state.RuntimeVersion = *resp.Model.Properties.Runtime.Version
+				state.RuntimeLanguage = pointer.ToString(resp.Model.Properties.Runtime.Language)
+				state.RuntimeVersion = pointer.ToString(resp.Model.Properties.Runtime.Version)
 				state.Location = resp.Model.Location
 
 				if resp.Model.Properties.DefaultPackages != nil {
@@ -221,7 +221,7 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 				}
 
 				if resp.Model.Properties.Description != nil {
-					state.Description = *resp.Model.Properties.Description
+					state.Description = pointer.ToString(resp.Model.Properties.Description)
 				}
 
 				if resp.Model.Tags != nil {
@@ -274,7 +274,7 @@ func (m AutomationRuntimeEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Update(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -294,7 +294,7 @@ func (m AutomationRuntimeEnvironmentResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %v", id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 			return nil
 		},
