@@ -169,7 +169,7 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
+  name                   = "acctest-mc%s"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
@@ -180,7 +180,7 @@ resource "azurerm_mongo_cluster" "test" {
   storage_size_in_gb     = "32"
   version                = "7.0"
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomString)
 }
 
 func (r MongoClusterResource) update(data acceptance.TestData) string {
@@ -188,7 +188,7 @@ func (r MongoClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
+  name                   = "acctest-mc%s"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
@@ -204,7 +204,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomString)
 }
 
 func (r MongoClusterResource) cmkKeyVault(data acceptance.TestData) string {
@@ -212,7 +212,7 @@ func (r MongoClusterResource) cmkKeyVault(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                = "acctest-mc%d"
+  name                = "acctest-mc%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -240,7 +240,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.templateCMKKeyVault(data), data.RandomInteger)
+`, r.templateCMKKeyVault(data), data.RandomString)
 }
 
 func (r MongoClusterResource) cmkKeyVaultUpdate(data acceptance.TestData) string {
@@ -248,7 +248,7 @@ func (r MongoClusterResource) cmkKeyVaultUpdate(data acceptance.TestData) string
 %[1]s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                = "acctest-mc%[2]d"
+  name                = "acctest-mc%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -276,7 +276,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.templateCMKKeyVault(data), data.RandomInteger)
+`, r.templateCMKKeyVault(data), data.RandomString)
 }
 
 func (r MongoClusterResource) cmkKeyVaultUpdateError(data acceptance.TestData) string {
@@ -291,7 +291,7 @@ resource "azurerm_user_assigned_identity" "test3" {
 
 
 resource "azurerm_mongo_cluster" "test" {
-  name                = "acctest-mc%[2]d"
+  name                = "acctest-mc%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -319,7 +319,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.templateCMKKeyVault(data), data.RandomInteger)
+`, r.templateCMKKeyVault(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MongoClusterResource) source(data acceptance.TestData) string {
@@ -327,7 +327,7 @@ func (r MongoClusterResource) source(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
+  name                   = "acctest-mc%s"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
@@ -338,7 +338,7 @@ resource "azurerm_mongo_cluster" "test" {
   storage_size_in_gb     = "64"
   version                = "8.0"
 }
-`, r.template(data, data.Locations.Primary), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomString)
 }
 
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
@@ -365,7 +365,7 @@ func (r MongoClusterResource) previewFeature(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
+  name                   = "acctest-mc%s"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
@@ -377,7 +377,7 @@ resource "azurerm_mongo_cluster" "test" {
   preview_features       = ["GeoReplicas"]
   version                = "8.0"
 }
-`, r.template(data, data.Locations.Primary), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomString)
 }
 
 func (r MongoClusterResource) geoReplica(data acceptance.TestData, source string) string {
@@ -385,7 +385,7 @@ func (r MongoClusterResource) geoReplica(data acceptance.TestData, source string
 %s
 
 resource "azurerm_mongo_cluster" "geo_replica" {
-  name                = "acctest-mc-replica%d"
+  name                = "acctest-mc-replica%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   source_server_id    = azurerm_mongo_cluster.test.id
@@ -396,7 +396,7 @@ resource "azurerm_mongo_cluster" "geo_replica" {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
-`, source, data.RandomInteger, data.Locations.Secondary)
+`, source, data.RandomString, data.Locations.Secondary)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {

@@ -399,13 +399,17 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
-				payload.Properties.Compute = &mongoclusters.ComputeProperties{
-					Tier: pointer.To(state.ComputeTier),
+				payload := &mongoclusters.MongoClusterUpdate{
+					Properties: &mongoclusters.MongoClusterUpdateProperties{
+						Compute: &mongoclusters.ComputeProperties{
+							Tier: pointer.To(state.ComputeTier),
+						},
+					},
 				}
 				oldComputeTier, newComputeTier := metadata.ResourceData.GetChange("compute_tier")
 				if (oldComputeTier == "Free" || oldComputeTier == "M25") && newComputeTier != "Free" && newComputeTier != "M25" {
 					metadata.Logger.Infof("updating compute tier for %s", *id)
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+					if err := client.UpdateThenPoll(ctx, *id, *payload); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 				}
