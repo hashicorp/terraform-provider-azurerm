@@ -24,7 +24,7 @@ func (a AutomationRuntimeEnvironmentResource) Exists(ctx context.Context, client
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.Client.RuntimeEnvironment.Get(ctx, *id)
+	resp, err := client.Automation.RuntimeEnvironment.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving runtime environment %s: %+v", id, err)
 	}
