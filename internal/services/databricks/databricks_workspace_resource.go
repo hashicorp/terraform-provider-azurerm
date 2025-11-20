@@ -358,6 +358,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 								ValidateFunc: validation.StringInSlice([]string{
 									string(workspaces.ComplianceStandardHIPAA),
 									string(workspaces.ComplianceStandardPCIDSS),
+									string(workspaces.ComplianceStandardGERMANYC5),
+									string(workspaces.ComplianceStandardHITRUST),
 								}, false),
 							},
 						},

@@ -136,7 +136,7 @@ An `enhanced_security_compliance` block supports the following:
 
 ~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
 
-* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA`, `PCI_DSS`, `GERMANY_C5` and `HITRUST`.
 
 ~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
 

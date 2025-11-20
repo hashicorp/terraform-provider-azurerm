@@ -97,6 +97,8 @@ const (
 	ComplianceStandardHIPAA  ComplianceStandard = "HIPAA"
 	ComplianceStandardNONE   ComplianceStandard = "NONE"
 	ComplianceStandardPCIDSS ComplianceStandard = "PCI_DSS"
+	ComplianceStandardGERMANYC5 ComplianceStandard = "GERMANY_C5"
+	ComplianceStandardHITRUST ComplianceStandard = "HITRUST"
 )
 
 func PossibleValuesForComplianceStandard() []string {
@@ -104,6 +106,8 @@ func PossibleValuesForComplianceStandard() []string {
 		string(ComplianceStandardHIPAA),
 		string(ComplianceStandardNONE),
 		string(ComplianceStandardPCIDSS),
+		string(ComplianceStandardGERMANYC5),
+		string(ComplianceStandardHITRUST),
 	}
 }
 
@@ -125,6 +129,8 @@ func parseComplianceStandard(input string) (*ComplianceStandard, error) {
 		"hipaa":   ComplianceStandardHIPAA,
 		"none":    ComplianceStandardNONE,
 		"pci_dss": ComplianceStandardPCIDSS,
+		"germany_c5": ComplianceStandardGERMANYC5,
+		"hitrust": ComplianceStandardHITRUST,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

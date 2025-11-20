@@ -20,7 +20,7 @@ resource "azurerm_databricks_workspace" "example" {
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
-    compliance_security_profile_standards = ["HIPAA", "PCI_DSS"]
+    compliance_security_profile_standards = ["HIPAA", "PCI_DSS", "GERMANY_C5", "HITRUST"]
     enhanced_security_monitoring_enabled  = true
   }
 }
