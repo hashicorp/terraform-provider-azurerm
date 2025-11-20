@@ -98,7 +98,7 @@ resource "azurerm_managed_redis" "amr1" {
   name                = "acctest-amr1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
-  sku_name            = "Balanced_B3"
+  sku_name            = "Balanced_B0"
 
   default_database {
     geo_replication_group_name = "acctest-georep-%[1]d"

@@ -24,7 +24,6 @@ var _ sdk.DataSource = ManagedRedisAccessPolicyAssignmentDataSource{}
 type ManagedRedisAccessPolicyAssignmentDataSourceModel struct {
 	ManagedRedisName string `tfschema:"managed_redis_name"`
 	ResourceGroup    string `tfschema:"resource_group_name"`
-	DatabaseName     string `tfschema:"database_name"`
 	ObjectID         string `tfschema:"object_id"`
 }
 
@@ -40,12 +39,6 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ManagedRedisClusterName,
-		},
-
-		"database_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  defaultDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -81,7 +74,7 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ManagedRedis.DatabaseClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := databases.NewAccessPolicyAssignmentID(subscriptionId, state.ResourceGroup, state.ManagedRedisName, state.DatabaseName, state.ObjectID)
+			id := databases.NewAccessPolicyAssignmentID(subscriptionId, state.ResourceGroup, state.ManagedRedisName, defaultDatabaseName, state.ObjectID)
 
 			resp, err := client.AccessPolicyAssignmentGet(ctx, id)
 			if err != nil {

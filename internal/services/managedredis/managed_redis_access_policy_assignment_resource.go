@@ -24,7 +24,6 @@ var _ sdk.Resource = ManagedRedisAccessPolicyAssignmentResource{}
 
 type ManagedRedisAccessPolicyAssignmentResourceModel struct {
 	ManagedRedisID string `tfschema:"managed_redis_id"`
-	DatabaseName   string `tfschema:"database_name"`
 	ObjectID       string `tfschema:"object_id"`
 }
 
@@ -35,13 +34,6 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Arguments() map[string]*plug
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
-		},
-
-		"database_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "default",
 		},
 
 		"object_id": {
@@ -82,13 +74,13 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 
 			clusterId, err := redisenterprise.ParseRedisEnterpriseID(model.ManagedRedisID)
 			if err != nil {
-				return fmt.Errorf("parsing managed redis ID: %+v", err)
+				return err
 			}
 
 			// Access policy assignments are created on the specified database
 			// Use object_id as the assignment name to ensure one assignment per user per database
-			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.DatabaseName)
-			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.DatabaseName, model.ObjectID)
+			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
+			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName, model.ObjectID)
 
 			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -99,7 +91,6 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// Check that the database exists
 			dbResp, err := client.Get(ctx, dbId)
 			if err != nil {
 				if response.WasNotFound(dbResp.HttpResponse) {
@@ -155,7 +146,6 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 				state.ManagedRedisID = clusterId.ID()
-				state.DatabaseName = id.DatabaseName
 
 				if props := model.Properties; props != nil {
 					if props.User.ObjectId != nil {

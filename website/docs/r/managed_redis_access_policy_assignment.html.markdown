@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `object_id` - (Required) The object ID of the Azure Active Directory user, group, service principal, or managed identity to assign the access policy to. Changing this forces a new Access Policy Assignment to be created.
 
-* `database_name` - (Optional) The name of the database within the Managed Redis instance. Defaults to `default`. Changing this forces a new Access Policy Assignment to be created.
+~> **Note:** Access Policy Assignments are created on the `default` database of the Managed Redis instance.
 
 ## Attributes Reference
 
@@ -67,3 +67,9 @@ Managed Redis Access Policy Assignments can be imported using the `resource id`,
 ```shell
 terraform import azurerm_managed_redis_access_policy_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/redis1/databases/default/accessPolicyAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2025-07-01

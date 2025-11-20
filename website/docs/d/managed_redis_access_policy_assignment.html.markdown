@@ -32,9 +32,9 @@ The following arguments are supported:
 
 * `managed_redis_name` - (Required) The name of the Managed Redis instance.
 
-* `database_name` - (Optional) The name of the database within the Managed Redis instance. Defaults to `default`.
-
 * `resource_group_name` - (Required) The name of the Resource Group where the Managed Redis instance exists.
+
+~> **Note:** This data source retrieves Access Policy Assignments from the `default` database of the Managed Redis instance.
 
 ## Attributes Reference
 
