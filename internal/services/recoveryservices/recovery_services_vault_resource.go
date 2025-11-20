@@ -181,7 +181,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 						"email_notifications_for_site_recovery_enabled": {
 							Type:	 pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 					},
 				},
