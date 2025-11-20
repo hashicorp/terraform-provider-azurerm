@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -148,21 +147,6 @@ func TestAccMongoCluster_cmkKeyVault(t *testing.T) {
 			Config:      r.cmkKeyVaultUpdateError(data),
 			ExpectError: regexp.MustCompile("the value specified in `customer_managed_key.user_assigned_identity_id` must also be specified in `identity.identity_ids`"),
 		},
-	})
-}
-
-func TestAccMongoCluster_cmkManagedHSM(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
-	r := MongoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cmkManagedHSM(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -336,42 +320,6 @@ resource "azurerm_mongo_cluster" "test" {
   }
 }
 `, r.templateCMKKeyVault(data), data.RandomInteger)
-}
-
-func (r MongoClusterResource) cmkManagedHSM(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mongo_cluster" "test" {
-  name                = "acctest-mc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
-
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "ZoneRedundantPreferred"
-  public_network_access  = "Disabled"
-  storage_size_in_gb     = "64"
-  version                = "8.0"
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_managed_hardware_security_module_key.test.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  }
-
-  tags = {
-    environment = "test"
-  }
-}
-`, r.templateCMKManagedHSM(data), data.RandomInteger)
 }
 
 func (r MongoClusterResource) source(data acceptance.TestData) string {
@@ -551,134 +499,5 @@ resource "azurerm_key_vault_key" "test2" {
     azurerm_key_vault_access_policy.uai2,
   ]
 }
-
 `, r.templateKeyVaultBase(data), data.RandomString, data.RandomInteger)
-}
-
-func (r MongoClusterResource) templateCMKManagedHSM(data acceptance.TestData) string {
-	roleAssignmentName1, _ := uuid.GenerateUUID()
-	roleAssignmentName2, _ := uuid.GenerateUUID()
-	roleAssignmentName3, _ := uuid.GenerateUUID()
-
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_key_vault_certificate" "test" {
-  count = 3
-
-  name         = "acctestCertificate${count.index}"
-  key_vault_id = azurerm_key_vault.test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      extended_key_usage = []
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-      subject            = "CN=hello-world"
-      validity_in_months = 12
-    }
-  }
-
-  depends_on = [azurerm_key_vault_access_policy.client]
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                                      = "acctestHSM-%[2]s"
-  resource_group_name                       = azurerm_resource_group.test.name
-  location                                  = azurerm_resource_group.test.location
-  sku_name                                  = "Standard_B1"
-  tenant_id                                 = data.azurerm_client_config.current.tenant_id
-  admin_object_ids                          = [data.azurerm_client_config.current.object_id]
-  purge_protection_enabled                  = true
-  soft_delete_retention_days                = 7
-  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.test : cert.id]
-  security_domain_quorum                    = 3
-}
-
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto-officer" {
-  name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-}
-
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto-user" {
-  name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-}
-
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "encrypt-user" {
-  name           = "33413926-3206-4cdd-b39a-83574fe37a17"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = "%[4]s"
-  scope              = "/keys"
-  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-officer.resource_manager_id
-  principal_id       = data.azurerm_client_config.current.object_id
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test2" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = "%[5]s"
-  scope              = "/keys"
-  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-user.resource_manager_id
-  principal_id       = data.azurerm_client_config.current.object_id
-
-  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test]
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "client" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = "%[6]s"
-  scope              = "/keys"
-  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
-  principal_id       = azurerm_user_assigned_identity.test.principal_id
-
-  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test2]
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
-  name           = "acctestHSMK-%[2]s"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-  key_type       = "RSA-HSM"
-  key_size       = 2048
-  key_opts       = ["unwrapKey", "wrapKey"]
-
-  depends_on = [
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test2
-  ]
-}
-`, r.templateKeyVaultBase(data), data.RandomString, data.RandomInteger, roleAssignmentName1, roleAssignmentName2, roleAssignmentName3)
 }

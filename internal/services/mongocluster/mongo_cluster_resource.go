@@ -112,6 +112,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -657,16 +658,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceDiff.Id() != "" {
-				if metadata.ResourceDiff.HasChange("customer_managed_key") {
-					// The service does not allow migrating from customer managed encryption to service managed encryption and vice versa, ForceNew on addition/removal if resource exists.
-					o, n := metadata.ResourceDiff.GetChange("customer_managed_key")
-					if len(o.([]any)) != len(n.([]any)) {
-						if err := metadata.ResourceDiff.ForceNew("customer_managed_key"); err != nil {
-							return err
-						}
-					}
-				}
-
 				if metadata.ResourceDiff.HasChange("identity") {
 					o, n := metadata.ResourceDiff.GetChange("identity")
 					if len(o.([]any)) != len(n.([]any)) {
@@ -688,11 +679,13 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 				rawCMKUserAssignedIdentity, err := metadata.GetRawConfigAt("customer_managed_key.0.user_assigned_identity_id")
 				if err != nil {
+					// nolint: nilerr
 					return nil
 				}
 
 				rawIdentityIDs, err := metadata.GetRawConfigAt("identity.0.identity_ids")
 				if err != nil {
+					// nolint: nilerr
 					return nil
 				}
 

@@ -81,13 +81,11 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
-
-!> **Note:** `customer_managed_key` cannot be added to or removed from an existing MongoDB Cluster, doing so forces a new resource to be created. 
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-!> **Note:** Currently, `identity` cannot be added to or removed from an existing MongoDB Cluster, doing so will force a new resource to be created. 
+!> **Note:** Currently, `identity` cannot be added to or removed from an existing MongoDB Cluster, doing so will force a new resource to be created.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
