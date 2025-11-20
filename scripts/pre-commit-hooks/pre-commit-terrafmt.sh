@@ -4,13 +4,15 @@
 
 start_time=$(date +%s.%N)
 
+echo "==> ⌛ pre-commit-terrafmt.sh..."
+
 if ! command -v terrafmt &> /dev/null; then
     echo "Error: terrafmt command not found."
     echo "Please run 'make tools' first to install required dependencies."
     exit 1
 fi
 
-echo "==> Checking staged terraform blocks are formatted..."
+echo "Checking staged terraform files for formatting issues..."
 
 staged_test_files=$(git diff --cached --name-only --diff-filter=ACM | grep "_test\.go$" || true)
 staged_doc_files=$(git diff --cached --name-only --diff-filter=ACM | grep "\.html\.markdown$" || true)
@@ -41,7 +43,7 @@ execution_time=$(echo "$end_time - $start_time" | bc -l)
 if ${error}; then
   echo "------------------------------------------------"
   echo ""
-  echo "The preceding staged files contain terraform blocks that are not correctly formatted or contain errors."
+  echo "❌ The preceding staged files contain terraform blocks that are not correctly formatted or contain errors."
   echo "You can fix this by running one of the below commands:"
   echo ""
   echo "format staged test files:"
@@ -62,8 +64,8 @@ if ${error}; then
 fi
 
 if [ -z "$staged_test_files" ] && [ -z "$staged_doc_files" ]; then
-  echo "No terraform files staged for commit."
+  echo "✅ No terraform files staged for commit."
 fi
 
-printf "Script execution time: %.3f seconds\n" "$execution_time"
+printf "✅ Script execution time: %.3f seconds\n" "$execution_time"
 exit 0

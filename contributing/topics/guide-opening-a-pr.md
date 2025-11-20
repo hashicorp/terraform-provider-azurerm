@@ -41,7 +41,7 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 7. Once all comments have been addressed and tests pass the PR will be merged
 8. The maintainer will update the CHANGELOG.md.
 
-**Tip:** Install Git pre-commit hooks with `make git-precommit-hooks` to automatically catch formatting issues before committing. This prevents common CI failures and speeds up the review process.
+**Tip:** Install Git pre-commit hooks with `make install-precommit-hooks` to automatically catch formatting issues before committing. This prevents common CI failures and speeds up the review process.
 
 ## What makes a good PR?
 

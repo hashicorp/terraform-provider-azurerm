@@ -30,6 +30,8 @@ if ${error}; then
   echo "on windows:"
   echo "$ Get-ChildItem -Path . -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $_.fullName}"
   echo ""
+  echo "Install the pre-commit hook to detect this error earlier next time: make install-pre-commit-hooks"
+  echo ""
   exit 1
 fi
 

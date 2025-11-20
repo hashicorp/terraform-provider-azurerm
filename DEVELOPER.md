@@ -50,7 +50,7 @@ Once inside the provider directory, you can run `make tools` to install the depe
 To catch formatting errors earlier and increase development speed, it's highly recommended to install Git pre-commit hooks that will automatically run formatting checks before each commit:
 
 ```sh
-make git-precommit-hooks
+make install-precommit-hooks
 ```
 
 This will install a pre-commit hook that runs `terrafmt` to ensure your Terraform code blocks in acceptance tests are properly formatted. The hook will prevent commits if formatting issues are detected, allowing you to fix them immediately rather than waiting for CI checks.
