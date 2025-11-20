@@ -785,7 +785,7 @@ resource "azurerm_resource_group" "test2" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctest%[1]d"
+  name                        = "acctest%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
@@ -1155,7 +1155,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) zone2zone(data acceptance.TestData) string {
@@ -1604,7 +1604,7 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_key_vault" "test1" {
-  name                        = "acctest-%[1]d"
+  name                        = "acctest-%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id

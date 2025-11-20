@@ -366,7 +366,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -388,7 +388,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (LinkedServiceAzureBlobStorageResource) service_endpoint_with_service_principal_linked_key_vault_key(data acceptance.TestData, tenantID string) string {
@@ -415,7 +415,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -439,7 +439,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, tenantID)
 }
 
 func (LinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {
