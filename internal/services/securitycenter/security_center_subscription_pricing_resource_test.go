@@ -398,22 +398,22 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "CloudPosture"
   extension {
-    name = "AgentlessDiscoveryForKubernetes"
+    name                            = "AgentlessDiscoveryForKubernetes"
     additional_extension_properties = {}
   }
 
   extension {
-    name = "ContainerRegistriesVulnerabilityAssessments"
+    name                            = "ContainerRegistriesVulnerabilityAssessments"
     additional_extension_properties = {}
   }
 
   extension {
-    name = "EntraPermissionsManagement"
+    name                            = "EntraPermissionsManagement"
     additional_extension_properties = {}
   }
 
   extension {
-    name = "SensitiveDataDiscovery"
+    name                            = "SensitiveDataDiscovery"
     additional_extension_properties = {}
   }
 }
