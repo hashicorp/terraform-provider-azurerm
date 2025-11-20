@@ -829,6 +829,8 @@ resource "azurerm_recovery_services_vault" "test" {
 
   monitoring {
     alerts_for_all_job_failures_enabled            = false
+    alerts_for_all_failover_issues_enabled         = false
+    alerts_for_all_replication_issues_enabled      = false
     alerts_for_critical_operation_failures_enabled = false
   }
 
