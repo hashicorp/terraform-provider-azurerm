@@ -1,6 +1,7 @@
 ## 4.55.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20251114.1193342` [GH-31103]
 * dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
 * `azurerm_mysql_flexible_server` - add support for `version` `8.4` [GH-31099]
 
