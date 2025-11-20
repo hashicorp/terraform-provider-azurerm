@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceResourceGroup() *pluginsdk.Resource {
@@ -39,31 +39,31 @@ func dataSourceResourceGroup() *pluginsdk.Resource {
 }
 
 func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
+	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resp, err := client.Get(ctx, name)
+	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("'Resource Group' %q was not found", name)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%q was not found", id)
 		}
-		return err
-	}
 
-	// @tombuildsstuff: intentionally leaving this for now, since this'll need
-	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
-	// but needs to be fixed (resourcegroups -> resourceGroups)
-	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
-	if err != nil {
 		return err
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("managed_by", pointer.From(resp.ManagedBy))
-	return tags.FlattenAndSet(d, resp.Tags)
+	d.Set("name", id.ResourceGroupName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("managed_by", pointer.From(model.ManagedBy))
+
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
