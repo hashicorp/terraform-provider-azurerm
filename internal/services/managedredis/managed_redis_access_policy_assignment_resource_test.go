@@ -101,7 +101,7 @@ resource "azurerm_managed_redis" "test" {
   name                = "acctest-redis-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Balanced_B1"
+  sku_name            = "Balanced_B0"
 
   default_database {
     access_keys_authentication_enabled = true

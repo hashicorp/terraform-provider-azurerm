@@ -23,7 +23,7 @@ resource "azurerm_managed_redis" "example" {
   name                = "example-managedredis"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_name            = "Enterprise_E10"
+  sku_name            = "Balanced_B0"
 
   default_database {
     access_keys_authentication_enabled = true
