@@ -198,7 +198,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
-				check.That(data.ResourceName).Key("extension.#").HasValue("0"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -397,6 +397,25 @@ provider "azurerm" {
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "CloudPosture"
+  extension {
+    name = "AgentlessDiscoveryForKubernetes"
+    additional_extension_properties = {}
+  }
+
+  extension {
+    name = "ContainerRegistriesVulnerabilityAssessments"
+    additional_extension_properties = {}
+  }
+
+  extension {
+    name = "EntraPermissionsManagement"
+    additional_extension_properties = {}
+  }
+
+  extension {
+    name = "SensitiveDataDiscovery"
+    additional_extension_properties = {}
+  }
 }
 `
 }
