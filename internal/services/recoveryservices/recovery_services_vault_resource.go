@@ -160,10 +160,28 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Default:  true,
 						},
 
+						"alerts_for_all_failover_issues_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"alerts_for_all_replication_issues_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"alerts_for_critical_operation_failures_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+
+						"email_notifications_for_site_recovery_enabled": {
+							Type:	 pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -835,17 +853,35 @@ func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.Mon
 		allJobAlert = vaults.AlertsStateEnabled
 	}
 
+	allFailoverAlert := vaults.AlertsStateDisabled
+	if v["alerts_for_all_failover_issues_enabled"].(bool) {
+		allFailoverAlert = vaults.AlertsStateEnabled
+	}
+
+	allReplicationAlert := vaults.AlertsStateDisabled
+	if v["alerts_for_all_replication_issues_enabled"].(bool) {
+		allReplicationAlert = vaults.AlertsStateEnabled
+	}
+
 	criticalOperation := vaults.AlertsStateDisabled
 	if v["alerts_for_critical_operation_failures_enabled"].(bool) {
 		criticalOperation = vaults.AlertsStateEnabled
 	}
 
+	emailNotification := vaults.AlertsStateDisabled
+	if v["email_notifications_for_site_recovery_enabled"].(bool) {
+		emailNotification = vaults.AlertsStateEnabled
+	}
+
 	return pointer.To(vaults.MonitoringSettings{
 		AzureMonitorAlertSettings: pointer.To(vaults.AzureMonitorAlertSettings{
 			AlertsForAllJobFailures: pointer.To(allJobAlert),
+			AlertsForAllFailoverIssues: pointer.To(allFailoverAlert),
+			AlertsForAllReplicationIssues: pointer.To(allReplicationAlert),
 		}),
 		ClassicAlertSettings: pointer.To(vaults.ClassicAlertSettings{
 			AlertsForCriticalOperations: pointer.To(criticalOperation),
+			EmailNotificationsForSiteRecovery: pointer.To(emailNotification),
 		}),
 	})
 }
@@ -856,21 +892,36 @@ func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSetting
 		return []interface{}{}
 	}
 	allJobAlert := false
+	allFailoverAlert := false
+	allReplicationAlert := false
 	criticalAlert := false
+	emailNotification := false
 
 	if input != nil {
 		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
 			allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
 		}
+		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues != nil {
+			allFailoverAlert = *input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues == vaults.AlertsStateEnabled
+		}
+		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues != nil {
+			allReplicationAlert = *input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues == vaults.AlertsStateEnabled
+		}
 		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
 			criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
+		}
+		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.EmailNotificationsForSiteRecovery != nil {
+			emailNotification = *input.ClassicAlertSettings.EmailNotificationsForSiteRecovery == vaults.AlertsStateEnabled
 		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"alerts_for_all_job_failures_enabled":            allJobAlert,
+			"alerts_for_all_failover_issues_enabled":         allFailoverAlert,
+			"alerts_for_all_replication_issues_enabled":      allReplicationAlert,
 			"alerts_for_critical_operation_failures_enabled": criticalAlert,
+			"email_notifications_for_site_recovery_enabled":  emailNotification,
 		},
 	}
 }
