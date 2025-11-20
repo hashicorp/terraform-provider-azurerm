@@ -165,7 +165,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251107.1191907
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251114.1193342
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -749,18 +749,16 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstart
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstop
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servervalidateestimatehighavailability
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backupvaults
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/poolchange
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumequotarules
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans
@@ -1269,7 +1267,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20251107.1191907
+# github.com/hashicorp/go-azure-sdk/sdk v0.20251114.1193342
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
