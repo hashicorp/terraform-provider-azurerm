@@ -9,8 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 )
 
 // RestartServer restarts a PostgreSQL Flexible Server.
@@ -18,7 +17,7 @@ import (
 // If the server is already in a restarting state, it waits for the operation to complete.
 // If the server is disabled or stopped, it returns an error.
 // If the server is in a valid state, it initiates the restart operation.
-func (c *Client) RestartServer(ctx context.Context, id serverrestart.FlexibleServerId) error {
+func (c *Client) RestartServer(ctx context.Context, id servers.FlexibleServerId) error {
 	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 	for {
@@ -43,7 +42,7 @@ func (c *Client) RestartServer(ctx context.Context, id serverrestart.FlexibleSer
 			continue
 		default:
 			// Server is ready, we can proceed with the restart
-			if err := c.ServerRestartClient.ServersRestartThenPoll(ctx, id, serverrestart.RestartParameter{}); err != nil {
+			if err := c.FlexibleServersClient.RestartThenPoll(ctx, id, servers.RestartParameter{}); err != nil {
 				return fmt.Errorf("restarting server %s: %+v", id, err)
 			}
 			return nil

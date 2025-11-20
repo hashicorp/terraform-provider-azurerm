@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
@@ -101,8 +101,8 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 
 	properties := databases.Database{
 		Properties: &databases.DatabaseProperties{
-			Charset:   utils.String(d.Get("charset").(string)),
-			Collation: utils.String(d.Get("collation").(string)),
+			Charset:   pointer.To(d.Get("charset").(string)),
+			Collation: pointer.To(d.Get("collation").(string)),
 		},
 	}
 
