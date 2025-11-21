@@ -596,7 +596,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
 				identity, err := flattenMongoClusterIdentity(model.Identity)
 				if err != nil {
-					return err
+					fmt.Errorf("flattening identity: %+v", err)
 				}
 				state.Identity = identity
 

@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
+* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possible values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
@@ -133,7 +133,9 @@ An `identity` block supports the following:
 
 * `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign.
+
+-> **Note:** Required when `type` is set to `UserAssigned`.
 
 ---
 
