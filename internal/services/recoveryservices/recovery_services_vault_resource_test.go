@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -832,7 +832,7 @@ resource "azurerm_recovery_services_vault" "test" {
     alerts_for_all_failover_issues_enabled         = false
     alerts_for_all_replication_issues_enabled      = false
     alerts_for_critical_operation_failures_enabled = false
-    email_notifications_for_critical_operations_enabled = false
+    email_notifications_for_site_recovery_enabled = false
   }
 
   soft_delete_enabled = false
