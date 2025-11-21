@@ -33,6 +33,7 @@ type DashboardGrafanaModel struct {
 	Location                          string                                            `tfschema:"location"`
 	PublicNetworkAccessEnabled        bool                                              `tfschema:"public_network_access_enabled"`
 	Sku                               string                                            `tfschema:"sku"`
+	SkuSize                           string                                            `tfschema:"sku_size"`
 	Tags                              map[string]string                                 `tfschema:"tags"`
 	ZoneRedundancyEnabled             bool                                              `tfschema:"zone_redundancy_enabled"`
 	Endpoint                          string                                            `tfschema:"endpoint"`
@@ -205,6 +206,16 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"sku_size": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedgrafanas.SizeXOne),
+				string(managedgrafanas.SizeXTwo),
+			}, false),
+		},
+
 		"tags": commonschema.Tags(),
 
 		"zone_redundancy_enabled": {
@@ -300,6 +311,10 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 					Name: model.Sku,
 				},
 				Tags: &model.Tags,
+			}
+
+			if model.SkuSize != "" {
+				properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
 			}
 
 			if err := client.GrafanaCreateThenPoll(ctx, id, *properties); err != nil {
@@ -495,6 +510,9 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 
 			if model.Sku != nil {
 				state.Sku = model.Sku.Name
+				if model.Sku.Size != nil {
+					state.SkuSize = string(*model.Sku.Size)
+				}
 			}
 
 			if model.Tags != nil {
