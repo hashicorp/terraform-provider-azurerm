@@ -115,9 +115,9 @@ The following arguments are supported:
 
 * `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
-
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
+
+* `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
 ---
 

@@ -215,6 +215,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"administrator_username"},
 		},
 
+		// `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
 		"auth_config_allowed_modes": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
