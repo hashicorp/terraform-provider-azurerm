@@ -12,8 +12,6 @@ if ! command -v terrafmt &> /dev/null; then
     exit 1
 fi
 
-echo "Checking staged terraform files for formatting issues..."
-
 staged_test_files=$(git diff --cached --name-only --diff-filter=ACM | grep "_test\.go$" || true)
 staged_doc_files=$(git diff --cached --name-only --diff-filter=ACM | grep "\.html\.markdown$" || true)
 
@@ -64,8 +62,10 @@ if ${error}; then
 fi
 
 if [ -z "$staged_test_files" ] && [ -z "$staged_doc_files" ]; then
-  echo "✅ No terraform files staged for commit."
+  echo "✅ No _test.go or .html.markdown files staged for commit."
+else
+  echo "✅ All staged _test.go and .html.markdown files are correctly formatted."
 fi
 
-printf "✅ Script execution time: %.3f seconds\n" "$execution_time"
+printf "Script execution time: %.3f seconds\n" "$execution_time"
 exit 0

@@ -45,16 +45,6 @@ cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
 
 Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
 
-### Setting up Pre-commit Hooks (Recommended)
-
-To catch formatting errors earlier and increase development speed, it's highly recommended to install Git pre-commit hooks that will automatically run formatting checks before each commit:
-
-```sh
-make install-precommit-hooks
-```
-
-This will install a pre-commit hook that runs `terrafmt` to ensure your Terraform code blocks in acceptance tests are properly formatted. The hook will prevent commits if formatting issues are detected, allowing you to fix them immediately rather than waiting for CI checks.
-
 At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
@@ -160,4 +150,14 @@ You can scaffold the documentation for a Resource by running:
 
 ```sh
 make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
+```
+
+---
+
+## Pre-commit Hooks (Recommended)
+
+To catch linters and checks errors earlier and reduce PR review cycle time, it's highly recommended to install the builtin git pre-commit hooks:
+
+```sh
+make install-precommit-hooks
 ```
