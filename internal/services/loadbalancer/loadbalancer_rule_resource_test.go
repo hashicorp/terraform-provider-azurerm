@@ -54,9 +54,12 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
 
+	// complete template requires a 'Standard' SKU.
+	// In order to avoid "requires replacement" for the LB resource, we first need to deploy
+	// the basic template with the 'Standard' SKU.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicWithSku(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -70,7 +73,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basicWithSku(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -301,7 +304,15 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
+// Tests that use the basic template usually require only the 'Basic' SKU, so use as the default
 func (r LoadBalancerRule) basic(data acceptance.TestData) string {
+	return r.basicWithSku(data, "Basic")
+}
+
+// Allow the 'basic' template to be configured with a different SKU, such as 'Standard'.
+// This flexibility helps certain tests, such as '_update', to use the basic and complete templates together in a test.
+// (complete template requires 'Standard')
+func (r LoadBalancerRule) basicWithSku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -313,7 +324,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
 }
-`, r.template(data, "Basic"), data.RandomInteger%100000000)
+`, r.template(data, sku), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
