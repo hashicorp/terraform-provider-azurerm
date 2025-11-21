@@ -5,7 +5,10 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20251114.1193342` [GH-31103]
 * dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
 * `azurerm_mysql_flexible_server` - add support for `version` `8.4` [GH-31099]
-* `azurerm_postgres_flexible_server` - update validation for `customer_managed_key.key_vault_key_id` and `customer_managed_key.geo_backup_key_vault_key_id` to allow managed HSM keys as input [GH31148]
+* `azurerm_postgres_flexible_server` - update validation for `customer_managed_key.key_vault_key_id` and `customer_managed_key.geo_backup_key_vault_key_id` to allow managed HSM keys as input [GH-31148]
+* `azurerm_cognitive_account` - update validation for `customer_managed_key.key_vault_key_id` to allow managed HSM keys as input [GH-31147]
+* `azurerm_data_factory` - update validation for `customer_managed_key_id` to allow managed HSM keys as input [GH-31146]
+* `azurerm_storage_encryption_scope` - update validation for `key_vault_key_id` to allow managed HSM keys as input [GH-31145]
 
 FEATURES:
 * **New Data Source**: `azurerm_api_management_workspace` [GH-30241]
