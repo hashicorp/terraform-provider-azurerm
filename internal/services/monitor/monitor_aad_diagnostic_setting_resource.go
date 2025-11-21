@@ -187,6 +187,13 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
+	pollerType := NewAadDiagnosticSettingCreatePoller(client, id)
+	poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
 
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
@@ -351,7 +358,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		client: client,
 		id:     *id,
 	}
-	initialDelayDuration := 15 * time.Second
+	initialDelayDuration := 20 * time.Second
 	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
@@ -450,7 +457,7 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,
 			},
-			PollInterval: 15 * time.Second,
+			PollInterval: 20 * time.Second,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	}
@@ -459,7 +466,45 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
 		},
-		PollInterval: 15 * time.Second,
+		PollInterval: 20 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
+	}, nil
+}
+
+var _ pollers.PollerType = &aadDiagnosticSettingCreatePoller{}
+
+type aadDiagnosticSettingCreatePoller struct {
+	client *diagnosticsettings.DiagnosticSettingsClient
+	id     diagnosticsettings.DiagnosticSettingId
+}
+
+func NewAadDiagnosticSettingCreatePoller(client *diagnosticsettings.DiagnosticSettingsClient, id diagnosticsettings.DiagnosticSettingId) *aadDiagnosticSettingCreatePoller {
+	return &aadDiagnosticSettingCreatePoller{
+		client: client,
+		id:     id,
+	}
+}
+
+func (p aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.Get(ctx, p.id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &pollers.PollResult{
+				HttpResponse: &client.Response{
+					Response: resp.HttpResponse,
+				},
+				PollInterval: 20 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
+	}
+
+	return &pollers.PollResult{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		PollInterval: 20 * time.Second,
+		Status:       pollers.PollingStatusSucceeded,
 	}, nil
 }
