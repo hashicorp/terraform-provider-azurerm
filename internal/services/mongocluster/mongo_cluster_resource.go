@@ -147,6 +147,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"preview_features": {
@@ -341,7 +342,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			parameter := mongoclusters.MongoCluster{
 				Location: location.Normalize(state.Location),
-				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
 				Identity: expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{
 					AuthConfig:        expandMongoClusterAuthConfig(state.AuthConfigAllowedModes),
@@ -594,12 +594,11 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
-				identity, err := flattenMongoClusterIdentity(model.Identity)
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 				if err != nil {
-					fmt.Errorf("flattening identity: %+v", err)
+					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = identity
+				state.Identity = pointer.From(identity)
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
@@ -860,32 +859,6 @@ func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.Us
 		Type:        identityObj.Type,
 		IdentityIds: identityIds,
 	}
-}
-
-func flattenMongoClusterIdentity(input *identity.UserAssignedMap) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return []identity.ModelUserAssigned{}, nil
-	}
-
-	if input.Type != identity.TypeUserAssigned {
-		return []identity.ModelUserAssigned{}, nil
-	}
-
-	identityIds := make([]string, 0)
-	for raw := range input.IdentityIds {
-		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
-		}
-		identityIds = append(identityIds, id.ID())
-	}
-
-	return []identity.ModelUserAssigned{
-		{
-			Type:        input.Type,
-			IdentityIds: identityIds,
-		},
-	}, nil
 }
 
 func expandMongoClusterCustomerManagedKey(input []CustomerManagedKey) *mongoclusters.EncryptionProperties {
