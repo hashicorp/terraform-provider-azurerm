@@ -46,12 +46,7 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pl
 }
 
 func (r ManagedRedisAccessPolicyAssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"object_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ManagedRedisAccessPolicyAssignmentDataSource) ModelObject() interface{} {
@@ -85,14 +80,6 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.User.ObjectId != nil {
-						state.ObjectID = *props.User.ObjectId
-					}
-				}
-			}
 
 			return metadata.Encode(&state)
 		},
