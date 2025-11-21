@@ -842,7 +842,7 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 	return results
 }
 
-func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.LegacySystemAndUserAssignedMap {
+func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.UserAssignedMap {
 	if len(input) == 0 {
 		return nil
 	}
@@ -856,13 +856,13 @@ func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.Le
 		}
 	}
 
-	return &identity.LegacySystemAndUserAssignedMap{
+	return &identity.UserAssignedMap{
 		Type:        identityObj.Type,
 		IdentityIds: identityIds,
 	}
 }
 
-func flattenMongoClusterIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
+func flattenMongoClusterIdentity(input *identity.UserAssignedMap) ([]identity.ModelUserAssigned, error) {
 	if input == nil {
 		return []identity.ModelUserAssigned{}, nil
 	}
