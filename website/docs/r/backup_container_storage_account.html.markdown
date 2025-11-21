@@ -40,7 +40,7 @@ resource "azurerm_backup_container_storage_account" "container" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

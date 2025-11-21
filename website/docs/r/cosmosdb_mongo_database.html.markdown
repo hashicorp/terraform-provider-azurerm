@@ -26,7 +26,7 @@ resource "azurerm_cosmosdb_mongo_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

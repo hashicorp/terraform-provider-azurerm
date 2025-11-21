@@ -174,7 +174,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("internal-error: polling support for the Content-Type %q was not implemented: %+v", contentType, err)
 		}
 
-		if result.Status == pollers.PollingStatusFailed || op.Status == statusFailed || op.Properties.ProvisioningState == statusFailed {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusFailed)) || strings.EqualFold(string(op.Status), string(statusFailed)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusFailed)) {
 			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
@@ -188,7 +188,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
-		if result.Status == pollers.PollingStatusCancelled || op.Status == statusCanceled || op.Properties.ProvisioningState == statusCanceled {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusCancelled)) || strings.EqualFold(string(op.Status), string(statusCanceled)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusCanceled)) {
 			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
@@ -202,7 +202,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
-		if result.Status == pollers.PollingStatusSucceeded || op.Status == statusSucceeded || op.Properties.ProvisioningState == statusSucceeded {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusSucceeded)) || strings.EqualFold(string(op.Status), string(statusSucceeded)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusSucceeded)) {
 			result.Status = pollers.PollingStatusSucceeded
 			return
 		}

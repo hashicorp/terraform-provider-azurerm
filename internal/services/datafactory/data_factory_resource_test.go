@@ -433,7 +433,7 @@ resource "azurerm_data_factory" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString)
 }
 
 func (DataFactoryResource) tagsUpdated(data acceptance.TestData) string {
@@ -676,7 +676,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -736,7 +736,7 @@ resource "azurerm_data_factory" "test" {
   customer_managed_key_id          = azurerm_key_vault_key.test.id
   customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (DataFactoryResource) globalParameter(data acceptance.TestData) string {

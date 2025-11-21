@@ -6,10 +6,15 @@ package check
 import (
 	"fmt"
 	"log"
+	"os"
 	"path"
+	"path/filepath"
+	"sort"
 	"strings"
+	"sync"
 
 	"github.com/fatih/color"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
@@ -112,9 +117,62 @@ func (p possibleValueDiff) Fix(line string) (result string, err error) {
 
 var _ Checker = (*possibleValueDiff)(nil)
 
+// sortPossibleValues sorts possible values in a sensible order
+// For weekdays, it maintains chronological order (Monday -> Sunday)
+// For other values, it sorts alphabetically (case-insensitive)
+func sortPossibleValues(values []string) []string {
+	if len(values) <= 1 {
+		return values
+	}
+
+	// Check if all values are weekdays
+	weekdayOrder := map[string]int{
+		"monday":    1,
+		"tuesday":   2,
+		"wednesday": 3,
+		"thursday":  4,
+		"friday":    5,
+		"saturday":  6,
+		"sunday":    7,
+		"Monday":    1,
+		"Tuesday":   2,
+		"Wednesday": 3,
+		"Thursday":  4,
+		"Friday":    5,
+		"Saturday":  6,
+		"Sunday":    7,
+	}
+
+	allWeekdays := true
+	for _, v := range values {
+		if _, ok := weekdayOrder[v]; !ok {
+			allWeekdays = false
+			break
+		}
+	}
+
+	sorted := make([]string, len(values))
+	copy(sorted, values)
+
+	if allWeekdays {
+		sort.Slice(sorted, func(i, j int) bool {
+			return weekdayOrder[sorted[i]] < weekdayOrder[sorted[j]]
+		})
+	} else {
+		sort.Slice(sorted, func(i, j int) bool {
+			return strings.ToLower(sorted[i]) < strings.ToLower(sorted[j])
+		})
+	}
+
+	return sorted
+}
+
 func patchWantEnums(want []string) string {
-	res := make([]string, len(want))
-	for idx, val := range want {
+	// Sort the values before formatting
+	sorted := sortPossibleValues(want)
+
+	res := make([]string, len(sorted))
+	for idx, val := range sorted {
 		res[idx] = "`" + val + "`"
 	}
 	if len(res) == 1 {
@@ -154,12 +212,21 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 
 	// if end property
 	if mdField.Subs == nil {
-		want := r.PossibleValues[fullPath]
+		wanted := r.PossibleValues[fullPath]
 		docVal := mdField.PossibleValues()
-		if missed, spare := SliceDiff(want, docVal, true); len(missed)+len(spare) > 0 {
-			if !mayExistsInDoc(mdField.Content, want) {
+		if missed, spare := SliceDiff(wanted, docVal, true); len(missed)+len(spare) > 0 {
+			// Check if this property has version changes before reporting error
+			// Skip possible value diff if this property has changes in new version upgrade.
+			// This is because it's not consistent whether possible values change should be documented or not when it's in the upgrade feature flag
+			if hasVersionChanges(r.ResourceType, fullPath) {
+				log.Printf("[SKIP] %s.%s: Skipping possible values validation due to version changes detected in upgrade guide (missed: %v, spare: %v)",
+					r.ResourceType, fullPath, missed, spare)
+				return
+			}
+
+			if !mayExistsInDoc(mdField.Content, wanted) {
 				base := newCheckBase(mdField.Line, fullPath, mdField)
-				res = append(res, newPossibleValueDiff(base, want, docVal, missed, spare))
+				res = append(res, newPossibleValueDiff(base, wanted, docVal, missed, spare))
 			}
 		}
 		return
@@ -219,4 +286,111 @@ func mayExistsInDoc(docLine string, want []string) bool {
 		}
 	}
 	return true
+}
+
+// hasVersionChanges checks if the field has version-related changes by parsing the upgrade guide
+func hasVersionChanges(resourceType, fieldPath string) bool {
+	upgradeGuideContent := getUpgradeGuideContent()
+	if upgradeGuideContent == "" {
+		return false
+	}
+
+	// Look for the resource section
+	resourceSectionPattern := fmt.Sprintf("### `%s`", resourceType)
+
+	// Find the resource section
+	lines := strings.Split(upgradeGuideContent, "\n")
+	resourceSectionStart := -1
+
+	for i, line := range lines {
+		if strings.Contains(line, resourceSectionPattern) {
+			resourceSectionStart = i
+			break
+		}
+	}
+
+	// Resource not found in upgrade guide
+	if resourceSectionStart == -1 {
+		return false
+	}
+
+	// Find the end of this resource section (next resource or major section)
+	resourceSectionEnd := len(lines)
+	for i := resourceSectionStart + 1; i < len(lines); i++ {
+		line := lines[i]
+		if strings.HasPrefix(line, "### `azurerm_") || strings.HasPrefix(line, "## ") {
+			resourceSectionEnd = i
+			break
+		}
+	}
+
+	// Get the content of this resource section
+	resourceSection := strings.Join(lines[resourceSectionStart:resourceSectionEnd], "\n")
+
+	// Check if the property is mentioned in this resource section
+	propertyPatterns := []string{
+		fmt.Sprintf("`%s`", fieldPath), // `property_name`
+		fmt.Sprintf(" %s ", fieldPath), // property_name with spaces
+		fmt.Sprintf(".%s ", fieldPath), // .property_name
+		fmt.Sprintf("`%s.", fieldPath), // `property_name.
+	}
+
+	// For nested properties like "site_config.remote_debugging_version", also check the last part
+	if strings.Contains(fieldPath, ".") {
+		parts := strings.Split(fieldPath, ".")
+		lastPart := parts[len(parts)-1]
+		propertyPatterns = append(propertyPatterns,
+			fmt.Sprintf("`%s`", lastPart), // `last_part`
+			fmt.Sprintf(" %s ", lastPart), // last_part with spaces
+		)
+	}
+
+	// Check if any pattern is found in the resource section
+	for _, pattern := range propertyPatterns {
+		if strings.Contains(resourceSection, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+var (
+	upgradeGuideContent  string
+	loadUpgradeGuideOnce sync.Once
+)
+
+// getUpgradeGuideContent loads and caches the upgrade guide content
+func getUpgradeGuideContent() string {
+	loadUpgradeGuideOnce.Do(func() {
+		docsDir := md.DocDir()
+
+		if upgradeFile := findUpgradeGuide(docsDir); upgradeFile != "" {
+			if content, err := os.ReadFile(upgradeFile); err == nil {
+				upgradeGuideContent = string(content)
+				log.Printf("Loaded upgrade guide from: %s", upgradeFile)
+				return
+			}
+		}
+
+		log.Printf("Warning: Could not find any *-upgrade-guide.html.markdown file in docs directory: %s", docsDir)
+		upgradeGuideContent = ""
+	})
+
+	return upgradeGuideContent
+}
+
+// findUpgradeGuide searches for upgrade guide files in the given directory
+func findUpgradeGuide(dir string) string {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return ""
+	}
+
+	pattern := filepath.Join(dir, "*-upgrade-guide.html.markdown")
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		return ""
+	}
+
+	return matches[0]
 }

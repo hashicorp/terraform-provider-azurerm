@@ -25,6 +25,8 @@ import (
 
 func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_database` resource has been deprecated in favor of `azurerm_managed_redis_database`",
+
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
 		Update: resourceRedisEnterpriseDatabaseUpdate,

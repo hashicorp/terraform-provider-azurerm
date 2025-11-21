@@ -23,7 +23,7 @@ output "servicebus_subscription" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription.
 

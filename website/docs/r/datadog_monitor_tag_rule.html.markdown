@@ -98,6 +98,12 @@ A `filter` block supports the following:
 
 * `action` - (Required) Allowed values Include or Exclude.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Tag Rule.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

@@ -82,7 +82,7 @@ resource "azurerm_container_app_job" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -106,11 +106,11 @@ The following arguments are supported:
 
 * `registry` - (Optional) One or more `registry` blocks as defined below.
 
-* `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below.
+* `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
-* `event_trigger_config` - (Optional) A `event_trigger_config` block as defined below.
+* `event_trigger_config` - (Optional) A `event_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
-* `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below.
+* `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
 ~> **Note:** Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
 
@@ -122,7 +122,7 @@ The following arguments are supported:
 
 A `template` block supports the following:
 
-* `container` - (Optional) A `container` block as defined below.
+* `container` - (Required) A `container` block as defined below.
 
 * `init_container` - (Optional) A `init_container` block as defined below.
 
@@ -168,11 +168,11 @@ An `init_container` block supports:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container.
 
 ~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
-* `memory` - (Required) The amount of memory to allocate to the container.
+* `memory` - (Optional) The amount of memory to allocate to the container.
 
 ~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
@@ -244,6 +244,8 @@ A `readiness_probe` block supports the following:
 
 * `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
+* `initial_delay` - (Optional) The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
+
 * `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - (Optional) The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
@@ -274,6 +276,8 @@ A `startup_probe` block supports the following:
 
 * `host` - (Optional) The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
+* `initial_delay` - (Optional) The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
+
 * `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
@@ -302,13 +306,13 @@ A `volume_mounts` block supports the following:
 
 A `volume` block supports the following:
 
-* `name` - (Optional) The name of the volume.
+* `name` - (Required) The name of the volume.
 
-* `storage_type` - (Optional) The type of storage to use for the volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`.
+* `storage_type` - (Optional) The type of storage to use for the volume. Possible values are `AzureFile`, `EmptyDir`, `NfsAzureFile` and `Secret`. Defaults to `EmptyDir`.
 
 * `storage_name` - (Optional) The name of the storage to use for the volume.
 
-* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
+* `mount_options` - (Optional) Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
 ---
 
@@ -338,7 +342,7 @@ A `registry` block supports the following:
 
 * `password_secret_name` - (Optional) The name of the Secret that contains the registry login password.
 
-* `server` - (Optional) The URL of the Azure Container Registry server.
+* `server` - (Required) The URL of the Azure Container Registry server.
 
 ---
 
@@ -384,11 +388,11 @@ A `scale` block supports the following:
 
 A `rules` block supports the following:
 
-* `name` - (Optional) Name of the scale rule.
+* `name` - (Required) Name of the scale rule.
 
-* `custom_rule_type` - (Optional) Type of the scale rule.
+* `custom_rule_type` - (Required) Type of the scale rule. Possible values are `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`, `solace-event-queue` and `github-runner`.
 
-* `metadata` - (Optional) Metadata properties to describe the scale rule.
+* `metadata` - (Required) Metadata properties to describe the scale rule.
 
 * `authentication` - (Optional) A `authentication` block as defined below.
 
@@ -396,15 +400,15 @@ A `rules` block supports the following:
 
 A `authentication` block supports the following:
 
-* `secret_name` - (Optional) Name of the secret from which to pull the auth params.
+* `secret_name` - (Required) Name of the secret from which to pull the auth params.
 
-* `trigger_parameter` - (Optional) Trigger Parameter that uses the secret.
+* `trigger_parameter` - (Required) Trigger Parameter that uses the secret.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The type of identity used for the Container App Job. Possible values are `SystemAssigned`, `UserAssigned` and `None`. Defaults to `None`.
+* `type` - (Required) The type of identity used for the Container App Job. Possible values are `SystemAssigned`, `UserAssigned` and `None`.
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs to assign to the Container App Job.
 

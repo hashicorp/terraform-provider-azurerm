@@ -45,7 +45,7 @@ resource "azurerm_lb_probe" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -112,7 +112,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

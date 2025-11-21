@@ -37,7 +37,7 @@ resource "azurerm_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 The `encryption_settings` block supports:
 
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined below.
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined below.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
