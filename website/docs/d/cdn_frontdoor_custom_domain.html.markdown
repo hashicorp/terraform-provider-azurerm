@@ -54,7 +54,25 @@ A `tls` block exports the following:
 
 * `certificate_type` - The SSL certificate type.
 
-* `minimum_tls_version` - The TLS protocol version that will be used for Https connections.
+* `minimum_version` - The TLS protocol version that will be used for Https connections.
+
+* `cipher_suite` - A `cipher_suite` block as defined below.
+
+---
+
+A `cipher_suite` block exports the following:
+
+* `type` - The TLS policy type used for this Front Door Custom Domain.
+
+* `custom_ciphers` - A `custom_ciphers` block as defined below.
+
+---
+
+A `custom_ciphers` block exports the following:
+
+* `tls12` - A set of TLS 1.2 cipher suites.
+
+* `tls13` - A set of TLS 1.3 cipher suites.
 
 ---
 
@@ -63,3 +81,9 @@ A `tls` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-04-15
