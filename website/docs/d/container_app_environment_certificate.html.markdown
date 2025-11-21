@@ -22,6 +22,14 @@ data "azurerm_container_app_environment_certificate" "example" {
   name                         = "mycertificate"
   container_app_environment_id = data.azurerm_container_app_environment.example.id
 }
+
+output "certificate_thumbprint" {
+  value = data.azurerm_container_app_environment_certificate.example.thumbprint
+}
+
+output "certificate_key_vault_secret_id" {
+  value = data.azurerm_container_app_environment_certificate.example.certificate_key_vault[0].key_vault_secret_id
+}
 ```
 
 ## Arguments Reference
@@ -48,7 +56,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `thumbprint` - The Thumbprint of the Certificate.
 
+* `certificate_key_vault` - A `certificate_key_vault` block as defined below.
+
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+A `certificate_key_vault` block exports the following:
+
+* `identity` - The identity used to access the Key Vault.
+
+* `key_vault_secret_id` - The ID of the Key Vault Secret containing the certificate.
 
 ## Timeouts
 
