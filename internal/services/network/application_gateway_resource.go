@@ -4761,9 +4761,7 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
-	oldSkuTier, newSkuTier := d.GetChange("sku.0.tier")
-	oldTier := oldSkuTier.(string)
-	tier := newSkuTier.(string)
+	tier := d.Get("sku.0.tier").(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
 		err := checkBasicSkuFeatures(d)
@@ -4804,16 +4802,16 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
-	if tier != "" && oldTier != tier && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
+	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
 		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\"", tier)
 	}
 
-	oldSkuNameTmp, newSkuNameTmp := d.GetChange("sku.0.name")
-	oldSkuName := oldSkuNameTmp.(string)
-	newSkuName := newSkuNameTmp.(string)
+	if d.HasChange("sku.0.name") {
+		skuName := d.Get("sku.0.name").(string)
 
-	if newSkuName != "" && oldSkuName != newSkuName && slices.Contains(networkValidate.DeprecatedV1SkuNames, newSkuName) {
-		return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\"", newSkuName)
+		if skuName != "" && slices.Contains(networkValidate.DeprecatedV1SkuNames, skuName) {
+			return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\"", skuName)
+		}
 	}
 
 	return nil
