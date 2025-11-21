@@ -653,7 +653,7 @@ func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResourc
 
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
-- Argument names, `model`, and `properties` must be wrapped in backticks in error messages and validation messages.
+- Argument names, `model` and `properties` must be wrapped in backticks in error messages and validation messages.
 
 For example, in this case:
 

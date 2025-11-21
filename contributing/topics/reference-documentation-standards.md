@@ -114,14 +114,14 @@ A `block_attribute` exports the following:
 
 * `nested_attribute_2` - A much more monotonous attribute.
 
+```
+
 ## Timeouts
 
 When documenting timeouts, use the updated link format for all new resources:
 
 - **New resources**: Use `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
 - **Existing resources**: Continue using `https://www.terraform.io/language/resources/syntax#operation-timeouts` to maintain consistency
-
-```
 
 ## Notes
 
