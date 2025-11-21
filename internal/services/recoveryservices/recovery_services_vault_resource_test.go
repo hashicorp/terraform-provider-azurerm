@@ -832,7 +832,7 @@ resource "azurerm_recovery_services_vault" "test" {
     alerts_for_all_failover_issues_enabled         = false
     alerts_for_all_replication_issues_enabled      = false
     alerts_for_critical_operation_failures_enabled = false
-    email_notifications_for_site_recovery_enabled = false
+    email_notifications_for_site_recovery_enabled  = false
   }
 
   soft_delete_enabled = false

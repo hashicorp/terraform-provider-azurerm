@@ -142,6 +142,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// TODO Mark it as required for deprecation
 			"soft_delete_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -179,7 +180,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 						},
 
 						"email_notifications_for_site_recovery_enabled": {
-							Type:	 pluginsdk.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
@@ -717,8 +718,30 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	err = client.DeleteThenPoll(ctx, *id)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
+	}
+
+	// Azure Recovery Services Vault delete operation has eventual consistency issues
+	// The operation may complete but the vault still appears to exist briefly
+	// Add issue link TODO
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Exists", string(vaults.ProvisioningStateDeleting), string(vaults.ProvisioningStatePending)},
+		Target:                    []string{"NotFound"},
+		Refresh:                   resourceRecoveryServicesVaultDeleteRefreshFunc(ctx, client, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 20,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
@@ -875,12 +898,12 @@ func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.Mon
 
 	return pointer.To(vaults.MonitoringSettings{
 		AzureMonitorAlertSettings: pointer.To(vaults.AzureMonitorAlertSettings{
-			AlertsForAllJobFailures: pointer.To(allJobAlert),
-			AlertsForAllFailoverIssues: pointer.To(allFailoverAlert),
+			AlertsForAllJobFailures:       pointer.To(allJobAlert),
+			AlertsForAllFailoverIssues:    pointer.To(allFailoverAlert),
 			AlertsForAllReplicationIssues: pointer.To(allReplicationAlert),
 		}),
 		ClassicAlertSettings: pointer.To(vaults.ClassicAlertSettings{
-			AlertsForCriticalOperations: pointer.To(criticalOperation),
+			AlertsForCriticalOperations:       pointer.To(criticalOperation),
 			EmailNotificationsForSiteRecovery: pointer.To(emailNotification),
 		}),
 	})
@@ -941,5 +964,20 @@ func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfg
 		}
 
 		return resp, "error", fmt.Errorf("refreshing Recovery Service Vault Cfg %s: Properties is nil", id.String())
+	}
+}
+
+func resourceRecoveryServicesVaultDeleteRefreshFunc(ctx context.Context, client *vaults.VaultsClient, id vaults.VaultId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
 	}
 }
