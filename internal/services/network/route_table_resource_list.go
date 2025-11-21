@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -29,9 +28,6 @@ func (r RouteTableListResource) Metadata(_ context.Context, _ resource.MetadataR
 
 func (r RouteTableListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Network.RouteTables
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
-	defer cancel()
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
