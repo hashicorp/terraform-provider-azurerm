@@ -264,8 +264,7 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if !ok {
-		log.Printf("[DEBUG] Issuer %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
+		// parent key vault does not exist, nothing to delete
 		return nil
 	}
 
