@@ -153,6 +153,8 @@ The following arguments are supported:
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
 
+* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
+
 ---
 
 An `active_directory` block supports the following:
