@@ -79,9 +79,21 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`.
+* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possible values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
+
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
+
+* `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Defaults to `false`.
+
+~> **Note:** `data_api_mode_enabled` can only be set when `create_mode` is `Default`. Once enabled, it can only be disabled by recreating the resource.
+
+* `identity` - (Optional) An `identity` block as detailed below.
+
+-> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
+
+* `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
 
 * `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -91,6 +103,8 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_username` for the MongoDB Cluster.
 
+* `auth_config_allowed_modes` - (Optional) A list of allowed authentication modes for the MongoDB Cluster. Possible values are `NativeAuth` and `MicrosoftEntraID`.
+
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
@@ -99,9 +113,37 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the MongoDB Cluster.
 
-* `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
+* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
+
+* `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the key vault key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`.
+
+* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity that has access to the Key Vault Key.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible value is `UserAssigned`.
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign.
+
+-> **Note:** Required when `type` is set to `UserAssigned`.
+
+---
+
+A `restore` block supports the following:
+
+* `point_in_time_utc` - (Required) The point in time (in UTC) to restore from, in ISO 8601 format (e.g., `2024-01-01T00:00:00Z`). Changing this forces a new resource to be created.
+
+* `source_id` - (Required) The ID of the source MongoDB Cluster to restore from. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
