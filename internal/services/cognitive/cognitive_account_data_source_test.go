@@ -104,6 +104,7 @@ func TestAccCognitiveAccountDataSource_speechServicesWithStorage(t *testing.T) {
 }
 
 func TestAccCognitiveAccountDataSource_qnaRuntimeEndpoint(t *testing.T) {
+	t.Skipf("skipping as there is no available quota for kind `QnAMaker`")
 	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")
 	r := CognitiveAccountDataSource{}
 
@@ -120,6 +121,7 @@ func TestAccCognitiveAccountDataSource_qnaRuntimeEndpoint(t *testing.T) {
 }
 
 func TestAccCognitiveAccountDataSource_metricsAdvisor(t *testing.T) {
+	t.Skipf("skipping as there is no available quota for kind `MetricsAdvisor`")
 	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")
 	r := CognitiveAccountDataSource{}
 
