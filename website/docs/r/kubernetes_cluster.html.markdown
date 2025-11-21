@@ -425,6 +425,8 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
+* `pod_ip_allocation_mode` - (Optional) Pod IP Allocation Mode. The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.
+
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
