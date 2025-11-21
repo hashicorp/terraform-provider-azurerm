@@ -104,7 +104,7 @@ A `monitoring` block supports the following:
 
 * `alerts_for_critical_operation_failures_enabled` - (Optional) Enabling/Disabling alerts from the older (classic alerts) solution. Defaults to `true`. More details could be found [here](https://learn.microsoft.com/en-us/azure/backup/monitoring-and-alerts-overview).
 
-* `email_notifications_for_site_recovery_enabled` - (Optional) Enabling/Disabling email notifications for site recovery (classic alerts) solution. Defaults to `false`.
+* `email_notifications_for_site_recovery_enabled` - (Optional) Enabling/Disabling email notifications for site recovery (classic alerts) solution. Defaults to `true`.
 
 ---
 
