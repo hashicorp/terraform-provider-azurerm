@@ -78,6 +78,8 @@ func TestAccEventGridTopic_update(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinGeopair"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
 			),
 		},
 		data.ImportStep(),
@@ -204,7 +206,23 @@ func TestAccEventGridTopic_minimumTlsVersion(t *testing.T) {
 			Config: r.minimumTlsVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridTopic_dataResidencyBoundary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataResidencyBoundary(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinGeopair"),
 			),
 		},
 		data.ImportStep(),
@@ -256,10 +274,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventgrid_topic" "test" {
-  name                = "acctesteg-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  local_auth_enabled  = false
+  name                    = "acctesteg-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  local_auth_enabled      = false
+  minimum_tls_version     = "1.2"
+  data_residency_boundary = "WithinGeopair"
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -348,7 +369,31 @@ resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  minimum_tls_version = "1.1"
+  minimum_tls_version = "1.2"
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) dataResidencyBoundary(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                    = "acctesteg-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  data_residency_boundary = "WithinRegion"
 
   tags = {
     "foo" = "bar"

@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Specifies the data residency boundary. Possible values are `WithinGeopair`, `WithinRegion`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.

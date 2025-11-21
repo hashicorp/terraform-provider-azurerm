@@ -151,6 +151,16 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"data_residency_boundary": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.DataResidencyBoundaryWithinGeopair),
+				ValidateFunc: validation.StringInSlice(
+					domains.PossibleValuesForDataResidencyBoundary(),
+					false,
+				),
+			},
+
 			"auto_create_topic_with_first_subscription": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -312,6 +322,14 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		payload.Properties.AutoDeleteTopicWithLastSubscription = pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool))
 	}
 
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
+	}
+
 	if d.HasChange("inbound_ip_rule") {
 		inboundIpRule := d.Get("inbound_ip_rule").([]interface{})
 
@@ -415,11 +433,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
 
-			minimumTlsVersion := string(domains.TlsVersionOnePointTwo)
-			if props.MinimumTlsVersionAllowed != nil {
-				minimumTlsVersion = string(*props.MinimumTlsVersionAllowed)
-			}
-			d.Set("minimum_tls_version", minimumTlsVersion)
+			d.Set("data_residency_boundary", *props.DataResidencyBoundary)
+			d.Set("minimum_tls_version", *props.MinimumTlsVersionAllowed)
 
 			autoDeleteTopicWithLastSubscription := true
 			if props.AutoDeleteTopicWithLastSubscription != nil {
