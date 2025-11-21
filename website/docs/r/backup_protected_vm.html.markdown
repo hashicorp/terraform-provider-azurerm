@@ -105,4 +105,4 @@ terraform import azurerm_backup_protected_vm.item1 "/subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices` - 2024-01-01
+* `Microsoft.RecoveryServices` - 2025-02-01
