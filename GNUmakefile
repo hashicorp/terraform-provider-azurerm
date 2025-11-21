@@ -156,4 +156,15 @@ resource-counts:
 
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts
+install-precommit-hooks:
+	@echo "==> Installing git pre-commit hooks..."
+	@if [ -f .git/hooks/pre-commit ] || [ -L .git/hooks/pre-commit ]; then \
+		echo "ERROR: A pre-commit hook already exists at .git/hooks/pre-commit"; \
+		echo "Please backup and remove before installing."; \
+		exit 1; \
+	fi
+	@mkdir -p .git/hooks
+	@ln -s scripts/pre-commit-hooks/pre-commit.sh .git/hooks/pre-commit
+	@echo "Git pre-commit hook symlink installed successfully!"
+
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts install-precommit-hooks

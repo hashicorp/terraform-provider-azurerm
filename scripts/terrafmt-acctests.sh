@@ -30,6 +30,8 @@ if ${error}; then
   echo "on windows:"
   echo "$ Get-ChildItem -Path . -Recurse -Filter \"*_test.go\" | foreach {terrafmt fmt -f $_.fullName}"
   echo ""
+  echo "Install the pre-commit hook to detect this error earlier next time: make install-pre-commit-hooks"
+  echo ""
   exit 1
 fi
 
