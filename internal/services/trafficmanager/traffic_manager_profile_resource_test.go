@@ -219,6 +219,15 @@ func TestAccTrafficManagerProfile_trafficView(t *testing.T) {
 				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withTrafficView(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
