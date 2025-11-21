@@ -211,7 +211,6 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
 			"tags": commonschema.Tags(),
@@ -221,6 +220,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			validate.CMKIdentityIdRequiredAtCreation,
 		),
 	}
 }
@@ -387,10 +387,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					customerManagedKeyId = keyId.ID()
 				}
 
-				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
-					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+				if encIdentity := enc.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
+					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 					if err != nil {
-						return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
+						return err
 					}
 					customerManagedKeyIdentityId = parsed.ID()
 				}
