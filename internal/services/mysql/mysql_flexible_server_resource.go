@@ -329,6 +329,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
+					string(validate.ServerVersionEightPointFour),
 				}, false),
 			},
 

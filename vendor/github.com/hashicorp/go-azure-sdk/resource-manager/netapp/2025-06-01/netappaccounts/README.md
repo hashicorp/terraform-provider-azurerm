@@ -173,3 +173,37 @@ if err := client.AccountsUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
+
+
+### Example Usage: `NetAppAccountsClient.BackupsUnderAccountMigrateBackups`
+
+```go
+ctx := context.TODO()
+id := netappaccounts.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName")
+
+payload := netappaccounts.BackupsMigrationRequest{
+	// ...
+}
+
+
+if err := client.BackupsUnderAccountMigrateBackupsThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `NetAppAccountsClient.VolumeGroupsListByNetAppAccount`
+
+```go
+ctx := context.TODO()
+id := netappaccounts.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName")
+
+// alternatively `client.VolumeGroupsListByNetAppAccount(ctx, id)` can be used to do batched pagination
+items, err := client.VolumeGroupsListByNetAppAccountComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```

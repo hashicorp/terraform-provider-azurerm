@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
-* `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Defaults to `false`. 
+* `data_api_mode_enabled` - (Optional) Is the Data API for the MongoDB Cluster enabled? Defaults to `false`.
 
 ~> **Note:** `data_api_mode_enabled` can only be set when `create_mode` is `Default`. Once enabled, it can only be disabled by recreating the resource.
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
 
-* `shard_count` -  (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
+* `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `source_location` - (Optional) The location of the source MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -151,11 +151,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the MongoDB Cluster.
 
-* `connection_strings` - The list of `connection_strings` blocks as defined below.
+* `connection_strings` - One or more `connection_strings` blocks as defined below.
 
 ---
 
-A `connection_strings` exports the following:
+A `connection_strings` block exports the following:
 
 * `name` - The name of the connection string.
 
