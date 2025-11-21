@@ -98,7 +98,13 @@ A `monitoring` block supports the following:
 
 * `alerts_for_all_job_failures_enabled` - (Optional) Enabling/Disabling built-in Azure Monitor alerts for security scenarios and job failure scenarios. Defaults to `true`.
 
+* `alerts_for_all_failover_issues_enabled` - (Optional) Enabling/Disabling built-in Azure Monitor alerts for all failover issues. Defaults to `true`.
+
+* `alerts_for_all_replication_issues_enabled` - (Optional) Enabling/Disabling built-in Azure Monitor alerts for all replication issues. Defaults to `true`.
+
 * `alerts_for_critical_operation_failures_enabled` - (Optional) Enabling/Disabling alerts from the older (classic alerts) solution. Defaults to `true`. More details could be found [here](https://learn.microsoft.com/en-us/azure/backup/monitoring-and-alerts-overview).
+
+* `email_notifications_for_site_recovery_enabled` - (Optional) Enabling/Disabling email notifications for site recovery (classic alerts) solution. Defaults to `true`.
 
 ---
 
@@ -139,4 +145,4 @@ terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices` - 2024-04-01, 2024-01-01
+* `Microsoft.RecoveryServices` - 2025-02-01

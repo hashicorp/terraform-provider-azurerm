@@ -4,5 +4,6 @@ package vaults
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ClassicAlertSettings struct {
-	AlertsForCriticalOperations *AlertsState `json:"alertsForCriticalOperations,omitempty"`
+	AlertsForCriticalOperations       *AlertsState `json:"alertsForCriticalOperations,omitempty"`
+	EmailNotificationsForSiteRecovery *AlertsState `json:"emailNotificationsForSiteRecovery,omitempty"`
 }
