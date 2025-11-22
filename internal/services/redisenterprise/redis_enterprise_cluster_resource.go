@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -63,7 +64,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
@@ -241,6 +241,10 @@ func resourceRedisEnterpriseClusterUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := redisenterprise.ClusterUpdate{
 		Tags: expandedTags,
+	}
+
+	if d.HasChange("sku_name") {
+		parameters.Sku = pointer.To(expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
