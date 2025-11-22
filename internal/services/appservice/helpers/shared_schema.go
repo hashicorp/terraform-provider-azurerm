@@ -1790,3 +1790,24 @@ func DefaultAuthSettingsProperties() *webapps.SiteAuthSettingsProperties {
 		TwitterConsumerSecretSettingName:        pointer.To(""),
 	}
 }
+
+// DefaultAuthV2SettingsProperties returns a `SiteAuthSettingsV2Properties` struct populated with "empty" and default values to clear previous configuration.
+func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
+	return &webapps.SiteAuthSettingsV2Properties{
+		Platform: &webapps.AuthPlatform{
+			Enabled: pointer.To(false),
+		},
+		GlobalValidation: &webapps.GlobalValidation{
+			RequireAuthentication: pointer.To(false),
+		},
+		IdentityProviders: &webapps.IdentityProviders{},
+		Login: &webapps.Login{
+			TokenStore: &webapps.TokenStore{
+				Enabled: pointer.To(false),
+			},
+		},
+		HTTPSettings: &webapps.HTTPSettings{
+			RequireHTTPS: pointer.To(false),
+		},
+	}
+}
