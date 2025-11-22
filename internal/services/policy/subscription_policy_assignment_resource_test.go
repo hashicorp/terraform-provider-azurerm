@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -274,6 +274,38 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyRequiresImport(t *
 		},
 		data.ImportStep(),
 		data.RequiresImportErrorStep(r.withCustomPolicyRequiresImport),
+	})
+}
+
+func TestAccSubscriptionPolicyAssignment_definitionVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDefinitionVersion(data, "9.*.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("definition_version").HasValue("9.*.*"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDefinitionVersion(data, "9.3.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("definition_version").HasValue("9.3.*"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDefinitionVersion(data, "9.3.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("definition_version").HasValue("9.3.0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -783,4 +815,32 @@ resource "azurerm_subscription_policy_assignment" "test" {
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary, description)
+}
+
+func (r SubscriptionAssignmentTestResource) withDefinitionVersion(data acceptance.TestData, version string) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+  definition_version   = %[3]q
+
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = [%[4]s]
+    }
+  })
+}
+`, template, data.RandomInteger, version, r.locations(data))
 }
