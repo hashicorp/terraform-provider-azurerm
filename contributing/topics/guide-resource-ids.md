@@ -85,6 +85,20 @@ func (r NatGatewayPublicIpAssociation) Read() sdk.ResourceFunc {
 }
 ```
 
+## Validate Resource ID
+
+When an argument accepts a resource ID, you should add a `ValidateFunc` to ensure the provided value is a valid resource ID format. This helps catch configuration errors early and provides clear feedback to users.
+
+```go
+"subnet_id": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: commonids.ValidateSubnetID,
+},
+```
+
+The validation function should correspond to the resource ID type being accepted. Common validation functions are available in the `commonids` package, while service-specific validation functions are available in their respective SDK packages.
+
 ## Generated Resource ID Parsers and Validators (legacy)
 
 Prior to generating the parser and validation functions within the SDK, we generated these functions in the provider with [this automation](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates the functions for all IDs defined in `resourceids.go`.
