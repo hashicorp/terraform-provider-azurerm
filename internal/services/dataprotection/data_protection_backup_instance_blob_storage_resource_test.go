@@ -6,6 +6,7 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -65,6 +66,45 @@ func TestAccDataProtectionBackupInstanceBlobStorage_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupInstanceBlobStorage_updateAnotherContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdateAnotherContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupInstanceBlobStorage_hybridPolicyNoContainers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.hybridNoContainers(data),
+			ExpectError: regexp.MustCompile("backup policy has a vault default retention set; storage_account_container_names cannot be empty"),
+		},
 	})
 }
 
@@ -260,6 +300,22 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r DataProtectionBackupInstanceBlobStorageResource) hybridNoContainers(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name               = "acctest-dbi-%d"
+  location           = azurerm_resource_group.test.location
+  vault_id           = azurerm_data_protection_backup_vault.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
 func (r DataProtectionBackupInstanceBlobStorageResource) completeUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -271,6 +327,23 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   storage_account_id              = azurerm_storage_account.test.id
   backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
   storage_account_container_names = [azurerm_storage_container.another.name]
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) completeUpdateAnotherContainer(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name                            = "acctest-dbi-%d"
+  location                        = azurerm_resource_group.test.location
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  storage_account_id              = azurerm_storage_account.test.id
+  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+  storage_account_container_names = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
