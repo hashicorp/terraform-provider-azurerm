@@ -34,7 +34,6 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dns_a_record":     dataSourceDnsARecord(),
 		"azurerm_dns_aaaa_record":  dataSourceDnsAAAARecord(),
 		"azurerm_dns_caa_record":   dataSourceDnsCaaRecord(),
 		"azurerm_dns_cname_record": dataSourceDnsCNameRecord(),
@@ -50,7 +49,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dns_a_record":     resourceDnsARecord(),
 		"azurerm_dns_aaaa_record":  resourceDnsAAAARecord(),
 		"azurerm_dns_caa_record":   resourceDnsCaaRecord(),
 		"azurerm_dns_cname_record": resourceDnsCNameRecord(),
@@ -66,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DnsZoneDataResource{},
+		DnsARecordDataResource{},
 	}
 }
 
@@ -73,5 +72,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DnsZoneResource{},
+		DnsARecordResource{},
 	}
 }
