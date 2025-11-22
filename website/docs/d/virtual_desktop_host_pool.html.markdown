@@ -52,11 +52,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `personal_desktop_assignment_type` - The type of personal desktop assignment in use by the Host Pool
 
+* `public_network_access` - Whether public network access is allowed for the Virtual Desktop Host Pool. 
+
 * `maximum_sessions_allowed` - The maximum number of users that can have concurrent sessions on a session host.
 
 * `preferred_app_group_type` - The preferred Application Group type for the Virtual Desktop Host Pool.
 
 * `scheduled_agent_updates` - A `scheduled_agent_updates` block as defined below.
+
+* `vm_template` - The VM template for session hosts configuration within hostpool. This is a JSON string.
 
 * `tags` - A mapping of tags to assign to the resource.
 
