@@ -1264,7 +1264,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["settings_json"] = string(settingValue)
 							}
 
-							for i := 0; i < n; i++ {
+							for i := range n {
 								if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == item.Name {
 									extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
 									break
