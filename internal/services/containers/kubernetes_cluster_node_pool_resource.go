@@ -572,9 +572,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if publicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int); publicIPPrefixSize != 0 {
-		profile.GatewayProfile = expandAgentPoolGatewayProfile(publicIPPrefixSize)
-	}
+	profile.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
 		profile.OsSKU = pointer.To(agentpools.OSSKU(osSku))
@@ -816,8 +814,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("gateway_public_ip_prefix_size") {
-		publicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int)
-		props.GatewayProfile = expandAgentPoolGatewayProfile(publicIPPrefixSize)
+		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
 	}
 
 	if d.HasChange("linux_os_config") {
