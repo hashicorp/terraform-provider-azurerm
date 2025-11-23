@@ -1933,7 +1933,7 @@ func expandAgentPoolGatewayProfile(publicIPPrefixSize int) *agentpools.AgentPool
 }
 
 func flattenAgentPoolGatewayProfile(input *agentpools.AgentPoolGatewayProfile) int {
-	if input == nil || input.PublicIPPrefixSize == nil {
+	if input == nil {
 		return 31
 	}
 	return int(*input.PublicIPPrefixSize)
