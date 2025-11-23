@@ -3913,7 +3913,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"pod_cidrs":                             utils.FlattenStringSlice(profile.PodCidrs),
 		"service_cidr":                          serviceCidr,
 		"service_cidrs":                         utils.FlattenStringSlice(profile.ServiceCidrs),
-		"static_egress_gateway_profile_enabled": flattenStaticEgressGatewayProfile(profile.StaticEgressGatewayProfile),
+		"static_egress_gateway_profile_enabled": pointer.From(profile.StaticEgressGatewayProfile.Enabled),
 		"outbound_type":                         outboundType,
 		"advanced_networking":                   advancedNetworking,
 	}
@@ -4687,13 +4687,6 @@ func expandStaticEgressGatewayProfile(enabled bool) *managedclusters.ManagedClus
 	return &managedclusters.ManagedClusterStaticEgressGatewayProfile{
 		Enabled: pointer.To(enabled),
 	}
-}
-
-func flattenStaticEgressGatewayProfile(profile *managedclusters.ManagedClusterStaticEgressGatewayProfile) bool {
-	if profile == nil || profile.Enabled == nil {
-		return false
-	}
-	return *profile.Enabled
 }
 
 func expandEdgeZone(input string) *edgezones.Model {
