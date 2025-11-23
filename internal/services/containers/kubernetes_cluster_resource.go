@@ -2320,8 +2320,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if d.HasChange("network_profile.0.static_egress_gateway_profile_enabled") {
-			enabled := d.Get("network_profile.0.static_egress_gateway_profile_enabled").(bool)
-			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(enabled)
+			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(d.Get("network_profile.0.static_egress_gateway_profile_enabled").(bool))
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -3573,8 +3572,8 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.Res
 		networkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(v.([]interface{}), d)
 	}
 
-	if enabled := config["static_egress_gateway_profile_enabled"].(bool); enabled {
-		networkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(enabled)
+	networkProfile.StaticEgressGatewayProfile = &managedclusters.ManagedClusterStaticEgressGatewayProfile{
+		Enabled: pointer.To(config["static_egress_gateway_profile_enabled"].(bool)),
 	}
 
 	return &networkProfile, nil
