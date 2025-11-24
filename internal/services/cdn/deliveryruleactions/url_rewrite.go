@@ -4,7 +4,7 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -59,7 +59,7 @@ func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeli
 func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsURLRewriteAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url rewrite action!")
+		return nil, errors.New("expected a delivery rule url rewrite action")
 	}
 
 	sourcePattern := ""

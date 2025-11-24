@@ -483,7 +483,7 @@ A `virtual_machine` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the Volume. Possible values are `default`, `hanaData`, `hanaLog`, `hanaShared` and `usrSap`. Changing this forces a new resource to be created.
 
 ~> **Note:** Possible value for Application Server and Central Server is `default`.
 
@@ -547,12 +547,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the SAP Three Tier Virtual Instance with new SAP System.
+* `create` - (Defaults to 1 hour) Used when creating the SAP Three Tier Virtual Instance with new SAP System.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAP Three Tier Virtual Instance with new SAP System.
-* `update` - (Defaults to 60 minutes) Used when updating the SAP Three Tier Virtual Instance with new SAP System.
-* `delete` - (Defaults to 60 minutes) Used when deleting the SAP Three Tier Virtual Instance with new SAP System.
+* `update` - (Defaults to 1 hour) Used when updating the SAP Three Tier Virtual Instance with new SAP System.
+* `delete` - (Defaults to 1 hour) Used when deleting the SAP Three Tier Virtual Instance with new SAP System.
 
 ## Import
 
@@ -561,3 +561,9 @@ SAP Three Tier Virtual Instances with new SAP Systems can be imported using the 
 ```shell
 terraform import azurerm_workloads_sap_three_tier_virtual_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Workloads/sapVirtualInstances/vis1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Workloads` - 2024-09-01

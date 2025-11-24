@@ -160,7 +160,7 @@ func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
+func TestAccMsSqlVirtualMachine_toggleAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
@@ -174,6 +174,13 @@ func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withAutoPatchingUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -802,7 +809,7 @@ func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -855,11 +862,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.object_id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -872,7 +879,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
@@ -882,7 +889,7 @@ func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -935,7 +942,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_application_password" "test" {
@@ -952,7 +959,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData) string {

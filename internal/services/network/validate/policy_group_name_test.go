@@ -54,5 +54,9 @@ func TestPolicyGroupName(t *testing.T) {
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the Policy Group Name to trigger a validation error for '%s'", tc.Input)
 		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for Policy Group Name '%s'", tc.Input)
+		}
 	}
 }

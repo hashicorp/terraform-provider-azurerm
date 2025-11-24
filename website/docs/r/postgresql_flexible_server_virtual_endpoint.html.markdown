@@ -59,17 +59,19 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "example" {
 
 -> **Note:** If creating multiple replicas, an error can occur if virtual endpoints are created before all replicas have been completed. To avoid this error, use a `depends_on` property on `azurerm_postgresql_flexible_server_virtual_endpoint` that references all Postgres Flexible Server Replicas.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Endpoint
+* `name` - (Required) The name of the Virtual Endpoint. Changing this forces a new resource to be created.
 
-* `source_server_id` - (Required) The Resource ID of the *Source* Postgres Flexible Server this should be associated with.
+* `source_server_id` - (Required) The Resource ID of the *Source* Postgres Flexible Server this should be associated with. Changing this forces a new resource to be created.
 
 * `replica_server_id` - (Required) The Resource ID of the *Replica* Postgres Flexible Server this should be associated with
 
-* `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported.
+~> **Note:** If a fail-over has occurred, you will be unable to update `replica_server_id`. You can remove the resource from state and reimport it back in with `source_server_id` and `replica_server_id` flipped and then update `replica_server_id`.
+
+* `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -79,17 +81,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
+* `create` - (Defaults to 10 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Virtual Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
+* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
+* `delete` - (Defaults to 5 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
 
 ## Import
 
 A PostgreSQL Flexible Virtual Endpoint can be imported using the `resource id`, e.g.
-
 ```shell
-terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1/virtualEndpoints/endpoint1
+terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/sourceServerName/virtualEndpoints/endpointName|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/replicaServerName/virtualEndpoints/endpointName"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

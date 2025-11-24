@@ -234,7 +234,7 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%d"
+  name                = "acctest-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -301,5 +301,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   ssl_state           = "SniEnabled"
   thumbprint          = azurerm_app_service_certificate.test.thumbprint
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, data.RandomInteger, data.RandomInteger, domain, data.RandomInteger, domain)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, data.RandomString, data.RandomInteger, domain, data.RandomInteger, domain)
 }

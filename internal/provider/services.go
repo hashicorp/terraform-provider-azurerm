@@ -79,9 +79,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
@@ -104,6 +104,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -157,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},
@@ -186,9 +188,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtestservice.Registration{},
 		loganalytics.Registration{},
+		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
+		managedredis.Registration{},
 		mobilenetwork.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
@@ -206,6 +210,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		policy.Registration{},
 		postgres.Registration{},
 		privatednsresolver.Registration{},
+		qumulo.Registration{},
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
@@ -298,7 +303,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			managedidentity.Registration{},
 			managementgroup.Registration{},
 			maps.Registration{},
-			mixedreality.Registration{},
 			monitor.Registration{},
 			mssql.Registration{},
 			mssqlmanagedinstance.Registration{},
@@ -337,12 +341,19 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	}()
 }
 
-func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
-	services := []sdk.FrameworkTypedServiceRegistration{
+func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
+	services := []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		cdn.Registration{},
+		compute.Registration{},
+		dataprotection.Registration{},
 		keyvault.Registration{},
+		mssql.Registration{},
+		network.Registration{},
+		managedredis.Registration{},
+		storage.Registration{},
 	}
 
 	return services

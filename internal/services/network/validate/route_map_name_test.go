@@ -22,6 +22,10 @@ func TestValidateRouteMapName(t *testing.T) {
 			ExpectError: false,
 		},
 		{
+			Input:       "8he.l-8l_o_8",
+			ExpectError: false,
+		},
+		{
 			Input:       strings.Repeat("s", 79),
 			ExpectError: false,
 		},
@@ -41,6 +45,10 @@ func TestValidateRouteMapName(t *testing.T) {
 		hasError := len(errors) > 0
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the Route Map Name to trigger a validation error for '%s'", tc.Input)
+		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for Route Map Name '%s'", tc.Input)
 		}
 	}
 }

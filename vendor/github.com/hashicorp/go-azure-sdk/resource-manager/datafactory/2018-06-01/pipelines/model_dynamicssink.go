@@ -11,9 +11,11 @@ import (
 var _ CopySink = DynamicsSink{}
 
 type DynamicsSink struct {
-	AlternateKeyName *interface{}              `json:"alternateKeyName,omitempty"`
-	IgnoreNullValues *bool                     `json:"ignoreNullValues,omitempty"`
-	WriteBehavior    DynamicsSinkWriteBehavior `json:"writeBehavior"`
+	AlternateKeyName             *interface{}              `json:"alternateKeyName,omitempty"`
+	BypassBusinessLogicExecution *interface{}              `json:"bypassBusinessLogicExecution,omitempty"`
+	BypassPowerAutomateFlows     *bool                     `json:"bypassPowerAutomateFlows,omitempty"`
+	IgnoreNullValues             *bool                     `json:"ignoreNullValues,omitempty"`
+	WriteBehavior                DynamicsSinkWriteBehavior `json:"writeBehavior"`
 
 	// Fields inherited from CopySink
 

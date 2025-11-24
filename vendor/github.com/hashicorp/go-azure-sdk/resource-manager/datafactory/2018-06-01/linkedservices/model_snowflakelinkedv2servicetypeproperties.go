@@ -19,8 +19,11 @@ type SnowflakeLinkedV2ServiceTypeProperties struct {
 	Password             SecretBase                   `json:"password"`
 	PrivateKey           SecretBase                   `json:"privateKey"`
 	PrivateKeyPassphrase SecretBase                   `json:"privateKeyPassphrase"`
+	Role                 *interface{}                 `json:"role,omitempty"`
+	Schema               *interface{}                 `json:"schema,omitempty"`
 	Scope                *interface{}                 `json:"scope,omitempty"`
 	TenantId             *interface{}                 `json:"tenantId,omitempty"`
+	UseUtcTimestamps     *bool                        `json:"useUtcTimestamps,omitempty"`
 	User                 *interface{}                 `json:"user,omitempty"`
 	Warehouse            interface{}                  `json:"warehouse"`
 }
@@ -35,8 +38,11 @@ func (s *SnowflakeLinkedV2ServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 		Database            interface{}                  `json:"database"`
 		EncryptedCredential *string                      `json:"encryptedCredential,omitempty"`
 		Host                *interface{}                 `json:"host,omitempty"`
+		Role                *interface{}                 `json:"role,omitempty"`
+		Schema              *interface{}                 `json:"schema,omitempty"`
 		Scope               *interface{}                 `json:"scope,omitempty"`
 		TenantId            *interface{}                 `json:"tenantId,omitempty"`
+		UseUtcTimestamps    *bool                        `json:"useUtcTimestamps,omitempty"`
 		User                *interface{}                 `json:"user,omitempty"`
 		Warehouse           interface{}                  `json:"warehouse"`
 	}
@@ -50,8 +56,11 @@ func (s *SnowflakeLinkedV2ServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 	s.Database = decoded.Database
 	s.EncryptedCredential = decoded.EncryptedCredential
 	s.Host = decoded.Host
+	s.Role = decoded.Role
+	s.Schema = decoded.Schema
 	s.Scope = decoded.Scope
 	s.TenantId = decoded.TenantId
+	s.UseUtcTimestamps = decoded.UseUtcTimestamps
 	s.User = decoded.User
 	s.Warehouse = decoded.Warehouse
 

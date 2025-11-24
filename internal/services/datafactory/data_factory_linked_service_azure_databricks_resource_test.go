@@ -200,7 +200,7 @@ resource "azurerm_data_factory" "test" {
 
 // Create a key vault so we can setup a KV linked service
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -231,7 +231,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     cluster_version       = "5.5.x-gpu-scala2.11"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (LinkedServiceDatabricksResource) newClusterConfig(data acceptance.TestData) string {

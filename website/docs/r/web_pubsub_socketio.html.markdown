@@ -36,15 +36,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Web PubSub Service should exist. Changing this forces a new Web PubSub Service to be created.
 
-* `sku` - (Required) The SKU to use for this Web PubSub Service. Possible values are `Free_F1`, `Standard_S1`, `Premium_P1`, and `Premium_P2`.
+* `sku` - (Required) One or more `sku` blocks as defined below.
 
 ---
 
 * `aad_auth_enabled` - (Optional) Whether Azure Active Directory authentication is enabled. Defaults to `true`.
-
-* `capacity` - (Optional) The number of units associated with this Web PubSub Service. Defaults to `1`. Possible values are `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90`, `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900` and `1000`.
-
-~> **Note:** The valid range depends on which `sku` is used. For `Free_F1` only `1` is supported, for `Standard_S1` and `Premium_P1` `1` through `100` are supported, and for `Premium_P2` the minimum capacity is `100`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -69,6 +65,16 @@ The following arguments are supported:
 * `tls_client_cert_enabled` - (Optional) Whether the service should request a client certificate during a TLS handshake. Defaults to `false`.
 
 ~> **Note:** `tls_client_cert_enabled` cannot be set to `true` when `sku` is `Free_F1`.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - (Required) The SKU to use for this Web PubSub Service. Possible values are `Free_F1`, `Standard_S1`, `Premium_P1`, and `Premium_P2`.
+
+* `capacity` - (Optional) The number of units associated with this Web PubSub Service. Defaults to `1`. Possible values are `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90`, `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900` and `1000`.
+
+~> **Note:** The valid range depends on which `sku` is used. For `Free_F1` only `1` is supported, for `Standard_S1` and `Premium_P1` `1` through `100` are supported, and for `Premium_P2` the minimum capacity is `100`.
 
 ---
 
@@ -104,7 +110,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web PubSub Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web PubSub Service.
@@ -118,3 +124,9 @@ Web PubSub Service for Socket.IOs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_web_pubsub_socketio.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

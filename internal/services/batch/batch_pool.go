@@ -5,6 +5,7 @@ package batch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -591,7 +592,7 @@ func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.Certifica
 
 func expandBatchPoolCertificateReference(ref map[string]interface{}) (*pool.CertificateReference, error) {
 	if len(ref) == 0 {
-		return nil, fmt.Errorf("Error: storage image reference should be defined")
+		return nil, errors.New("storage image reference should be defined")
 	}
 
 	id := ref["id"].(string)
@@ -626,7 +627,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	maxTaskRetryCount := int64(1)
 
-	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
+	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
 

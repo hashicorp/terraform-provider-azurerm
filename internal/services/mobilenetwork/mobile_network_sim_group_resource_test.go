@@ -149,7 +149,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -190,7 +190,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) requiresImport(data acceptance.TestData) string {
@@ -219,7 +219,7 @@ provider "azurerm" {
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -272,7 +272,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     key = "value"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) update(data acceptance.TestData) string {
@@ -293,7 +293,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -340,7 +340,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     key = "updated"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) template(data acceptance.TestData) string {

@@ -144,7 +144,7 @@ func (t SubscriptionTemplateDeploymentResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Subscription Template Deployment (%s): %+v", id, err)
 	}

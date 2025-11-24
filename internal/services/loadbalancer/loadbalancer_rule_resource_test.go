@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -158,7 +159,7 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	lbRuleName := fmt.Sprintf("LbRule-%s", data.RandomString)
+	lbRuleName := fmt.Sprintf("acctest-lb-rule-%d", data.RandomInteger%100000000)
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -279,7 +280,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%[1]d"
+  name                = "acctest-ip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -287,13 +288,13 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%[1]d"
+  name                = "acctest-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "%[3]s"
 
   frontend_ip_configuration {
-    name                 = "one-%[1]d"
+    name                 = "acctest-fe-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -301,28 +302,27 @@ resource "azurerm_lb" "test" {
 }
 
 func (r LoadBalancerRule) basic(data acceptance.TestData) string {
-	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule-%d"
   loadbalancer_id                = azurerm_lb.test.id
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
 }
-`, template, data.RandomStringOfLength(8))
+`, r.template(data, "Basic"), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name            = "LbRule-%s"
+  name            = "acctest-lb-rule-%d"
   loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
@@ -337,7 +337,29 @@ resource "azurerm_lb_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomStringOfLength(8))
+`, r.template(data, "Standard"), data.RandomInteger%100000000)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "test" {
+  name            = "acctest-lb-rule-%d"
+  loadbalancer_id = azurerm_lb.test.id
+
+  protocol      = "Tcp"
+  frontend_port = 3389
+  backend_port  = 3389
+
+  disable_outbound_snat   = true
+  floating_ip_enabled     = true
+  tcp_reset_enabled       = true
+  idle_timeout_in_minutes = 100
+  load_distribution       = "SourceIP"
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, r.template(data, "Standard"), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
@@ -363,26 +385,26 @@ func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "%d-address-pool"
+  name            = "acctest-pool-%d"
   loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name            = "probe-%d"
+  name            = "acctest-probe-%d"
   loadbalancer_id = azurerm_lb.test.id
   protocol        = "Tcp"
   port            = 443
 }
 
 resource "azurerm_lb_rule" "test" {
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule-%d"
   loadbalancer_id                = azurerm_lb.test.id
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
@@ -392,7 +414,7 @@ func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string 
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule-%d"
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -401,13 +423,13 @@ resource "azurerm_lb_rule" "test" {
 
 resource "azurerm_lb_rule" "test2" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule2-%d"
   protocol                       = "Udp"
   frontend_port                  = 3390
   backend_port                   = 3390
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
+`, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
@@ -417,7 +439,7 @@ func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) s
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule-%d"
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -426,13 +448,13 @@ resource "azurerm_lb_rule" "test" {
 
 resource "azurerm_lb_rule" "test2" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%s"
+  name                           = "acctest-lb-rule2-%d"
   protocol                       = "Udp"
   frontend_port                  = 3391
   backend_port                   = 3391
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
+`, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData, sku string) string {
@@ -506,7 +528,7 @@ func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName, 
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "%s"
+  name                           = "acctest%s"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -522,7 +544,7 @@ func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRule
 %s
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "%s"
+  name                           = "acctest%s"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -636,7 +658,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "abababa"
+  name            = "acctest-lb-rule-%[2]d"
   protocol        = "All"
   frontend_port   = 0
   backend_port    = 0
@@ -677,7 +699,7 @@ resource "azurerm_lb_backend_address_pool" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "abababa"
+  name            = "acctest-lb-rule-%[2]d"
   protocol        = "All"
   frontend_port   = 0
   backend_port    = 0

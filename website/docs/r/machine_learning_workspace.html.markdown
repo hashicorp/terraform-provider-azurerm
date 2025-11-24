@@ -9,7 +9,7 @@ description: |-
 
 Manages a Azure Machine Learning Workspace
 
-~> **NOTE:** For examples on how to set up the Azure Machine Learning workspace, together with compute and integrated services, see [Terraform Quickstart](https://github.com/Azure/terraform/tree/master/quickstart)
+~> **Note:** For examples on how to set up the Azure Machine Learning workspace, together with compute and integrated services, see [Terraform Quickstart](https://github.com/Azure/terraform/tree/master/quickstart)
 
 ## Example Usage
 
@@ -64,7 +64,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 
 ## Example Usage with Data encryption
 
-~> **NOTE:** The Key Vault must enable purge protection.
+~> **Note:** The Key Vault must enable purge protection.
 
 ```hcl
 provider "azurerm" {
@@ -158,7 +158,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 
 ## Example Usage with User Assigned Identity and Data Encryption
 
-~> **NOTE:** The Key Vault must enable purge protection.
+~> **Note:** The Key Vault must enable purge protection.
 
 ```hcl
 provider "azurerm" {
@@ -338,7 +338,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -354,7 +354,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
--> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
+-> **Note:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -362,11 +362,11 @@ The following arguments are supported:
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
--> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
+-> **Note:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet. Defaults to `true`.
 
-~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
+~> **Note:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
 * `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
@@ -390,6 +390,10 @@ The following arguments are supported:
 
 * `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
 
+* `service_side_encryption_enabled` - (Optional) Whether to enable service-side encryption with customer-managed keys (CMK). Default to `false`. Changing this forces a new resource to be created.
+
+!> **Note:** Setting `service_side_encryption_enabled` requires the `encryption` block to be set. When you use service-side encryption, Azure charges will continue to accrue during the soft delete retention period.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -400,7 +404,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Workspace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -418,7 +422,9 @@ An `encryption` block supports the following:
 
 An `managed_network` block supports the following:
 
-* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
+
+* `provision_on_creation_enabled` - (Optional) Set to trigger the provisioning of the managed VNet with the default options when creating a Machine Learning Workspace with the managed VNet enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -442,7 +448,6 @@ An `feature_store` block supports the following:
 
 ~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -463,11 +468,11 @@ An `identity` block exports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace.
 
 ## Import
@@ -477,3 +482,9 @@ Machine Learning Workspace can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

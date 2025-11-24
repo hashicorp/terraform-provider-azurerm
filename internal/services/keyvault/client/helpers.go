@@ -17,13 +17,19 @@ import (
 var (
 	keyVaultsCache = map[string]keyVaultDetails{}
 	keysmith       = &sync.RWMutex{}
-	lock           = map[string]*sync.RWMutex{}
 )
 
 type keyVaultDetails struct {
 	keyVaultId       string
 	dataPlaneBaseUri string
 	resourceGroup    string
+}
+
+func getCachedKeyVaule(key string) (keyVaultDetails, bool) {
+	keysmith.RLock()
+	v, ok := keyVaultsCache[key]
+	keysmith.RUnlock()
+	return v, ok
 }
 
 func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string) {
@@ -39,15 +45,7 @@ func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
-
-	if v, ok := keyVaultsCache[cacheKey]; ok {
+	if v, ok := getCachedKeyVaule(cacheKey); ok {
 		return &v.dataPlaneBaseUri, nil
 	}
 
@@ -75,15 +73,8 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
 
-	if _, ok := keyVaultsCache[cacheKey]; ok {
+	if _, ok := getCachedKeyVaule(cacheKey); ok {
 		return true, nil
 	}
 
@@ -116,16 +107,9 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	}
 
 	cacheKey := c.cacheKeyForKeyVault(*keyVaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
 
 	// Check the cache to determine if we have an entry for this key vault
-	if v, ok := keyVaultsCache[cacheKey]; ok {
+	if v, ok := getCachedKeyVaule(cacheKey); ok {
 		return &v.keyVaultId, nil
 	}
 
@@ -135,7 +119,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	}
 
 	// Now that the cache has been repopulated, check if we have the key vault or not
-	if v, ok := keyVaultsCache[cacheKey]; ok {
+	if v, ok := getCachedKeyVaule(cacheKey); ok {
 		return &v.keyVaultId, nil
 	}
 
@@ -146,13 +130,8 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 func (c *Client) Purge(keyVaultId commonids.KeyVaultId) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
 	delete(keyVaultsCache, cacheKey)
-	lock[cacheKey].Unlock()
+	keysmith.Unlock()
 }
 
 func (c *Client) cacheKeyForKeyVault(name string) string {

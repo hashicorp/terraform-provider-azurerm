@@ -215,7 +215,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -707,7 +707,7 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 			return *tier, nil
 		}
 	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanID)
+	return "", fmt.Errorf("no `sku` block was returned for App Service Plan ID %q", appServicePlanID)
 }
 
 func expandFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {

@@ -27,9 +27,9 @@ import (
 func runPostTestDestroy(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, providers *providerFactories, statePreDestroy *terraform.State) error {
 	t.Helper()
 
-	err := runProviderCommand(ctx, t, func() error {
+	err := runProviderCommand(ctx, t, wd, providers, func() error {
 		return wd.Destroy(ctx)
-	}, wd, providers)
+	})
 	if err != nil {
 		return err
 	}
@@ -67,13 +67,13 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 		var statePreDestroy *terraform.State
 		var err error
-		err = runProviderCommand(ctx, t, func() error {
-			statePreDestroy, err = getState(ctx, t, wd)
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
+			_, statePreDestroy, err = getState(ctx, t, wd)
 			if err != nil {
 				return err
 			}
 			return nil
-		}, wd, providers)
+		})
 		if err != nil {
 			logging.HelperResourceError(ctx,
 				"Error retrieving state, there may be dangling resources",
@@ -116,9 +116,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			t.Fatalf("TestCase error setting provider configuration: %s", err)
 		}
 
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			return wd.Init(ctx)
-		}, wd, providers)
+		})
 
 		if err != nil {
 			logging.HelperResourceError(ctx,
@@ -128,8 +128,6 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			t.Fatalf("TestCase error running init: %s", err.Error())
 		}
 	}
-
-	logging.HelperResourceDebug(ctx, "Starting TestSteps")
 
 	// use this to track last step successfully applied
 	// acts as default for import tests
@@ -249,14 +247,16 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				File:      step.ConfigFile,
 				Raw:       rawCfg,
 				TestStepConfigRequest: config.TestStepConfigRequest{
-					StepNumber: stepIndex + 1,
+					StepNumber: stepNumber,
 					TestName:   t.Name(),
 				},
 			}.Exec()
 
 			testStepConfig = teststep.Configuration(confRequest)
 
-			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			if !step.Query {
+				err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			}
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -266,15 +266,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				t.Fatalf("TestStep %d/%d error setting test provider configuration: %s", stepNumber, len(c.Steps), err)
 			}
 
-			err = runProviderCommand(
-				ctx,
-				t,
-				func() error {
-					return wd.Init(ctx)
-				},
-				wd,
-				providers,
-			)
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				return wd.Init(ctx)
+			})
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -289,7 +283,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		if step.ImportState {
 			logging.HelperResourceTrace(ctx, "TestStep is ImportState mode")
 
-			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepIndex)
+			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepNumber)
 			if step.ExpectError != nil {
 				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
 				if err == nil {
@@ -364,6 +358,41 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			continue
 		}
 
+		if step.Query {
+			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
+
+			queryConfigRequest := teststep.ConfigurationRequest{
+				Raw: &step.Config,
+			}
+			err := wd.SetQuery(ctx, teststep.Configuration(queryConfigRequest), step.ConfigVariables)
+			if err != nil {
+				t.Fatalf("Step %d/%d error setting query: %s", stepNumber, len(c.Steps), err)
+			}
+
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				return wd.Init(ctx)
+			})
+			if err != nil {
+				t.Fatalf("Step %d/%d error running init: %s", stepNumber, len(c.Steps), err)
+			}
+
+			var queryOut any
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				var err error
+				queryOut, err = wd.Query(ctx)
+				return err
+			})
+			if err != nil {
+				fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
+				t.Fatalf("Step %d/%d error running query: %s", stepNumber, len(c.Steps), err)
+			}
+
+			fmt.Printf("Step %d/%d Query Output:\n%s\n", stepNumber, len(c.Steps), queryOut)
+
+			continue
+
+		}
+
 		if cfg != nil {
 			logging.HelperResourceTrace(ctx, "TestStep is Config mode")
 
@@ -436,12 +465,13 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				t.Fatalf("Error generating merged configuration: %s", err)
 			}
 
+			// Preserve the step config for future test steps to use (import state)
 			confRequest := teststep.PrepareConfigurationRequest{
 				Directory: step.ConfigDirectory,
 				File:      step.ConfigFile,
 				Raw:       mergedConfig,
 				TestStepConfigRequest: config.TestStepConfigRequest{
-					StepNumber: stepIndex + 1,
+					StepNumber: stepNumber,
 					TestName:   t.Name(),
 				},
 			}.Exec()
@@ -461,18 +491,18 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 	}
 }
 
-func getState(ctx context.Context, t testing.T, wd *plugintest.WorkingDir) (*terraform.State, error) {
+func getState(ctx context.Context, t testing.T, wd *plugintest.WorkingDir) (*tfjson.State, *terraform.State, error) {
 	t.Helper()
 
 	jsonState, err := wd.State(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	state, err := shimStateFromJson(jsonState)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return state, nil
+	return jsonState, state, nil
 }
 
 func stateIsEmpty(state *terraform.State) bool {
@@ -582,17 +612,17 @@ func testIDRefresh(ctx context.Context, t testing.T, c TestCase, wd *plugintest.
 	}()
 
 	// Refresh!
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		err = wd.Refresh(ctx)
 		if err != nil {
 			t.Fatalf("Error running terraform refresh: %s", err)
 		}
-		state, err = getState(ctx, t, wd)
+		_, state, err = getState(ctx, t, wd)
 		if err != nil {
 			return err
 		}
 		return nil
-	}, wd, providers)
+	})
 	if err != nil {
 		return err
 	}
@@ -653,7 +683,7 @@ func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugin
 	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
 
 	baseDir := wd.BaseDir()
-	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+	rootBaseDir := strings.TrimPrefix(baseDir, workingDir)
 
 	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
 	if err != nil {

@@ -6,8 +6,10 @@ package dataprotection
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -20,8 +22,8 @@ import (
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
@@ -73,6 +75,35 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Required:     true,
 				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
+
+			"snapshot_subscription_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
+					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
+					_, planVaultId := d.GetChange("vault_id")
+					vaultId, err := backupinstances.ParseBackupVaultID(planVaultId.(string))
+					if err != nil {
+						return false
+					}
+
+					// oldValue represents the value in the state.
+					// newValue represents the value in the config, in case it is "", it means the user doesn't specify it in the config.
+					if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
+						return true
+					}
+
+					return false
+				},
+			},
+
+			"protection_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -108,26 +139,31 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))
+
+	snapshotSubscriptionId := subscriptionId
+	if v := d.Get("snapshot_subscription_id").(string); v != "" {
+		snapshotSubscriptionId = v
+	}
+	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
 			DataSourceInfo: backupinstances.Datasource{
-				DatasourceType:   utils.String("Microsoft.Compute/disks"),
-				ObjectType:       utils.String("Datasource"),
+				DatasourceType:   pointer.To("Microsoft.Compute/disks"),
+				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       diskId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(diskId.DiskName),
-				ResourceType:     utils.String("Microsoft.Compute/disks"),
-				ResourceUri:      utils.String(diskId.ID()),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(diskId.DiskName),
+				ResourceType:     pointer.To("Microsoft.Compute/disks"),
+				ResourceUri:      pointer.To(diskId.ID()),
 			},
-			FriendlyName: utils.String(id.BackupInstanceName),
+			FriendlyName: pointer.To(id.BackupInstanceName),
 			PolicyInfo: backupinstances.PolicyInfo{
 				PolicyId: policyId.ID(),
 				PolicyParameters: &backupinstances.PolicyParameters{
 					DataStoreParametersList: &[]backupinstances.DataStoreParameters{
 						backupinstances.AzureOperationalStoreParameters{
-							ResourceGroupId: utils.String(snapshotResourceGroupId.ID()),
+							ResourceGroupId: pointer.To(snapshotResourceGroupId.ID()),
 							DataStoreType:   backupinstances.DataStoreTypesOperationalStore,
 						},
 					},
@@ -188,6 +224,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			d.Set("disk_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 
+			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			if props.PolicyInfo.PolicyParameters != nil && props.PolicyInfo.PolicyParameters.DataStoreParametersList != nil && len(*props.PolicyInfo.PolicyParameters.DataStoreParametersList) > 0 {
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)
@@ -198,6 +235,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 						return err
 					}
 					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroup)
+					d.Set("snapshot_subscription_id", resourceGroupId.SubscriptionId)
 				}
 			}
 		}

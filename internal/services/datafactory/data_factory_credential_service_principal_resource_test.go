@@ -130,7 +130,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "kv%[2]d"
+  name                       = "acctest%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -179,7 +179,7 @@ resource "azurerm_key_vault_secret" "test2" {
   value        = "fakedsecret"
   key_vault_id = azurerm_key_vault.test.id
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r CredentialServicePrincipalResource) basic(data acceptance.TestData) string {

@@ -15,18 +15,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/systemtopics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/systemtopics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mgmtGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceEventGridSystemTopic() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceEventGridSystemTopicCreateUpdate,
 		Read:   resourceEventGridSystemTopicRead,
 		Update: resourceEventGridSystemTopicCreateUpdate,
@@ -62,13 +64,13 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
-			"source_arm_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"source_resource_id": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
 					mgmtGroupValidate.TenantScopedManagementGroupID,
@@ -82,8 +84,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
-			"metric_arm_resource_id": {
+			"metric_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -91,6 +92,40 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["source_arm_resource_id"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ConflictsWith:    []string{"source_resource_id"},
+			Deprecated:       "the `source_arm_resource_id` property has been deprecated in favour of `source_resource_id` and will be removed in version 5.0 of the Provider.",
+			ValidateFunc: validation.Any(
+				azure.ValidateResourceID,
+				mgmtGroupValidate.TenantScopedManagementGroupID,
+			),
+		}
+		resource.Schema["source_resource_id"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ConflictsWith:    []string{"source_arm_resource_id"},
+			ValidateFunc: validation.Any(
+				azure.ValidateResourceID,
+				mgmtGroupValidate.TenantScopedManagementGroupID,
+			),
+		}
+		resource.Schema["metric_arm_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -116,19 +151,24 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 	systemTopic := systemtopics.SystemTopic{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &systemtopics.SystemTopicProperties{
-			Source:    pointer.To(d.Get("source_arm_resource_id").(string)),
+			Source:    pointer.To(d.Get("source_resource_id").(string)),
 			TopicType: pointer.To(d.Get("topic_type").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("source_arm_resource_id"); ok {
+			systemTopic.Properties.Source = pointer.To(v.(string))
+		}
+	}
+
 	if v, ok := d.GetOk("identity"); ok {
-		identityRaw := v.([]interface{})
-		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		systemTopic.Identity = identity
+		systemTopic.Identity = expandedIdentity
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, systemTopic); err != nil {
@@ -167,9 +207,13 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("metric_arm_resource_id", props.MetricResourceId)
-			d.Set("source_arm_resource_id", props.Source)
+			d.Set("metric_resource_id", props.MetricResourceId)
+			d.Set("source_resource_id", props.Source)
 			d.Set("topic_type", props.TopicType)
+			if !features.FivePointOh() {
+				d.Set("source_arm_resource_id", props.Source)
+				d.Set("metric_arm_resource_id", props.MetricResourceId)
+			}
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

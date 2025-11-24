@@ -79,11 +79,11 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`. Changing this forces a new resource to be created.
+* `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
-* `shard_count` -  (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
+* `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `source_location` - (Optional) The location of the source MongoDB Cluster. Changing this forces a new resource to be created.
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
-* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0` and `7.0`.
+* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ## Attributes Reference
 
@@ -109,11 +109,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the MongoDB Cluster.
 
-* `connection_strings` - The list of `connection_strings` blocks as defined below.
+* `connection_strings` - One or more `connection_strings` blocks as defined below.
 
 ---
 
-A `connection_strings` exports the following:
+A `connection_strings` block exports the following:
 
 * `name` - The name of the connection string.
 
@@ -123,12 +123,12 @@ A `connection_strings` exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the MongoDB Cluster.
+* `create` - (Defaults to 1 hour) Used when creating the MongoDB Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MongoDB Cluster.
-* `update` - (Defaults to 30 minutes) Used when updating the MongoDB Cluster.
-* `delete` - (Defaults to 30 minutes) Used when deleting the MongoDB Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the MongoDB Cluster.
+* `delete` - (Defaults to 1 hour) Used when deleting the MongoDB Cluster.
 
 ## Import
 
@@ -137,3 +137,9 @@ MongoDB Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/mongoClusters/myMongoCluster
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2025-09-01

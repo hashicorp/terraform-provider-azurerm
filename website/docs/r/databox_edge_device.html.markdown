@@ -79,7 +79,7 @@ The `device_properties` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databox Edge Device.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databox Edge Device.
@@ -93,3 +93,9 @@ Databox Edge Devices can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databox_edge_device.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataBoxEdge` - 2022-03-01

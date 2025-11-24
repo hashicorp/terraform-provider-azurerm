@@ -44,7 +44,7 @@ QUERY
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `compatibility_level` - (Optional) Specifies the compatibility level for this job - which controls certain runtime behaviours of the streaming job. Possible values are `1.0`, `1.1` and `1.2`.
 
--> **NOTE:** Support for Compatibility Level 1.2 is dependent on a new version of the Stream Analytics API, which [being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/5604).
+-> **Note:** Support for Compatibility Level 1.2 is dependent on a new version of the Stream Analytics API, which [being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/5604).
 
 * `data_locale` - (Optional) Specifies the Data Locale of the Job, which [should be a supported .NET Culture](https://msdn.microsoft.com/en-us/library/system.globalization.culturetypes(v=vs.110).aspx). Defaults to `en-US`.
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `type` - (Optional) The type of the Stream Analytics Job. Possible values are `Cloud` and `Edge`. Defaults to `Cloud`. Changing this forces a new resource to be created.
 
--> **NOTE:** `Edge` doesn't support `stream_analytics_cluster_id` and `streaming_units`.
+-> **Note:** `Edge` doesn't support `stream_analytics_cluster_id` and `streaming_units`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `streaming_units` - (Optional) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`. A conversion table for V2 streaming units can be found [here](https://learn.microsoft.com/azure/stream-analytics/stream-analytics-streaming-unit-consumption#understand-streaming-unit-conversions-and-where-they-apply)
 
--> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
+-> **Note:** `streaming_units` must be set when `type` is `Cloud`.
 
 * `sku_name` - (Optional) The SKU Name to use for the Stream Analytics Job. Possible values are `Standard`, `StandardV2`. Defaults to `Standard`.
 
@@ -90,15 +90,17 @@ The following arguments are supported:
 
 ---
 
-~> **Note**: This block should be added to `ignore_changes` if the Stream Analytics' Job Storage Account is being managed by the `azurerm_stream_analytics_job_storage_account` resource.
+~> **Note:** This block should be added to `ignore_changes` if the Stream Analytics' Job Storage Account is being managed by the `azurerm_stream_analytics_job_storage_account` resource.
+
+---
 
 A `job_storage_account` block supports the following:
 
-* `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
+* `authentication_mode` - (Optional) The authentication mode of the storage account. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.
 
 * `account_name` - (Required) The name of the Azure storage account.
 
-* `account_key` - (Required) The account key for the Azure storage account.
+* `account_key` - (Optional) The account key for the Azure storage account.
 
 ---
 
@@ -132,11 +134,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Job.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Job.
 
 ## Import
@@ -146,3 +148,9 @@ Stream Analytics Job's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_stream_analytics_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics` - 2021-10-01-preview, 2020-03-01

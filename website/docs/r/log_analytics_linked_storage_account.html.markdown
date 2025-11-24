@@ -34,10 +34,10 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "example" {
-  data_source_type      = "CustomLogs"
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  storage_account_ids   = [azurerm_storage_account.example.id]
+  data_source_type    = "CustomLogs"
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  storage_account_ids = [azurerm_storage_account.example.id]
 }
 ```
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Linked Storage Account should exist. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
-* `workspace_resource_id` - (Required) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
+* `workspace_id` - (Optional) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
 * `storage_account_ids` - (Required) The storage account resource ids to be linked.
 
@@ -61,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Linked Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Linked Storage Account.
@@ -75,3 +75,9 @@ Log Analytics Linked Storage Accounts can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_log_analytics_linked_storage_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/{dataSourceType}
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2020-08-01
