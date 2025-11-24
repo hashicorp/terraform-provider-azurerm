@@ -85,7 +85,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scan_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Database system.
 
-* `scan_ips` - The list of Single Client Access Name (SCAN) IP addresses associated with the Database system. SCAN IP addresses are typically used for load balancing and are not assigned to any interface. Oracle Clusterware directs the requests to the appropriate nodes in the cluster. Note: For a single-node Database system, this list is empty.
+* `scan_ips` - The list of Single Client Access Name (SCAN) IP addresses associated with the Database system. SCAN IP addresses are typically used for load balancing and are not assigned to any interface. Oracle Clusterware directs the requests to the appropriate nodes in the cluster.
+-> **Note:** For a single-node Database system, this list is empty.
 
 * `shape` - The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory.
 

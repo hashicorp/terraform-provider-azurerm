@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `source` - (Required) The source of the database: Use NONE for creating a new database. The default is `None`. Changing this forces a new Database System to be created.
 
-* `ssh_public_keys` - (Required) Specifies a list of ssh public keys. The public key portion of one or more key pairs used for SSH access to the Database system. Changing this forces a new Database system to be created.
+* `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Database system. Changing this forces a new Database system to be created.
 
 * `zones` - (Required) Specifies a list of Database System zones. Changing this forces a new Database System to be created.
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `node_count` - (Optional) The number of nodes in the Database system. For RAC Database systems, the value is greater than 1. Changing this forces a new Database system to be created.
 
-* `pluggable_database_name` - (Optional) The name of the pluggable database. The name must begin with an alphabetic character and can contain a maximum of thirty alphanumeric characters. Special characters are not permitted. Pluggable database name should not be same as database name. Changing this forces a new Database system to be created.
+* `pluggable_database_name` - (Optional) The name of the pluggable database. The name must begin with an alphabetic character and can contain a maximum of thirty alphanumeric characters. Special characters are not permitted. The pluggable database name should not be the same as the database name. Changing this forces a new Database system to be created.
 
 * `storage_volume_performance_mode` - (Optional) The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information. Changing this forces a new Database system to be created.
 
