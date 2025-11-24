@@ -29,7 +29,7 @@ output "spring_cloud_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

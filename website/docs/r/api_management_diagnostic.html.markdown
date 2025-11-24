@@ -97,7 +97,7 @@ resource "azurerm_api_management_diagnostic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

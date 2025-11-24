@@ -33,7 +33,7 @@ output "backend_ip_configuration_ids" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Backend Address Pool.
 

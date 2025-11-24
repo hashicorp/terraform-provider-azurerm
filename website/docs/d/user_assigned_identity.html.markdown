@@ -32,7 +32,7 @@ output "uai_tenant_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` -  The name of the User Assigned Identity.
 * `resource_group_name` - The name of the Resource Group in which the User Assigned Identity exists.
@@ -58,4 +58,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ManagedIdentity` - 2023-01-31
+* `Microsoft.ManagedIdentity` - 2024-11-30

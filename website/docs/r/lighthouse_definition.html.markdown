@@ -32,7 +32,7 @@ resource "azurerm_lighthouse_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

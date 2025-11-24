@@ -6,7 +6,6 @@ package network
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,6 +60,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerResource{},
 		ManagerRoutingConfigurationResource{},
 		ManagerRoutingRuleCollectionResource{},
+		ManagerRoutingRuleResource{},
 		ManagerScopeConnectionResource{},
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
@@ -197,9 +197,13 @@ func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{}
 }
 
-func (r Registration) ListResources() []func() list.ListResource {
-	return []func() list.ListResource{
-		NewVirtualNetworkListResource,
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		NetworkInterfaceListResource{},
+		NetworkProfileListResource{},
+		NetworkSecurityGroupListResource{},
+		RouteTableListResource{},
+		VirtualNetworkListResource{},
 	}
 }
 
