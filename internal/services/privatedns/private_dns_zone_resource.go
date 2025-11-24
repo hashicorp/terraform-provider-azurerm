@@ -255,7 +255,6 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourcePrivateDnsZoneFlatten(d *pluginsdk.ResourceData, id *privatezones.PrivateDnsZoneId, privateZone *privatezones.PrivateZone, recordSet *privatedns.RecordSet) error {
-
 	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

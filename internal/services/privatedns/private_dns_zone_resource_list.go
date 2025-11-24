@@ -3,7 +3,6 @@ package privatedns
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -31,9 +30,6 @@ func (r PrivateDnsZoneListResource) Metadata(_ context.Context, _ resource.Metad
 func (r PrivateDnsZoneListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.PrivateDns.PrivateZonesClient
 	recordSetsClient := metadata.Client.PrivateDns.RecordSetsClient
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
-	defer cancel()
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -85,7 +81,7 @@ func (r PrivateDnsZoneListResource) List(ctx context.Context, request list.ListR
 			recordId := privatedns.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, privatedns.RecordTypeSOA, "@")
 			recordSetResp, err := recordSetsClient.RecordSetsGet(ctx, recordId)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "reading DNS SOA record @: %v", err)
+				sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving %s", recordId), err)
 				return
 			}
 
