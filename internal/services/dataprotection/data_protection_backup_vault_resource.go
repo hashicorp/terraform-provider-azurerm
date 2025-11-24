@@ -296,6 +296,23 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	// API has bug, which appears API returns before the resource is fully deleted. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/38944
+	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Delay:                     30 * time.Second,
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   dataProtectionBackupVaultDeletedRefreshFunc(ctx, client, *id),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+	}
+
 	return nil
 }
 
@@ -342,4 +359,19 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails
 	}
 
 	return identity.FlattenSystemAndUserAssignedMap(config)
+}
+
+func dataProtectionBackupVaultDeletedRefreshFunc(ctx context.Context, client *backupvaults.BackupVaultsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }
