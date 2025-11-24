@@ -255,7 +255,7 @@ func (r CognitiveAccountConnectionResource) Read() sdk.ResourceFunc {
 			// Get current state to preserve sensitive values not returned by API
 			var currentState CognitiveAccountConnectionModel
 			if err := metadata.Decode(&currentState); err != nil {
-				return fmt.Errorf("decoding current state: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			state := CognitiveAccountConnectionModel{
