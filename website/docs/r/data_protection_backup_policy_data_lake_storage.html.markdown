@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_policy_data_lake_storage"
 description: |-
-  Manages a Backup Policy to Azure Backup Data Lake Storage.
+  Manages a Backup Policy to Azure Data Lake Storage.
 ---
 
 # azurerm_data_protection_backup_policy_data_lake_storage
 
-Manages a Backup Policy to Azure Backup Data Lake Storage.
+Manages a Backup Policy to Azure Data Lake Storage.
 
 ## Example Usage
 
@@ -91,7 +91,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Backup Policy for the Azure Data Lake Storage. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backup Policy for the Azure Backup Policy Data Lake Storage. Changing this forces a new resource to be created.
 
 * `vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
 
