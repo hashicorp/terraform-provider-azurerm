@@ -604,10 +604,8 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 		}
-	} else {
-		if d.HasChange("soft_delete_enabled") {
-			return fmt.Errorf("`soft_delete_enabled` cannot be changed in regions where soft delete is enforced. Please visit https://learn.microsoft.com/en-us/azure/backup/secure-by-default for more information")
-		}
+	} else if d.HasChange("soft_delete_enabled") {
+		return fmt.Errorf("`soft_delete_enabled` cannot be changed in regions where soft delete is enforced. Please visit https://learn.microsoft.com/en-us/azure/backup/secure-by-default for more information")
 	}
 
 	d.SetId(id.ID())
