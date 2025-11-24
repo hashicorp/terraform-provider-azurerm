@@ -454,7 +454,11 @@ A `sku` block supports the following:
 
 * `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Large`, `WAF_Medium` and `WAF_v2`.
 
-* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+~> **Note:** `Standard_Small`, `Standard_Medium`, `Standard_Large`, `WAF_Medium`, and `WAF_Large` values are deprecated. `name` can no longer be created with or updated to these values. Refer <https://aka.ms/V1retirement>.
+
+* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard`, `Standard_v2`, `WAF`, and `WAF_v2`.
+
+~> **Note:** `Standard` and `WAF` values are deprecated. `tier` can no longer be created with or updated to these values. Refer <https://aka.ms/V1retirement>.
 
 * `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. When using a `Basic` SKU this property must be between `1` and `2`. This property is optional if `autoscale_configuration` is set.
 
