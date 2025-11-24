@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
+!> **Note:** Soft delete is now enforced by default for all recovery services vaults. For regions in General Availability (GA), the soft delete state is automatically set to `AlwaysON` and cannot be changed, regardless of the value specified in this field. For regions in Public Preview, the soft delete state is automatically set to `Enabled`, and this field cannot control it directly - users must use the legacy Backup Configuration API to toggle soft delete on or off. Please visit [Microsoft Learn Secure By Default](https://learn.microsoft.com/en-us/azure/backup/secure-by-default?tabs=preview) for more information.
+
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
