@@ -183,6 +183,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(da
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -230,6 +233,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) internetOutbound(data a
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -255,10 +261,18 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 }
 
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa%[3]s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
   name                = "acctest-MLW-outboundrule-%[3]s"
   workspace_id        = azurerm_machine_learning_workspace.test.id
-  service_resource_id = azurerm_storage_account.test.id
+  service_resource_id = azurerm_storage_account.test2.id
   sub_resource_target = "blob"
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
@@ -269,6 +283,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withKeyVault(data accep
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -334,6 +351,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withWorkspace(data acce
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -386,8 +406,8 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptan
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
+    application_insights {
+      disable_generated_rule = true
     }
     key_vault {
       purge_soft_delete_on_destroy       = false
