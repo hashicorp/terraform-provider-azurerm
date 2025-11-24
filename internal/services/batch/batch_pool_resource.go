@@ -1015,6 +1015,10 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", *id)
+	}
+
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
 			log.Printf("[INFO] there is a pending resize operation on this pool...")
@@ -1035,8 +1039,20 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	parameters := pool.Pool{
-		Properties: &pool.PoolProperties{},
+	parameters := *resp.Model
+
+	if parameters.Properties != nil {
+		parameters.Properties.AllocationState = nil
+		parameters.Properties.AllocationStateTransitionTime = nil
+		parameters.Properties.AutoScaleRun = nil
+		parameters.Properties.CreationTime = nil
+		parameters.Properties.CurrentDedicatedNodes = nil
+		parameters.Properties.CurrentLowPriorityNodes = nil
+		parameters.Properties.CurrentNodeCommunicationMode = nil
+		parameters.Properties.LastModified = nil
+		parameters.Properties.ProvisioningState = nil
+		parameters.Properties.ProvisioningStateTransitionTime = nil
+		parameters.Properties.ResizeOperationStatus = nil
 	}
 
 	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
@@ -1077,18 +1093,17 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
-
 		parameters.Properties.StartTask = startTask
+	} else {
+		parameters.Properties.StartTask = nil
 	}
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
-			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
-			if d.HasChange("data_disks") {
-				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
-			}
-		}
+
+	if parameters.Properties.DeploymentConfiguration != nil &&
+		parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+		parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks =
+			expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
 	}
+
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
@@ -1096,16 +1111,8 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Properties.Certificates = certificateReferences
 
-	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
-		return err
-	}
-
-	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
-
-		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
-	}
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
@@ -1113,11 +1120,17 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
 
-	if d.HasChange("target_node_communication_mode") {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+	if v, ok := d.GetOk("target_node_communication_mode"); ok {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
+	} else {
+		parameters.Properties.TargetNodeCommunicationMode = nil
 	}
 
-	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
+	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
+		return err
+	}
+
+	result, err := client.Create(ctx, *id, parameters, pool.CreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
