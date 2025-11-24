@@ -147,4 +147,4 @@ terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices` - 2024-04-01, 2025-08-01
+* `Microsoft.RecoveryServices` - 2024-01-01, 2025-08-01
