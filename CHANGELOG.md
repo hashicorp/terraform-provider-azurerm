@@ -1,6 +1,7 @@
 ## 4.55.0 (Unreleased)
 
 ENHANCEMENTS:
+* `container_app_environment` - extend validation for `workload_profile_type` for additional supported SKUs [GH-30738]
 * dependencies: `go-azure-helpers` - update to `v0.75.1` [GH-31148]
 * dependencies: `go-azure-sdk` - update to `v0.20251114.1193342` [GH-31103]
 * dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
