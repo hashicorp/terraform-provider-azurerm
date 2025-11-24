@@ -354,7 +354,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		addonProfiles[aciConnectorKey] = disabled
 	}
 
-	if ok := d.HasChange("azure_policy_enabled"); ok {
+	if input["azure_policy_enabled"] != nil {
 		v := input["azure_policy_enabled"].(bool)
 		props := managedclusters.ManagedClusterAddonProfile{
 			Enabled: v,
