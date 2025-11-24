@@ -61,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices` - 2025-02-01
+* `Microsoft.RecoveryServices` - 2025-08-01
