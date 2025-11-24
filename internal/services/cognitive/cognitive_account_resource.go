@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
@@ -27,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -141,7 +140,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 
 						"identity_client_id": {
@@ -478,7 +477,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Kind:     pointer.To(d.Get("kind").(string)),
+		Kind:     pointer.To(kind),
 		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
@@ -877,8 +876,8 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		bypasss := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		ruleSet.Bypass = &bypasss
+		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		ruleSet.Bypass = &bypass
 	}
 
 	return &ruleSet, subnetIds
@@ -1015,7 +1014,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 
 	v := input[0].(map[string]interface{})
-	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if keyId == nil {
 		return nil
 	}
@@ -1032,7 +1031,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
 			KeyName:          pointer.To(keyId.Name),
 			KeyVersion:       pointer.To(keyId.Version),
-			KeyVaultUri:      pointer.To(keyId.KeyVaultBaseUrl),
+			KeyVaultUri:      pointer.To(keyId.KeyVaultBaseURL),
 			IdentityClientId: pointer.To(identity),
 		},
 	}
@@ -1046,9 +1045,9 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 	var keyId string
 	var identityClientId string
 	if props := input.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+			return nil, err
 		}
 		keyId = keyVaultKeyId.ID()
 		if props.IdentityClientId != nil {

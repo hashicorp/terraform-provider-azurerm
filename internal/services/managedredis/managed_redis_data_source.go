@@ -41,16 +41,19 @@ type ManagedRedisDataSourceModel struct {
 }
 
 type DefaultDatabaseDataSourceModel struct {
-	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
-	ClientProtocol                  string        `tfschema:"client_protocol"`
-	ClusteringPolicy                string        `tfschema:"clustering_policy"`
-	EvictionPolicy                  string        `tfschema:"eviction_policy"`
-	GeoReplicationGroupName         string        `tfschema:"geo_replication_group_name"`
-	GeoReplicationLinkedDatabaseIds []string      `tfschema:"geo_replication_linked_database_ids"`
-	Module                          []ModuleModel `tfschema:"module"`
-	Port                            int64         `tfschema:"port"`
-	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
-	SecondaryAccessKey              string        `tfschema:"secondary_access_key"`
+	AccessKeysAuthenticationEnabled          bool          `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                           string        `tfschema:"client_protocol"`
+	ClusteringPolicy                         string        `tfschema:"clustering_policy"`
+	EvictionPolicy                           string        `tfschema:"eviction_policy"`
+	GeoReplicationGroupName                  string        `tfschema:"geo_replication_group_name"`
+	GeoReplicationLinkedDatabaseIds          []string      `tfschema:"geo_replication_linked_database_ids"`
+	ID                                       string        `tfschema:"id"`
+	Module                                   []ModuleModel `tfschema:"module"`
+	PersistenceAppendOnlyFileBackupFrequency string        `tfschema:"persistence_append_only_file_backup_frequency"`
+	PersistenceRedisDatabaseBackupFrequency  string        `tfschema:"persistence_redis_database_backup_frequency"`
+	Port                                     int64         `tfschema:"port"`
+	PrimaryAccessKey                         string        `tfschema:"primary_access_key"`
+	SecondaryAccessKey                       string        `tfschema:"secondary_access_key"`
 }
 
 func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -90,6 +93,11 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
 					"access_keys_authentication_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
@@ -144,6 +152,16 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
+					},
+
+					"persistence_append_only_file_backup_frequency": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"persistence_redis_database_backup_frequency": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 
 					"port": {
@@ -256,14 +274,22 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 
 			if model := dbResp.Model; model != nil {
 				if props := model.Properties; props != nil {
+					databaseId, err := redisenterprise.ParseDatabaseID(pointer.From(model.Id))
+					if err != nil {
+						return fmt.Errorf("parsing Managed Redis Database ID %q: %+v", pointer.From(model.Id), err)
+					}
+
 					defaultDb := DefaultDatabaseDataSourceModel{
-						AccessKeysAuthenticationEnabled: strings.EqualFold(pointer.FromEnum(props.AccessKeysAuthentication), string(databases.AccessKeysAuthenticationEnabled)),
-						ClientProtocol:                  pointer.FromEnum(props.ClientProtocol),
-						ClusteringPolicy:                pointer.FromEnum(props.ClusteringPolicy),
-						EvictionPolicy:                  pointer.FromEnum(props.EvictionPolicy),
-						GeoReplicationGroupName:         flattenGeoReplicationGroupName(props.GeoReplication),
-						Module:                          flattenModules(props.Modules),
-						Port:                            pointer.From(props.Port),
+						AccessKeysAuthenticationEnabled:          strings.EqualFold(pointer.FromEnum(props.AccessKeysAuthentication), string(databases.AccessKeysAuthenticationEnabled)),
+						ClientProtocol:                           pointer.FromEnum(props.ClientProtocol),
+						ClusteringPolicy:                         pointer.FromEnum(props.ClusteringPolicy),
+						EvictionPolicy:                           pointer.FromEnum(props.EvictionPolicy),
+						GeoReplicationGroupName:                  flattenGeoReplicationGroupName(props.GeoReplication),
+						ID:                                       databaseId.ID(),
+						Module:                                   flattenModules(props.Modules),
+						PersistenceAppendOnlyFileBackupFrequency: flattenPersistenceAOF(props.Persistence),
+						PersistenceRedisDatabaseBackupFrequency:  flattenPersistenceRDB(props.Persistence),
+						Port:                                     pointer.From(props.Port),
 					}
 
 					if props.GeoReplication != nil {
