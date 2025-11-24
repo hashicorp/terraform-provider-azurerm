@@ -189,13 +189,12 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if config.Plan == string(tables.TablePlanEnumAnalytics) {
-				if config.RetentionInDays > 0 {
-					param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
-				}
-				if config.TotalRetentionInDays > 0 {
-					param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
-				}
+			if config.RetentionInDays > 0 {
+				param.Properties.RetentionInDays = pointer.To(config.RetentionInDays)
+			}
+
+			if config.TotalRetentionInDays > 0 {
+				param.Properties.TotalRetentionInDays = pointer.To(config.TotalRetentionInDays)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {

@@ -231,6 +231,8 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
 
   plan = "Basic"
 
+  total_retention_in_days = 100
+
   column {
     name = "TimeGenerated"
     type = "dateTime"
