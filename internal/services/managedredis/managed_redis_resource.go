@@ -632,6 +632,10 @@ func (r ManagedRedisResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", clusterId, err)
 			}
 
+			// Add short delay to avoid 'Resource Group still contains Resources' error in acctest
+			// Example: https://hashicorp.teamcity.com/buildConfiguration/TF_AzureRM_AZURERM_SERVICE_PUBLIC_MANAGEDREDIS/534687
+			time.Sleep(15 * time.Second)
+
 			return nil
 		},
 	}
