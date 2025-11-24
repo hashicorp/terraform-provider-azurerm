@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,6 +69,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AIServices",
 					"Academic",
@@ -374,17 +374,17 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						return err
 					}
 				}
-			} else if d.HasChange("project_management_enabled") && kind != "OpenAI" {
+			} else if d.HasChange("project_management_enabled") {
 				if err := d.ForceNew("project_management_enabled"); err != nil {
 					return err
 				}
 			}
 
-			if d.Get("dynamic_throttling_enabled").(bool) && slices.Contains([]string{"OpenAI", "AIServices"}, kind) {
+			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
 				return errors.New("`dynamic_throttling_enabled` is currently not supported when `kind` is set to `OpenAI` or `AIServices`")
 			}
 
-			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !slices.Contains([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
 				return fmt.Errorf("`network_acls.bypass` cannot be set when `kind` is set to `%s`", kind)
 			}
 
@@ -403,18 +403,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					}
 				}
 			}
-
-			if d.HasChange("kind") {
-				old, new := d.GetChange("kind")
-
-				// Only allow changing `kind` from/to `OpenAI` or `AIServices`, force new for all others
-				if !slices.Contains([]string{"OpenAI", "AIServices"}, new.(string)) || !slices.Contains([]string{"OpenAI", "AIServices"}, old.(string)) {
-					if err := d.ForceNew("kind"); err != nil {
-						return err
-					}
-				}
-			}
-
 			return nil
 		},
 	}
@@ -425,6 +413,8 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	kind := d.Get("kind").(string)
 
 	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
@@ -453,7 +443,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -529,7 +519,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -548,8 +538,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Sku:  &sku,
-		Kind: pointer.To(d.Get("kind").(string)),
+		Sku: &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
@@ -660,14 +649,9 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
 
-			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
 
-			// Azure API issue: `AllowProjectManagement` not reset during the rollback, see: https://github.com/Azure/azure-rest-api-specs/issues/38678
-			allowProjectManagement := pointer.From(props.AllowProjectManagement)
-			if pointer.From(model.Kind) == "OpenAI" {
-				allowProjectManagement = false
-			}
-			d.Set("project_management_enabled", allowProjectManagement)
+			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
