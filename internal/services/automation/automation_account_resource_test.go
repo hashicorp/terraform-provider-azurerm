@@ -347,7 +347,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%[1]d"
+  name                       = "acctest%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -386,7 +386,7 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_role_assignment.current]
 
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (a AutomationAccountResource) encryption_none(data acceptance.TestData) string {
