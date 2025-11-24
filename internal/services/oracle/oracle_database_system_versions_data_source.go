@@ -3,7 +3,7 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,20 +18,20 @@ import (
 type DatabaseVersionsDataSource struct{}
 
 type DatabaseVersionsModel struct {
-	Location                       string                     `tfschema:"location"`
-	DatabaseSystemShape            string                     `tfschema:"database_system_shape"`
-	DatabaseSoftwareImageSupported *bool                      `tfschema:"database_software_image_supported"`
-	ShapeFamily                    string                     `tfschema:"shape_family"`
-	StorageManagement              string                     `tfschema:"storage_management"`
-	UpgradeSupported               *bool                      `tfschema:"upgrade_supported"`
-	Versions                       []DatabaseVersionItemModel `tfschema:"versions"`
+	Location                            string                     `tfschema:"location"`
+	DatabaseSystemShape                 string                     `tfschema:"database_system_shape"`
+	DatabaseSoftwareImageSupportEnabled *bool                      `tfschema:"database_software_image_support_enabled"`
+	ShapeFamily                         string                     `tfschema:"shape_family"`
+	StorageManagement                   string                     `tfschema:"storage_management"`
+	UpgradeSupportEnabled               *bool                      `tfschema:"upgrade_support_enabled"`
+	Versions                            []DatabaseVersionItemModel `tfschema:"versions"`
 }
 
 type DatabaseVersionItemModel struct {
-	Name                  string `tfschema:"name"`
-	LatestForMajorVersion bool   `tfschema:"latest_for_major_version"`
-	SupportsPdb           bool   `tfschema:"supports_pdb"`
-	Version               string `tfschema:"version"`
+	Name                         string `tfschema:"name"`
+	LatestForMajorVersionEnabled bool   `tfschema:"latest_for_major_version_enabled"`
+	SupportsPdb                  bool   `tfschema:"supports_pdb"`
+	Version                      string `tfschema:"version"`
 }
 
 func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -40,32 +40,30 @@ func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Optional filters
 
-		"database_system_shape": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForBaseDbSystemShapes(), false),
+		"database_software_image_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
-		"database_software_image_supported": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Description: "Whether to filter versions that support database software images.",
+		"database_system_shape": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringInSlice(dbversions.PossibleValuesForBaseDbSystemShapes(), false),
+			ConflictsWith: []string{"shape_family"},
 		},
 		"shape_family": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForShapeFamilyType(), false),
-			Description:  "The shape family of the DB System to filter versions by.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringInSlice(dbversions.PossibleValuesForShapeFamilyType(), false),
+			ConflictsWith: []string{"database_system_shape"},
 		},
 		"storage_management": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForStorageManagementType(), false),
-			Description:  "The storage management type to filter versions by.",
 		},
-		"upgrade_supported": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Description: "Whether to filter versions that support upgrades.",
+		"upgrade_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 	}
 }
@@ -82,7 +80,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"latest_for_major_version": {
+					"latest_for_major_version_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -124,29 +122,25 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := dbversions.NewLocationID(subscriptionId,
-				state.Location)
+			id := dbversions.NewLocationID(subscriptionId, location.Normalize(state.Location))
 
 			options := dbversions.DefaultListByLocationOperationOptions()
 
-			if state.ShapeFamily != "" || state.DatabaseSystemShape != "" {
-				log.Printf("[WARN] Db Versions data source: You can not use both shape_family and database_system_shape together for filtering versions.")
-			}
+			//if state.ShapeFamily != "" || state.DatabaseSystemShape != "" {
+			//	log.Printf("[WARN] Db Versions data source: You can not use both shape_family and database_system_shape together for filtering versions.")
+			//}
 
-			options.IsDatabaseSoftwareImageSupported = state.DatabaseSoftwareImageSupported
-			options.IsUpgradeSupported = state.UpgradeSupported
+			options.IsDatabaseSoftwareImageSupported = state.DatabaseSoftwareImageSupportEnabled
+			options.IsUpgradeSupported = state.UpgradeSupportEnabled
 
 			if state.DatabaseSystemShape != "" {
-				shape := dbversions.BaseDbSystemShapes(state.DatabaseSystemShape)
-				options.DbSystemShape = &shape
+				options.DbSystemShape = pointer.ToEnum[dbversions.BaseDbSystemShapes](state.DatabaseSystemShape)
 			}
 			if state.ShapeFamily != "" {
-				family := dbversions.ShapeFamilyType(state.ShapeFamily)
-				options.ShapeFamily = &family
+				options.ShapeFamily = pointer.ToEnum[dbversions.ShapeFamilyType](state.ShapeFamily)
 			}
 			if state.StorageManagement != "" {
-				storage := dbversions.StorageManagementType(state.StorageManagement)
-				options.StorageManagement = &storage
+				options.StorageManagement = pointer.ToEnum[dbversions.StorageManagementType](state.StorageManagement)
 			}
 
 			resp, err := client.ListByLocation(ctx, id, options)
@@ -163,10 +157,10 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						item := DatabaseVersionItemModel{
-							Name:                  pointer.From(element.Name),
-							Version:               props.Version,
-							LatestForMajorVersion: pointer.From(props.IsLatestForMajorVersion),
-							SupportsPdb:           pointer.From(props.SupportsPdb),
+							Name:                         pointer.From(element.Name),
+							Version:                      props.Version,
+							LatestForMajorVersionEnabled: pointer.From(props.IsLatestForMajorVersion),
+							SupportsPdb:                  pointer.From(props.SupportsPdb),
 						}
 						state.Versions = append(state.Versions, item)
 					}

@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_database_system_versions"
 description: |-
-  Gets information about an existing  Oracle Database Systems Versions.
+  Gets information about existing Oracle Database Systems Versions.
 ---
 
 # Data Source: azurerm_oracle_database_system_versions
 
-Use this data source to access information about an existing  Oracle Database Systems Versions.
+Use this data source to access information about existing Oracle Database Systems Versions.
 
 ## Example Usage
 
@@ -26,11 +26,11 @@ output "id" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region to query for the  Oracle Database Systems Versions .
+* `location` - (Required) The Azure Region to query for the  Oracle Database Systems Versions.
 
 ---
 
-* `database_software_image_supported` - (Optional) If true, filters the results to the set of Oracle Database versions that are supported for the database software images.
+* `database_software_image_support_enabled` - (Optional) If true, filters the results to the set of Oracle Database versions that are supported for the database software images.
 
 * `database_system_id` - (Optional) The DB system AzureId. If provided, filters the results to the set of database versions which are supported for the DB system.
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. Valid values are ASM and LVM.
 
-* `upgrade_supported` - (Optional) If true, filters the results to the set of database versions which are supported for Upgrade.
+* `upgrade_support_enabled` - (Optional) If true, filters the results to the set of database versions which are supported for Upgrade.
 
 ## Attributes Reference
 
@@ -54,9 +54,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `versions` block exports the following:
 
-* `latest_for_major_version` - Indicates if this version of the Oracle Database software is the latest version for a release.
+* `latest_for_major_version_enabled` - Indicates if this version of the Oracle Database software is the latest version for a release.
 
-* `name` - Name of Oracle Database version.
+* `name` - The name of Oracle Database version.
 
 * `supports_pdb` - Indicates if this version of the Oracle Database software supports pluggable databases.
 
