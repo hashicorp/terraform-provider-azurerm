@@ -123,7 +123,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // Rotate machinelearning acctest across supported-but-less-frequently-used locations to prevent quota and rate limiting
-        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("westus3", "canadacentral", "germanywestcentral", true)),
+        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("canadacentral", "westus3", "germanywestcentral", false)),
 
         // Managed Redis is only available in certain locations, and has limited quota
         "managedredis" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "westus3", "southcentralus", true)),
