@@ -4,6 +4,7 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -81,8 +82,9 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"path": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"command_line_argument_policy": {
@@ -128,14 +130,27 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"application_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(application.RemoteApplicationTypeInBuilt),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(application.RemoteApplicationTypeInBuilt),
-					string(application.RemoteApplicationTypeMsixApplication),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(application.RemoteApplicationTypeInBuilt),
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForRemoteApplicationType(), false),
 			},
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+			if d.HasChanges("application_type", "path") {
+				applicationType := d.Get("application_type").(string)
+				path := d.Get("path").(string)
+
+				if applicationType == string(application.RemoteApplicationTypeInBuilt) && path == "" {
+					return fmt.Errorf("the 'path' property must be specified when 'application_type' is set to 'InBuilt'")
+				}
+
+				if applicationType == string(application.RemoteApplicationTypeMsixApplication) && path != "" {
+					return fmt.Errorf("the 'path' property cannot be specified when 'application_type' is set to 'MsixApplication'")
+				}
+			}
+			return nil
 		},
 	}
 }

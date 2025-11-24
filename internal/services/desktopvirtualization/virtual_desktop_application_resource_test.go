@@ -6,6 +6,7 @@ package desktopvirtualization_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application"
@@ -100,6 +101,30 @@ func TestAccVirtualDesktopApplication_msixType(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+	})
+}
+
+func TestAccVirtualDesktopApplication_pathShouldBeSpecifiedForInBuiltApp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application", "test")
+	r := VirtualDesktopApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.pathShouldBeSpecifiedForInBuiltApp(),
+			ExpectError: regexp.MustCompile(`the 'path' property must be specified when 'application_type' is set to 'InBuilt'`),
+		},
+	})
+}
+
+func TestAccVirtualDesktopApplication_pathCannotBeSpecifiedForMsixApp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application", "test")
+	r := VirtualDesktopApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.pathCannotBeSpecifiedForMsixApp(),
+			ExpectError: regexp.MustCompile(`the 'path' property cannot be specified when 'application_type' is set to 'MsixApplication'`),
 		},
 	})
 }
@@ -276,4 +301,34 @@ resource "azurerm_virtual_desktop_application" "test" {
   msix_package_family_name     = azurerm_virtual_desktop_msix_package.test.package_family_name
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+}
+
+func (VirtualDesktopApplicationResource) pathShouldBeSpecifiedForInBuiltApp() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_virtual_desktop_application" "test" {
+  name                         = "acctestAG"
+  application_group_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup"
+  command_line_argument_policy = "DoNotAllow"
+}
+	`
+}
+
+func (VirtualDesktopApplicationResource) pathCannotBeSpecifiedForMsixApp() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_virtual_desktop_application" "test" {
+  name                         = "acctestAG"
+  application_group_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup"
+  command_line_argument_policy = "DoNotAllow"
+  path                         = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  application_type             = "MsixApplication"
+}
+	`
 }
