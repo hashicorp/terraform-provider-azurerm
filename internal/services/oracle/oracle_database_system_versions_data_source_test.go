@@ -78,8 +78,8 @@ provider "azurerm" {
 }
 
 data "azurerm_oracle_database_system_versions" "test" {
-  location                          = "%[1]s"
-  database_system_shape             = "%[2]s"
+  location                                = "%[1]s"
+  database_system_shape                   = "%[2]s"
   upgrade_support_enabled                 = true
   database_software_image_support_enabled = true
 }
@@ -93,8 +93,8 @@ provider "azurerm" {
 }
 
 data "azurerm_oracle_database_system_versions" "test" {
-  location                          = "%[1]s"
-  shape_family                      = "%[2]s"
+  location                                = "%[1]s"
+  shape_family                            = "%[2]s"
   upgrade_support_enabled                 = true
   database_software_image_support_enabled = false
 }
