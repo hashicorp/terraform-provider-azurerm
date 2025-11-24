@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_storage_encryption_scope` - update validation for `key_vault_key_id` to allow managed HSM keys as input [GH-31145]
 
 FEATURES:
+* **New Resource**: `azurerm_cognitive_account_project` [GH-30916]
 * **New Data Source**: `azurerm_api_management_workspace` [GH-30241]
 
 BUG FIXES:
