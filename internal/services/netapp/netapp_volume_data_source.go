@@ -5,6 +5,7 @@ package netapp
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 )
 
 func dataSourceNetAppVolume() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceNetAppVolumeRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -52,11 +53,21 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: validate.PoolName,
 			},
 
-			"mount_ip_addresses": {
+			"mount_target": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"smb_server_fqdn": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
@@ -176,6 +187,19 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["mount_ip_addresses"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Deprecated: "this property has been deprecated in favour of `mount_target` and will be removed in version 5.0 of the Provider.",
+		}
+	}
+
+	return resource
 }
 
 func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -242,8 +266,13 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
 
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
-		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
-			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+		if !features.FivePointOh() {
+			if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+				return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+			}
+		}
+		if err := d.Set("mount_target", flattenNetAppVolumeMountTarget(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_target`: %+v", err)
 		}
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
