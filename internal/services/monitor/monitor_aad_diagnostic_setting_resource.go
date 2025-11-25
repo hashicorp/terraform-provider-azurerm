@@ -358,7 +358,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		client: client,
 		id:     *id,
 	}
-	initialDelayDuration := 20 * time.Second
+	initialDelayDuration := 30 * time.Second
 	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
