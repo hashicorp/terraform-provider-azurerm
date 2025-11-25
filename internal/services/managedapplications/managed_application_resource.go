@@ -501,11 +501,8 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
 		userAssignedIdentities := make(map[string]applications.UserAssignedResourceIdentity)
-		for k, v := range expanded.IdentityIds {
-			userAssignedIdentities[k] = applications.UserAssignedResourceIdentity{
-				PrincipalId: v.PrincipalId,
-				TenantId:    v.ClientId,
-			}
+		for k := range expanded.IdentityIds {
+			userAssignedIdentities[k] = applications.UserAssignedResourceIdentity{}
 		}
 
 		out.UserAssignedIdentities = &userAssignedIdentities
@@ -531,15 +528,14 @@ func flattenManagedApplicationIdentity(input *applications.Identity) ([]interfac
 			config.TenantId = *input.TenantId
 		}
 
-		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-		if input.UserAssignedIdentities != nil {
-			for k, v := range *input.UserAssignedIdentities {
-				identityIds[k] = identity.UserAssignedIdentityDetails{
-					ClientId:    v.TenantId,
-					PrincipalId: v.PrincipalId,
-				}
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+	if input.UserAssignedIdentities != nil {
+		for k, v := range *input.UserAssignedIdentities {
+			identityIds[k] = identity.UserAssignedIdentityDetails{
+				PrincipalId: v.PrincipalId,
 			}
 		}
+	}
 
 		config.IdentityIds = identityIds
 	}
