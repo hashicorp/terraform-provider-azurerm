@@ -368,6 +368,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-previe
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/projectconnectionresource
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
