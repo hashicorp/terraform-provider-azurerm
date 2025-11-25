@@ -137,16 +137,13 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := ManagedRedisAccessPolicyAssignmentResourceModel{}
+			state := ManagedRedisAccessPolicyAssignmentResourceModel{
+				ManagedRedisID: redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName).ID(),
+			}
 
 			if model := resp.Model; model != nil {
-				clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
-				state.ManagedRedisID = clusterId.ID()
-
 				if props := model.Properties; props != nil {
-					if props.User.ObjectId != nil {
-						state.ObjectID = *props.User.ObjectId
-					}
+					state.ObjectID = pointer.From(props.User.ObjectId)
 				}
 			}
 
