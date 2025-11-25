@@ -42,7 +42,7 @@ func TestSliceDiff(t *testing.T) {
 
 func TestDiffAll(t *testing.T) {
 	t.Skipf("skip for fix all documents")
-	result := DiffAll(AzurermAllResources("", "", "", ""), true)
+	result := DiffAll(AzurermAllResources("", "", "", "", ""), true)
 	if err := result.FixDocuments(); err != nil {
 		t.Fatal(err)
 	}

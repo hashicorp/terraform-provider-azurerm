@@ -40,7 +40,7 @@ resource "azurerm_mysql_flexible_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

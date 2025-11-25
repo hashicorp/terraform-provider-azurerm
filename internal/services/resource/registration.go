@@ -9,11 +9,17 @@ import (
 )
 
 var (
-	_ sdk.TypedServiceRegistration   = Registration{}
-	_ sdk.UntypedServiceRegistration = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistration                 = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/resource"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

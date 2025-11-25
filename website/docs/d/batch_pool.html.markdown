@@ -15,21 +15,25 @@ Use this data source to access information about an existing Batch pool
 
 ```hcl
 data "azurerm_batch_pool" "example" {
-  name                = "testbatchpool"
-  account_name        = "testbatchaccount"
-  resource_group_name = "test"
+  name                = "examplebatchpool"
+  account_name        = "examplebatchaccount"
+  resource_group_name = "example"
 }
 ```
+
+## Arguments Reference
+
+* `name` - (Required) The name of the Batch pool.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Batch pool exists.
+
+* `account_name` - (Required) The Batch Account name associated with the Batch pool.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Batch pool ID.
-
-* `name` - The name of the Batch pool.
-
-* `account_name` - The name of the Batch account.
 
 * `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 

@@ -100,6 +100,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		ApiManagementSubscriptionDataSource{},
+		ApiManagementWorkspaceDataSource{},
 	}
 }
 
@@ -107,10 +108,12 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApiManagementNotificationRecipientEmailResource{},
 		ApiManagementNotificationRecipientUserResource{},
-		ApiManagementWorkspaceResource{},
+		ApiManagementStandaloneGatewayResource{},
+		ApiManagementWorkspaceApiVersionSetResource{},
+		ApiManagementWorkspaceCertificateResource{},
+		ApiManagementWorkspacePolicyFragmentResource{},
 		ApiManagementWorkspacePolicyResource{},
 		ApiManagementWorkspaceProductResource{},
-		ApiManagementStandaloneGatewayResource{},
-		ApiManagementWorkspacePolicyFragmentResource{},
+		ApiManagementWorkspaceResource{},
 	}
 }

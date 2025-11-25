@@ -40,7 +40,7 @@ resource "azurerm_dev_test_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
