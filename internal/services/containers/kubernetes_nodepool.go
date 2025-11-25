@@ -216,8 +216,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: commonids.ValidateSubnetID,
-					},
+					ValidateFunc: commonids.ValidateSubnetID,
+				},
 				"pod_ip_allocation_mode": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -226,7 +226,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
 					Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
 				},
-					"proximity_placement_group_id": {
+				"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
