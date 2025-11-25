@@ -528,14 +528,14 @@ func flattenManagedApplicationIdentity(input *applications.Identity) ([]interfac
 			config.TenantId = *input.TenantId
 		}
 
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-	if input.UserAssignedIdentities != nil {
-		for k, v := range *input.UserAssignedIdentities {
-			identityIds[k] = identity.UserAssignedIdentityDetails{
-				PrincipalId: v.PrincipalId,
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.UserAssignedIdentities != nil {
+			for k, v := range *input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					PrincipalId: v.PrincipalId,
+				}
 			}
 		}
-	}
 
 		config.IdentityIds = identityIds
 	}
