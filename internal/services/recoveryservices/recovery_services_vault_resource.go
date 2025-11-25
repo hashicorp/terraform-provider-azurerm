@@ -761,18 +761,14 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	// Azure Recovery Services Vault delete operation has eventual consistency issues
 	// The operation may complete but the vault still appears to exist briefly
 	// Add issue link TODO
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-
+	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists", string(vaults.ProvisioningStateDeleting), string(vaults.ProvisioningStatePending)},
+		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   resourceRecoveryServicesVaultDeleteRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 20,
-		Timeout:                   time.Until(deadline),
+		ContinuousTargetOccurence: 10,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
