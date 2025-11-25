@@ -31,7 +31,7 @@ func newVirtualMachinePowerAction() action.Action {
 type VirtualMachinePowerActionModel struct {
 	VirtualMachineId types.String `tfsdk:"virtual_machine_id"`
 	Action           types.String `tfsdk:"power_action"`
-	// TODO - Custom timeouts?
+	Timeout          types.String `tfsdk:"timeout"`
 }
 
 func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
@@ -60,6 +60,12 @@ func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaReq
 					),
 				},
 			},
+
+			"timeout": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Timeout duration for the action to complete. Defaults to `30m`.",
+				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.",
+			},
 		},
 	}
 }
@@ -71,15 +77,26 @@ func (v *VirtualMachinePowerAction) Metadata(_ context.Context, _ action.Metadat
 func (v *VirtualMachinePowerAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := v.Client.Compute.VirtualMachinesClient
 
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*15)
-	defer cancel()
-
 	model := VirtualMachinePowerActionModel{}
 
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+
+	ctxTimeout := 30 * time.Minute
+	if t := model.Timeout; !t.IsNull() {
+		duration, err := time.ParseDuration(t.ValueString())
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(response, "parsing `timeout`", err)
+			return
+		}
+
+		ctxTimeout = duration
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, ctxTimeout)
+	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(model.VirtualMachineId.ValueString())
 	if err != nil {
@@ -97,16 +114,19 @@ func (v *VirtualMachinePowerAction) Invoke(ctx context.Context, request action.I
 	case "restart":
 		if err := client.RestartThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("restarting %s: %+v", id, err))
+			return
 		}
 
 	case "power_on":
 		if err := client.StartThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("starting %s: %+v", id, err))
+			return
 		}
 
 	case "power_off":
 		if err := client.PowerOffThenPoll(ctx, *id, virtualmachines.DefaultPowerOffOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping %s: %+v", id, err))
+			return
 		}
 	}
 

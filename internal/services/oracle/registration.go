@@ -27,6 +27,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ExadataInfraDataSource{},
 		ExascaleDatabaseStorageVaultDataSource{},
 		GiVersionsDataSource{},
+		ResourceAnchorDataSource{},
 	}
 }
 
@@ -39,6 +40,7 @@ func (r Registration) Resources() []sdk.Resource {
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
 		ExascaleDatabaseStorageVaultResource{},
+		ResourceAnchorResource{},
 	}
 }
 

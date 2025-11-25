@@ -1113,7 +1113,7 @@ func TestAccWindowsFunctionApp_appStackDotNet6Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v6.0"),
+			Config: r.appStackDotNetIsolated(data, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1145,7 +1145,7 @@ func TestAccWindowsFunctionApp_appStackDotNet8Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v8.0"),
+			Config: r.appStackDotNetIsolated(data, "v8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1161,7 +1161,23 @@ func TestAccWindowsFunctionApp_appStackDotNet9Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v9.0"),
+			Config: r.appStackDotNetIsolated(data, "v9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_appStackDotNet10Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, "v10.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -3106,7 +3122,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-func (r WindowsFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+func (r WindowsFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3130,7 +3146,7 @@ resource "azurerm_windows_function_app" "test" {
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger, version)
+`, r.template(data, SkuBasicPlan), data.RandomInteger, version)
 }
 
 // nolint: unparam

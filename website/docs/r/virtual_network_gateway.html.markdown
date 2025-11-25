@@ -104,10 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. 
-  An active-standby gateway requires exactly one `ip_configuration` block,
-  an active-active gateway requires exactly two `ip_configuration` blocks whereas
-  an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. An active-standby gateway requires exactly one `ip_configuration` block, an active-active gateway requires exactly two `ip_configuration` blocks whereas an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
@@ -343,7 +340,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
 * `update` - (Defaults to 1 hour) Used when updating the Virtual Network Gateway.
-* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Network Gateway.
+* `delete` - (Defaults to 2 hours) Used when deleting the Virtual Network Gateway.
 
 ## Import
 
@@ -357,4 +354,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

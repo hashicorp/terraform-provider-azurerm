@@ -171,7 +171,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -246,7 +246,7 @@ resource "azurerm_app_service_certificate" "test" {
   location            = azurerm_resource_group.test.location
   key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceCertificateResource) keyVaultId(data acceptance.TestData) string {
@@ -269,7 +269,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -345,7 +345,7 @@ resource "azurerm_app_service_certificate" "test" {
   key_vault_id        = azurerm_key_vault.test.id
   key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceCertificateResource) keyVaultIdVersionless(data acceptance.TestData) string {
@@ -368,7 +368,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -444,5 +444,5 @@ resource "azurerm_app_service_certificate" "test" {
   key_vault_id        = azurerm_key_vault.test.id
   key_vault_secret_id = azurerm_key_vault_certificate.test.versionless_secret_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
