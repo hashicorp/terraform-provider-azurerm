@@ -557,7 +557,6 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	// For GA regions, soft delete is AlwaysON and cannot be changed via backup config API
 	cfgResp, err := cfgsClient.Get(ctx, cfgId)
 	if err != nil {
 		return fmt.Errorf("retrieving backup config for %s: %+v", id.String(), err)
@@ -568,6 +567,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		currentSoftDeleteState = *cfgResp.Model.Properties.SoftDeleteFeatureState
 	}
 
+	// For GA regions, soft delete is AlwaysON and cannot be changed via backup config API
 	if currentSoftDeleteState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
 		// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
 		var StateRefreshPendingStrings []string
@@ -760,7 +760,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 
 	// Azure Recovery Services Vault delete operation has eventual consistency issues
 	// The operation may complete but the vault still appears to exist briefly
-	// Add issue link TODO
+	// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/38962
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
