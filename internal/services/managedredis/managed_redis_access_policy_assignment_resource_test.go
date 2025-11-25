@@ -59,7 +59,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedRedisAccessPolicyAssignmentResource) basic(data acceptance.TestData) string {
