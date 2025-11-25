@@ -120,7 +120,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 
 func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := databases.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
