@@ -25,7 +25,7 @@ type EventSubscriptionEndpointType string
 
 const (
 	// AzureAlertMonitorEndpoint
-	AzureAlertMonitorEndpoint EventSubscriptionEndpointType = "azure_alert_monitor"
+	AzureAlertMonitor EventSubscriptionEndpointType = "azure_alert_monitor"
 	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
 	// EventHubEndpointID ...

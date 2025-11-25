@@ -24,7 +24,7 @@ import (
 
 func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 	return []string{
-		string(AzureAlertMonitorEndpoint),
+		string(AzureAlertMonitor),
 		string(AzureFunctionEndpoint),
 		string(EventHubEndpointID),
 		string(HybridConnectionEndpointID),
@@ -73,7 +73,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"azure_alert_monitor": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(AzureAlertMonitorEndpoint),
+					string(AzureAlertMonitor),
 				),
 			),
 
