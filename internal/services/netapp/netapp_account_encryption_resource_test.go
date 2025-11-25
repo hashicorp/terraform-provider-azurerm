@@ -210,7 +210,7 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "acct%[2]d"
+  name                            = "acctest%[4]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
@@ -297,7 +297,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   encryption_key            = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomInteger, tenantID, data.RandomString)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate1(data acceptance.TestData, tenantID string) string {
