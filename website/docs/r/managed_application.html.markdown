@@ -113,8 +113,6 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Managed Application.
 
-~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Managed Application has been created. More details are available below.
-
 ~> **Note:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
@@ -124,6 +122,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Managed Application.
 
 * `outputs` - The name and value pairs that define the managed application outputs.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Identity.
+
+~> **Note:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Managed Application has been created.
 
 ## Timeouts
 
