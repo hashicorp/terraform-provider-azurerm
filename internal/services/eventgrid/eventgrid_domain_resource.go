@@ -261,6 +261,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
+			DataResidencyBoundary:                pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -320,6 +321,14 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if d.HasChange("auto_delete_topic_with_last_subscription") {
 		payload.Properties.AutoDeleteTopicWithLastSubscription = pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool))
+	}
+
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
 	}
 
 	if d.HasChange("data_residency_boundary") {
