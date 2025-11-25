@@ -46,11 +46,11 @@ The following arguments are supported:
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
-* `public_network_access` - (Optional) Whether or not public network access is allowed for this server. Defaults to `Enabled`.
+* `public_network_access` - (Optional) Whether or not public network access is allowed for this server. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `sku` - (Optional) Defines which tier to use. The only possible value is `Standard`. Defaults to `Standard`.
 
-* `topic_spaces_configuration` - (Optional) A `topic_spaces_configuration` block as defined below.
+* `topic_spaces_configuration` - (Optional) A `topic_spaces_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -84,9 +84,9 @@ A `topic_spaces_configuration` block supports the following:
 
 * `route_topic_id` - (Optional) Specifies the Event Grid topic resource ID to route messages to.
 
-* `dynamic_routing_enrichment` - One or more `dynamic_routing_enrichment` blocks as defined below.
+* `dynamic_routing_enrichment` - (Optional) One or more `dynamic_routing_enrichment` blocks as defined below.
 
-* `static_routing_enrichment` - One or more `static_routing_enrichment` blocks as defined below.
+* `static_routing_enrichment` - (Optional) One or more `static_routing_enrichment` blocks as defined below.
 
 ---
 

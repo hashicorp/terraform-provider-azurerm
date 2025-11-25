@@ -246,9 +246,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "fileshare"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 50
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -258,8 +258,8 @@ func (r StorageShareFileResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "file"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
 
   metadata = {
     hello = "world"
@@ -289,14 +289,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "fileshare"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 50
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "file"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
 
   metadata = {
     hello = "world"
@@ -310,8 +310,8 @@ func (r StorageShareFileResource) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_storage_share_file" "import" {
-  name             = azurerm_storage_share_file.test.name
-  storage_share_id = azurerm_storage_share_file.test.storage_share_id
+  name              = azurerm_storage_share_file.test.name
+  storage_share_url = azurerm_storage_share_file.test.storage_share_url
 
   metadata = {
     hello = "world"
@@ -325,8 +325,8 @@ func (r StorageShareFileResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "file"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
 
 
   content_type        = "test_content_type"
@@ -345,8 +345,8 @@ func (r StorageShareFileResource) withFile(data acceptance.TestData, fileName st
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "test"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "test"
+  storage_share_url = azurerm_storage_share.test.url
 
   source      = "%[2]s"
   content_md5 = filemd5(%[2]q)
@@ -363,14 +363,14 @@ func (r StorageShareFileResource) withPath(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name             = "parent"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "parent"
+  storage_share_url = azurerm_storage_share.test.url
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "test"
-  path             = azurerm_storage_share_directory.parent.name
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "test"
+  path              = azurerm_storage_share_directory.parent.name
+  storage_share_url = azurerm_storage_share.test.url
 }
 `, r.template(data))
 }
@@ -380,10 +380,10 @@ func (r StorageShareFileResource) withPathUsingBackslashes(data acceptance.TestD
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "command.com"
-  path             = "c\\dos"
-  storage_share_id = azurerm_storage_share.test.id
-  depends_on       = [azurerm_storage_share_directory.dos]
+  name              = "command.com"
+  path              = "c\\dos"
+  storage_share_url = azurerm_storage_share.test.url
+  depends_on        = [azurerm_storage_share_directory.dos]
 }
 `, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
 }
@@ -393,9 +393,9 @@ func (r StorageShareFileResource) withPathInNameUsingBackslashes(data acceptance
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "c\\dos\\command.com"
-  storage_share_id = azurerm_storage_share.test.id
-  depends_on       = [azurerm_storage_share_directory.dos]
+  name              = "c\\dos\\command.com"
+  storage_share_url = azurerm_storage_share.test.url
+  depends_on        = [azurerm_storage_share_directory.dos]
 }
 `, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
 }

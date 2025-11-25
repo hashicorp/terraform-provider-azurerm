@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/encryptionscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageEncryptionScopeResource struct{}
@@ -197,7 +197,7 @@ func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *cli
 		enabled = *model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled
 	}
 
-	return utils.Bool(enabled), nil
+	return pointer.To(enabled), nil
 }
 
 func (t StorageEncryptionScopeResource) keyVaultKey(data acceptance.TestData) string {

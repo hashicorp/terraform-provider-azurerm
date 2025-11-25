@@ -56,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AIServices{},
 		CognitiveAccountConnectionResource{},
+		CognitiveAccountProjectResource{},
 		CognitiveAccountRaiPolicyResource{},
 		CognitiveDeploymentResource{},
 		CognitiveRaiBlocklistResource{},

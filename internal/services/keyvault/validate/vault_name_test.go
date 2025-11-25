@@ -61,5 +61,9 @@ func TestValidateVaultName(t *testing.T) {
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the Key Vault Name to trigger a validation error for '%s'", tc.Input)
 		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for Key Vault Name '%s'", tc.Input)
+		}
 	}
 }

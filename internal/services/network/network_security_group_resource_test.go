@@ -192,7 +192,7 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	})
 }
 
-func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
