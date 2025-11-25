@@ -280,9 +280,8 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"proxy_override": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  string(managedinstances.ManagedInstanceProxyOverrideDefault),
+			Default:  string(managedinstances.ManagedInstanceProxyOverrideRedirect),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(managedinstances.ManagedInstanceProxyOverrideDefault),
 				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
 				string(managedinstances.ManagedInstanceProxyOverrideProxy),
 			}, false),
