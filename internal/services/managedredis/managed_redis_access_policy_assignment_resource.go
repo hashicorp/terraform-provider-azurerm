@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -109,9 +108,6 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			locks.ByID(model.ManagedRedisID)
-			defer locks.UnlockByID(model.ManagedRedisID)
-
 			if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, id, createInput); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -163,19 +159,11 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model ManagedRedisAccessPolicyAssignmentResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
 			client := metadata.Client.ManagedRedis.DatabaseClient
 			id, err := databases.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-
-			locks.ByID(model.ManagedRedisID)
-			defer locks.UnlockByID(model.ManagedRedisID)
 
 			if err := client.AccessPolicyAssignmentDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
