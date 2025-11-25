@@ -354,7 +354,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount_target.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
