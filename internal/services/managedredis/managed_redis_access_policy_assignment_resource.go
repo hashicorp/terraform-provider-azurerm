@@ -62,7 +62,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) IDValidationFunc() pluginsdk
 
 func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model ManagedRedisAccessPolicyAssignmentResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -120,7 +120,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 
 func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := databases.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -154,7 +154,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 
 func (r ManagedRedisAccessPolicyAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedRedis.DatabaseClient
 			id, err := databases.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
