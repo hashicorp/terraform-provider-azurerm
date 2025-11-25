@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
 
-~>**Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
 
 ---
 
