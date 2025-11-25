@@ -257,7 +257,6 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-
 		d.Set("kind", model.Kind)
 
 		if sku := model.Sku; sku != nil {
@@ -286,16 +285,14 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			d.Set("endpoint", pointer.From(props.Endpoint))
-
 			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
-
 			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
 
 			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
 
 			if err := d.Set("network_acls", flattenCognitiveAccountDataSourceNetworkAcls(props.NetworkAcls)); err != nil {
-				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
+				return fmt.Errorf("setting `network_acls` for %s: %+v", id, err)
 			}
 
 			networkInjection, err := flattenCognitiveAccountNetworkInjection(props.NetworkInjections)
@@ -308,9 +305,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
-
 			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
-
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
@@ -338,9 +333,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return fmt.Errorf("setting `tags`: %+v", err)
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }
@@ -368,7 +361,7 @@ func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccoun
 
 			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
 				"subnet_id":                            id,
-				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
+				"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 			})
 		}
 	}
