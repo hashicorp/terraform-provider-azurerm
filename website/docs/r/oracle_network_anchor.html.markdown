@@ -77,9 +77,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dns_forwarding_rule_url` - A link to OCI console DNS Forwarding rules page.
 
-* `dns_listening_endpoint_ip_address` - A DNS listening endpoint IP address
+* `dns_listening_endpoint_ip_address` - A DNS listening endpoint IP address.
 
-* `dns_listening_endpoint_nsg_rule_url` - A link to OCI console DNS Listening endpoint NSG rules
+* `dns_listening_endpoint_nsg_rule_url` - A link to OCI console DNS Listening endpoint NSG rules.
 
 ## Timeouts
 

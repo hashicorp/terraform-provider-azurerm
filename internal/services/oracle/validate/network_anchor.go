@@ -58,7 +58,7 @@ func DomainNames(i interface{}, k string) (warnings []string, errors []error) {
 			errors = append(errors, fmt.Errorf("%q: contains an empty Domain Name", k))
 			continue
 		}
-		if ws, errs := DomainName(p, k); len(warnings) > 0 || len(errs) > 0 {
+		if ws, errs := DomainName(p, k); len(ws) > 0 || len(errs) > 0 {
 			warnings = append(warnings, ws...)
 			errors = append(errors, errs...)
 		}

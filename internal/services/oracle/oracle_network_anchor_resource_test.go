@@ -102,8 +102,8 @@ func (a NetworkAnchorResource) basic(data acceptance.TestData) string {
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "OFakeNA%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  zones               = ["1"]
+  resource_group_name = local.resource_group_name
+  zones               = local.zones
 
   resource_anchor_id = "/subscriptions/%[4]s/resourceGroups/TerraformTest/providers/Oracle.Database/resourceAnchors/ofakeTFRATestDND1"
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
@@ -116,8 +116,8 @@ func (a NetworkAnchorResource) complete(data acceptance.TestData) string {
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "OFakeNA%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  zones               = ["1"]
+  resource_group_name = local.resource_group_name
+  zones               = local.zones
 
   resource_anchor_id = "/subscriptions/%[4]s/resourceGroups/TerraformTest/providers/Oracle.Database/resourceAnchors/ofakeTFRATestDND1"
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
@@ -136,7 +136,7 @@ resource "azurerm_oracle_network_anchor" "test" {
     domain_names          = "def.ocidelegated.ocinetworkanch.oraclevcn.com"
     forwarding_ip_address = "10.0.1.24"
   }
-
+  dns_listening_endpoint_allowed_cidrs = "10.0.2.0/24,10.0.3.0/24"
 }`, a.template(data), data.RandomString, data.Locations.Primary, data.Subscriptions.Primary)
 }
 
@@ -146,8 +146,8 @@ func (a NetworkAnchorResource) update(data acceptance.TestData) string {
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
   name                = "OFakeNA%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  zones               = ["1"]
+  resource_group_name = local.resource_group_name
+  zones               = local.zones
 
   resource_anchor_id = "/subscriptions/%[4]s/resourceGroups/TerraformTest/providers/Oracle.Database/resourceAnchors/ofakeTFRATestDND1"
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
@@ -183,23 +183,23 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+locals {
+  resource_group_name = "TerraformTest"
+  zones               = ["2"]
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_virtual_network" "virtual_network" {
   name                = "OFakeacctest%[1]d_vnet"
   address_space       = ["10.0.0.0/16"]
   location            = "%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = local.resource_group_name
 }
 
 resource "azurerm_subnet" "virtual_network_subnet" {
   name                 = "OFakeacctest%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = local.resource_group_name
   virtual_network_name = azurerm_virtual_network.virtual_network.name
   address_prefixes     = ["10.0.1.0/24"]
 

@@ -149,9 +149,15 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_listening_endpoint_allowed_cidrs": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.IsCommaSeparatedCIDRs,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				// Always suppress diff if we’re reading existing resource, dns_listening_endpoint_allowed_cidrs is not returning
+				if d.Id() != "" {
+					return true
+				}
+				return false
+			},
 		},
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
