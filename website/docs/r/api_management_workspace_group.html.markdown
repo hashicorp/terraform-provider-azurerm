@@ -46,15 +46,15 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the API Management Workspace Group. Changing this forces a new resource to be created.
 
-* `api_management_workspace_id` - (Required) Specifies the ID of the API Management Workspace. Changing this forces a new resource to be created.
+* `api_management_workspace_id` - (Required) The ID of the API Management Workspace. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) Specifies the display name of the API Management Workspace Group.
 
 ---
 
-* `external_id` - (Optional) Specifies the ID of the group from an external identity provider. For example, for Azure Active Directory: `aad://<tenant id>/groups/<group object id>`. Changing this forces a new resource to be created.
-
 * `description` - (Optional) Specifies the description of the API Management Workspace Group.
+
+* `external_id` - (Optional) The ID of the group from an external identity provider. For example, for Azure Active Directory: `aad://<tenant id>/groups/<group object id>`. Changing this forces a new resource to be created.
 
 * `type` - (Optional) Specifies the type of the API Management Workspace Group. Possible values are `custom`, `external`. Defaults to `custom`. Changing this forces a new resource to be created.
 

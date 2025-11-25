@@ -58,16 +58,16 @@ func (r ApiManagementWorkspaceGroupResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"external_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
