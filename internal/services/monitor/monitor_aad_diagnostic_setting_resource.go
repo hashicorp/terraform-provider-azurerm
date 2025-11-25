@@ -189,7 +189,7 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 
 	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
 	pollerType := NewAadDiagnosticSettingCreatePoller(client, id)
-	poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
@@ -358,7 +358,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		client: client,
 		id:     *id,
 	}
-	initialDelayDuration := 30 * time.Second
+	initialDelayDuration := 15 * time.Second
 	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
@@ -457,7 +457,7 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,
 			},
-			PollInterval: 20 * time.Second,
+			PollInterval: 15 * time.Second,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	}
@@ -466,7 +466,7 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
 		},
-		PollInterval: 20 * time.Second,
+		PollInterval: 15 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}, nil
 }
@@ -493,7 +493,7 @@ func (p aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.Po
 				HttpResponse: &client.Response{
 					Response: resp.HttpResponse,
 				},
-				PollInterval: 20 * time.Second,
+				PollInterval: 15 * time.Second,
 				Status:       pollers.PollingStatusInProgress,
 			}, nil
 		}
@@ -504,7 +504,7 @@ func (p aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.Po
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
 		},
-		PollInterval: 20 * time.Second,
+		PollInterval: 15 * time.Second,
 		Status:       pollers.PollingStatusSucceeded,
 	}, nil
 }
