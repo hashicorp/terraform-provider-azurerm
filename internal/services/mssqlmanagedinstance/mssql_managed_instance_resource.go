@@ -277,15 +277,26 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"proxy_override": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  string(managedinstances.ManagedInstanceProxyOverrideRedirect),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
-				string(managedinstances.ManagedInstanceProxyOverrideProxy),
-			}, false),
-		},
+		"proxy_override": func() *pluginsdk.Schema {
+			s := &pluginsdk.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(managedinstances.ManagedInstanceProxyOverrideRedirect),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedinstances.ManagedInstanceProxyOverrideRedirect),
+					string(managedinstances.ManagedInstanceProxyOverrideProxy),
+				}, false),
+			}
+			if !features.FivePointOh() {
+				s.Default = string(managedinstances.ManagedInstanceProxyOverrideDefault)
+				s.ValidateFunc = validation.StringInSlice([]string{
+					string(managedinstances.ManagedInstanceProxyOverrideDefault),
+					string(managedinstances.ManagedInstanceProxyOverrideRedirect),
+					string(managedinstances.ManagedInstanceProxyOverrideProxy),
+				}, false)
+			}
+			return s
+		}(),
 
 		"public_data_endpoint_enabled": {
 			Type:     schema.TypeBool,

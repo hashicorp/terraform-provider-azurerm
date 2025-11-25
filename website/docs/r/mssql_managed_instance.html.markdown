@@ -253,7 +253,7 @@ The following arguments are supported:
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
-* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Defaults to `Redirect`. Possible values are `Proxy` and `Redirect`.
+* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Defaults to `Default`. Possible values are `Default`, `Proxy`, and `Redirect`.
 
 * `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Defaults to `false`.
 
