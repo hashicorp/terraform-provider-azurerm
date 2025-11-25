@@ -15,6 +15,7 @@ FEATURES:
 * **New Resource**: `azurerm_cognitive_account_project` [GH-30916]
 * **New Data Source**: `azurerm_api_management_workspace` [GH-30241]
 * **New List Resource**: `azurerm_private_dns_zone` [GH-31157]
+* **New Resource**: `azurerm_log_analytics_workspace_table_custom_log` [GH-30800]
 
 BUG FIXES:
 * `azurerm_function_app_hybrid_connection` - remove validation preventing resource import when using an elastic service plan SKU [GH-31134]
