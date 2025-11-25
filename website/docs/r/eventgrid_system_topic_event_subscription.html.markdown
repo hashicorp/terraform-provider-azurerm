@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
-* `azure_alert_monitor_endpoint` - (Optional) An `azure_alert_monitor_endpoint` block as defined below.
+* `azure_alert_monitor` - (Optional) An `azure_alert_monitor` block as defined below.
 
 * `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
 
@@ -121,7 +121,7 @@ A `storage_queue_endpoint` block supports the following:
 
 ---
 
-An `azure_alert_monitor_endpoint` block supports the following:
+An `azure_alert_monitor` block supports the following:
 
 * `action_groups` - (Optional) Specifies a list of action groups ids to submit the alerts to.
 

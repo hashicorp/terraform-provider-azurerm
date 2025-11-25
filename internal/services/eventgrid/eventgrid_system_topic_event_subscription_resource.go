@@ -70,7 +70,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"azure_alert_monitor_endpoint": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
+			"azure_alert_monitor": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(AzureAlertMonitorEndpoint),
@@ -305,8 +305,8 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
 
-			if err := d.Set("azure_alert_monitor_endpoint", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
-				return fmt.Errorf("setting `azure_alert_monitor_endpoint` for %s: %+v", *id, err)
+			if err := d.Set("azure_alert_monitor", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
+				return fmt.Errorf("setting `azure_alert_monitor` for %s: %+v", *id, err)
 			}
 
 			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {

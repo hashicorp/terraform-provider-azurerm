@@ -16,8 +16,8 @@ import (
 func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscriptions.EventSubscriptionDestination {
 	deliveryMappings := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
 
-	if val, ok := d.GetOk("azure_alert_monitor_endpoint"); ok && len(val.([]interface{})) == 1 {
-		return expandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor_endpoint").([]interface{}))
+	if val, ok := d.GetOk("azure_alert_monitor"); ok && len(val.([]interface{})) == 1 {
+		return expandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor").([]interface{}))
 	}
 
 	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]interface{})) == 1 {

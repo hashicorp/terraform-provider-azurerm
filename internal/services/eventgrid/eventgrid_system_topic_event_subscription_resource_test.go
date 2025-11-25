@@ -78,9 +78,9 @@ func TestAccEventGridSystemTopicEventSubscription_azureActionGroupMonitor(t *tes
 			Config: r.azureActionGroupMonitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.severity").HasValue("Sev4"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.description").HasValue("Keyvault activity"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.severity").HasValue("Sev4"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.description").HasValue("Keyvault activity"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.action_groups.0").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -920,7 +920,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic          = azurerm_eventgrid_system_topic.test.name
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  azure_alert_monitor_endpoint {
+  azure_alert_monitor {
     action_groups = [azurerm_monitor_action_group.test.id]
     description   = "Keyvault activity"
     severity      = "Sev4"

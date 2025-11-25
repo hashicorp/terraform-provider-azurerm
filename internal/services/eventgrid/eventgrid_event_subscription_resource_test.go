@@ -62,9 +62,9 @@ func TestAccEventGridEventSubscription_azureActionGroupMonitor(t *testing.T) {
 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.severity").HasValue("Sev4"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.description").HasValue("Secret or Certificate about to expire"),
-				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.0.action_groups.0").Exists(),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.severity").HasValue("Sev4"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.description").HasValue("Secret or Certificate about to expire"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.action_groups.0").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -707,7 +707,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                 = azurerm_key_vault.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  azure_alert_monitor_endpoint {
+  azure_alert_monitor {
     action_groups = [azurerm_monitor_action_group.test.id]
     description   = "Secret or Certificate about to expire"
     severity      = "Sev4"
