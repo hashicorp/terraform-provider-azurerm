@@ -437,9 +437,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"pod_ip_allocation_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			RequiredWith: []string{"pod_subnet_id"},
 			Default:      string(agentpools.PodIPAllocationModeDynamicIndividual),
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
-			Description:  "Pod IP Allocation Mode. The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. The default is 'DynamicIndividual'.",
+			Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
 		},
 	}
 
@@ -702,7 +703,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if podIPAllocationMode := d.Get("pod_ip_allocation_mode").(string); podIPAllocationMode != "" {
-		profile.PodIPAllocationMode = pointer.To(agentpools.PodIPAllocationMode(podIPAllocationMode))
+		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode)
 	}
 
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
@@ -937,7 +938,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("pod_ip_allocation_mode") {
-		props.PodIPAllocationMode = pointer.To(agentpools.PodIPAllocationMode(d.Get("pod_ip_allocation_mode").(string)))
+		props.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](d.Get("pod_ip_allocation_mode").(string))
 	}
 
 	if d.HasChange("zones") {
@@ -1251,7 +1252,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		d.Set("pod_ip_allocation_mode", string(pointer.From(props.PodIPAllocationMode)))
+		d.Set("pod_ip_allocation_mode", pointer.FromEnum(props.PodIPAllocationMode))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
