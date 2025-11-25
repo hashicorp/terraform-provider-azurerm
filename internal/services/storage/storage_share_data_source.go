@@ -79,6 +79,11 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
+
+			"rbac_scope_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 
@@ -173,6 +178,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", shareName)
 			d.Set("resource_manager_id", resourceManagerId.ID())
+			d.Set("rbac_scope_id", resourceManagerId.ID())
 
 			return nil
 		}
@@ -204,6 +210,8 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
 	}
+
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
 	d.SetId(id.ID())
 
