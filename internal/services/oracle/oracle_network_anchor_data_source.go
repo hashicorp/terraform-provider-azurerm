@@ -192,7 +192,7 @@ func (d NetworkAnchorDataSource) Read() sdk.ResourceFunc {
 					state.CidrBlock = pointer.From(props.CidrBlock)
 					state.OciVcnId = pointer.From(props.OciVcnId)
 					state.OciVcnDnsLabel = pointer.From(props.OciVcnDnsLabel)
-					state.OciSubnetId = pointer.From(props.OciVcnDnsLabel)
+					state.OciSubnetId = pointer.From(props.OciSubnetId)
 					state.OciBackupCidrBlock = pointer.From(props.OciBackupCidrBlock)
 					state.OracleDnsForwardingEndpointEnabled = pointer.From(props.IsOracleDnsForwardingEndpointEnabled)
 					state.OracleDnsListeningEndpointEnabled = pointer.From(props.IsOracleDnsListeningEndpointEnabled)

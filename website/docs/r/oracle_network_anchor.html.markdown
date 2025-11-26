@@ -63,7 +63,7 @@ A `dns_forwarding_rule` block supports the following:
 
 * `domain_names` - (Required) Comma-separated domain names.
 
-* `forwarding_ip_address` - (Required) Forwarding ip address.
+* `forwarding_ip_address` - (Required) Forwarding IP address.
 
 ## Attributes Reference
 
@@ -95,7 +95,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Oracle Network Anchors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracle_network_anchor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG/providers/Oracle.Database/networkAnchors/testNetworAnchor1
+terraform import azurerm_oracle_network_anchor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG/providers/Oracle.Database/networkAnchors/testNetworkAnchor1
 ```
 
 ## API Providers
