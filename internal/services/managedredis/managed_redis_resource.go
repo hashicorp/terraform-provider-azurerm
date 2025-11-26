@@ -105,7 +105,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
+			ForceNew:     false,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
@@ -503,6 +503,11 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("public_network_access") {
 				clusterParams.Properties.PublicNetworkAccess = redisenterprise.PublicNetworkAccess(state.PublicNetworkAccess)
+				clusterUpdateRequired = true
+			}
+
+			if metadata.ResourceData.HasChange("sku_name") {
+				clusterParams.Sku.Name = redisenterprise.SkuName(state.SkuName)
 				clusterUpdateRequired = true
 			}
 

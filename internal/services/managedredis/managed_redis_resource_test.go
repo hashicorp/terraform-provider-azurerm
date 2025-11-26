@@ -73,7 +73,28 @@ func TestAccManagedRedis_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, "Balanced_B3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "Balanced_B3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "Balanced_B5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -438,7 +459,7 @@ resource "azurerm_managed_redis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ManagedRedisResource) update(data acceptance.TestData) string {
+func (r ManagedRedisResource) update(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -454,7 +475,7 @@ resource "azurerm_managed_redis" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
-  sku_name = "Balanced_B3"
+  sku_name = "%[3]s"
 
   default_database {
     access_keys_authentication_enabled = false
@@ -477,10 +498,11 @@ resource "azurerm_managed_redis" "test" {
   high_availability_enabled = true
 
   tags = {
-    ENV = "Test"
+    ENV    = "Test",
+	Method = "Update"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, skuName)
 }
 
 func (r ManagedRedisResource) withPrivateEndpoint(data acceptance.TestData) string {
