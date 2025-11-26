@@ -904,6 +904,10 @@ func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   skip_provider_registration = true
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
     key_vault {
       recover_soft_deleted_key_vaults    = false
       purge_soft_delete_on_destroy       = false
