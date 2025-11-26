@@ -68,13 +68,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 Things worth noting here:
 
-- The copyright header in Go files should use the following format:
-
-```go
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-```
-
 - The call to `o.Configure` configures the authorization token which should be used for this SDK Client - in most cases `ResourceManager` is the authorizer you want to use.
 
 At this point, this SDK Client should be usable within the Resource via:
@@ -603,13 +596,6 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 Things worth noting here:
 
-- If you want to add header comment at the beginning of the go file, use the following fixed format:
-
-```go
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-```
-
 - An argument must either be marked `ForceNew: true`, or added to `Update()` function.
 
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
@@ -691,7 +677,7 @@ return fmt.Errorf("retrieving %s: model was nil", id)
 return fmt.Errorf("retrieving %s: properties was nil", id)
 ```
 
-- Do not return an error in `Update` or `CustomizeDiff` function if the error is by design and cannot be resolved by changing the configuration, use `ForceNew` in `CustomizeDiff` instead so that Terraform will plan a resource recreation.
+- Do not return an error in `Update` or `CustomizeDiff` function if the error is by design, use `ForceNew` in `CustomizeDiff` instead so that Terraform will plan a resource recreation.
 
 :white_check_mark: **DO**
 
@@ -741,7 +727,7 @@ func (r ExampleResource) Update() sdk.ResourceFunc {
 }
 ```
 
-- `pointer.From` returns the dereferenced value or zero if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
+- `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
 
 :white_check_mark: **DO**
 
@@ -754,6 +740,25 @@ output.Name = pointer.From(input.Name)
 ```go
 if input.Name != nil {
     output.Name = *input.Name
+}
+```
+
+- Use `pointer.To` to take the address of a value without declaring temporary variables.
+
+:white_check_mark: **DO**
+
+```go
+if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+    return fmt.Errorf("deleting %s: %+v", newId, err)
+}
+```
+
+:no_entry: **DO NOT**
+
+```go
+asterisk = "*"
+if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: &asterisk}); err != nil {
+    return fmt.Errorf("deleting %s: %+v", newId, err)
 }
 ```
 

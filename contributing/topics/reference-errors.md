@@ -87,7 +87,7 @@ This type of error wrapping should be applied to **all** error handling includin
 
 When returning errors in those situations, it is important to consider the calling context and to exclude any information the calling function is likely to include, while including any additional context then calling function may not have.
 
-For error messages that are simple strings without any variables, use `errors.New()` instead of `fmt.Errorf()`. Go will not allow `fmt.Errorf()` with constant strings in future versions:
+For error messages that are simple strings without any variables, use `errors.New()` instead of `fmt.Errorf()`.
 
 ```go
 errors.New("resource not found")

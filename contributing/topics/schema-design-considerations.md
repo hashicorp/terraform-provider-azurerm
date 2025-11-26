@@ -263,7 +263,7 @@ Fields that are in preview should not be supported until they reach General Avai
 
 ## Flattening nested properties
 
-When designing schemas, flatten properties with `MaxItems: 1` that contain only a single nested property.
+When designing schemas, flatten properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
 :white_check_mark: **DO**
 ```go
