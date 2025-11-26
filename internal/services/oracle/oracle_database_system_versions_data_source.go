@@ -126,10 +126,6 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 
 			options := dbversions.DefaultListByLocationOperationOptions()
 
-			//if state.ShapeFamily != "" || state.DatabaseSystemShape != "" {
-			//	log.Printf("[WARN] Db Versions data source: You can not use both shape_family and database_system_shape together for filtering versions.")
-			//}
-
 			options.IsDatabaseSoftwareImageSupported = state.DatabaseSoftwareImageSupportEnabled
 			options.IsUpgradeSupported = state.UpgradeSupportEnabled
 
