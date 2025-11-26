@@ -13,19 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjob"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ManagedLustreFileSystemAutoExportJobModel struct {
-	Name               string            `tfschema:"name"`
-	ResourceGroupName  string            `tfschema:"resource_group_name"`
-	AmlFileSystemName  string            `tfschema:"aml_file_system_name"`
-	Location           string            `tfschema:"location"`
-	AutoExportPrefixes []string          `tfschema:"auto_export_prefixes"`
-	AdminStatusEnabled bool              `tfschema:"admin_status_enabled"`
-	Tags               map[string]string `tfschema:"tags"`
+	Name                      string            `tfschema:"name"`
+	ManagedLustreFileSystemId string            `tfschema:"managed_lustre_file_system_id"`
+	Location                  string            `tfschema:"location"`
+	AutoExportPrefixes        []string          `tfschema:"auto_export_prefixes"`
+	AdminStatusEnabled        bool              `tfschema:"admin_status_enabled"`
+	Tags                      map[string]string `tfschema:"tags"`
 }
 
 type ManagedLustreFileSystemAutoExportJobResource struct{}
@@ -53,21 +51,14 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z_]{0,78}[0-9a-zA-Z]$`), "name must be 3-80 characters long and can only contain alphanumeric characters, underscores, and hyphens, and must start and end with an alphanumeric character"),
 		},
 
+		"managed_lustre_file_system_id": commonschema.ResourceIDReferenceRequiredForceNew(&autoexportjob.AmlFilesystemId{}),
+
 		"location": commonschema.Location(),
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"aml_file_system_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ManagedLustreFileSystemName,
-		},
 
 		"auto_export_prefixes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -95,12 +86,17 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 
 			autoExportJobsClient := metadata.Client.StorageCache.AutoExportJobs
 			autoExportJobClient := metadata.Client.StorageCache.AutoExportJob
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := autoexportjobs.NewAutoExportJobID(subscriptionId, model.ResourceGroupName, model.AmlFileSystemName, model.Name)
+
+			amlFileSystemId, err := autoexportjob.ParseAmlFilesystemID(model.ManagedLustreFileSystemId)
+			if err != nil {
+				return err
+			}
+
+			id := autoexportjobs.NewAutoExportJobID(amlFileSystemId.SubscriptionId, amlFileSystemId.ResourceGroupName, amlFileSystemId.AmlFilesystemName, model.Name)
 
 			existing, err := autoExportJobsClient.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing Auto Export Job %s: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -121,7 +117,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusDisable)
 			}
 
-			autoExportJobId := autoexportjob.NewAutoExportJobID(subscriptionId, model.ResourceGroupName, model.AmlFileSystemName, model.Name)
+			autoExportJobId := autoexportjob.NewAutoExportJobID(amlFileSystemId.SubscriptionId, amlFileSystemId.ResourceGroupName, amlFileSystemId.AmlFilesystemName, model.Name)
 			if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -155,18 +151,13 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Read() sdk.ResourceFunc {
 			state := ManagedLustreFileSystemAutoExportJobModel{}
 			if model := resp.Model; model != nil {
 				state.Name = id.AutoExportJobName
-				state.ResourceGroupName = id.ResourceGroupName
+				state.ManagedLustreFileSystemId = autoexportjob.NewAmlFilesystemID(id.SubscriptionId, id.ResourceGroupName, id.AmlFilesystemName).ID()
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				state.AmlFileSystemName = id.AmlFilesystemName
 
 				if props := model.Properties; props != nil {
 					state.AutoExportPrefixes = pointer.From(props.AutoExportPrefixes)
-					if props.AdminStatus != nil && string(pointer.From(props.AdminStatus)) == string(autoexportjob.AutoExportJobAdminStatusEnable) {
-						state.AdminStatusEnabled = true
-					} else {
-						state.AdminStatusEnabled = false
-					}
+					state.AdminStatusEnabled = pointer.From(props.AdminStatus) == autoexportjobs.AutoExportJobAdminStatusEnable
 				}
 			}
 

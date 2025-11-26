@@ -156,10 +156,9 @@ resource "azurerm_managed_lustre_file_system" "example" {
 }
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "example" {
-  name                 = "acctest-amlfs-auto-export-job"
-  resource_group_name  = azurerm_resource_group.example.name
-  aml_file_system_name = azurerm_managed_lustre_file_system.examle.name
-  location             = azurerm_resource_group.example.location
+  name                          = "acctest-amlfs-auto-export-job"
+  managed_lustre_file_system_id = azurerm_managed_lustre_file_system.example.id
+  location                      = azurerm_resource_group.example.location
 
   auto_export_prefixes = ["/"]
 }
@@ -171,15 +170,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Azure Managed Lustre File System Auto Export Job. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Azure Managed Lustre File System Auto Export Job should exist. Changing this forces a new resource to be created.
+* `managed_lustre_file_system_id` - (Required) The ID of the Azure Managed Lustre File System to which this Auto Export Job belongs. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the Azure Managed Lustre File System Auto Export Job should exist. Changing this forces a new resource to be created.
 
-* `aml_file_system_name` - (Required) The name of the Azure Managed Lustre File System to which this Auto Export Job belongs. Changing this forces a new resource to be created.
-
 * `auto_export_prefixes` - (Required) A list of prefixes that get auto exported to the cluster namespace.
 
-* `admin_status_enabled` - (Optional) Whether the administrative status of the Auto Export Job is enabled. Possible values are `true` and `false`. Defaults to `true`.
+* `admin_status_enabled` - (Optional) Whether the administrative status of the Auto Export Job is enabled. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System Auto Export Job.
 
@@ -191,7 +188,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Azure Managed Lustre File System Auto Export Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System Auto Export Job.

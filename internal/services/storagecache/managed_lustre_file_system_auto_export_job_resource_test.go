@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -25,9 +24,6 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Exists(ctx context.Context
 	client := clients.StorageCache.AutoExportJobs
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
@@ -105,10 +101,9 @@ func (r ManagedLustreFileSystemAutoExportJobResource) basic(data acceptance.Test
 %s
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
-  name                 = "acctest-amlfsaej-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  aml_file_system_name = azurerm_managed_lustre_file_system.test.name
-  location             = azurerm_resource_group.test.location
+  name                          = "acctest-amlfsaej-%d"
+  managed_lustre_file_system_id = azurerm_managed_lustre_file_system.test.id
+  location                      = azurerm_resource_group.test.location
 
   auto_export_prefixes = ["/"]
 }
@@ -120,13 +115,12 @@ func (r ManagedLustreFileSystemAutoExportJobResource) complete(data acceptance.T
 %s
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
-  name                 = "acctest-amlfsaej-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  aml_file_system_name = azurerm_managed_lustre_file_system.test.name
-  location             = azurerm_resource_group.test.location
+  name                          = "acctest-amlfsaej-%d"
+  managed_lustre_file_system_id = azurerm_managed_lustre_file_system.test.id
+  location                      = azurerm_resource_group.test.location
 
-  auto_export_prefixes = ["/"]
-  admin_status_enabled = true
+  auto_export_prefixes = ["/", "/export"]
+  admin_status_enabled = false
 }
 `, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
 }
@@ -136,13 +130,11 @@ func (r ManagedLustreFileSystemAutoExportJobResource) requiresImport(data accept
 %s
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "import" {
-  name                 = azurerm_managed_lustre_file_system_auto_export_job.test.name
-  resource_group_name  = azurerm_managed_lustre_file_system_auto_export_job.test.resource_group_name
-  aml_file_system_name = azurerm_managed_lustre_file_system_auto_export_job.test.aml_file_system_name
-  location             = azurerm_managed_lustre_file_system_auto_export_job.test.location
+  name                          = azurerm_managed_lustre_file_system_auto_export_job.test.name
+  managed_lustre_file_system_id = azurerm_managed_lustre_file_system_auto_export_job.test.managed_lustre_file_system_id
+  location                      = azurerm_managed_lustre_file_system_auto_export_job.test.location
 
   auto_export_prefixes = azurerm_managed_lustre_file_system_auto_export_job.test.auto_export_prefixes
-  admin_status_enabled = azurerm_managed_lustre_file_system_auto_export_job.test.admin_status_enabled
 }
 `, r.basic(data))
 }
