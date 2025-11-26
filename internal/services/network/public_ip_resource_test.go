@@ -180,13 +180,13 @@ func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_standard(t *testing.T) {
+func TestAccPublicIpStatic_standardVTwo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.standardVTwo(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -547,7 +547,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIPResource) standard(data acceptance.TestData) string {
+func (PublicIPResource) standardVTwo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -563,7 +563,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "StandardV2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -410,6 +410,7 @@ resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
   location            = azurerm_resource_group.test.location
   sku_tier            = "%s"
+  sku                 = "StandardV2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tier)
 }

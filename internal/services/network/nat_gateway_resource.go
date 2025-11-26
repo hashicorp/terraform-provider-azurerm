@@ -74,12 +74,10 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(natgateways.NatGatewaySkuNameStandard),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(natgateways.NatGatewaySkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(natgateways.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
