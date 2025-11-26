@@ -25,8 +25,8 @@ import (
 type ContainerAppEnvironmentCertificateResource struct{}
 
 type CertificateKeyVaultModel struct {
-	Identity              string `tfschema:"identity"`
-	KeyVaultCertificateId string `tfschema:"key_vault_certificate_id"`
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
 }
 
 type ContainerAppCertificateModel struct {
@@ -113,11 +113,11 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 							commonids.ValidateUserAssignedIdentityID,
 						),
 					},
-					"key_vault_certificate_id": {
+					"key_vault_secret_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeCertificate),
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),
 					},
 				},
 			},
@@ -199,7 +199,7 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				kvConfig := cert.CertificateKeyVault[0]
 				model.Properties.CertificateKeyVaultProperties = &certificates.CertificateKeyVaultProperties{
 					Identity:    pointer.To(kvConfig.Identity),
-					KeyVaultURL: pointer.To(kvConfig.KeyVaultCertificateId),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
 				}
 			}
 
@@ -260,8 +260,8 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 					if kvProps := props.CertificateKeyVaultProperties; kvProps != nil {
 						state.CertificateKeyVault = []CertificateKeyVaultModel{
 							{
-								Identity:              pointer.From(kvProps.Identity),
-								KeyVaultCertificateId: pointer.From(kvProps.KeyVaultURL),
+								Identity:         pointer.From(kvProps.Identity),
+								KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
 							},
 						}
 					}
