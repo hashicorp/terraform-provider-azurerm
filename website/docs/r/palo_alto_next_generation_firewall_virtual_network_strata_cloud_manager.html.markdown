@@ -111,9 +111,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager to be created.
-
 * `name` - (Required) The name which should be used for this Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager to be created.
+
+* `location` - (Required) The Azure Region where the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager to be created.
 
 * `network_profile` - (Required) A `network_profile` block as defined below.
 
@@ -197,7 +197,7 @@ A `vnet_configuration` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
@@ -237,7 +237,7 @@ A `vnet_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.

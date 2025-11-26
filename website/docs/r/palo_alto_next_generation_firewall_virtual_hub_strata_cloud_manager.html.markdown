@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_public_ip" "example" {
-  name                = "acceptanceTestPublicIp1"
+  name                = "example-public-ip"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   allocation_method   = "Static"
@@ -70,9 +70,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager to be created.
-
 * `name` - (Required) The name which should be used for this Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager. Changing this forces a new Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager to be created.
+
+* `location` - (Required) The Azure Region where the Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager to be created.
 
 * `network_profile` - (Required) A `network_profile` block as defined below.
 
@@ -110,9 +110,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) A list of DNS servers to use. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) A list of DNS servers to use. Conflicts with `dns_settings[0].use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
 ---
 
@@ -134,7 +134,7 @@ A `frontend_config` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. Possible values are `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this App Configuration. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
@@ -186,7 +186,7 @@ A `network_profile` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Virtual Hub Strata Cloud Manager.

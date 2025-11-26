@@ -40,12 +40,14 @@ type NextGenerationFirewallVNetStrataCloudManagerModel struct {
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetStrataCloudManagerResource{}
 
+var _ sdk.ResourceWithCustomizeDiff = NextGenerationFirewallVNetStrataCloudManagerResource{}
+
 func (r NextGenerationFirewallVNetStrataCloudManagerResource) ModelObject() interface{} {
 	return &NextGenerationFirewallVNetStrataCloudManagerModel{}
 }
 
 func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -88,8 +90,6 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Arguments() map[st
 
 		"tags": commonschema.Tags(),
 	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVNetStrataCloudManagerResource) Attributes() map[string]*pluginsdk.Schema {
@@ -113,10 +113,6 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 			}
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-
-			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
-				return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
-			}
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -185,7 +181,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state.Name = id.FirewallName
@@ -205,7 +201,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 				}
 				state.Identity = flattenedIdentity
 
-				state.Tags = tags.Flatten(existing.Model.Tags)
+				state.Tags = tags.Flatten(model.Tags)
 
 				if strataCloudManagerConfig := props.StrataCloudManagerConfig; strataCloudManagerConfig != nil {
 					state.StrataCloudManagerTenantName = strataCloudManagerConfig.CloudManagerName
@@ -262,7 +258,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil {
@@ -277,8 +273,8 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			}
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
-				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
-					return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
+				if props.StrataCloudManagerConfig == nil {
+					return fmt.Errorf("updating %s: StrataCloudManagerConfig was nil", *id)
 				}
 				props.StrataCloudManagerConfig.CloudManagerName = model.StrataCloudManagerTenantName
 			}
@@ -311,6 +307,26 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r NextGenerationFirewallVNetStrataCloudManagerResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
+				var model NextGenerationFirewallVNetStrataCloudManagerModel
+				if err := metadata.Decode(&model); err != nil {
+					return fmt.Errorf("decoding model: %+v", err)
+				}
+
+				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
+					return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
+				}
 			}
 
 			return nil
