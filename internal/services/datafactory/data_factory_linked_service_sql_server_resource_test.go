@@ -188,7 +188,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[1]d"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -218,7 +218,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LinkedServiceSQLServerResource) connection_string_key_vault_reference(data acceptance.TestData) string {
@@ -235,7 +235,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -268,5 +268,5 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     secret_name         = "password"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

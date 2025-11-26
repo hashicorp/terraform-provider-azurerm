@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
@@ -25,8 +26,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -42,7 +43,7 @@ const (
 var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
 
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,
 		Read:   resourcePostgresqlFlexibleServerRead,
 		Update: resourcePostgresqlFlexibleServerUpdate,
@@ -328,7 +329,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -342,7 +343,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -469,6 +470,30 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+			RequiredWith: []string{
+				"identity",
+				"customer_managed_key.0.primary_user_assigned_identity_id",
+			},
+		}
+
+		resource.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["geo_backup_key_vault_key_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+			RequiredWith: []string{
+				"identity",
+				"customer_managed_key.0.geo_backup_user_assigned_identity_id",
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {

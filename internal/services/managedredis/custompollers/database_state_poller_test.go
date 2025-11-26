@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
@@ -22,7 +22,7 @@ func TestDatabaseStatePoller_Success(t *testing.T) {
 		getResponse: &databases.GetOperationResponse{
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &databases.Database{
-				Properties: &databases.DatabaseProperties{
+				Properties: &databases.DatabaseCreateProperties{
 					ResourceState: pointer.To(databases.ResourceStateRunning),
 				},
 			},
@@ -68,7 +68,7 @@ func TestDatabaseStatePoller_InProgress(t *testing.T) {
 				getResponse: &databases.GetOperationResponse{
 					HttpResponse: &http.Response{StatusCode: 200},
 					Model: &databases.Database{
-						Properties: &databases.DatabaseProperties{
+						Properties: &databases.DatabaseCreateProperties{
 							ResourceState: pointer.To(tc.state),
 						},
 					},
@@ -104,7 +104,7 @@ func TestDatabaseStatePoller_UnexpectedState(t *testing.T) {
 		getResponse: &databases.GetOperationResponse{
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &databases.Database{
-				Properties: &databases.DatabaseProperties{
+				Properties: &databases.DatabaseCreateProperties{
 					ResourceState: pointer.To(databases.ResourceState("UnexpectedState")),
 				},
 			},
@@ -235,7 +235,7 @@ func (m *statefulMockDatabaseClient) Get(ctx context.Context, id databases.Datab
 	return databases.GetOperationResponse{
 		HttpResponse: &http.Response{StatusCode: 200},
 		Model: &databases.Database{
-			Properties: &databases.DatabaseProperties{
+			Properties: &databases.DatabaseCreateProperties{
 				ResourceState: pointer.To(state),
 			},
 		},

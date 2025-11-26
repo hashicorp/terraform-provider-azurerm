@@ -71,7 +71,7 @@ func (r WebPubsubSharedPrivateLinkResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -102,7 +102,7 @@ resource "azurerm_web_pubsub_shared_private_link_resource" "test" {
   subresource_name   = "vault"
   target_resource_id = azurerm_key_vault.test.id
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r WebPubsubSharedPrivateLinkResource) requiresImport(data acceptance.TestData) string {
