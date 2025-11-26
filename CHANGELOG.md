@@ -1,6 +1,7 @@
 ## 4.55.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_mongo_cluster` - support for new properties `customer_managed_key`, `data_api_mode_enabled`, `identity`, `restore`, `auth_config_allowed_modes` and `storage_type` [GH-31100]
 * dependencies: `containerregistry` - update to API version `2025-04-01` [GH-30205]
 * `azurerm_container_app_environment` - extend validation for `workload_profile_type` for additional supported SKUs [GH-30738]
 * dependencies: `go-azure-helpers` - update to `v0.75.1` [GH-31148]
