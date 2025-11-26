@@ -548,7 +548,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.UserData = pointer.To(userData.(string))
 	}
 
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *virtualmachinescalesets.VirtualMachineScaleSetOSProfile
@@ -567,6 +567,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+			osType = virtualmachinescalesets.OperatingSystemTypesWindows
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -674,13 +675,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
+		if vmssOsProfile != nil {
+			vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+		}
+
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
-
-	if virtualMachineProfile.OsProfile == nil {
-		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-	}
-	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
@@ -845,7 +845,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{}
 	update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{}
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 
 	if !isLegacy {
 		updateProps = virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
@@ -913,6 +913,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+				osType = virtualmachinescalesets.OperatingSystemTypesWindows
 				winConfig := winConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
