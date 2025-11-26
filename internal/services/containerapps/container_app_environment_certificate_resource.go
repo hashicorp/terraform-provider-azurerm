@@ -25,8 +25,8 @@ import (
 type ContainerAppEnvironmentCertificateResource struct{}
 
 type CertificateKeyVaultModel struct {
-	Identity         string `tfschema:"identity"`
-	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
+	Identity              string `tfschema:"identity"`
+	KeyVaultCertificateId string `tfschema:"key_vault_certificate_id"`
 }
 
 type ContainerAppCertificateModel struct {
@@ -104,15 +104,16 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "System",
 						ValidateFunc: validation.Any(
 							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
 						),
 					},
-					"key_vault_secret_id": {
+					"key_vault_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -191,15 +192,14 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				Tags:       tags.Expand(cert.Tags),
 			}
 
-			hasBlobAuth := cert.CertificateBlob != "" && cert.CertificatePassword != ""
-			if hasBlobAuth {
+			if cert.CertificateBlob != "" && cert.CertificatePassword != "" {
 				model.Properties.Password = pointer.To(cert.CertificatePassword)
 				model.Properties.Value = pointer.To(cert.CertificateBlob)
 			} else if len(cert.CertificateKeyVault) > 0 {
 				kvConfig := cert.CertificateKeyVault[0]
 				model.Properties.CertificateKeyVaultProperties = &certificates.CertificateKeyVaultProperties{
 					Identity:    pointer.To(kvConfig.Identity),
-					KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultCertificateId),
 				}
 			}
 
@@ -258,11 +258,12 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 					state.Thumbprint = pointer.From(props.Thumbprint)
 
 					if kvProps := props.CertificateKeyVaultProperties; kvProps != nil {
-						keyVaultConfig := CertificateKeyVaultModel{
-							Identity:         pointer.From(kvProps.Identity),
-							KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
+						state.CertificateKeyVault = []CertificateKeyVaultModel{
+							{
+								Identity:              pointer.From(kvProps.Identity),
+								KeyVaultCertificateId: pointer.From(kvProps.KeyVaultURL),
+							},
 						}
-						state.CertificateKeyVault = []CertificateKeyVaultModel{keyVaultConfig}
 					}
 				}
 			}

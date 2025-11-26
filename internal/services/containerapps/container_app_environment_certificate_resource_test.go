@@ -250,8 +250,7 @@ resource "azurerm_container_app_environment_certificate" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   certificate_key_vault {
-    identity            = "System"
-    key_vault_secret_id = azurerm_key_vault_certificate.test.versionless_secret_id
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_secret_id
   }
 
   depends_on = [azurerm_role_assignment.system_identity_secrets]
@@ -274,8 +273,8 @@ resource "azurerm_container_app_environment_certificate" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   certificate_key_vault {
-    identity            = azurerm_user_assigned_identity.test.id
-    key_vault_secret_id = azurerm_key_vault_certificate.test.versionless_secret_id
+    identity                 = azurerm_user_assigned_identity.test.id
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_secret_id
   }
 
   depends_on = [azurerm_role_assignment.user_identity_secrets]

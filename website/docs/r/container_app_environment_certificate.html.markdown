@@ -117,8 +117,8 @@ resource "azurerm_container_app_environment_certificate" "example" {
   container_app_environment_id = azurerm_container_app_environment.example.id
 
   certificate_key_vault {
-    identity            = azurerm_user_assigned_identity.example.id
-    key_vault_secret_id = azurerm_key_vault_certificate.example.versionless_secret_id
+    identity                 = azurerm_user_assigned_identity.example.id
+    key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_secret_id
   }
 
   depends_on = [azurerm_role_assignment.example]
@@ -153,11 +153,11 @@ The following arguments are supported:
 
 A `certificate_key_vault` block supports the following:
 
-* `identity` - (Required) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Changing this forces a new resource to be created.
+* `identity` - (Optional) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Defaults to `System`. Changing this forces a new resource to be created.
 
 ~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
 
-* `key_vault_secret_id` - (Required) The Base ID of the Key Vault Secret containing the certificate. Changing this forces a new resource to be created.
+* `key_vault_certificate_id` - (Required) The ID of the Key Vault Certificate. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
