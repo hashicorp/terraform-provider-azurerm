@@ -841,6 +841,8 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 	return results
 }
 
+// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
+// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
 func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.UserAssignedMap {
 	if len(input) == 0 {
 		return nil
