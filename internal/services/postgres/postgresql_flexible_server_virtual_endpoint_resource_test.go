@@ -193,7 +193,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, "eastus") // force region due to SKU constraints
+`, data.RandomInteger, "westus3") // force region due to SKU constraints
 }
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) update(data acceptance.TestData, replicaId string) string {
@@ -259,7 +259,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   ## this prevents a race condition that can occur if the virtual endpoint is created while a replica is still initializing
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0, azurerm_postgresql_flexible_server.test_replica_1]
 }
-`, data.RandomInteger, "eastus", replicaId) // force region due to SKU constraints
+`, data.RandomInteger, "westus3", replicaId) // force region due to SKU constraints
 }
 
 /** Complex test cases across regions and resource groups */
@@ -602,5 +602,5 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, "eastus") // force region due to SKU constraints
+`, data.RandomInteger, "westus3") // force region due to SKU constraints
 }
