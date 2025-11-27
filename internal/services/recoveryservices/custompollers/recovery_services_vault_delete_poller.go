@@ -44,7 +44,6 @@ func NewRecoveryServicesVaultDeletePoller(vaultClient *vaults.VaultsClient, id v
 
 func (p *recoveryServicesVaultDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
-
 	if err != nil {
 		if resp.HttpResponse != nil && resp.HttpResponse.StatusCode == http.StatusNotFound {
 			p.successCount++
