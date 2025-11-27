@@ -56,9 +56,9 @@ The following arguments are supported:
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
+* `soft_delete_enabled` - (Optional) Is soft delete enabled for this Vault? Defaults to `true`.
 
-!> **Note:** Soft delete is now enforced by default for all recovery services vaults. For regions in General Availability (GA), the soft delete state is automatically set to `AlwaysON` and cannot be changed, regardless of the value specified in this field. For regions in Public Preview, the soft delete state is automatically set to `Enabled`, and this field cannot control it directly - users must use the legacy Backup Configuration API to toggle soft delete on or off. Please visit [Microsoft Learn Secure By Default](https://learn.microsoft.com/en-us/azure/backup/secure-by-default?tabs=preview) for more information.
+!> **Important:** Soft Delete is a required security feature for Recovery Services Vaults and cannot be disabled. The `soft_delete_enabled` argument must be set to `true` or left at its default value. Setting this to `false` is not allowed. For more information, see [Secure by Default](https://learn.microsoft.com/en-us/azure/backup/secure-by-default).
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 

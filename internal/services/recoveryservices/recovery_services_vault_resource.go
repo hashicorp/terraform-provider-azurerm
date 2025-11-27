@@ -142,7 +142,6 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO Mark it as required for deprecation
 			"soft_delete_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -202,8 +201,39 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(vaults.ImmutabilityStateLocked)
 			}),
+			resourceRecoveryServicesVaultSoftDeleteCustomizeDiff,
 		),
 	}
+}
+
+func resourceRecoveryServicesVaultSoftDeleteCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	if diff.Id() == "" {
+		// For new resource, soft_delete_enabled defaults to true
+		_, new := diff.GetChange("soft_delete_enabled")
+		if new != nil {
+			newVal := new.(bool)
+			if !newVal {
+				return errors.New("soft_delete_enabled cannot be set to false. Soft Delete is a required security feature for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
+			}
+		}
+	} else {
+		// For existing resources
+		old, new := diff.GetChange("soft_delete_enabled")
+		oldVal := old.(bool)
+		newVal := new.(bool)
+
+		// Warn if existing resource has soft_delete_enabled = false
+		if !oldVal {
+			log.Printf("[WARN] This Recovery Services Vault has soft_delete_enabled = false. Soft Delete is now a required security feature. For details, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
+		}
+
+		// Block attempts to change from true to false
+		if oldVal && !newVal {
+			return errors.New("soft_delete_enabled cannot be changed from true to false. Soft Delete is a required security feature and cannot be disabled for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
+		}
+	}
+
+	return nil
 }
 
 func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -373,11 +403,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 		}
-	} else {
-		if !d.Get("soft_delete_enabled").(bool) {
-			return fmt.Errorf("`soft_delete_enabled` cannot be set to `false` in regions where soft delete is enforced (AlwaysON). Please visit https://learn.microsoft.com/en-us/azure/backup/secure-by-default for more information")
-		}
-		log.Printf("[DEBUG] Soft delete is AlwaysON for %s, skipping backup config update", id.String())
 	}
 
 	if d.Get("classic_vmware_replication_enabled").(bool) {
@@ -604,8 +629,6 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 		}
-	} else if d.HasChange("soft_delete_enabled") {
-		return fmt.Errorf("`soft_delete_enabled` cannot be changed in regions where soft delete is enforced. Please visit https://learn.microsoft.com/en-us/azure/backup/secure-by-default for more information")
 	}
 
 	d.SetId(id.ID())
