@@ -251,7 +251,7 @@ func (r MachineLearningDataStoreDataLakeGen2) template(data acceptance.TestData)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-	application_insights {
+    application_insights {
       disable_generated_rule = true
     }
     key_vault {
