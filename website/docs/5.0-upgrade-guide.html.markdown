@@ -337,6 +337,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `single_network_slice_selection_assistance_information` has been removed and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level.
 
+### `azurerm_mongo_cluster`
+
+* The deprecated `auth_config_allowed_modes` property has been removed in favor of the `authentication_methods` property.
+
 ### `azurerm_monitor_aad_diagnostic_setting`
 
 * The deprecated `enabled_log.retention_policy` block has been removed.

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,6 +37,7 @@ type MongoClusterResourceModel struct {
 	AdministratorUserName  string                         `tfschema:"administrator_username"`
 	AdministratorPassword  string                         `tfschema:"administrator_password"`
 	AuthConfigAllowedModes []string                       `tfschema:"auth_config_allowed_modes"`
+	AuthenticationMethods  []string                       `tfschema:"authentication_methods"`
 	CreateMode             string                         `tfschema:"create_mode"`
 	CustomerManagedKey     []CustomerManagedKey           `tfschema:"customer_managed_key"`
 	DataApiModeEnabled     bool                           `tfschema:"data_api_mode_enabled"`
@@ -84,7 +86,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -217,7 +219,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
-		"auth_config_allowed_modes": {
+		"authentication_methods": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Computed: true,
@@ -289,6 +291,24 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
+
+	if !features.FivePointOh() {
+		// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
+		resource["auth_config_allowed_modes"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"authentication_methods"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForAuthenticationMode(), false),
+			},
+			Deprecated: "The property `auth_config_allowed_modes` has been deprecated in favour of `authentication_methods` and will be removed in v5.0 of the AzureRM Provider.",
+		}
+		resource["authentication_methods"].ConflictsWith = []string{"auth_config_allowed_modes"}
+	}
+
+	return resource
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -344,10 +364,16 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(state.Location),
 				Identity: expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{
-					AuthConfig:        expandMongoClusterAuthConfig(state.AuthConfigAllowedModes),
+					AuthConfig:        expandMongoClusterAuthConfig(state.AuthenticationMethods),
 					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
 					RestoreParameters: expandMongoClusterRestore(state.Restore),
 				},
+			}
+
+			if !features.FivePointOh() {
+				if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "auth_config_allowed_modes") {
+					parameter.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
+				}
 			}
 
 			if state.AdministratorUserName != "" {
@@ -542,8 +568,16 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
 			}
 
-			if metadata.ResourceData.HasChange("auth_config_allowed_modes") {
-				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
+			if metadata.ResourceData.HasChange("authentication_methods") {
+				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthenticationMethods)
+			}
+
+			if !features.FivePointOh() {
+				if metadata.ResourceData.HasChange("auth_config_allowed_modes") {
+					if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "auth_config_allowed_modes") {
+						payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
+					}
+				}
 			}
 
 			// Only allow enabling `data_api_mode_enabled`, disabling should trigger ForceNew (handled in CustomizeDiff)
@@ -648,7 +682,11 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 					state.Version = pointer.From(props.ServerVersion)
 
-					state.AuthConfigAllowedModes = flattenMongoClusterAuthConfig(props.AuthConfig)
+					state.AuthenticationMethods = flattenMongoClusterAuthConfig(props.AuthConfig)
+
+					if !features.FivePointOh() {
+						state.AuthConfigAllowedModes = flattenMongoClusterAuthConfig(props.AuthConfig)
+					}
 
 					if v := props.DataApi; v != nil {
 						state.DataApiModeEnabled = pointer.From(v.Mode) == mongoclusters.DataApiModeEnabled
