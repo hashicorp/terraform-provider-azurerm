@@ -253,6 +253,11 @@ func (r KubernetesFleetUpdateRunResource) Update() sdk.ResourceFunc {
 			}
 			props := existing.Model.Properties
 
+			// The API errors if this field is included in the Update request
+			// unexpected status 400 (400 Bad Request) with error: PropertyChangeNotAllowed:
+			// Changing immutable/read-only properties is not allowed: Status
+			props.Status = nil
+
 			if metadata.ResourceData.HasChange("managed_cluster_update") {
 				props.ManagedClusterUpdate = expandKubernetesFleetUpdateRunManagedClusterUpdate(config.ManagedClusterUpdate)
 			}
