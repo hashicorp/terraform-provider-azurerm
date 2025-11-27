@@ -16,6 +16,8 @@ import (
 )
 
 type resourceGroupPreventDeletePoller struct {
+	NestedResourceIDs []string
+
 	client *resourcegroups.ResourceGroupsClient
 	id     commonids.ResourceGroupId
 }
@@ -29,7 +31,7 @@ func NewResourceGroupPreventDeletePoller(client *resourcegroups.ResourceGroupsCl
 	}
 }
 
-func (p resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	results, err := p.client.ResourcesListByResourceGroupComplete(ctx, p.id, resourcegroups.ResourcesListByResourceGroupOperationOptions{
 		Expand: pointer.To("provisioningState"),
 		Top:    pointer.To[int64](10),
@@ -48,18 +50,19 @@ func (p resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.Po
 			nestedResourceIds = append(nestedResourceIds, *val.Id)
 		}
 	}
+	p.NestedResourceIDs = nestedResourceIds
 
 	if len(nestedResourceIds) > 0 {
 		return &pollers.PollResult{
 			PollInterval: 30 * time.Second,
 			Status:       pollers.PollingStatusInProgress,
-		}, resourceGroupContainsItemsError(p.id.ResourceGroupName, nestedResourceIds)
+		}, nil
 	}
 
 	return pollingSuccess, nil
 }
 
-func resourceGroupContainsItemsError(name string, nestedResourceIds []string) error {
+func ResourceGroupContainsItemsError(name string, nestedResourceIds []string) error {
 	formattedResourceUris := make([]string, 0)
 	for _, id := range nestedResourceIds {
 		formattedResourceUris = append(formattedResourceUris, fmt.Sprintf("* `%s`", id))
