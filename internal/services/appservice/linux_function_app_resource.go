@@ -605,7 +605,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
+			// metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return fmt.Errorf("setting resource identity data: %+v", err)
+			}
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 

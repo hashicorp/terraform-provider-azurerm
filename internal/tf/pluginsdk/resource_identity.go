@@ -143,6 +143,10 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 
 // SetResourceIdentityData sets the resource identity data in state
 func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
+	if d.Id() == "" {
+		d.SetId(id.ID())
+	}
+
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
