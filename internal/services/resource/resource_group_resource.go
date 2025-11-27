@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -177,10 +178,13 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
+		pollerCtx, pollerCancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer pollerCancel()
+
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		pollerType := custompollers.NewResourceGroupPreventDeletePoller(client, *id)
 		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
+		if err := poller.PollUntilTimeout(pollerCtx); err != nil {
 			return err
 		}
 	}

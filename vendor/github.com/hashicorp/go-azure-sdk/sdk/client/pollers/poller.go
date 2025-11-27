@@ -209,6 +209,129 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 	return p.latestError
 }
 
+// PollUntilTimeout polls until the poller determines the operation has been completed, or timeout, whichever comes first.
+// This differs from `PollUntilDone` by:
+//	- Returning the latest error once the timeout has been reached, rather than overriding it with `ctx.Err()`
+//	- Does not short-circuit when a poller returns an error and an `InProgress` status, allowing for continuous polling while passing through an error message to surface on timeout.
+func (p *Poller) PollUntilTimeout(ctx context.Context) error {
+	if p.poller == nil {
+		return fmt.Errorf("internal-error: `poller` was nil`")
+	}
+	if _, ok := ctx.Deadline(); !ok {
+		return fmt.Errorf("internal-error: `ctx` should have a deadline")
+	}
+
+	var wait sync.WaitGroup
+	wait.Add(1)
+
+	go func() {
+		connectionDropCounter := 0
+		retryDuration := p.initialDelayDuration
+		for {
+			// determine the next retry duration / how long to poll for
+			if p.latestResponse != nil {
+				retryDuration = p.latestResponse.PollInterval
+			}
+			endTime := time.Now().Add(retryDuration)
+
+			select { // nolint: gosimple
+			case <-time.After(time.Until(endTime)):
+				{
+					break
+				}
+			}
+
+			p.latestResponse, p.latestError = p.poller.Poll(ctx)
+
+			// first check the connection drop status
+			connectionHasBeenDropped := false
+			if p.latestResponse == nil && p.latestError == nil {
+				// connection drops can either have no response/error (where we have no context)
+				connectionHasBeenDropped = true
+			} else if _, ok := p.latestError.(PollingDroppedConnectionError); ok {
+				// or have an error with more details (e.g. server not found, connection reset etc.)
+				connectionHasBeenDropped = true
+			}
+			if connectionHasBeenDropped {
+				connectionDropCounter++
+				if connectionDropCounter < p.maxNumberOfDroppedConnections {
+					continue
+				}
+				if p.latestResponse == nil && p.latestError == nil {
+					// the connection was dropped, but we have no context
+					p.latestError = PollingDroppedConnectionError{}
+					break
+				}
+			} else {
+				connectionDropCounter = 0
+			}
+
+			if p.latestError != nil && p.latestResponse.Status != PollingStatusInProgress{
+				break
+			}
+
+			if response := p.latestResponse; response != nil {
+				retryDuration = response.PollInterval
+
+				done := false
+				switch response.Status {
+				// Cancelled, Dropped Connections and Failed should be raised as errors containing additional info if available
+
+				case PollingStatusCancelled:
+					p.latestError = fmt.Errorf("internal-error: a polling status of `Cancelled` should be surfaced as a PollingCancelledError")
+					done = true
+
+				case PollingStatusFailed:
+					p.latestError = fmt.Errorf("internal-error: a polling status of `Failed` should be surfaced as a PollingFailedError")
+					done = true
+
+				case PollingStatusInProgress:
+					continue
+
+				case PollingStatusSucceeded:
+					done = true
+
+				default:
+					p.latestError = fmt.Errorf("internal-error: unimplemented polling status %q", string(response.Status))
+					done = true
+				}
+
+				if done {
+					break
+				}
+			}
+		}
+		wait.Done()
+	}()
+
+	waitDone := make(chan struct{}, 1)
+	go func() {
+		wait.Wait()
+		waitDone <- struct{}{}
+	}()
+
+	select {
+	case <-waitDone:
+		break
+	case <-ctx.Done():
+		{
+			p.latestResponse = nil
+
+			// Ensure we error on timeout in the event no error exists
+			if p.latestError == nil {
+				p.latestError = ctx.Err()
+			}
+			return p.latestError
+		}
+	}
+
+	if p.latestError != nil {
+		p.latestResponse = nil
+	}
+
+	return p.latestError
+}
+
 // FinalResult attempts to unmarshal the final result into the provided model
 // model should be a pointer to the type you wish to unmarshal into
 func (p *Poller) FinalResult(model interface{}) error {
