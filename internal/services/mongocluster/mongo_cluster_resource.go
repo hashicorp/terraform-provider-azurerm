@@ -357,10 +357,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if len(state.AuthAllowedModes) > 0 {
-				parameter.Properties.AuthConfig = expandAuthAllowedModes(state.AuthAllowedModes)
-			}
-
 			if state.CreateMode != "" {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
@@ -517,10 +513,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("auth_allowed_modes") {
-				payload.Properties.AuthConfig = expandAuthAllowedModes(state.AuthAllowedModes)
-			}
-
 			if metadata.ResourceData.HasChange("high_availability_mode") {
 				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
@@ -619,10 +611,6 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
-					}
-
-					if v := props.AuthConfig; v != nil {
-						state.AuthAllowedModes = flattenAuthAllowedModes(v)
 					}
 
 					if v := props.Replica; v != nil {

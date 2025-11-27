@@ -63,35 +63,6 @@ func TestAccMongoClusterUser_complete(t *testing.T) {
 	})
 }
 
-func TestAccMongoClusterUser_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_user", "test")
-	r := MongoClusterUserResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r MongoClusterUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := users.ParseUserID(state.ID)
 	if err != nil {
@@ -111,7 +82,7 @@ func (r MongoClusterUserResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mongo_cluster_user" "test" {
-  name                   = data.azurerm_client_config.current.object_id
+  object_id              = data.azurerm_client_config.current.object_id
   mongo_cluster_id       = azurerm_mongo_cluster.test.id
   identity_provider_type = "MicrosoftEntraID"
   principal_type         = "servicePrincipal"
@@ -129,7 +100,7 @@ func (r MongoClusterUserResource) requiresImport(data acceptance.TestData) strin
 %[1]s
 
 resource "azurerm_mongo_cluster_user" "import" {
-  name                   = azurerm_mongo_cluster_user.test.name
+  object_id              = azurerm_mongo_cluster_user.test.object_id
   mongo_cluster_id       = azurerm_mongo_cluster_user.test.mongo_cluster_id
   identity_provider_type = azurerm_mongo_cluster_user.test.identity_provider_type
   principal_type         = azurerm_mongo_cluster_user.test.principal_type
@@ -137,7 +108,7 @@ resource "azurerm_mongo_cluster_user" "import" {
   role {
     database = azurerm_mongo_cluster_user.test.role.0.database
     role     = azurerm_mongo_cluster_user.test.role.0.role
-  }                
+  }
 }
 `, r.basic(data))
 }
@@ -157,7 +128,7 @@ resource "azuread_user" "test" {
 }
 
 resource "azurerm_mongo_cluster_user" "test" {
-  name                   = azuread_user.test.object_id
+  object_id              = azuread_user.test.object_id
   mongo_cluster_id       = azurerm_mongo_cluster.test.id
   identity_provider_type = "MicrosoftEntraID"
   principal_type         = "user"
@@ -184,17 +155,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%[1]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "8.0"
-  auth_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
+  name                      = "acctest-mc%[1]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  high_availability_mode    = "Disabled"
+  storage_size_in_gb        = "32"
+  version                   = "8.0"
+  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

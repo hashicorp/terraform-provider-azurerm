@@ -19,14 +19,14 @@ import (
 
 type MongoClusterUserResource struct{}
 
-var _ sdk.ResourceWithUpdate = MongoClusterUserResource{}
+var _ sdk.Resource = MongoClusterUserResource{}
 
 type MongoClusterUserResourceModel struct {
-	Name                 string              `tfschema:"name"`
+	IdentityProviderType string              `tfschema:"identity_provider_type"`
 	MongoClusterId       string              `tfschema:"mongo_cluster_id"`
+	ObjectId             string              `tfschema:"object_id"`
 	PrincipalType        string              `tfschema:"principal_type"`
 	Roles                []DatabaseRoleModel `tfschema:"role"`
-	IdentityProviderType string              `tfschema:"identity_provider_type"`
 }
 
 type DatabaseRoleModel struct {
@@ -48,7 +48,8 @@ func (r MongoClusterUserResource) ResourceType() string {
 
 func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
+		// the object_id is actually resource name
+		"object_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -60,6 +61,7 @@ func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity_provider_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				users.PossibleValuesForIdentityProviderType(),
 				false,
@@ -69,6 +71,7 @@ func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"principal_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				users.PossibleValuesForEntraPrincipalType(),
 				false,
@@ -78,6 +81,7 @@ func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"role": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"database": {
@@ -120,7 +124,7 @@ func (r MongoClusterUserResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := users.NewUserID(mongoClusterId.SubscriptionId, mongoClusterId.ResourceGroupName, mongoClusterId.MongoClusterName, state.Name)
+			id := users.NewUserID(mongoClusterId.SubscriptionId, mongoClusterId.ResourceGroupName, mongoClusterId.MongoClusterName, state.ObjectId)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -157,45 +161,6 @@ func (r MongoClusterUserResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r MongoClusterUserResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MongoCluster.UsersClient
-
-			id, err := users.ParseUserID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var state MongoClusterUserResourceModel
-			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			identityProvider := users.EntraIdentityProvider{
-				Type: users.IdentityProviderType(state.IdentityProviderType),
-				Properties: users.EntraIdentityProviderProperties{
-					PrincipalType: users.EntraPrincipalType(state.PrincipalType),
-				},
-			}
-
-			parameter := users.User{
-				Properties: &users.UserProperties{
-					IdentityProvider: identityProvider,
-					Roles:            expandDatabaseRoles(state.Roles),
-				},
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameter); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r MongoClusterUserResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -216,7 +181,7 @@ func (r MongoClusterUserResource) Read() sdk.ResourceFunc {
 			}
 
 			state := MongoClusterUserResourceModel{
-				Name:           id.UserName,
+				ObjectId:       id.UserName,
 				MongoClusterId: mongoclusters.NewMongoClusterID(id.SubscriptionId, id.ResourceGroupName, id.MongoClusterName).ID(),
 			}
 
