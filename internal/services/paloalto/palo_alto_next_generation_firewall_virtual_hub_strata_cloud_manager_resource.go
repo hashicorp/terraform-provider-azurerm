@@ -324,15 +324,16 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) CustomizeDiff() sd
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
-				var model NextGenerationFirewallVHubStrataCloudManagerModel
-				if err := metadata.Decode(&model); err != nil {
-					return fmt.Errorf("decoding model: %+v", err)
-				}
+			rd := metadata.ResourceDiff
 
-				if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, model.StrataCloudManagerTenantName); err != nil {
-					return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
-				}
+			if rd.Id() != "" && !rd.HasChange("strata_cloud_manager_tenant_name") {
+				return nil
+			}
+
+			tenantName := rd.Get("strata_cloud_manager_tenant_name").(string)
+
+			if err := validate.ValidateStrataCloudManagerTenantNameExists(ctx, metadata.Client, metadata.Client.Account.SubscriptionId, tenantName); err != nil {
+				return fmt.Errorf("validating strata_cloud_manager_tenant_name: %+v", err)
 			}
 
 			return nil
