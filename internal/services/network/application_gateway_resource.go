@@ -191,9 +191,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						"path": {
+						"cookie_based_affinity": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayCookieBasedAffinityEnabled),
+								string(applicationgateways.ApplicationGatewayCookieBasedAffinityDisabled),
+							}, false),
 						},
 
 						"port": {
@@ -211,43 +215,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"cookie_based_affinity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayCookieBasedAffinityEnabled),
-								string(applicationgateways.ApplicationGatewayCookieBasedAffinityDisabled),
-							}, false),
-						},
-
 						"affinity_cookie_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"dedicated_backend_connection_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"pick_host_name_from_backend_address": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"request_timeout": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      30,
-							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
 						"authentication_certificate": {
@@ -268,31 +239,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"trusted_root_certificate_names": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
 						"certificate_chain_validation_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
-						},
-
-						"sni_validation_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-
-						"sni_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"connection_draining": {
@@ -315,9 +265,59 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"host_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"pick_host_name_from_backend_address": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"probe_name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+						},
+
+						"request_timeout": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
+						"sni_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"sni_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 
 						"id": {
@@ -2546,6 +2546,8 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 			if path := props.Path; path != nil {
 				output["path"] = *path
 			}
+
+			output["certificate_chain_validation_enabled"] = pointer.From(props.ValidateCertChainAndExpiry)
 			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
 
 			if port := props.Port; port != nil {
@@ -2566,12 +2568,8 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 				output["request_timeout"] = int(*timeout)
 			}
 
-			output["certificate_chain_validation_enabled"] = pointer.From(props.ValidateCertChainAndExpiry)
+			output["sni_name"] = pointer.From(props.SniName)
 			output["sni_validation_enabled"] = pointer.From(props.ValidateSNI)
-
-			if sniName := props.SniName; sniName != nil {
-				output["sni_name"] = *sniName
-			}
 
 			authenticationCertificates := make([]interface{}, 0)
 			if certs := props.AuthenticationCertificates; certs != nil {
@@ -4832,10 +4830,8 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	backendHttpSettings := d.Get("backend_http_settings").(*schema.Set).List()
 	for _, rawSettings := range backendHttpSettings {
 		settings := rawSettings.(map[string]interface{})
-		sniName := settings["sni_name"].(string)
-		sniValidationEnabled := settings["sni_validation_enabled"].(bool)
 
-		if sniName != "" && !sniValidationEnabled {
+		if settings["sni_name"].(string) != "" && !settings["sni_validation_enabled"].(bool) {
 			return fmt.Errorf("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in backend_http_settings block %q", settings["name"].(string))
 		}
 	}
