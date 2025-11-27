@@ -277,6 +277,24 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"certificate_chain_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"sni_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"sni_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
 						"connection_draining": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -2434,6 +2452,9 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 				Port:                           pointer.To(port),
 				Protocol:                       pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
 				RequestTimeout:                 pointer.To(requestTimeout),
+				ValidateCertChainAndExpiry:     pointer.To(v["certificate_chain_validation_enabled"].(bool)),
+				SniName:                        pointer.To(v["sni_name"].(string)),
+				ValidateSNI:                    pointer.To(v["sni_validation_enabled"].(bool)),
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
 		}
@@ -2543,6 +2564,13 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 
 			if timeout := props.RequestTimeout; timeout != nil {
 				output["request_timeout"] = int(*timeout)
+			}
+
+			output["certificate_chain_validation_enabled"] = pointer.From(props.ValidateCertChainAndExpiry)
+			output["sni_validation_enabled"] = pointer.From(props.ValidateSNI)
+
+			if sniName := props.SniName; sniName != nil {
+				output["sni_name"] = *sniName
 			}
 
 			authenticationCertificates := make([]interface{}, 0)
@@ -4801,6 +4829,17 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
+	backendHttpSettings := d.Get("backend_http_settings").(*schema.Set).List()
+	for _, rawSettings := range backendHttpSettings {
+		settings := rawSettings.(map[string]interface{})
+		sniName := settings["sni_name"].(string)
+		sniValidationEnabled := settings["sni_validation_enabled"].(bool)
+
+		if sniName != "" && !sniValidationEnabled {
+			return fmt.Errorf("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in backend_http_settings block %q", settings["name"].(string))
+		}
+	}
+
 	return nil
 }
 
@@ -4889,6 +4928,15 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
 			buf.WriteString(fmt.Sprintf("%s", trustedRootCertificateNames.([]interface{})))
+		}
+		if v, ok := m["certificate_chain_validation_enabled"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["sni_validation_enabled"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["sni_name"]; ok {
+			buf.WriteString(v.(string))
 		}
 	}
 
