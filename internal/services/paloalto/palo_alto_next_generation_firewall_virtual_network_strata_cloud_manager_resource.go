@@ -124,7 +124,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := expandPaloAltoLegacyToUserAssignedIdentity(model.Identity)
+			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -148,7 +148,7 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Create() sdk.Resou
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
-				Identity: expandedIdentity,
+				Identity: identity,
 				Tags:     tags.Expand(model.Tags),
 			}
 
@@ -195,11 +195,11 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Read() sdk.Resourc
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
 				state.PlanId = props.PlanData.PlanId
 
-				flattenedIdentity, err := flattenPaloAltoUserAssignedToLegacyIdentity(model.Identity)
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = flattenedIdentity
+				state.Identity = pointer.From(identity)
 
 				state.Tags = tags.Flatten(model.Tags)
 
@@ -294,11 +294,11 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) Update() sdk.Resou
 			firewall.Properties = props
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				firewall.Identity = expandedIdentity
+				firewall.Identity = identityValue
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
