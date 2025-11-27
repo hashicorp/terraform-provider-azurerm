@@ -2445,6 +2445,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 		setting := applicationgateways.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 				CookieBasedAffinity:            pointer.To(applicationgateways.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity)),
 				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
 				Path:                           pointer.To(path),
@@ -2452,10 +2453,9 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 				Port:                           pointer.To(port),
 				Protocol:                       pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
 				RequestTimeout:                 pointer.To(requestTimeout),
-				ValidateCertChainAndExpiry:     pointer.To(v["certificate_chain_validation_enabled"].(bool)),
 				SniName:                        pointer.To(v["sni_name"].(string)),
+				ValidateCertChainAndExpiry:     pointer.To(v["certificate_chain_validation_enabled"].(bool)),
 				ValidateSNI:                    pointer.To(v["sni_validation_enabled"].(bool)),
-				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 			},
 		}
 
