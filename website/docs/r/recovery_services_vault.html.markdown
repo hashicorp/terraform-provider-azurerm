@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `soft_delete_enabled` - (Optional) Is soft delete enabled for this Vault? Defaults to `true`.
 
-!> **Important:** Soft Delete is a required security feature for Recovery Services Vaults and cannot be disabled. The `soft_delete_enabled` argument must be set to `true` or left at its default value. Setting this to `false` is not allowed. For more information, see [Secure by Default](https://learn.microsoft.com/en-us/azure/backup/secure-by-default).
+!> **Note:** Soft Delete is a required security feature for Recovery Services Vaults and cannot be disabled. The `soft_delete_enabled` argument must be set to `true` or left at its default value. Setting this to `false` is not allowed. For more information, see [Secure by Default](https://learn.microsoft.com/en-us/azure/backup/secure-by-default).
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 

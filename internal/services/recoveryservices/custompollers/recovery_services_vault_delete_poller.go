@@ -33,8 +33,6 @@ var (
 	}
 )
 
-// to handle the eventual consistency issue where the delete operation completes and get returns 404 but the vault still appears to exist briefly under resource group.
-// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/38962
 func NewRecoveryServicesVaultDeletePoller(vaultClient *vaults.VaultsClient, id vaults.VaultId) *recoveryServicesVaultDeletePoller {
 	return &recoveryServicesVaultDeletePoller{
 		client:               vaultClient,

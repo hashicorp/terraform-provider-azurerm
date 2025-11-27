@@ -809,7 +809,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  storage_mode_type   = "LocallyRedundant"
+  storage_mode_type = "LocallyRedundant"
   tags = {
     ENV = "test"
   }
@@ -1048,7 +1048,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  storage_mode_type   = "ZoneRedundant"
+  storage_mode_type = "ZoneRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
