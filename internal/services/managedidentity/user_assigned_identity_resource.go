@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var (
@@ -42,6 +43,7 @@ func (r UserAssignedIdentityResource) ModelObject() interface{} {
 
 type UserAssignedIdentityResourceSchema struct {
 	ClientId          string                 `tfschema:"client_id"`
+	IsolationScope    string                 `tfschema:"isolation_scope"`
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
 	PrincipalId       string                 `tfschema:"principal_id"`
@@ -67,7 +69,17 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                commonschema.Tags(),
+
+		"isolation_scope": {
+			Optional: true,
+			Type:     pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice([]string{
+				// `None` is not exposed
+				string(identities.IsolationScopeRegional),
+			}, false),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -114,9 +126,15 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := identities.Identity{
-				Location:   location.Normalize(config.Location),
-				Tags:       tags.Expand(config.Tags),
-				Properties: &identities.UserAssignedIdentityProperties{},
+				Location: location.Normalize(config.Location),
+				Tags:     tags.Expand(config.Tags),
+				Properties: &identities.UserAssignedIdentityProperties{
+					IsolationScope: pointer.To(identities.IsolationScopeNone),
+				},
+			}
+
+			if config.IsolationScope != "" {
+				payload.Properties.IsolationScope = pointer.ToEnum[identities.IsolationScope](config.IsolationScope)
 			}
 
 			if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload); err != nil {
@@ -159,6 +177,10 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 					schema.ClientId = pointer.From(model.Properties.ClientId)
 					schema.PrincipalId = pointer.From(model.Properties.PrincipalId)
 					schema.TenantId = pointer.From(model.Properties.TenantId)
+
+					if isolationScope := pointer.FromEnum(model.Properties.IsolationScope); isolationScope != string(identities.IsolationScopeNone) {
+						schema.IsolationScope = isolationScope
+					}
 				}
 			}
 
@@ -206,6 +228,14 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 			payload := identities.IdentityUpdate{
 				Tags:       tags.Expand(config.Tags),
 				Properties: &identities.UserAssignedIdentityProperties{},
+			}
+
+			if metadata.ResourceData.HasChange("isolation_scope") {
+				isolationScope := identities.IsolationScopeNone
+				if config.IsolationScope != "" {
+					isolationScope = identities.IsolationScope(config.IsolationScope)
+				}
+				payload.Properties.IsolationScope = pointer.To(isolationScope)
 			}
 
 			if _, err := client.UserAssignedIdentitiesUpdate(ctx, *id, payload); err != nil {

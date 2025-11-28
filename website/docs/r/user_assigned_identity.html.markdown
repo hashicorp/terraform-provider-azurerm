@@ -36,6 +36,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this User Assigned Identity should exist. Changing this forces a new User Assigned Identity to be created.
 
+* `isolation_scope` - (Optional) The isolation scope for the User Assigned Identity. Possible value is `Regional`. Changing this forces a new User Assigned Identity to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the User Assigned Identity.
 
 ## Attributes Reference

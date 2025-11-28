@@ -25,6 +25,7 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest%s-uai", data.RandomString)),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("isolation_scope").HasValue("Regional"),
 				check.That(data.ResourceName).Key("principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("client_id").IsUUID(),
 				check.That(data.ResourceName).Key("tenant_id").IsUUID(),
@@ -58,6 +59,7 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%s-uai"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  isolation_scope     = "Regional"
 
   tags = {
     "foo" = "bar"
