@@ -20,6 +20,7 @@ import (
 type MobileNetworkSimGroupResource struct{}
 
 func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkSimGroup_withEncryptionKeyUrl(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

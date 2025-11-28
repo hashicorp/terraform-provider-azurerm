@@ -14,6 +14,7 @@ import (
 type MobileNetworkSimDataSource struct{}
 
 func TestAccMobileNetworkSimDataSource_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	d := MobileNetworkSimDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

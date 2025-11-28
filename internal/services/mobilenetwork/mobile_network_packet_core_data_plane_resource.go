@@ -35,6 +35,11 @@ type PacketCoreDataPlaneModel struct {
 type PacketCoreDataPlaneResource struct{}
 
 var _ sdk.ResourceWithUpdate = PacketCoreDataPlaneResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = PacketCoreDataPlaneResource{}
+
+func (r PacketCoreDataPlaneResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_packet_core_data_plane` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r PacketCoreDataPlaneResource) ResourceType() string {
 	return "azurerm_mobile_network_packet_core_data_plane"

@@ -54,6 +54,11 @@ type PortRangeModel struct {
 type AttachedDataNetworkResource struct{}
 
 var _ sdk.ResourceWithUpdate = AttachedDataNetworkResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = AttachedDataNetworkResource{}
+
+func (r AttachedDataNetworkResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_attached_data_network` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r AttachedDataNetworkResource) ResourceType() string {
 	return "azurerm_mobile_network_attached_data_network"

@@ -14,6 +14,7 @@ import (
 type MobileNetworkPacketCoreDataPlaneDataSource struct{}
 
 func TestAccMobileNetworkPacketCoreDataPlaneDataSource_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	d := MobileNetworkPacketCoreDataPlaneDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

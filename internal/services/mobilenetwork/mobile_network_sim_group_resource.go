@@ -31,6 +31,11 @@ type SimGroupResourceModel struct {
 type SimGroupResource struct{}
 
 var _ sdk.ResourceWithUpdate = SimGroupResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SimGroupResource{}
+
+func (r SimGroupResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_sim_group` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r SimGroupResource) ResourceType() string {
 	return "azurerm_mobile_network_sim_group"

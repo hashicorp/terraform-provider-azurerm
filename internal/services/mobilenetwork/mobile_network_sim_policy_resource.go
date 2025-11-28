@@ -61,6 +61,11 @@ type AmbrResourceModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = SimPolicyResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SimPolicyResource{}
+
+func (r SimPolicyResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_sim_policy` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r SimPolicyResource) ResourceType() string {
 	return "azurerm_mobile_network_sim_policy"

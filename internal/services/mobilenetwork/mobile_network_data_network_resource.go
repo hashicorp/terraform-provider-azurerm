@@ -29,6 +29,11 @@ type DataNetworkResourceModel struct {
 type DataNetworkResource struct{}
 
 var _ sdk.ResourceWithUpdate = DataNetworkResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DataNetworkResource{}
+
+func (r DataNetworkResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_data_network` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r DataNetworkResource) ResourceType() string {
 	return "azurerm_mobile_network_data_network"

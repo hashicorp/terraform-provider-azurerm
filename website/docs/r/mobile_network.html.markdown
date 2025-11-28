@@ -5,6 +5,7 @@ page_title: "Azure Resource Manager: azurerm_mobile_network"
 description: |-
   Manages an Azure Mobile Network.
 ---
+~> **Note:** The `azurerm_mobile_network` resource has been deprecated because [Azure Private 5G Core is deprecated on Sep 30, 2025](https://learn.microsoft.com/en-us/previous-versions/azure/private-5g-core/private-5g-core-overview) and will be removed in v5.0 of the AzureRM Provider.
 
 # azurerm_mobile_network
 

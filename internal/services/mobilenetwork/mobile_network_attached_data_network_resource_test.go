@@ -20,6 +20,7 @@ import (
 type MobileNetworkAttachedDataNetworkResource struct{}
 
 func TestAccMobileNetworkAttachedDataNetwork_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkAttachedDataNetwork_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkAttachedDataNetwork_withDataAccess(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkAttachedDataNetwork_withDataAccess(t *testing.T) {
 }
 
 func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkAttachedDataNetwork_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,6 +80,7 @@ func TestAccMobileNetworkAttachedDataNetwork_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkAttachedDataNetwork_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
