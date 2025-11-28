@@ -40,6 +40,7 @@ type SingleNetworkSliceSelectionAssistanceInformationResourceModel struct {
 type SliceResource struct{}
 
 var _ sdk.ResourceWithUpdate = SliceResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = SliceResource{}
 
 func (r SliceResource) DeprecationMessage() string {

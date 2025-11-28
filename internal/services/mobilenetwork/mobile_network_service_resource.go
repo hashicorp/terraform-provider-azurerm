@@ -70,6 +70,7 @@ type ServiceResourceQosPolicyModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = ServiceResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = ServiceResource{}
 
 func (r ServiceResource) DeprecationMessage() string {

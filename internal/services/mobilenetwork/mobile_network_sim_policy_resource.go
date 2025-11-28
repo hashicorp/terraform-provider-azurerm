@@ -61,6 +61,7 @@ type AmbrResourceModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = SimPolicyResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = SimPolicyResource{}
 
 func (r SimPolicyResource) DeprecationMessage() string {

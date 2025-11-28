@@ -35,6 +35,7 @@ type PacketCoreDataPlaneModel struct {
 type PacketCoreDataPlaneResource struct{}
 
 var _ sdk.ResourceWithUpdate = PacketCoreDataPlaneResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = PacketCoreDataPlaneResource{}
 
 func (r PacketCoreDataPlaneResource) DeprecationMessage() string {
