@@ -23,14 +23,15 @@ type WorkspaceDataSource struct{}
 var _ sdk.DataSource = WorkspaceDataSource{}
 
 type WorkspaceDataSourceModel struct {
-	Name                            string            `tfschema:"name"`
-	ResourceGroupName               string            `tfschema:"resource_group_name"`
-	QueryEndpoint                   string            `tfschema:"query_endpoint"`
-	PublicNetworkAccessEnabled      bool              `tfschema:"public_network_access_enabled"`
-	DefaultDataCollectionEndpointId string            `tfschema:"default_data_collection_endpoint_id"`
-	DefaultDataCollectionRuleId     string            `tfschema:"default_data_collection_rule_id"`
-	Location                        string            `tfschema:"location"`
-	Tags                            map[string]string `tfschema:"tags"`
+	Name                            string                           `tfschema:"name"`
+	ResourceGroupName               string                           `tfschema:"resource_group_name"`
+	QueryEndpoint                   string                           `tfschema:"query_endpoint"`
+	PublicNetworkAccessEnabled      bool                             `tfschema:"public_network_access_enabled"`
+	DefaultDataCollectionEndpointId string                           `tfschema:"default_data_collection_endpoint_id"`
+	DefaultDataCollectionRuleId     string                           `tfschema:"default_data_collection_rule_id"`
+	PrivateEndpointConnections      []PrivateEndpointConnectionModel `tfschema:"private_endpoint_connections"`
+	Location                        string                           `tfschema:"location"`
+	Tags                            map[string]string                `tfschema:"tags"`
 }
 
 func (d WorkspaceDataSource) ModelObject() interface{} {
@@ -75,6 +76,30 @@ func (d WorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"private_endpoint_connections": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"group_ids": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem:     pluginsdk.TypeString,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -102,6 +127,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			var enablePublicNetWorkAccess bool
 			var location, queryEndpoint, defaultDataCollectionEndpointId, defaultDataCollectionRuleId string
+			var privateEndpointConnections []PrivateEndpointConnectionModel
 			var tag map[string]string
 
 			if model := resp.Model; model != nil {
@@ -123,6 +149,9 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 							defaultDataCollectionRuleId = *props.DefaultIngestionSettings.DataCollectionRuleResourceId
 						}
 					}
+					if props.PrivateEndpointConnections != nil {
+						privateEndpointConnections = flattenPrivateEndpointConnections(props.PrivateEndpointConnections)
+					}
 				}
 			}
 
@@ -135,6 +164,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 				QueryEndpoint:                   queryEndpoint,
 				DefaultDataCollectionEndpointId: defaultDataCollectionEndpointId,
 				DefaultDataCollectionRuleId:     defaultDataCollectionRuleId,
+				PrivateEndpointConnections:      privateEndpointConnections,
 				ResourceGroupName:               id.ResourceGroupName,
 				Tags:                            tag,
 			})

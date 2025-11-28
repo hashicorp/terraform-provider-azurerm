@@ -37,6 +37,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ScheduledQueryRulesAlertV2Resource{},
 		AlertPrometheusRuleGroupResource{},
 		WorkspaceResource{},
+		WorkspacePrivateEndpointConnectionResource{},
 	}
 }
 

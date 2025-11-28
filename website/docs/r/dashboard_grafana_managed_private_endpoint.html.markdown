@@ -10,7 +10,7 @@ description: |-
 
 Manages a Dashboard Grafana Managed Private Endpoint.
 
-~> **Note:** This resource will _not_ approve the managed private endpoint connection on the linked resource. This will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
+~> **Note:** This resource will _not_ approve the managed private endpoint connection on the linked resource. For Azure Monitor Workspaces, use the [`azurerm_monitor_workspace_private_endpoint_connection_approval`](monitor_workspace_private_endpoint_connection_approval.html) resource. For other resources, approval will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
 
 ## Example Usage
 
