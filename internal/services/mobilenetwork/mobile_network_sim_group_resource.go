@@ -31,6 +31,7 @@ type SimGroupResourceModel struct {
 type SimGroupResource struct{}
 
 var _ sdk.ResourceWithUpdate = SimGroupResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = SimGroupResource{}
 
 func (r SimGroupResource) DeprecationMessage() string {

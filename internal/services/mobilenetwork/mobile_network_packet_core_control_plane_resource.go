@@ -65,6 +65,7 @@ type PlatformConfigurationModel struct {
 type PacketCoreControlPlaneResource struct{}
 
 var _ sdk.ResourceWithUpdate = PacketCoreControlPlaneResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = PacketCoreControlPlaneResource{}
 
 func (r PacketCoreControlPlaneResource) DeprecationMessage() string {

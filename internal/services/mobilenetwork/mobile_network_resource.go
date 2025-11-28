@@ -32,6 +32,7 @@ type MobileNetworkResourceModel struct {
 type MobileNetworkResource struct{}
 
 var _ sdk.ResourceWithUpdate = MobileNetworkResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = MobileNetworkResource{}
 
 func (r MobileNetworkResource) DeprecationMessage() string {

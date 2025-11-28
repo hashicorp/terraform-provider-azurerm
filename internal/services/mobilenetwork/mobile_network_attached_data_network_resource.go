@@ -54,6 +54,7 @@ type PortRangeModel struct {
 type AttachedDataNetworkResource struct{}
 
 var _ sdk.ResourceWithUpdate = AttachedDataNetworkResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = AttachedDataNetworkResource{}
 
 func (r AttachedDataNetworkResource) DeprecationMessage() string {

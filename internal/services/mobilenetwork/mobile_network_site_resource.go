@@ -29,6 +29,7 @@ type SiteResourceModel struct {
 type SiteResource struct{}
 
 var _ sdk.ResourceWithUpdate = SiteResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = SiteResource{}
 
 func (r SiteResource) DeprecationMessage() string {

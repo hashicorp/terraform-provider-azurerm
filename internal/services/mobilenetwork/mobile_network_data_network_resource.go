@@ -29,6 +29,7 @@ type DataNetworkResourceModel struct {
 type DataNetworkResource struct{}
 
 var _ sdk.ResourceWithUpdate = DataNetworkResource{}
+
 var _ sdk.ResourceWithDeprecationAndNoReplacement = DataNetworkResource{}
 
 func (r DataNetworkResource) DeprecationMessage() string {
