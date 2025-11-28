@@ -342,13 +342,24 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			parameter := mongoclusters.MongoCluster{
 				Location: location.Normalize(state.Location),
-				Identity: expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{
 					AuthConfig:        expandMongoClusterAuthConfig(state.AuthenticationMethods),
 					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
 					RestoreParameters: expandMongoClusterRestore(state.Restore),
 				},
 			}
+
+			identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+			if err != nil {
+				return fmt.Errorf(`expanding "identity": %v`, err)
+			}
+			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
+			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
+			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
+			if identityVal != nil && identityVal.Type == identity.TypeNone {
+				identityVal = nil
+			}
+			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -555,7 +566,11 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				payload.Identity = expandMongoClusterIdentity(state.Identity)
+				identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf(`expanding "identity": %v`, err)
+				}
+				payload.Identity = identityVal
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -839,26 +854,6 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 	}
 
 	return results
-}
-
-func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.UserAssignedMap {
-	if len(input) == 0 {
-		return nil
-	}
-
-	identityObj := input[0]
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
-	for _, v := range identityObj.IdentityIds {
-		identityIds[v] = identity.UserAssignedIdentityDetails{
-			// intentionally empty since the expand shouldn't send these values
-		}
-	}
-
-	return &identity.UserAssignedMap{
-		Type:        identityObj.Type,
-		IdentityIds: identityIds,
-	}
 }
 
 func expandMongoClusterCustomerManagedKey(input []CustomerManagedKey) *mongoclusters.EncryptionProperties {

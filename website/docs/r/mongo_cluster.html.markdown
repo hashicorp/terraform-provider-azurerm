@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
 
+-> **Note:** When `PointInTimeRestore` is enabled, service API will also assign a value to `source_server_id`. The user has to explicitly set this property in the Terraform configuration or handle it using `ignore_changes`.
+
 * `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `source_location` - (Optional) The location of the source MongoDB Cluster. Changing this forces a new resource to be created.
@@ -123,7 +125,7 @@ The following arguments are supported:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the key vault key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`.
+* `key_vault_key_id` - (Required) The ID of the key vault key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name`.
 
 * `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity that has access to the Key Vault Key.
 
