@@ -29,7 +29,7 @@ func TestAccCognitiveAccountConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("api_key", "metadata"),
+		data.ImportStep("metadata"),
 	})
 }
 
@@ -55,6 +55,21 @@ func TestAccCognitiveAccountConnection_apiKey(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.apiKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("api_key", "metadata"),
+	})
+}
+
+func TestAccCognitiveAccountConnection_apiKeyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
+	r := CognitiveAccountConnectionTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.apiKeyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -93,35 +108,20 @@ func TestAccCognitiveAccountConnection_customKeys(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountConnection_AAD(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.AAD(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("metadata"),
-	})
-}
-
 func TestAccCognitiveAccountConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
 	r := CognitiveAccountConnectionTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.apiKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("api_key", "metadata"),
 		{
-			Config: r.apiKey(data),
+			Config: r.apiKeyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -157,7 +157,7 @@ func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 		},
 		data.ImportStep("oauth2", "metadata"),
 		{
-			Config: r.AAD(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -248,15 +248,13 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
-  category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai.endpoint
-  api_key              = azurerm_cognitive_account.openai.primary_access_key
+  auth_type            = "AAD"
+  category             = "AzureBlob"
+  target               = azurerm_storage_account.test.primary_blob_endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    accountName   = azurerm_storage_account.test.name
+    containerName = azurerm_storage_container.test.name
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -272,12 +270,10 @@ resource "azurerm_cognitive_account_connection" "import" {
   auth_type            = azurerm_cognitive_account_connection.test.auth_type
   category             = azurerm_cognitive_account_connection.test.category
   target               = azurerm_cognitive_account_connection.test.target
-  api_key              = azurerm_cognitive_account_connection.test.api_key
 
   metadata = {
-    apiType    = azurerm_cognitive_account_connection.test.metadata.apiType
-    resourceId = azurerm_cognitive_account_connection.test.metadata.resourceId
-    location   = azurerm_cognitive_account_connection.test.metadata.location
+    accountName   = azurerm_cognitive_account_connection.test.metadata.accountName
+    containerName = azurerm_cognitive_account_connection.test.metadata.containerName
   }
 }
 `, r.basic(data))
@@ -291,30 +287,18 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_cognitive_account" "openai2" {
-  name                = "acctest-openai2-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   auth_type            = "ApiKey"
   category             = "AzureOpenAI"
-  target               = azurerm_cognitive_account.openai2.endpoint
-  api_key              = azurerm_cognitive_account.openai2.primary_access_key
+  target               = azurerm_cognitive_account.openai.endpoint
+  api_key              = azurerm_cognitive_account.openai.primary_access_key
 
   metadata = {
     apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai2.id
-    location   = azurerm_cognitive_account.openai2.location
+    resourceId = azurerm_cognitive_account.openai.id
+    location   = azurerm_cognitive_account.openai.location
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -444,7 +428,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) AAD(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionTestResource) apiKeyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -452,16 +436,30 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_cognitive_account" "openai2" {
+  name                = "acctest-openai2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
-  category             = "AzureBlob"
-  target               = azurerm_storage_account.test.primary_blob_endpoint
+  auth_type            = "ApiKey"
+  category             = "AzureOpenAI"
+  target               = azurerm_cognitive_account.openai2.endpoint
+  api_key              = azurerm_cognitive_account.openai2.primary_access_key
 
   metadata = {
-    accountName   = azurerm_storage_account.test.name
-    containerName = azurerm_storage_container.test.name
+    apiType    = "Azure"
+    resourceId = azurerm_cognitive_account.openai2.id
+    location   = azurerm_cognitive_account.openai2.location
   }
 }
 `, r.template(data), data.RandomInteger)
