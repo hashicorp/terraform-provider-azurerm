@@ -3749,7 +3749,7 @@ resource "azurerm_application_gateway" "test" {
     sni_validation_enabled               = false
     certificate_chain_validation_enabled = false
     pick_host_name_from_backend_address  = true
-    trusted_root_certificate_nams        = [local.auth_cert_name]
+    trusted_root_certificate_names       = [local.auth_cert_name]
   }
 
   trusted_root_certificate {
