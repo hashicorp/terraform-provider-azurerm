@@ -888,24 +888,15 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
-			VMSize:                 utils.String(d.Get("vm_size").(string)),
-			DisplayName:            utils.String(d.Get("display_name").(string)),
+			VMSize:                 pointer.To(d.Get("vm_size").(string)),
+			DisplayName:            pointer.To(d.Get("display_name").(string)),
 			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
-			TaskSlotsPerNode:       utils.Int64(int64(d.Get("max_tasks_per_node").(int))),
+			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
-	userAccounts, err := ExpandBatchPoolUserAccounts(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
-	}
-	parameters.Properties.UserAccounts = userAccounts
-
-	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
-	}
-	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
+	parameters.Properties.UserAccounts = ExpandBatchPoolUserAccounts(d.Get("user_accounts").([]interface{}))
+	parameters.Properties.TaskSchedulingPolicy = ExpandBatchPoolTaskSchedulingPolicy(d.Get("task_scheduling_policy").([]interface{}))
 
 	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -957,17 +948,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
+	parameters.Properties.Metadata = ExpandBatchMetaData(d.Get("metadata").(map[string]interface{}))
+	parameters.Properties.MountConfiguration = ExpandBatchPoolMountConfigurations(d.Get("mount").([]interface{}))
 
-	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "mount": %v`, err)
-	}
-	parameters.Properties.MountConfiguration = mountConfiguration
-
-	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(d.Get("network_configuration").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
@@ -1055,8 +1039,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.ResizeOperationStatus = nil
 	}
 
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
+	certificateReferences, err := ExpandBatchPoolCertificateReferences(d.Get("certificate").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `certificate`: %+v", err)
 	}
@@ -1072,18 +1055,9 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Identity = identity
 
-	if interNodeCommunication, ok := d.GetOk("inter_node_communication"); ok {
-		parameters.Properties.InterNodeCommunication = pointer.To(pool.InterNodeCommunicationState(interNodeCommunication.(string)))
-	}
-
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
-
-	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
-	if err != nil {
-		return fmt.Errorf("expanding `mount`: %+v", err)
-	}
-	parameters.Properties.MountConfiguration = mountConfiguration
+	parameters.Properties.InterNodeCommunication = pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string)))
+	parameters.Properties.Metadata = ExpandBatchMetaData(d.Get("metadata").(map[string]interface{}))
+	parameters.Properties.MountConfiguration = ExpandBatchPoolMountConfigurations(d.Get("mount").([]interface{}))
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
@@ -1092,16 +1066,13 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	parameters.Properties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
-		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
-
+		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskValue.([]interface{}))
 		if startTaskErr != nil {
 			return fmt.Errorf("expanding `start_task`: %+v", startTaskErr)
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("validating `user_identity`: %+v", userIdentityError)
 		}
 		parameters.Properties.StartTask = startTask
@@ -1109,21 +1080,13 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.StartTask = nil
 	}
 
-	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
-	if err != nil {
-		return fmt.Errorf("expanding `task_scheduling_policy`: %+v", err)
-	}
-	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
+	parameters.Properties.TaskSchedulingPolicy = ExpandBatchPoolTaskSchedulingPolicy(d.Get("task_scheduling_policy").([]interface{}))
 
 	if targetNodeCommunicationMode, ok := d.GetOk("target_node_communication_mode"); ok {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(targetNodeCommunicationMode.(pool.NodeCommunicationMode))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(targetNodeCommunicationMode.(string)))
 	}
 
-	userAccounts, err := ExpandBatchPoolUserAccounts(d)
-	if err != nil {
-		return fmt.Errorf("expanding `user_accounts`: %+v", err)
-	}
-	parameters.Properties.UserAccounts = userAccounts
+	parameters.Properties.UserAccounts = ExpandBatchPoolUserAccounts(d.Get("user_accounts").([]interface{}))
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return fmt.Errorf("validating cross-field rules: %+v", err)
