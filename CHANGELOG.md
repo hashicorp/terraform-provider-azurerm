@@ -21,6 +21,8 @@ FEATURES:
 * **New Resource**: `azurerm_log_analytics_workspace_table_custom_log` [GH-30800]
 
 BUG FIXES:
+* `azurerm_key_vault_key` - `not_before_date` and `expiration_date` are now set into state when empty, fixing an issue where drift was not detected [GH-31192]
+* `azurerm_key_vault_secret` - `not_before_date` and `expiration_date` are now set into state when empty, fixing an issue where drift was not detected [GH-31192]
 * `azurerm_kubernetes_fleet_update_run` - fix a nil pointer dereference to prevent panics [GH-31213]
 * `azurerm_kubernetes_cluster` - fix drift on `azure_policy_enabled` when updating cluster [GH-30917]
 * `azurerm_function_app_hybrid_connection` - remove validation preventing resource import when using an elastic service plan SKU [GH-31134]
