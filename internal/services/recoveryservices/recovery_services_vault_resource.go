@@ -211,16 +211,13 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 func resourceRecoveryServicesVaultSoftDeleteCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 	if diff.Id() == "" {
 		_, new := diff.GetChange("soft_delete_enabled")
-		if new != nil {
-			newVal := new.(bool)
-			if !newVal {
-				return errors.New("soft_delete_enabled cannot be set to false. Soft Delete is a required security feature for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
-			}
+		newVal := new.(bool)
+		if !newVal {
+			return errors.New("soft_delete_enabled cannot be set to false. Soft Delete is a required security feature for Recovery Services Vaults. For more information, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
 		}
 	} else {
 		old, new := diff.GetChange("soft_delete_enabled")
-		oldVal := old.(bool)
-		newVal := new.(bool)
+		oldVal, newVal := old.(bool), new.(bool)
 
 		if !oldVal {
 			log.Printf("[WARN] This Recovery Services Vault has soft_delete_enabled = false. As Security by Default gradually GA, Soft Delete is now a required security feature. For details, see: https://learn.microsoft.com/en-us/azure/backup/secure-by-default#disable-soft-delete-for-vault")
