@@ -273,7 +273,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "east" {
   name     = "acctest%[1]d-east"
-  location = "eastus"
+  location = "eastus2"
 }
 
 resource "azurerm_virtual_network" "east" {
