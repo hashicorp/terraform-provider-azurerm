@@ -6,6 +6,8 @@ description: |-
   Get information about an Azure Mobile Network.
 ---
 
+~> **Note:** The `azurerm_mobile_network` data source has been deprecated because [Azure Private 5G Core is deprecated on Sep 30, 2025](https://learn.microsoft.com/en-us/previous-versions/azure/private-5g-core/private-5g-core-overview) and will be removed in v5.0 of the AzureRM Provider.
+
 # Data Source: azurerm_mobile_network
 
 Get information about an Azure Mobile Network.

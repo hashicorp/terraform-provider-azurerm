@@ -20,6 +20,7 @@ import (
 type MobileNetworkServiceResource struct{}
 
 func TestAccMobileNetworkService_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkService_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkService_withQosPolicy(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 
 	r := MobileNetworkServiceResource{}
@@ -49,6 +51,7 @@ func TestAccMobileNetworkService_withQosPolicy(t *testing.T) {
 }
 
 func TestAccMobileNetworkService_withServiceQosPolicy(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,6 +66,7 @@ func TestAccMobileNetworkService_withServiceQosPolicy(t *testing.T) {
 }
 
 func TestAccMobileNetworkService_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,6 +81,7 @@ func TestAccMobileNetworkService_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkService_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -91,6 +96,7 @@ func TestAccMobileNetworkService_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkService_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -191,7 +197,7 @@ resource "azurerm_mobile_network_service" "test" {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
 
       maximum_bit_rate {
         downlink = "1 Gbps"
@@ -236,7 +242,7 @@ resource "azurerm_mobile_network_service" "test" {
     allocation_and_retention_priority_level = 9
     qos_indicator                           = 9
     preemption_capability                   = "NotPreempt"
-    preemption_vulnerability                = "Preemptable"
+    preemption_vulnerability                = "Preemptible"
     maximum_bit_rate {
       downlink = "1 Gbps"
       uplink   = "100 Mbps"
@@ -296,7 +302,7 @@ resource "azurerm_mobile_network_service" "test" {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       guaranteed_bit_rate {
         downlink = "100 Mbps"
         uplink   = "10 Mbps"
@@ -319,7 +325,7 @@ resource "azurerm_mobile_network_service" "test" {
     allocation_and_retention_priority_level = 9
     qos_indicator                           = 9
     preemption_capability                   = "NotPreempt"
-    preemption_vulnerability                = "Preemptable"
+    preemption_vulnerability                = "Preemptible"
     maximum_bit_rate {
       downlink = "1 Gbps"
       uplink   = "100 Mbps"
@@ -380,7 +386,7 @@ resource "azurerm_mobile_network_service" "test" {
     allocation_and_retention_priority_level = 9
     qos_indicator                           = 9
     preemption_capability                   = "NotPreempt"
-    preemption_vulnerability                = "Preemptable"
+    preemption_vulnerability                = "Preemptible"
     maximum_bit_rate {
       downlink = "2 Gbps"
       uplink   = "200 Mbps"

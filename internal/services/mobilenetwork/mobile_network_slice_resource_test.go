@@ -21,6 +21,7 @@ import (
 type MobileNetworkSliceResource struct{}
 
 func TestAccMobileNetworkSlice_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,6 +36,7 @@ func TestAccMobileNetworkSlice_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkSlice_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,6 +51,7 @@ func TestAccMobileNetworkSlice_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkSlice_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,6 +66,7 @@ func TestAccMobileNetworkSlice_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkSlice_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

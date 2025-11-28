@@ -4,6 +4,7 @@
 package mobilenetwork
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -29,34 +30,40 @@ func (r Registration) WebsiteCategories() []string {
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{
-		DataNetworkDataSource{},
-		MobileNetworkDataSource{},
-		ServiceDataSource{},
-		SiteDataSource{},
-		SimGroupDataSource{},
-		SliceDataSource{},
-		SimPolicyDataSource{},
-		PacketCoreControlPlaneDataSource{},
-		PacketCoreDataPlaneDataSource{},
-		AttachedDataNetworkDataSource{},
-		SimDataSource{},
+	if !features.FivePointOh() {
+		return []sdk.DataSource{
+			DataNetworkDataSource{},
+			MobileNetworkDataSource{},
+			ServiceDataSource{},
+			SiteDataSource{},
+			SimGroupDataSource{},
+			SliceDataSource{},
+			SimPolicyDataSource{},
+			PacketCoreControlPlaneDataSource{},
+			PacketCoreDataPlaneDataSource{},
+			AttachedDataNetworkDataSource{},
+			SimDataSource{},
+		}
 	}
+	return []sdk.DataSource{}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		AttachedDataNetworkResource{},
-		DataNetworkResource{},
-		MobileNetworkResource{},
-		PacketCoreControlPlaneResource{},
-		PacketCoreDataPlaneResource{},
-		SiteResource{},
-		SliceResource{},
-		ServiceResource{},
-		SimGroupResource{},
-		SimPolicyResource{},
-		SimResource{},
+	if !features.FivePointOh() {
+		return []sdk.Resource{
+			AttachedDataNetworkResource{},
+			DataNetworkResource{},
+			MobileNetworkResource{},
+			PacketCoreControlPlaneResource{},
+			PacketCoreDataPlaneResource{},
+			SiteResource{},
+			SliceResource{},
+			ServiceResource{},
+			SimGroupResource{},
+			SimPolicyResource{},
+			SimResource{},
+		}
 	}
+	return []sdk.Resource{}
 }

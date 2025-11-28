@@ -20,6 +20,7 @@ import (
 type MobileNetworkPacketCoreControlPlaneResource struct{}
 
 func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_withInteropJSON(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withInteropJSON(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,6 +80,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdentity(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,6 +95,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdent
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -104,6 +110,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -125,6 +132,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

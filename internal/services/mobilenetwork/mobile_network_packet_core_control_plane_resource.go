@@ -65,6 +65,11 @@ type PlatformConfigurationModel struct {
 type PacketCoreControlPlaneResource struct{}
 
 var _ sdk.ResourceWithUpdate = PacketCoreControlPlaneResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = PacketCoreControlPlaneResource{}
+
+func (r PacketCoreControlPlaneResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_packet_core_control_plane` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r PacketCoreControlPlaneResource) ResourceType() string {
 	return "azurerm_mobile_network_packet_core_control_plane"

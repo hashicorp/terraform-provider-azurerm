@@ -6,6 +6,8 @@ description: |-
   Manages a Mobile Network Packet Core Data Plane.
 ---
 
+~> **Note:** The `azurerm_mobile_network_packet_core_data_plane` resource has been deprecated because [Azure Private 5G Core is deprecated on Sep 30, 2025](https://learn.microsoft.com/en-us/previous-versions/azure/private-5g-core/private-5g-core-overview) and will be removed in v5.0 of the AzureRM Provider.
+
 # azurerm_mobile_network_packet_core_data_plane
 
 Manages a Mobile Network Packet Core Data Plane.

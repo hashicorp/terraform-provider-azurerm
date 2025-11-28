@@ -20,6 +20,7 @@ import (
 type MobileNetworkDataNetworkResource struct{}
 
 func TestAccMobileNetworkDataNetwork_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_data_network", "test")
 	r := MobileNetworkDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkDataNetwork_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkDataNetwork_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_data_network", "test")
 	r := MobileNetworkDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkDataNetwork_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkDataNetwork_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_data_network", "test")
 	r := MobileNetworkDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkDataNetwork_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkDataNetwork_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_data_network", "test")
 	r := MobileNetworkDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

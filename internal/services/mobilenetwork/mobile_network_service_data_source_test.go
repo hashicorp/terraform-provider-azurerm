@@ -14,6 +14,7 @@ import (
 type MobileNetworkServiceDataSource struct{}
 
 func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
 	d := MobileNetworkServiceDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -28,7 +29,7 @@ func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.allocation_and_retention_priority_level`).HasValue("9"),
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.qos_indicator`).HasValue("9"),
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.preemption_capability`).HasValue("NotPreempt"),
-				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.preemption_vulnerability`).HasValue("Preemptable"),
+				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.preemption_vulnerability`).HasValue("Preemptible"),
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.guaranteed_bit_rate.0.downlink`).HasValue("100 Mbps"),
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.guaranteed_bit_rate.0.uplink`).HasValue("10 Mbps"),
 				check.That(data.ResourceName).Key(`pcc_rule.0.qos_policy.0.maximum_bit_rate.0.downlink`).HasValue("1 Gbps"),
@@ -40,7 +41,7 @@ func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key(`service_qos_policy.0.allocation_and_retention_priority_level`).HasValue("9"),
 				check.That(data.ResourceName).Key(`service_qos_policy.0.qos_indicator`).HasValue("9"),
 				check.That(data.ResourceName).Key(`service_qos_policy.0.preemption_capability`).HasValue("NotPreempt"),
-				check.That(data.ResourceName).Key(`service_qos_policy.0.preemption_vulnerability`).HasValue("Preemptable"),
+				check.That(data.ResourceName).Key(`service_qos_policy.0.preemption_vulnerability`).HasValue("Preemptible"),
 				check.That(data.ResourceName).Key(`service_qos_policy.0.maximum_bit_rate.0.downlink`).HasValue("1 Gbps"),
 				check.That(data.ResourceName).Key(`service_qos_policy.0.maximum_bit_rate.0.uplink`).HasValue("100 Mbps"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

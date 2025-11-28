@@ -20,6 +20,7 @@ import (
 type MobileNetworkSimPolicyResource struct{}
 
 func TestAccMobileNetworkSimPolicy_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkSimPolicy_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkSimPolicy_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkSimPolicy_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkSimPolicy_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkSimPolicy_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkSimPolicy_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 
 	r := MobileNetworkSimPolicyResource{}
@@ -130,7 +134,7 @@ resource "azurerm_mobile_network_sim_policy" "test" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       session_aggregate_maximum_bit_rate {
         downlink = "1 Gbps"
@@ -167,7 +171,7 @@ resource "azurerm_mobile_network_sim_policy" "import" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       data_network_id                         = azurerm_mobile_network_data_network.test.id
       session_aggregate_maximum_bit_rate {
@@ -214,7 +218,7 @@ resource "azurerm_mobile_network_sim_policy" "test" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       data_network_id                         = azurerm_mobile_network_data_network.test.id
       max_buffered_packets                    = 200
@@ -262,7 +266,7 @@ resource "azurerm_mobile_network_sim_policy" "test" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       data_network_id                         = azurerm_mobile_network_data_network.test.id
       session_aggregate_maximum_bit_rate {

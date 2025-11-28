@@ -40,6 +40,11 @@ type SingleNetworkSliceSelectionAssistanceInformationResourceModel struct {
 type SliceResource struct{}
 
 var _ sdk.ResourceWithUpdate = SliceResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SliceResource{}
+
+func (r SliceResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_slice` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r SliceResource) ResourceType() string {
 	return "azurerm_mobile_network_slice"

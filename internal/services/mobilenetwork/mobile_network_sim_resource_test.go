@@ -20,6 +20,7 @@ import (
 type MobileNetworkSimResource struct{}
 
 func TestAccMobileNetworkSim_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkSim_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkSim_withStaticIpConfiguration(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkSim_withStaticIpConfiguration(t *testing.T) {
 }
 
 func TestAccMobileNetworkSim_withSimPolicy(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkSim_withSimPolicy(t *testing.T) {
 }
 
 func TestAccMobileNetworkSim_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,6 +80,7 @@ func TestAccMobileNetworkSim_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkSim_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,6 +95,7 @@ func TestAccMobileNetworkSim_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkSim_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -250,7 +256,7 @@ resource "azurerm_mobile_network_sim_policy" "test" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       data_network_id                         = azurerm_mobile_network_data_network.test.id
       session_aggregate_maximum_bit_rate {
