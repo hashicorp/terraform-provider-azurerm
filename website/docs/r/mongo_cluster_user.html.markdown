@@ -21,16 +21,17 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mongo_cluster" "example" {
-  name                   = "example-mc"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "8.0"
+  name                      = "example-mc"
+  resource_group_name       = azurerm_resource_group.example.name
+  location                  = azurerm_resource_group.example.location
+  administrator_username    = "adminTerraform"
+  administrator_password    = "QAZwsx123"
+  shard_count               = "1"
+  compute_tier              = "M30"
+  high_availability_mode    = "Disabled"
+  storage_size_in_gb        = "32"
+  version                   = "8.0"
+  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
 }
 
 resource "azurerm_mongo_cluster_user" "example" {
@@ -50,24 +51,23 @@ resource "azurerm_mongo_cluster_user" "example" {
 
 The following arguments are supported:
 
+* `object_id` - (Required) The Object ID of the Entra ID User or Service Principal. Changing this forces a new resource to be created.
+
 * `mongo_cluster_id` - (Required) The ID of the Mongo Cluster where the User should exist. Changing this forces a new resource to be created.
 
-* `object_id` - (Required) The object ID of a user, service principal for the Mongo Cluster User. Changing this forces a new resource to be created.
+* `identity_provider_type` - (Required) The identity provider type for the Mongo Cluster User. Possible value is `MicrosoftEntraID`. Changing this forces a new resource to be created.
 
 * `principal_type` - (Required) The principal type for the Mongo Cluster User. Possible values are `user` and `servicePrincipal`. Changing this forces a new resource to be created.
 
----
-
-* `role` - (Optional) One or more `role` blocks as defined below. Changing this forces a new resource to be created.
-
+* `role` - (Required) One or more `role` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `role` block supports the following:
 
-* `database` - (Required) The database name for the role.
+* `database` - (Required) The name of the database to which the role will be applied.
 
-* `role` - (Required) The role name. Possible values are `root`. 
+* `role` - (Required) The role name. Possible value is `root`. 
 
 ## Attributes Reference
 

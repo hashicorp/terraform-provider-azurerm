@@ -48,7 +48,7 @@ func (r MongoClusterUserResource) ResourceType() string {
 
 func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// the object_id is actually resource name
+		// `object_id` is actually resource name
 		"object_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
