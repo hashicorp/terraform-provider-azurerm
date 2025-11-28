@@ -4911,15 +4911,17 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		}
 		if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
 			for _, ac := range authCert {
-				config := ac.(map[string]interface{})
-				buf.WriteString(config["name"].(string))
+				if config, ok := ac.(map[string]interface{}); ok {
+					buf.WriteString(config["name"].(string))
+				}
 			}
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
 			for _, ac := range connectionDraining {
-				config := ac.(map[string]interface{})
-				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
-				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
+				if config, ok := ac.(map[string]interface{}); ok {
+					buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
+					buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
+				}
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
