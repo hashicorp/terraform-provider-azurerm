@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataProtectionBackupPolicyDataLakeStorageResource struct{}
@@ -70,17 +70,13 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Exists(ctx context.Co
 	}
 	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DataProtectionBackupPolicyDataLakeStorageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
   location = "%s"
@@ -99,6 +95,10 @@ resource "azurerm_data_protection_backup_vault" "test" {
 func (r DataProtectionBackupPolicyDataLakeStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   name                            = "acctest-dbp-%d"
@@ -137,6 +137,10 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
 func (r DataProtectionBackupPolicyDataLakeStorageResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   name                            = "acctest-dbp-%d"

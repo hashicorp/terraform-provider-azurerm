@@ -77,7 +77,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[-a-zA-Z0-9]{3,150}$"),
-				"DataProtection BackupPolicy name must be 3 - 150 characters long, contain only letters, numbers and hyphens.",
+				"`name` must be 3 - 150 characters long, contain only letters, numbers and hyphens(-).",
 			),
 		},
 
@@ -259,13 +259,13 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataProtection.BackupPolicyClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model BackupPolicyDataLakeStorageModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			client := metadata.Client.DataProtection.BackupPolicyClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			vaultId, _ := backuppolicies.ParseBackupVaultID(model.VaultId)
 			id := backuppolicies.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)

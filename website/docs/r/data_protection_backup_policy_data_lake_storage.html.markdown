@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
 
-* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval format. Changing this forces a new resource to be created.
+* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly backup. It should follow `ISO 8601` repeating time interval format. Changing this forces a new resource to be created.
 
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
@@ -161,7 +161,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Azure Backup Policy Data Lake Storage's can be imported using the `resource id`, e.g.
+Azure Backup Policy Data Lake Storages can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_protection_backup_policy_data_lake_storage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupPolicies/backupPolicy1
