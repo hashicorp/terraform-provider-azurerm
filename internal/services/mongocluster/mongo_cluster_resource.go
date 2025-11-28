@@ -355,7 +355,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
 			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
-			// Service team confirmed that it will be more flexibile, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
+			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
 			if identityVal != nil && identityVal.Type == identity.TypeNone {
 				identityVal = nil
 			}
