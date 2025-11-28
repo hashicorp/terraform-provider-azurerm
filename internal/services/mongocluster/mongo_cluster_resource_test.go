@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -68,7 +67,7 @@ func testAccMongoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "authentication_methods", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -202,32 +201,6 @@ resource "azurerm_mongo_cluster" "test" {
 }
 
 func (r MongoClusterResource) update(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_mongo_cluster" "test" {
-  name                      = "acctest-mc%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  administrator_username    = "adminTerraform"
-  administrator_password    = "QAZwsx123update"
-  shard_count               = "1"
-  compute_tier              = "M30"
-  high_availability_mode    = "ZoneRedundantPreferred"
-  public_network_access     = "Disabled"
-  storage_size_in_gb        = "64"
-  storage_type              = "PremiumSSD"
-  version                   = "8.0"
-  data_api_mode_enabled     = true
-  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
-
-  tags = {
-    environment = "test"
-  }
-}
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 

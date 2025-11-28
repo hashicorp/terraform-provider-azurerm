@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,30 +30,29 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                   string                         `tfschema:"name"`
-	ResourceGroupName      string                         `tfschema:"resource_group_name"`
-	Location               string                         `tfschema:"location"`
-	AdministratorUserName  string                         `tfschema:"administrator_username"`
-	AdministratorPassword  string                         `tfschema:"administrator_password"`
-	AuthConfigAllowedModes []string                       `tfschema:"auth_config_allowed_modes"`
-	AuthenticationMethods  []string                       `tfschema:"authentication_methods"`
-	CreateMode             string                         `tfschema:"create_mode"`
-	CustomerManagedKey     []CustomerManagedKey           `tfschema:"customer_managed_key"`
-	DataApiModeEnabled     bool                           `tfschema:"data_api_mode_enabled"`
-	Identity               []identity.ModelUserAssigned   `tfschema:"identity"`
-	Restore                []Restore                      `tfschema:"restore"`
-	ShardCount             int64                          `tfschema:"shard_count"`
-	SourceLocation         string                         `tfschema:"source_location"`
-	SourceServerId         string                         `tfschema:"source_server_id"`
-	ComputeTier            string                         `tfschema:"compute_tier"`
-	HighAvailabilityMode   string                         `tfschema:"high_availability_mode"`
-	PublicNetworkAccess    string                         `tfschema:"public_network_access"`
-	PreviewFeatures        []string                       `tfschema:"preview_features"`
-	StorageSizeInGb        int64                          `tfschema:"storage_size_in_gb"`
-	StorageType            string                         `tfschema:"storage_type"`
-	ConnectionStrings      []MongoClusterConnectionString `tfschema:"connection_strings"`
-	Tags                   map[string]string              `tfschema:"tags"`
-	Version                string                         `tfschema:"version"`
+	Name                  string                         `tfschema:"name"`
+	ResourceGroupName     string                         `tfschema:"resource_group_name"`
+	Location              string                         `tfschema:"location"`
+	AdministratorUserName string                         `tfschema:"administrator_username"`
+	AdministratorPassword string                         `tfschema:"administrator_password"`
+	AuthenticationMethods []string                       `tfschema:"authentication_methods"`
+	CreateMode            string                         `tfschema:"create_mode"`
+	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
+	DataApiModeEnabled    bool                           `tfschema:"data_api_mode_enabled"`
+	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
+	Restore               []Restore                      `tfschema:"restore"`
+	ShardCount            int64                          `tfschema:"shard_count"`
+	SourceLocation        string                         `tfschema:"source_location"`
+	SourceServerId        string                         `tfschema:"source_server_id"`
+	ComputeTier           string                         `tfschema:"compute_tier"`
+	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
+	PreviewFeatures       []string                       `tfschema:"preview_features"`
+	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
+	StorageType           string                         `tfschema:"storage_type"`
+	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
+	Tags                  map[string]string              `tfschema:"tags"`
+	Version               string                         `tfschema:"version"`
 }
 
 type MongoClusterConnectionString struct {
@@ -86,7 +84,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -291,24 +289,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FivePointOh() {
-		// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
-		resource["auth_config_allowed_modes"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"authentication_methods"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForAuthenticationMode(), false),
-			},
-			Deprecated: "The property `auth_config_allowed_modes` has been deprecated in favour of `authentication_methods` and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		resource["authentication_methods"].ConflictsWith = []string{"auth_config_allowed_modes"}
-	}
-
-	return resource
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -368,12 +348,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
 					RestoreParameters: expandMongoClusterRestore(state.Restore),
 				},
-			}
-
-			if !features.FivePointOh() {
-				if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "auth_config_allowed_modes") {
-					parameter.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
-				}
 			}
 
 			if state.AdministratorUserName != "" {
@@ -572,14 +546,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthenticationMethods)
 			}
 
-			if !features.FivePointOh() {
-				if metadata.ResourceData.HasChange("auth_config_allowed_modes") {
-					if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "auth_config_allowed_modes") {
-						payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
-					}
-				}
-			}
-
 			// Only allow enabling `data_api_mode_enabled`, disabling should trigger ForceNew (handled in CustomizeDiff)
 			if metadata.ResourceData.HasChange("data_api_mode_enabled") {
 				// CustomizeDiff ensures this change is always false -> true
@@ -683,10 +649,6 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					state.Version = pointer.From(props.ServerVersion)
 
 					state.AuthenticationMethods = flattenMongoClusterAuthConfig(props.AuthConfig)
-
-					if !features.FivePointOh() {
-						state.AuthConfigAllowedModes = flattenMongoClusterAuthConfig(props.AuthConfig)
-					}
 
 					if v := props.DataApi; v != nil {
 						state.DataApiModeEnabled = pointer.From(v.Mode) == mongoclusters.DataApiModeEnabled
