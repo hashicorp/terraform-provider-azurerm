@@ -353,18 +353,3 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails
 
 	return identity.FlattenSystemAndUserAssignedMap(config)
 }
-
-func dataProtectionBackupVaultDeletedRefreshFunc(ctx context.Context, client *backupvaults.BackupVaultsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
-	}
-}
