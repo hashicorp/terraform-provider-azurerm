@@ -76,6 +76,7 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 		"auth_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			// From service team we only support these auth types for Nov 2025
 			ValidateFunc: validation.StringInSlice([]string{
 				string(accountconnectionresource.ConnectionAuthTypeAAD),
 				string(accountconnectionresource.ConnectionAuthTypeApiKey),
