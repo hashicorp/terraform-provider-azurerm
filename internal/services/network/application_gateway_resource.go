@@ -4917,10 +4917,9 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
 			for _, ac := range connectionDraining {
-				if config, ok := ac.(map[string]interface{}); ok {
-					buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
-					buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
-				}
+				config := ac.(map[string]interface{})
+				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
+				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
