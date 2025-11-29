@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,6 +54,11 @@ func dataSourceArmUserAssignedIdentity() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"isolation_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -81,6 +88,12 @@ func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("client_id", props.ClientId)
 			d.Set("principal_id", props.PrincipalId)
 			d.Set("tenant_id", props.TenantId)
+
+			isolationScope := ""
+			if v := pointer.FromEnum(model.Properties.IsolationScope); v != string(identities.IsolationScopeNone) {
+				isolationScope = v
+			}
+			d.Set("isolation_scope", isolationScope)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
