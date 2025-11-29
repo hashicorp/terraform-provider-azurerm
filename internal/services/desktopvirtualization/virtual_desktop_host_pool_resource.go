@@ -4,475 +4,514 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
+var (
+	_ sdk.Resource                   = DesktopVirtualizationHostPoolResource{}
+	_ sdk.ResourceWithUpdate         = DesktopVirtualizationHostPoolResource{}
+	_ sdk.ResourceWithStateMigration = DesktopVirtualizationHostPoolResource{}
+)
 
-func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopHostPoolCreate,
-		Read:   resourceVirtualDesktopHostPoolRead,
-		Update: resourceVirtualDesktopHostPoolUpdate,
-		Delete: resourceVirtualDesktopHostPoolDelete,
+type DesktopVirtualizationHostPoolResource struct{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+func (DesktopVirtualizationHostPoolResource) ModelObject() interface{} {
+	return &DesktopVirtualizationHostPoolModel{}
+}
+
+func (DesktopVirtualizationHostPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return hostpool.ValidateHostPoolID
+}
+
+func (DesktopVirtualizationHostPoolResource) ResourceType() string {
+	return "azurerm_virtual_desktop_host_pool"
+}
+
+type DesktopVirtualizationHostPoolModel struct {
+	Name                          string                                               `tfschema:"name"`
+	Location                      string                                               `tfschema:"location"`
+	ResourceGroupName             string                                               `tfschema:"resource_group_name"`
+	Type                          string                                               `tfschema:"type"`
+	LoadBalancerType              string                                               `tfschema:"load_balancer_type"`
+	FriendlyName                  string                                               `tfschema:"friendly_name"`
+	Description                   string                                               `tfschema:"description"`
+	ValidateEnvironment           bool                                                 `tfschema:"validate_environment"`
+	CustomRdpProperties           string                                               `tfschema:"custom_rdp_properties"`
+	PersonalDesktopAssignmentType string                                               `tfschema:"personal_desktop_assignment_type"`
+	PublicNetworkAccess           string                                               `tfschema:"public_network_access"`
+	MaximumSessionsAllowed        int64                                                `tfschema:"maximum_sessions_allowed"`
+	StartVmOnConnect              bool                                                 `tfschema:"start_vm_on_connect"`
+	PreferredAppGroupType         string                                               `tfschema:"preferred_app_group_type"`
+	ScheduledAgentUpdates         []DesktopVirtualizationHostPoolScheduledAgentUpdates `tfschema:"scheduled_agent_updates"`
+	VmTemplate                    string                                               `tfschema:"vm_template"`
+	Tags                          map[string]string                                    `tfschema:"tags"`
+}
+type DesktopVirtualizationHostPoolScheduledAgentUpdates struct {
+	Enabled                bool                                                         `tfschema:"enabled"`
+	Timezone               string                                                       `tfschema:"timezone"`
+	UseSessionHostTimezone bool                                                         `tfschema:"use_session_host_timezone"`
+	Schedule               []DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule `tfschema:"schedule"`
+}
+
+type DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule struct {
+	DayOfWeek string `tfschema:"day_of_week"`
+	HourOfDay int64  `tfschema:"hour_of_day"`
+}
+
+func (DesktopVirtualizationHostPoolResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.HostPoolV0ToV1{},
+		},
+	}
+}
+
+func (r DesktopVirtualizationHostPoolResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := hostpool.ParseHostPoolID(id)
-			return err
-		}),
+		"location": commonschema.Location(),
 
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.HostPoolV0ToV1{},
-		}),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostPoolType(), false),
+		},
 
-			"location": commonschema.Location(),
+		"load_balancer_type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForLoadBalancerType(), false),
+		},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"friendly_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 64),
+		},
 
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.HostPoolTypePersonal),
-					string(hostpool.HostPoolTypePooled),
-				}, false),
-			},
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 512),
+		},
 
-			"load_balancer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.LoadBalancerTypeBreadthFirst),
-					string(hostpool.LoadBalancerTypeDepthFirst),
-					string(hostpool.LoadBalancerTypePersistent),
-				}, false),
-			},
+		"validate_environment": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			"friendly_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
-			},
+		"custom_rdp_properties": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 512),
-			},
+		"personal_desktop_assignment_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPersonalDesktopAssignmentType(), false),
+		},
 
-			"validate_environment": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+		"public_network_access": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
+			Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
+		},
 
-			"custom_rdp_properties": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+		"maximum_sessions_allowed": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      999999,
+			ValidateFunc: validation.IntBetween(0, 999999),
+		},
 
-			"personal_desktop_assignment_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.PersonalDesktopAssignmentTypeAutomatic),
-					string(hostpool.PersonalDesktopAssignmentTypeDirect),
-				}, false),
-			},
+		"start_vm_on_connect": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			"public_network_access": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
-				Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
-			},
+		"preferred_app_group_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Description:  "Preferred App Group type to display",
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPreferredAppGroupType(), false),
+			Default:      string(hostpool.PreferredAppGroupTypeDesktop),
+		},
 
-			"maximum_sessions_allowed": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      999999,
-				ValidateFunc: validation.IntBetween(0, 999999),
-			},
+		"scheduled_agent_updates": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
-			"start_vm_on_connect": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+					"timezone": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "UTC",
+					},
 
-			"preferred_app_group_type": {
-				Type:        pluginsdk.TypeString,
-				Optional:    true,
-				Description: "Preferred App Group type to display",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.PreferredAppGroupTypeDesktop),
-					string(hostpool.PreferredAppGroupTypeNone),
-					string(hostpool.PreferredAppGroupTypeRailApplications),
-				}, false),
-				Default: string(hostpool.PreferredAppGroupTypeDesktop),
-			},
+					"use_session_host_timezone": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
-			"scheduled_agent_updates": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
+					"schedule": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 2,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"day_of_week": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForDayOfWeek(), false),
+								},
 
-						"timezone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "UTC",
-						},
-
-						"use_session_host_timezone": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"schedule": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 2,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"day_of_week": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(hostpool.DayOfWeekMonday),
-											string(hostpool.DayOfWeekTuesday),
-											string(hostpool.DayOfWeekWednesday),
-											string(hostpool.DayOfWeekThursday),
-											string(hostpool.DayOfWeekFriday),
-											string(hostpool.DayOfWeekSaturday),
-											string(hostpool.DayOfWeekSunday),
-										}, false),
-									},
-
-									"hour_of_day": {
-										Type:         pluginsdk.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntBetween(0, 23),
-									},
+								"hour_of_day": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(0, 23),
 								},
 							},
 						},
 					},
 				},
 			},
-
-			"vm_template": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
-
-			"tags": commonschema.Tags(),
 		},
-	}
-}
 
-func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id := hostpool.NewHostPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", id.ID())
-	}
-
-	personalDesktopAssignmentType := hostpool.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string))
-	vmTemplate := d.Get("vm_template").(string)
-	if vmTemplate != "" {
-		// we have no use with the json object as azure accepts string only
-		// merely here for validation
-		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
-		}
-	}
-	payload := hostpool.HostPool{
-		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: hostpool.HostPoolProperties{
-			HostPoolType:                  hostpool.HostPoolType(d.Get("type").(string)),
-			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
-			Description:                   utils.String(d.Get("description").(string)),
-			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
-			CustomRdpProperty:             utils.String(d.Get("custom_rdp_properties").(string)),
-			MaxSessionLimit:               utils.Int64(int64(d.Get("maximum_sessions_allowed").(int))),
-			StartVMOnConnect:              utils.Bool(d.Get("start_vm_on_connect").(bool)),
-			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
-			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
-			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
-			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
-			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
-			VMTemplate:                    &vmTemplate,
+		"vm_template": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
-	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		"tags": commonschema.Tags(),
 	}
-
-	d.SetId(id.ID())
-	return resourceVirtualDesktopHostPoolRead(d, meta)
 }
 
-func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := hostpool.ParseHostPoolID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
-
-	payload := hostpool.HostPoolPatch{}
-
-	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
-		payload.Properties = &hostpool.HostPoolPatchProperties{}
-
-		if d.HasChange("custom_rdp_properties") {
-			payload.Properties.CustomRdpProperty = utils.String(d.Get("custom_rdp_properties").(string))
-		}
-
-		if d.HasChange("description") {
-			payload.Properties.Description = utils.String(d.Get("description").(string))
-		}
-
-		if d.HasChange("friendly_name") {
-			payload.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
-		}
-
-		if d.HasChange("load_balancer_type") {
-			loadBalancerType := hostpool.LoadBalancerType(d.Get("load_balancer_type").(string))
-			payload.Properties.LoadBalancerType = &loadBalancerType
-		}
-
-		if d.HasChange("maximum_sessions_allowed") {
-			payload.Properties.MaxSessionLimit = utils.Int64(int64(d.Get("maximum_sessions_allowed").(int)))
-		}
-
-		if d.HasChange("preferred_app_group_type") {
-			preferredAppGroupType := hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string))
-			payload.Properties.PreferredAppGroupType = &preferredAppGroupType
-		}
-
-		if d.HasChange("public_network_access") {
-			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
-		}
-
-		if d.HasChange("start_vm_on_connect") {
-			payload.Properties.StartVMOnConnect = utils.Bool(d.Get("start_vm_on_connect").(bool))
-		}
-
-		if d.HasChange("validate_environment") {
-			payload.Properties.ValidationEnvironment = utils.Bool(d.Get("validate_environment").(bool))
-		}
-
-		if d.HasChanges("scheduled_agent_updates") {
-			payload.Properties.AgentUpdate = expandAgentUpdatePatch(d.Get("scheduled_agent_updates").([]interface{}))
-		}
-
-		if d.HasChanges("vm_template") {
-			payload.Properties.VMTemplate = utils.String(d.Get("vm_template").(string))
-		}
-	}
-
-	if _, err := client.Update(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	return resourceVirtualDesktopHostPoolRead(d, meta)
+func (r DesktopVirtualizationHostPoolResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationHostPoolResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.HostPoolsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	id, err := hostpool.ParseHostPoolID(d.Id())
-	if err != nil {
-		return err
-	}
+			var model DesktopVirtualizationHostPoolModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
-			d.SetId("")
+			id := hostpool.NewHostPoolID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			personalDesktopAssignmentType := hostpool.PersonalDesktopAssignmentType(model.PersonalDesktopAssignmentType)
+			vmTemplate := model.VmTemplate
+			if vmTemplate != "" {
+				// we have no use with the json object as azure accepts string only
+				// merely here for validation
+				_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
+				if err != nil {
+					return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
+				}
+			}
+			payload := hostpool.HostPool{
+				Location: location.Normalize(model.Location),
+				Tags:     pointer.To(model.Tags),
+				Properties: hostpool.HostPoolProperties{
+					HostPoolType:                  hostpool.HostPoolType(model.Type),
+					FriendlyName:                  pointer.To(model.FriendlyName),
+					Description:                   pointer.To(model.Description),
+					ValidationEnvironment:         pointer.To(model.ValidateEnvironment),
+					CustomRdpProperty:             pointer.To(model.CustomRdpProperties),
+					MaxSessionLimit:               pointer.To(model.MaximumSessionsAllowed),
+					StartVMOnConnect:              pointer.To(model.StartVmOnConnect),
+					LoadBalancerType:              hostpool.LoadBalancerType(model.LoadBalancerType),
+					PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
+					PreferredAppGroupType:         hostpool.PreferredAppGroupType(model.PreferredAppGroupType),
+					PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(model.PublicNetworkAccess)),
+					AgentUpdate:                   expandAgentUpdateCreate(model.ScheduledAgentUpdates),
+					VMTemplate:                    pointer.To(vmTemplate),
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
 			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		},
 	}
-
-	d.Set("name", id.HostPoolName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
-
-		props := model.Properties
-		maxSessionLimit := 0
-		if props.MaxSessionLimit != nil {
-			maxSessionLimit = int(*props.MaxSessionLimit)
-		}
-
-		d.Set("custom_rdp_properties", props.CustomRdpProperty)
-		d.Set("description", props.Description)
-		d.Set("friendly_name", props.FriendlyName)
-		d.Set("maximum_sessions_allowed", maxSessionLimit)
-		d.Set("load_balancer_type", string(props.LoadBalancerType))
-		personalDesktopAssignmentType := ""
-		if props.PersonalDesktopAssignmentType != nil {
-			personalDesktopAssignmentType = string(*props.PersonalDesktopAssignmentType)
-		}
-		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
-		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
-		d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
-		d.Set("start_vm_on_connect", props.StartVMOnConnect)
-		d.Set("type", string(props.HostPoolType))
-		d.Set("validate_environment", props.ValidationEnvironment)
-		d.Set("scheduled_agent_updates", flattenAgentUpdate(props.AgentUpdate))
-		d.Set("vm_template", props.VMTemplate)
-	}
-
-	return nil
 }
 
-func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r DesktopVirtualizationHostPoolResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.HostPoolsClient
 
-	id, err := hostpool.ParseHostPoolID(d.Id())
-	if err != nil {
-		return err
+			var model DesktopVirtualizationHostPoolModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id, err := hostpool.ParseHostPoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			locks.ByName(id.HostPoolName, r.ResourceType())
+			defer locks.UnlockByName(id.HostPoolName, r.ResourceType())
+
+			payload := hostpool.HostPoolPatch{}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if metadata.ResourceData.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+				payload.Properties = &hostpool.HostPoolPatchProperties{}
+
+				if metadata.ResourceData.HasChange("custom_rdp_properties") {
+					payload.Properties.CustomRdpProperty = pointer.To(model.CustomRdpProperties)
+				}
+
+				if metadata.ResourceData.HasChange("description") {
+					payload.Properties.Description = pointer.To(model.Description)
+				}
+
+				if metadata.ResourceData.HasChange("friendly_name") {
+					payload.Properties.FriendlyName = pointer.To(model.FriendlyName)
+				}
+
+				if metadata.ResourceData.HasChange("load_balancer_type") {
+					loadBalancerType := hostpool.LoadBalancerType(model.LoadBalancerType)
+					payload.Properties.LoadBalancerType = &loadBalancerType
+				}
+
+				if metadata.ResourceData.HasChange("maximum_sessions_allowed") {
+					payload.Properties.MaxSessionLimit = pointer.To(model.MaximumSessionsAllowed)
+				}
+
+				if metadata.ResourceData.HasChange("preferred_app_group_type") {
+					preferredAppGroupType := hostpool.PreferredAppGroupType(model.PreferredAppGroupType)
+					payload.Properties.PreferredAppGroupType = &preferredAppGroupType
+				}
+
+				if metadata.ResourceData.HasChange("public_network_access") {
+					payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(model.PublicNetworkAccess))
+				}
+
+				if metadata.ResourceData.HasChange("start_vm_on_connect") {
+					payload.Properties.StartVMOnConnect = pointer.To(model.StartVmOnConnect)
+				}
+
+				if metadata.ResourceData.HasChange("validate_environment") {
+					payload.Properties.ValidationEnvironment = pointer.To(model.ValidateEnvironment)
+				}
+
+				if metadata.ResourceData.HasChanges("scheduled_agent_updates") {
+					payload.Properties.AgentUpdate = expandAgentUpdatePatch(model.ScheduledAgentUpdates)
+				}
+
+				if metadata.ResourceData.HasChanges("vm_template") {
+					payload.Properties.VMTemplate = pointer.To(model.VmTemplate)
+				}
+			}
+
+			if _, err := client.Update(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
-
-	locks.ByName(id.HostPoolName, hostPoolResourceType)
-	defer locks.UnlockByName(id.HostPoolName, hostPoolResourceType)
-
-	options := hostpool.DeleteOperationOptions{
-		Force: utils.Bool(true),
-	}
-	if _, err = client.Delete(ctx, *id, options); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return nil
 }
 
-func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindowProperties {
+func (r DesktopVirtualizationHostPoolResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.HostPoolsClient
+
+			state := DesktopVirtualizationHostPoolModel{}
+
+			id, err := hostpool.ParseHostPoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state.Name = id.HostPoolName
+			state.ResourceGroupName = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				props := model.Properties
+
+				state.CustomRdpProperties = pointer.From(props.CustomRdpProperty)
+				state.Description = pointer.From(props.Description)
+				state.FriendlyName = pointer.From(props.FriendlyName)
+				state.MaximumSessionsAllowed = pointer.From(props.MaxSessionLimit)
+				state.LoadBalancerType = string(props.LoadBalancerType)
+				personalDesktopAssignmentType := ""
+				if props.PersonalDesktopAssignmentType != nil {
+					personalDesktopAssignmentType = string(*props.PersonalDesktopAssignmentType)
+				}
+				state.PersonalDesktopAssignmentType = personalDesktopAssignmentType
+				state.PreferredAppGroupType = string(props.PreferredAppGroupType)
+				state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+				state.StartVmOnConnect = pointer.From(props.StartVMOnConnect)
+				state.Type = string(props.HostPoolType)
+				state.ValidateEnvironment = pointer.From(props.ValidationEnvironment)
+				state.ScheduledAgentUpdates = flattenAgentUpdate(props.AgentUpdate)
+				state.VmTemplate = pointer.From(props.VMTemplate)
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r DesktopVirtualizationHostPoolResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DesktopVirtualization.HostPoolsClient
+			timeout, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context is missing a timeout")
+			}
+
+			id, err := hostpool.ParseHostPoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			locks.ByName(id.HostPoolName, r.ResourceType())
+			defer locks.UnlockByName(id.HostPoolName, r.ResourceType())
+
+			options := hostpool.DeleteOperationOptions{
+				Force: pointer.To(true),
+			}
+
+			err = pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
+				_, err := client.Delete(ctx, *id, options)
+				if err == nil {
+					return nil
+				}
+				if strings.Contains(err.Error(), fmt.Sprintf("The SessionHostPool %s could not be deleted because it still has ApplicationGroups associated with it. Please remove all ApplicationGroups from the SessionHostPool and retry the operation.", id.HostPoolName)) {
+					return pluginsdk.RetryableError(fmt.Errorf(" %s still has ApplicationGroups attached, retrying", id.HostPoolName))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandAgentUpdateSchedule(input []DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule) *[]hostpool.MaintenanceWindowProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]hostpool.MaintenanceWindowProperties, 0)
 	for _, item := range input {
-		if item == nil {
-			continue
-		}
-
-		v := item.(map[string]interface{})
-		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
-
-		hourOfDay := int64(v["hour_of_day"].(int))
+		dayOfWeek := hostpool.DayOfWeek(item.DayOfWeek)
+		hourOfDay := item.HourOfDay
 
 		results = append(results, hostpool.MaintenanceWindowProperties{
 			DayOfWeek: &dayOfWeek,
-			Hour:      utils.Int64(hourOfDay),
+			Hour:      pointer.To(hourOfDay),
 		})
 	}
 
 	return &results
 }
 
-func expandAgentUpdateCreate(input []interface{}) *hostpool.AgentUpdateProperties {
-	if len(input) == 0 || input[0] == nil {
+func expandAgentUpdateCreate(input []DesktopVirtualizationHostPoolScheduledAgentUpdates) *hostpool.AgentUpdateProperties {
+	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0]
 
 	props := hostpool.AgentUpdateProperties{}
 	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
-	useSessionHostLocalTime := *utils.Bool(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := utils.String(raw["timezone"].(string))
+	useSessionHostLocalTime := raw.UseSessionHostTimezone
+	updateScheduleTimeZone := pointer.To(raw.Timezone)
 
-	if raw["enabled"].(bool) {
+	if raw.Enabled {
 		props.Type = &updatesScheduled
 		if !useSessionHostLocalTime { // based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
 			props.MaintenanceWindowTimeZone = updateScheduleTimeZone
 			props.UseSessionHostLocalTime = &useSessionHostLocalTime
-			props.MaintenanceWindows = expandAgentUpdateSchedule(raw["schedule"].([]interface{}))
+			props.MaintenanceWindows = expandAgentUpdateSchedule(raw.Schedule)
 		}
 	} else {
 		props.Type = &updatesDefault
@@ -484,25 +523,23 @@ func expandAgentUpdateCreate(input []interface{}) *hostpool.AgentUpdatePropertie
 	return &props
 }
 
-func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchProperties {
-	if len(input) == 0 || input[0] == nil {
+func expandAgentUpdatePatch(input []DesktopVirtualizationHostPoolScheduledAgentUpdates) *hostpool.AgentUpdatePatchProperties {
+	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0]
 
 	props := hostpool.AgentUpdatePatchProperties{}
 	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
-	useSessionHostLocalTime := *utils.Bool(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := utils.String(raw["timezone"].(string))
-	props.MaintenanceWindowTimeZone = updateScheduleTimeZone
-	props.UseSessionHostLocalTime = &useSessionHostLocalTime
+	props.MaintenanceWindowTimeZone = pointer.To(raw.Timezone)
+	props.UseSessionHostLocalTime = pointer.To(raw.UseSessionHostTimezone)
 
-	if raw["enabled"].(bool) {
+	if raw.Enabled {
 		props.Type = &updatesScheduled
-		props.MaintenanceWindows = expandAgentUpdateSchedulePatch(raw["schedule"].([]interface{}))
+		props.MaintenanceWindows = expandAgentUpdateSchedulePatch(raw.Schedule)
 	} else {
 		props.Type = &updatesDefault
 		props.MaintenanceWindows = &[]hostpool.MaintenanceWindowPatchProperties{}
@@ -511,33 +548,27 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	return &props
 }
 
-func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.MaintenanceWindowPatchProperties {
+func expandAgentUpdateSchedulePatch(input []DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule) *[]hostpool.MaintenanceWindowPatchProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]hostpool.MaintenanceWindowPatchProperties, 0)
 	for _, item := range input {
-		if item == nil {
-			continue
-		}
-
-		v := item.(map[string]interface{})
-		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
-
-		hourOfDay := int64(v["hour_of_day"].(int))
+		dayOfWeek := hostpool.DayOfWeek(item.DayOfWeek)
+		hourOfDay := item.HourOfDay
 
 		results = append(results, hostpool.MaintenanceWindowPatchProperties{
 			DayOfWeek: &dayOfWeek,
-			Hour:      utils.Int64(hourOfDay),
+			Hour:      pointer.To(hourOfDay),
 		})
 	}
 
 	return &results
 }
 
-func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) []DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule {
+	results := make([]DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule, 0)
 	if input == nil {
 		return results
 	}
@@ -545,23 +576,23 @@ func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) [
 	for _, item := range *input {
 		dayOfWeek := ""
 		if item.DayOfWeek != nil {
-			dayOfWeek = *utils.String(string(*item.DayOfWeek))
+			dayOfWeek = *pointer.To(string(*item.DayOfWeek))
 		}
-		hourOfDay := utils.Int64(0)
+		hourOfDay := pointer.To(int64(0))
 		if item.Hour != nil {
-			hourOfDay = utils.Int64(*item.Hour)
+			hourOfDay = item.Hour
 		}
-		results = append(results, map[string]interface{}{
-			"day_of_week": dayOfWeek,
-			"hour_of_day": hourOfDay,
+		results = append(results, DesktopVirtualizationHostPoolScheduledAgentUpdatesSchedule{
+			DayOfWeek: dayOfWeek,
+			HourOfDay: pointer.From(hourOfDay),
 		})
 	}
 	return results
 }
 
-func flattenAgentUpdate(input *hostpool.AgentUpdateProperties) []interface{} {
+func flattenAgentUpdate(input *hostpool.AgentUpdateProperties) []DesktopVirtualizationHostPoolScheduledAgentUpdates {
 	if input == nil {
-		return []interface{}{}
+		return []DesktopVirtualizationHostPoolScheduledAgentUpdates{}
 	}
 	enabled := false
 	if input.Type != nil {
@@ -570,12 +601,12 @@ func flattenAgentUpdate(input *hostpool.AgentUpdateProperties) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":                   enabled,
-			"timezone":                  input.MaintenanceWindowTimeZone,
-			"use_session_host_timezone": input.UseSessionHostLocalTime,
-			"schedule":                  flattenAgentUpdateSchedule(input.MaintenanceWindows),
+	return []DesktopVirtualizationHostPoolScheduledAgentUpdates{
+		{
+			Enabled:                enabled,
+			Timezone:               pointer.From(input.MaintenanceWindowTimeZone),
+			UseSessionHostTimezone: pointer.From(input.UseSessionHostLocalTime),
+			Schedule:               flattenAgentUpdateSchedule(input.MaintenanceWindows),
 		},
 	}
 }
