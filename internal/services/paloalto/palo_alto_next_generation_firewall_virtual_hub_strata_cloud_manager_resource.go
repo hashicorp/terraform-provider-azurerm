@@ -280,7 +280,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
 				if props.StrataCloudManagerConfig == nil {
-					return fmt.Errorf("updating %s: StrataCloudManagerConfig was nil", *id)
+					props.StrataCloudManagerConfig = &firewalls.StrataCloudManagerConfig{}
 				}
 				props.StrataCloudManagerConfig.CloudManagerName = model.StrataCloudManagerTenantName
 			}
