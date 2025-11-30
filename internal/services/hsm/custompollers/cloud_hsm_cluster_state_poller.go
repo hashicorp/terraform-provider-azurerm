@@ -37,8 +37,8 @@ func (p *CloudHsmClusterStatePoller) Poll(ctx context.Context) (*pollers.PollRes
 	}
 
 	statusMessage := ""
-	if model := resp.Model; model != nil && model.Properties != nil && model.Properties.StatusMessage != nil {
-		statusMessage = strings.ToLower(strings.TrimSpace(*model.Properties.StatusMessage))
+	if model := resp.Model; model != nil && model.Properties != nil {
+		statusMessage = strings.ToLower(strings.TrimSpace(pointer.From(model.Properties.StatusMessage)))
 	}
 
 	// Check if provisioning is successful

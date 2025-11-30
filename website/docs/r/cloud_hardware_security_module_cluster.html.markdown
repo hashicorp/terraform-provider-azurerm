@@ -87,13 +87,13 @@ A `private_endpoint_connections` block exports the following:
 
 * `name` - The name of the private endpoint connection.
 
-* `type` - The type of the private endpoint connection.
-
 * `group_ids` - A list of group IDs for the private endpoint connection.
 
 * `private_endpoint` - A `private_endpoint` block as defined below.
 
 * `private_link_service_connection_state` - A `private_link_service_connection_state` block as defined below.
+
+* `type` - The type of the private endpoint connection.
 
 ---
 
@@ -105,15 +105,15 @@ A `private_endpoint` block exports the following:
 
 A `private_link_service_connection_state` block exports the following:
 
-* `status` - The status of the private link service connection.
+* `actions_required` - The actions required for the private link service connection.
 
 * `description` - The description of the private link service connection state.
 
-* `actions_required` - The actions required for the private link service connection.
+* `status` - The status of the private link service connection.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Cloud Hardware Security Module Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Hardware Security Module Cluster.
