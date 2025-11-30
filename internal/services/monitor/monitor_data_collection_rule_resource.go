@@ -500,7 +500,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											"name": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
+												ValidateFunc: validation.StringLenBetween(1, 32),
 											},
 											"stream": {
 												Type:         pluginsdk.TypeString,
@@ -526,7 +526,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"extension_name": {
 									Type:         pluginsdk.TypeString,
@@ -567,7 +567,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -598,7 +598,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -656,7 +656,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"sampling_frequency_in_seconds": {
 									Type:         pluginsdk.TypeInt,
@@ -692,7 +692,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -714,7 +714,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -756,7 +756,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"facility_names": {
 									Type:     pluginsdk.TypeList,
@@ -800,7 +800,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -831,7 +831,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validation.StringLenBetween(1, 32),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,

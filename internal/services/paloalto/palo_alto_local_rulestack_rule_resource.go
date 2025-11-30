@@ -80,7 +80,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IntBetween(1, 10000),
+			ValidateFunc: validation.IntBetween(1, 1000000),
 		},
 
 		"action": {

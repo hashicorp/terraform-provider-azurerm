@@ -6,6 +6,7 @@ package mssqlmanagedinstance_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -83,6 +84,10 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_systemManaged(t *testi
 }
 
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
 

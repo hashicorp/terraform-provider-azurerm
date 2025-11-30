@@ -237,7 +237,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -304,7 +304,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
 
 
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) withInteropJson(data acceptance.TestData) string {
@@ -444,7 +444,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -511,5 +511,5 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
   depends_on = [azurerm_mobile_network.test]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

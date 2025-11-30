@@ -458,6 +458,10 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
 
@@ -603,6 +607,21 @@ func TestAccMySqlFlexibleServer_publicNetworkAccess(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccMySqlFlexibleServer_eightPointFour(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eightPointFour(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
 	})
 }
 
@@ -1179,12 +1198,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
@@ -1321,6 +1341,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                                 = data.azurerm_client_config.current.tenant_id
   admin_object_ids                          = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled                  = true
+  soft_delete_retention_days                = 7
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
   security_domain_quorum                    = 3
 }
@@ -1473,12 +1494,13 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                     = "acctestkv2%s"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv2%s"
+  location                   = azurerm_resource_group.test2.location
+  resource_group_name        = azurerm_resource_group.test2.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {
@@ -1640,4 +1662,21 @@ resource "azurerm_mysql_flexible_server_configuration" "test" {
   value               = "ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO"
 }
 `, r.template(data), data.RandomInteger, version)
+}
+
+func (r MySqlFlexibleServerResource) eightPointFour(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+
+  version = "8.4"
+}
+`, r.template(data), data.RandomInteger)
 }

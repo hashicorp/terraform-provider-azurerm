@@ -809,7 +809,7 @@ func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -879,7 +879,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
@@ -889,7 +889,7 @@ func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -959,7 +959,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData) string {

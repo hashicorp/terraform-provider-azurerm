@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -225,7 +225,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
-func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err

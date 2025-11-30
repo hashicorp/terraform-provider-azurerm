@@ -32,15 +32,17 @@ resource "azurerm_storage_queue" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Storage Queue should be created. This property is deprecated in favour of `storage_account_id`.
 
-* `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created.
+~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created.
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
@@ -58,7 +60,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Queue.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Queue.
@@ -78,7 +80,7 @@ terraform import azurerm_storage_queue.queue1 https://example.queue.core.windows
 If `storage_account_id` is used:
 
 ```shell
-terraform import azurerm_storage_queue.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/queueServices/default/queues
+terraform import azurerm_storage_queue.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/queueServices/default/queues/queue1
 ```
 
 ## API Providers
