@@ -385,7 +385,7 @@ func expandKubernetesFleetUpdateRunStage(input []KubernetesFleetUpdateRunResourc
 	for _, stage := range input {
 		output = append(output, updateruns.UpdateStage{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.FromInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.To(stage.AfterStageWaitInSeconds),
 			Groups:                  expandKubernetesFleetUpdateRunGroup(stage.Group),
 		})
 	}

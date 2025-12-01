@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTokenPasswordResource struct {
@@ -173,7 +173,7 @@ func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties.credentials.passwords", id)
 	}
 	// ACR token with no password returns a empty array for ".password"
-	return utils.Bool(len(*pwds) != 0), nil
+	return pointer.To(len(*pwds) != 0), nil
 }
 
 func (r ContainerRegistryTokenPasswordResource) basic(data acceptance.TestData) string {
