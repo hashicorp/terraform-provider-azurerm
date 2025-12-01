@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -39,12 +39,11 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 		},
 
 		"name": {
-			// TODO: should this be hard-coded in the Create?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			Default:      "configurationAccessEndpoint",
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.DataCollectionRuleAssociationName,
 		},
 
 		"data_collection_endpoint_id": {
