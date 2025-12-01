@@ -1129,9 +1129,13 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
-		if err := d.Set("gateway_public_ip_prefix_size", flattenAgentPoolGatewayProfile(props.GatewayProfile)); err != nil {
-			return fmt.Errorf("setting `gateway_profile`: %+v", err)
-		}
+	gatewayPublicIPPrefixSize := 31
+	if props.GatewayProfile != nil {
+		gatewayPublicIPPrefixSize = int(*props.GatewayProfile.PublicIPPrefixSize)
+	}
+	if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
+		return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
+	}
 
 		if props.CreationData != nil {
 			d.Set("snapshot_id", props.CreationData.SourceResourceId)
@@ -1932,9 +1936,3 @@ func expandAgentPoolGatewayProfile(publicIPPrefixSize int) *agentpools.AgentPool
 	}
 }
 
-func flattenAgentPoolGatewayProfile(input *agentpools.AgentPoolGatewayProfile) int {
-	if input == nil {
-		return 31
-	}
-	return int(*input.PublicIPPrefixSize)
-}
