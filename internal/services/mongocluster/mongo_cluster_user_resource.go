@@ -87,12 +87,14 @@ func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 					"database": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"role": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice(
 							users.PossibleValuesForUserRole(),
 							false,

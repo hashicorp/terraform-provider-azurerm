@@ -65,9 +65,9 @@ The following arguments are supported:
 
 A `role` block supports the following:
 
-* `database` - (Required) The name of the database to which the role will be applied.
+* `database` - (Required) The name of the database to which the role will be applied. Changing this forces a new resource to be created.
 
-* `role` - (Required) The role name. Possible value is `root`. 
+* `role` - (Required) The role name. Possible value is `root`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
