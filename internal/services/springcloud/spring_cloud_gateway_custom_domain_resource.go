@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -96,7 +97,7 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 
 	gatewayCustomDomainResource := appplatform.GatewayCustomDomainResource{
 		Properties: &appplatform.GatewayCustomDomainProperties{
-			Thumbprint: utils.String(d.Get("thumbprint").(string)),
+			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName, gatewayCustomDomainResource)
