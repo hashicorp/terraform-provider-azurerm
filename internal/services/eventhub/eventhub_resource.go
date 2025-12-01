@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
@@ -272,7 +271,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount: utils.Int64(int64(d.Get("partition_count").(int))),
+			PartitionCount: pointer.To(int64(d.Get("partition_count").(int))),
 			Status:         &eventhubStatus,
 		},
 	}
@@ -333,9 +332,9 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			PartitionCount:         pointer.To(int64(d.Get("partition_count").(int))),
 			Status:                 &eventhubStatus,
-			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
+			MessageRetentionInDays: pointer.To(int64(d.Get("message_retention").(int))),
 			CaptureDescription:     expandEventHubCaptureDescription(d),
 		},
 	}
@@ -448,10 +447,10 @@ func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.Re
 
 	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {
 		retentionTimeInHours := input["retention_time_in_hours"].(int)
-		retentionDescription.RetentionTimeInHours = pointer.FromInt64(int64(retentionTimeInHours))
+		retentionDescription.RetentionTimeInHours = pointer.To(int64(retentionTimeInHours))
 	} else {
 		tombstoneRetentionTimeInHours := input["tombstone_retention_time_in_hours"].(int)
-		retentionDescription.TombstoneRetentionTimeInHours = pointer.FromInt64(int64(tombstoneRetentionTimeInHours))
+		retentionDescription.TombstoneRetentionTimeInHours = pointer.To(int64(tombstoneRetentionTimeInHours))
 	}
 
 	return pointer.To(retentionDescription)
@@ -471,14 +470,14 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	skipEmptyArchives := input["skip_empty_archives"].(bool)
 
 	captureDescription := eventhubs.CaptureDescription{
-		Enabled: utils.Bool(enabled),
+		Enabled: pointer.To(enabled),
 		Encoding: func() *eventhubs.EncodingCaptureDescription {
 			v := eventhubs.EncodingCaptureDescription(encoding)
 			return &v
 		}(),
-		IntervalInSeconds: utils.Int64(int64(intervalInSeconds)),
-		SizeLimitInBytes:  utils.Int64(int64(sizeLimitInBytes)),
-		SkipEmptyArchives: utils.Bool(skipEmptyArchives),
+		IntervalInSeconds: pointer.To(int64(intervalInSeconds)),
+		SizeLimitInBytes:  pointer.To(int64(sizeLimitInBytes)),
+		SkipEmptyArchives: pointer.To(skipEmptyArchives),
 	}
 
 	if v, ok := input["destination"]; ok {
@@ -492,11 +491,11 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			storageAccountId := destination["storage_account_id"].(string)
 
 			captureDescription.Destination = &eventhubs.Destination{
-				Name: utils.String(destinationName),
+				Name: pointer.To(destinationName),
 				Properties: &eventhubs.DestinationProperties{
-					ArchiveNameFormat:        utils.String(archiveNameFormat),
-					BlobContainer:            utils.String(blobContainerName),
-					StorageAccountResourceId: utils.String(storageAccountId),
+					ArchiveNameFormat:        pointer.To(archiveNameFormat),
+					BlobContainer:            pointer.To(blobContainerName),
+					StorageAccountResourceId: pointer.To(storageAccountId),
 				},
 			}
 		}
