@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Optional) The cluster name for Exadata and 2-node RAC virtual machine Database systems. The cluster name must begin with an alphabetic character, and may contain hyphens (-). Underscores (_) are not permitted. The cluster name can be no longer than 11 characters and is not case sensitive. Changing this forces a new Database system to be created.
 
-* `database_system_options` - (Optional) One or more `database_system_options` blocks as defined below.
+* `database_system_options` - (Optional) One or more `database_system_options` blocks as defined below. Changing this forces a new resource to be created.
 
 * `disk_redundancy` - (Optional) The type of redundancy configured for the Database system.  Possible values are `High` and `Normal`. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
 

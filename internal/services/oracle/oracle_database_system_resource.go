@@ -186,8 +186,9 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"cluster_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C The customer can choose the cluster_name for their DB systems; otherwise, the backend will assign the DB system to a specific cluster.
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ClusterName,
