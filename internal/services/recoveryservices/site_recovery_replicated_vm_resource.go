@@ -431,14 +431,14 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		targetAvailabilitySetID = utils.String(id.(string))
+		targetAvailabilitySetID = pointer.To(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
 
 	var targetAvailabilityZone *string
 	if zone, isSet := d.GetOk("target_zone"); isSet {
-		targetAvailabilityZone = utils.String(zone.(string))
+		targetAvailabilityZone = pointer.To(zone.(string))
 	} else {
 		targetAvailabilityZone = nil
 	}
@@ -584,7 +584,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				TfoStaticIPAddress:              &testStaticIp,
 				TfoPublicIPAddressId:            &testPublicIpAddressID,
 				TfoSubnetName:                   &testSubNetName,
-				IsPrimary:                       utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
+				IsPrimary:                       pointer.To(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
@@ -1068,16 +1068,16 @@ func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprot
 	dek := diskEncryptionInfoMap["disk_encryption_key"].([]interface{})[0].(map[string]interface{})
 	diskEncryptionInfo := &replicationprotecteditems.DiskEncryptionInfo{
 		DiskEncryptionKeyInfo: &replicationprotecteditems.DiskEncryptionKeyInfo{
-			SecretIdentifier:      utils.String(dek["secret_url"].(string)),
-			KeyVaultResourceArmId: utils.String(dek["vault_id"].(string)),
+			SecretIdentifier:      pointer.To(dek["secret_url"].(string)),
+			KeyVaultResourceArmId: pointer.To(dek["vault_id"].(string)),
 		},
 	}
 
 	if keyEncryptionKey := diskEncryptionInfoMap["key_encryption_key"].([]interface{}); len(keyEncryptionKey) > 0 {
 		kek := keyEncryptionKey[0].(map[string]interface{})
 		diskEncryptionInfo.KeyEncryptionKeyInfo = &replicationprotecteditems.KeyEncryptionKeyInfo{
-			KeyIdentifier:         utils.String(kek["key_url"].(string)),
-			KeyVaultResourceArmId: utils.String(kek["vault_id"].(string)),
+			KeyIdentifier:         pointer.To(kek["key_url"].(string)),
+			KeyVaultResourceArmId: pointer.To(kek["vault_id"].(string)),
 		}
 	}
 
