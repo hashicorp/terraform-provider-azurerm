@@ -58,6 +58,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 		"auto_export_prefixes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -207,10 +208,6 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 
 			props := autoexportjob.AutoExportJob{
 				Properties: pointer.To(autoexportjob.AutoExportJobProperties{}),
-			}
-
-			if metadata.ResourceData.HasChange("auto_export_prefixes") {
-				props.Properties.AutoExportPrefixes = pointer.To(model.AutoExportPrefixes)
 			}
 
 			if metadata.ResourceData.HasChange("admin_status_enabled") {

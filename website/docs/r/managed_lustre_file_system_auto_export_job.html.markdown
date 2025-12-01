@@ -174,7 +174,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Managed Lustre File System Auto Export Job should exist. Changing this forces a new resource to be created.
 
-* `auto_export_prefixes` - (Required) A list of prefixes that get auto exported to the cluster namespace.
+* `auto_export_prefixes` - (Required) A list of prefixes that get auto exported to the cluster namespace. Changing this forces a new resource to be created.
 
 * `admin_status_enabled` - (Optional) Whether the administrative status of the Auto Export Job is enabled. Defaults to `true`.
 

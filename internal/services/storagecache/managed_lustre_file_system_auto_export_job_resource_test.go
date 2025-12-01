@@ -72,7 +72,7 @@ func TestAccManagedLustreFileSystemExportJob_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -106,6 +106,21 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   location                      = azurerm_resource_group.test.location
 
   auto_export_prefixes = ["/"]
+}
+`, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
+}
+
+func (r ManagedLustreFileSystemAutoExportJobResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  name                          = "acctest-amlfsaej-%d"
+  managed_lustre_file_system_id = azurerm_managed_lustre_file_system.test.id
+  location                      = azurerm_resource_group.test.location
+
+  auto_export_prefixes = ["/"]
+  admin_status_enabled = false
 }
 `, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
 }
