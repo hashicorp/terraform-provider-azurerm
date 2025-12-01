@@ -122,12 +122,17 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("version", secretId.Version)
 	d.Set("content_type", resp.ContentType)
 	if attributes := resp.Attributes; attributes != nil {
-		if notBefore := attributes.NotBefore; notBefore != nil {
-			d.Set("not_before_date", time.Time(*notBefore).Format(time.RFC3339))
+		notBeforeDate := ""
+		if v := attributes.NotBefore; v != nil {
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
-		if expires := attributes.Expires; expires != nil {
-			d.Set("expiration_date", time.Time(*expires).Format(time.RFC3339))
+		d.Set("not_before_date", notBeforeDate)
+
+		expirationDate := ""
+		if v := attributes.Expires; v != nil {
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 	d.Set("versionless_id", secretId.VersionlessID())
 
