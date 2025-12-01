@@ -174,9 +174,9 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		ttl = pointer.To(v.(int))
 	}
 
-	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
-	if !hasIdKey {
-		return fmt.Errorf("index with '_id' key is required")
+	indexes, hasUniqueIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
+	if !hasUniqueIdKey {
+		return fmt.Errorf("index with '_id' key and 'unique' property set to true is required")
 	}
 
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
@@ -243,9 +243,9 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 		ttl = pointer.To(v.(int))
 	}
 
-	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
-	if !hasIdKey {
-		return fmt.Errorf("index with '_id' key is required")
+	indexes, hasUniqueIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
+	if !hasUniqueIdKey {
+		return fmt.Errorf("index with '_id' key and 'unique' property set to true is required")
 	}
 
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
@@ -413,16 +413,22 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]documentdb.MongoIndex, bool) {
 	results := make([]documentdb.MongoIndex, 0)
 
-	hasIdKey := false
+	hasUniqueIdKey := false
 
 	if len(indexes) != 0 {
 		for _, v := range indexes {
 			index := v.(map[string]interface{})
 			keys := index["keys"].([]interface{})
+			unique := utils.Bool(index["unique"].(bool))
 
 			for _, key := range keys {
-				if strings.EqualFold("_id", key.(string)) {
-					hasIdKey = true
+				if strings.EqualFold("_id", key.(string)) && index["unique"] == true {
+					hasUniqueIdKey = true
+
+					// The index `_id` is unique by default and API rejects requests that contain value for 'unique'
+					// property. This property needs to be manually removed to avoid getting "The field 'unique' is
+					// not valid for _id index specification." message.
+					unique = nil
 				}
 			}
 
@@ -431,7 +437,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &documentdb.MongoIndexOptions{
-					Unique: utils.Bool(index["unique"].(bool)),
+					Unique: unique,
 				},
 			})
 		}
@@ -448,7 +454,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 		})
 	}
 
-	return &results, hasIdKey
+	return &results, hasUniqueIdKey
 }
 
 func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
