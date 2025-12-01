@@ -6,6 +6,7 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -105,6 +106,30 @@ func TestAccKeyVaultCertificate_basicGenerate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultCertificate_certificateTypeRequiresDigiCert(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.certificateTypeNonDigiCert(data),
+			ExpectError: regexp.MustCompile("`certificate_type` can only be specified when the issuer is DigiCert"),
+		},
+	})
+}
+
+func TestAccKeyVaultCertificate_certificateTypeRequiresValidDigiCertValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.certificateTypeInvalidForDigiCert(data),
+			ExpectError: regexp.MustCompile("`certificate_type` must be one of"),
+		},
 	})
 }
 
@@ -638,6 +663,120 @@ resource "azurerm_key_vault_certificate" "test" {
   certificate_policy {
     issuer_parameters {
       name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) certificateTypeNonDigiCert(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name             = "Self"
+      certificate_type = "Basic-SSL"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) certificateTypeInvalidForDigiCert(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name             = "DigiCert"
+      certificate_type = "NotReal"
     }
 
     key_properties {
