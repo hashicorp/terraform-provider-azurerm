@@ -25,6 +25,7 @@ type CustomCertSignalrServiceResourceModel struct {
 	SignalRServiceId   string `tfschema:"signalr_service_id"`
 	CustomCertId       string `tfschema:"custom_certificate_id"`
 	CertificateVersion string `tfschema:"certificate_version"`
+	UseSpecificVersion bool   `tfschema:"use_specific_version"`
 }
 
 type CustomCertSignalrServiceResource struct{}
@@ -55,6 +56,13 @@ func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Sche
 				keyVaultValidate.NestedItemId,
 				keyVaultValidate.NestedItemIdWithOptionalVersion,
 			),
+		},
+
+		"use_specific_version": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  true,
 		},
 	}
 }
@@ -120,11 +128,13 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if certVersion := keyVaultCertificateId.Version; certVersion != "" {
-				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
-					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
+			if metadata.ResourceData.Get("use_specific_version").(bool) {
+				if certVersion := keyVaultCertificateId.Version; certVersion != "" {
+					if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
+						return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
+					}
+					customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
 				}
-				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
@@ -180,6 +190,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
 				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
+				UseSpecificVersion: metadata.ResourceData.Get("use_specific_version").(bool),
 			}
 
 			return metadata.Encode(&state)
