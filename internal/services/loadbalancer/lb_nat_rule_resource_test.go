@@ -47,6 +47,20 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -361,6 +375,28 @@ resource "azurerm_lb_nat_rule" "test" {
   floating_ip_enabled     = true
   tcp_reset_enabled       = true
   idle_timeout_in_minutes = 10
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, r.template(data, sku), data.RandomInteger)
+}
+
+func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_nat_rule" "test" {
+  name                = "acctestnatrule-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+
+  protocol      = "Tcp"
+  frontend_port = 3390
+  backend_port  = 3390
+
+  floating_ip_enabled     = false
+  tcp_reset_enabled       = false
+  idle_timeout_in_minutes = 15
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }

@@ -70,6 +70,13 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -313,7 +320,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
 }
-`, r.template(data, "Basic"), data.RandomInteger%100000000)
+`, r.template(data, "Standard"), data.RandomInteger%100000000)
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
@@ -355,6 +362,29 @@ resource "azurerm_lb_rule" "test" {
   floating_ip_enabled     = true
   tcp_reset_enabled       = true
   idle_timeout_in_minutes = 100
+  load_distribution       = "SourceIP"
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, r.template(data, "Standard"), data.RandomInteger%100000000)
+}
+
+func (r LoadBalancerRule) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "test" {
+  name            = "acctest-lb-rule-%d"
+  loadbalancer_id = azurerm_lb.test.id
+
+  protocol      = "Tcp"
+  frontend_port = 3389
+  backend_port  = 3389
+
+  disable_outbound_snat   = false
+  floating_ip_enabled     = false
+  tcp_reset_enabled       = false
+  idle_timeout_in_minutes = 50
   load_distribution       = "SourceIP"
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
