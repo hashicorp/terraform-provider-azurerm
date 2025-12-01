@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionruleassociations"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataCollectionRuleAssociationModel struct {
@@ -108,17 +108,17 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			input := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &datacollectionruleassociations.DataCollectionRuleAssociation{
-					Description: utils.String(model.Description),
+					Description: pointer.To(model.Description),
 				},
 			}
 
 			if model.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = utils.String(model.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
 			}
 			if model.DataCollectionRuleId != "" {
-				input.Properties.DataCollectionRuleId = utils.String(model.DataCollectionRuleId)
+				input.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -202,7 +202,7 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if model.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = utils.String(model.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
@@ -210,14 +210,14 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_rule_id") {
 				if model.DataCollectionRuleId != "" {
-					existing.Properties.DataCollectionRuleId = utils.String(model.DataCollectionRuleId)
+					existing.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
 				} else {
 					existing.Properties.DataCollectionRuleId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(model.Description)
+				existing.Properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {

@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
@@ -502,7 +501,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
@@ -558,20 +557,20 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
-					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
+					IsRServicesEnabled: pointer.To(d.Get("r_services_enabled").(bool)),
 				},
 				SqlConnectivityUpdateSettings: &sqlvirtualmachines.SqlConnectivityUpdateSettings{
 					ConnectivityType:      &connectivityType,
-					Port:                  utils.Int64(int64(d.Get("sql_connectivity_port").(int))),
-					SqlAuthUpdatePassword: utils.String(d.Get("sql_connectivity_update_password").(string)),
-					SqlAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
+					Port:                  pointer.To(int64(d.Get("sql_connectivity_port").(int))),
+					SqlAuthUpdatePassword: pointer.To(d.Get("sql_connectivity_update_password").(string)),
+					SqlAuthUpdateUserName: pointer.To(d.Get("sql_connectivity_update_username").(string)),
 				},
 				SqlInstanceSettings: sqlInstance,
 			},
 			SqlManagement:                &sqlManagement,
 			SqlServerLicenseType:         &sqlServerLicenseType,
 			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
-			VirtualMachineResourceId:     utils.String(d.Get("virtual_machine_id").(string)),
+			VirtualMachineResourceId:     pointer.To(d.Get("virtual_machine_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -641,7 +640,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+	resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Sql Virtual Machine %q does not exist - removing from state", d.Id())
@@ -742,7 +741,7 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 			return nil, "Error", err
 		}
 
-		resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+		resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 		if err != nil {
 			return nil, "Retry", err
 		}
@@ -840,32 +839,32 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 
 func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtualmachines.AutoBackupSettings, error) {
 	ret := sqlvirtualmachines.AutoBackupSettings{
-		Enable: utils.Bool(false),
+		Enable: pointer.To(false),
 	}
 
 	if len(input) > 0 {
 		config := input[0].(map[string]interface{})
-		ret.Enable = utils.Bool(true)
+		ret.Enable = pointer.To(true)
 
 		if v, ok := config["retention_period_in_days"]; ok {
-			ret.RetentionPeriod = utils.Int64(int64(v.(int)))
+			ret.RetentionPeriod = pointer.To(int64(v.(int)))
 		}
 		if v, ok := config["storage_blob_endpoint"]; ok {
-			ret.StorageAccountURL = utils.String(v.(string))
+			ret.StorageAccountURL = pointer.To(v.(string))
 		}
 		if v, ok := config["storage_account_access_key"]; ok {
-			ret.StorageAccessKey = utils.String(v.(string))
+			ret.StorageAccessKey = pointer.To(v.(string))
 		}
 
 		if v, ok := config["encryption_password"]; ok && v.(string) != "" {
 			ret.EnableEncryption = pointer.To(true)
-			ret.Password = utils.String(v.(string))
+			ret.Password = pointer.To(v.(string))
 		} else {
 			ret.EnableEncryption = pointer.To(false)
 		}
 
 		if v, ok := config["system_databases_backup_enabled"]; ok {
-			ret.BackupSystemDbs = utils.Bool(v.(bool))
+			ret.BackupSystemDbs = pointer.To(v.(bool))
 		}
 
 		backupScheduleTypeAutomated := sqlvirtualmachines.BackupScheduleTypeAutomated
@@ -886,9 +885,9 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			}
 
 			ret.FullBackupFrequency = &fullBackupFrequency
-			ret.FullBackupStartTime = utils.Int64(int64(manualSchedule["full_backup_start_hour"].(int)))
-			ret.FullBackupWindowHours = utils.Int64(int64(manualSchedule["full_backup_window_in_hours"].(int)))
-			ret.LogBackupFrequency = utils.Int64(int64(manualSchedule["log_backup_frequency_in_minutes"].(int)))
+			ret.FullBackupStartTime = pointer.To(int64(manualSchedule["full_backup_start_hour"].(int)))
+			ret.FullBackupWindowHours = pointer.To(int64(manualSchedule["full_backup_window_in_hours"].(int)))
+			ret.LogBackupFrequency = pointer.To(int64(manualSchedule["log_backup_frequency_in_minutes"].(int)))
 		}
 	}
 
@@ -998,7 +997,7 @@ func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Cont
 			return nil, "Error", err
 		}
 
-		resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+		resp, err := client.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 		if err != nil {
 			return nil, "Retry", err
 		}
@@ -1045,9 +1044,9 @@ func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtua
 	dayOfWeek := sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))
 
 	return &sqlvirtualmachines.AutoPatchingSettings{
-		Enable:                        utils.Bool(true),
-		MaintenanceWindowDuration:     utils.Int64(int64(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
-		MaintenanceWindowStartingHour: utils.Int64(int64(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
+		Enable:                        pointer.To(true),
+		MaintenanceWindowDuration:     pointer.To(int64(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
+		MaintenanceWindowStartingHour: pointer.To(int64(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
 		DayOfWeek:                     &dayOfWeek,
 	}
 }
@@ -1088,8 +1087,8 @@ func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualm
 	assessmentSetting := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.AssessmentSettings{
-		Enable:         utils.Bool(true),
-		RunImmediately: utils.Bool(assessmentSetting["run_immediately"].(bool)),
+		Enable:         pointer.To(true),
+		RunImmediately: pointer.To(assessmentSetting["run_immediately"].(bool)),
 		Schedule:       expandSqlVirtualMachineAssessmentSettingsSchedule(assessmentSetting["schedule"].([]interface{})),
 	}
 }
@@ -1104,17 +1103,17 @@ func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sql
 	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))
 
 	schedule := &sqlvirtualmachines.Schedule{
-		Enable:    utils.Bool(true),
+		Enable:    pointer.To(true),
 		DayOfWeek: &dayOfWeek,
-		StartTime: utils.String(scheduleConfig["start_time"].(string)),
+		StartTime: pointer.To(scheduleConfig["start_time"].(string)),
 	}
 
 	if weeklyInterval := scheduleConfig["weekly_interval"].(int); weeklyInterval != 0 {
-		schedule.WeeklyInterval = utils.Int64(int64(weeklyInterval))
+		schedule.WeeklyInterval = pointer.To(int64(weeklyInterval))
 	}
 
 	if monthlyOccurrence := scheduleConfig["monthly_occurrence"].(int); monthlyOccurrence != 0 {
-		schedule.MonthlyOccurrence = utils.Int64(int64(monthlyOccurrence))
+		schedule.MonthlyOccurrence = pointer.To(int64(monthlyOccurrence))
 	}
 
 	return schedule
@@ -1183,11 +1182,11 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	keyVaultCredentialSetting := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.KeyVaultCredentialSettings{
-		Enable:                 utils.Bool(true),
-		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
-		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
-		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
-		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
+		Enable:                 pointer.To(true),
+		CredentialName:         pointer.To(keyVaultCredentialSetting["name"].(string)),
+		AzureKeyVaultURL:       pointer.To(keyVaultCredentialSetting["key_vault_url"].(string)),
+		ServicePrincipalName:   pointer.To(keyVaultCredentialSetting["service_principal_name"].(string)),
+		ServicePrincipalSecret: pointer.To(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}
 }
 
@@ -1249,7 +1248,7 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	return &sqlvirtualmachines.StorageConfigurationSettings{
 		DiskConfigurationType: &diskConfigurationType,
 		StorageWorkloadType:   &storageWorkloadType,
-		SqlSystemDbOnDataDisk: utils.Bool(storageSettings["system_db_on_data_disk_enabled"].(bool)),
+		SqlSystemDbOnDataDisk: pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
 		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
@@ -1298,7 +1297,7 @@ func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtual
 
 	return &sqlvirtualmachines.SQLStorageSettings{
 		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
-		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+		DefaultFilePath: pointer.To(dataStorageSettings["default_file_path"].(string)),
 	}
 }
 
@@ -1338,12 +1337,12 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 
 	return &sqlvirtualmachines.SQLTempDbSettings{
 		Luns:            expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
-		DefaultFilePath: utils.String(tempDbSettings["default_file_path"].(string)),
-		DataFileCount:   utils.Int64(int64(tempDbSettings["data_file_count"].(int))),
-		DataFileSize:    utils.Int64(int64(tempDbSettings["data_file_size_mb"].(int))),
-		DataGrowth:      utils.Int64(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
-		LogFileSize:     utils.Int64(int64(tempDbSettings["log_file_size_mb"].(int))),
-		LogGrowth:       utils.Int64(int64(tempDbSettings["log_file_growth_mb"].(int))),
+		DefaultFilePath: pointer.To(tempDbSettings["default_file_path"].(string)),
+		DataFileCount:   pointer.To(int64(tempDbSettings["data_file_count"].(int))),
+		DataFileSize:    pointer.To(int64(tempDbSettings["data_file_size_mb"].(int))),
+		DataGrowth:      pointer.To(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
+		LogFileSize:     pointer.To(int64(tempDbSettings["log_file_size_mb"].(int))),
+		LogGrowth:       pointer.To(int64(tempDbSettings["log_file_growth_mb"].(int))),
 	}
 }
 
@@ -1398,13 +1397,13 @@ func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachine
 	}
 
 	result := sqlvirtualmachines.SQLInstanceSettings{
-		Collation:                          utils.String(settings["collation"].(string)),
-		IsIfiEnabled:                       utils.Bool(settings["instant_file_initialization_enabled"].(bool)),
-		IsLpimEnabled:                      utils.Bool(settings["lock_pages_in_memory_enabled"].(bool)),
-		IsOptimizeForAdHocWorkloadsEnabled: utils.Bool(settings["adhoc_workloads_optimization_enabled"].(bool)),
-		MaxDop:                             utils.Int64(int64(settings["max_dop"].(int))),
-		MaxServerMemoryMB:                  utils.Int64(int64(maxServerMemoryMB)),
-		MinServerMemoryMB:                  utils.Int64(int64(minServerMemoryMB)),
+		Collation:                          pointer.To(settings["collation"].(string)),
+		IsIfiEnabled:                       pointer.To(settings["instant_file_initialization_enabled"].(bool)),
+		IsLpimEnabled:                      pointer.To(settings["lock_pages_in_memory_enabled"].(bool)),
+		IsOptimizeForAdHocWorkloadsEnabled: pointer.To(settings["adhoc_workloads_optimization_enabled"].(bool)),
+		MaxDop:                             pointer.To(int64(settings["max_dop"].(int))),
+		MaxServerMemoryMB:                  pointer.To(int64(maxServerMemoryMB)),
+		MinServerMemoryMB:                  pointer.To(int64(minServerMemoryMB)),
 	}
 
 	return &result, nil
