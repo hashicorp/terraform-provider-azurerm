@@ -242,12 +242,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   compute_model                    = "ECPU"
   compute_count                    = 3
   license_model                    = "LicenseIncluded"
-  backup_retention_period_in_days  = 12
+  backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
-  db_workload                      = "APEX"
+  db_workload                      = "OLTP"
   admin_password                   = "TestPass$2024$"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
