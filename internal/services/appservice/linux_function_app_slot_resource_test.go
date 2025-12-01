@@ -1029,6 +1029,15 @@ func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
+			Config: r.appStackNode(data, SkuStandardPlan, "24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|24"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.appStackNodeUpdateTags(data, SkuStandardPlan, "18"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
