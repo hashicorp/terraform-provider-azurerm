@@ -886,7 +886,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%[1]d"
-  location = "southcentralus"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -901,7 +901,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                         = "1"
   geo_redundant_backup_enabled = true
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
