@@ -289,41 +289,41 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-				ValidateFunc: computeValidate.HostGroupID,
-			},
+						ValidateFunc: computeValidate.HostGroupID,
+					},
 
-			"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
+					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
 
-			"workload_runtime": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedclusters.WorkloadRuntimeOCIContainer),
-					}, false),
-				},
+					"workload_runtime": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.WorkloadRuntimeOCIContainer),
+						}, false),
+					},
 
-				"zones": commonschema.ZonesMultipleOptional(),
+					"zones": commonschema.ZonesMultipleOptional(),
 
-				"auto_scaling_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
+					"auto_scaling_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 
-				"node_public_ip_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
+					"node_public_ip_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 
-				"host_encryption_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
+					"host_encryption_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 
-			"virtual_machine_profile": schemaVirtualMachineProfile(),
-		}
-	}(),
-	},
+					"virtual_machine_profile": schemaVirtualMachineProfile(),
+				}
+			}(),
+		},
 	}
 }
 
