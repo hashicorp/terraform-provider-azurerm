@@ -308,9 +308,9 @@ A `sysctl_config` block supports the following:
 
 A `security_profile` block supports the following:
 
-* `enable_vtpm` - (Optional) vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.
+* `enable_vtpm` - (Optional) vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is `false`.
 
-* `enable_secure_boot` - (Optional) Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.
+* `enable_secure_boot` - (Optional) Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is `false`.
 
 ---
 
