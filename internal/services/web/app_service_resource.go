@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -249,7 +249,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(id.SiteName),
+		Name: pointer.To(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 
@@ -266,8 +266,8 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("'App Service Environment' %q or Resource Group %q does not exist", aspID.ServerFarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
-		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", id.SiteName, *aspDetails.HostingEnvironmentProfile.Name))
-		availabilityRequest.IsFqdn = utils.Bool(true)
+		availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s.appserviceenvironment.net", id.SiteName, *aspDetails.HostingEnvironmentProfile.Name))
+		availabilityRequest.IsFqdn = pointer.To(true)
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
@@ -278,7 +278,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("the name %q used for the App Service needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -292,15 +292,15 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
+			ServerFarmID: pointer.To(appServicePlanId),
+			Enabled:      pointer.To(enabled),
+			HTTPSOnly:    pointer.To(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -311,9 +311,9 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	siteEnvelope.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
+	siteEnvelope.ClientAffinityEnabled = pointer.To(d.Get("client_affinity_enabled").(bool))
 
-	siteEnvelope.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+	siteEnvelope.ClientCertEnabled = pointer.To(d.Get("client_cert_enabled").(bool))
 	if *siteEnvelope.ClientCertEnabled {
 		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
 			siteEnvelope.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
@@ -355,7 +355,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -366,7 +366,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	logsConfig := expandAppServiceLogs(d.Get("logs"))
 
 	logs := web.SiteLogsConfig{
-		ID:                       utils.String(id.ID()),
+		ID:                       pointer.To(id.ID()),
 		SiteLogsConfigProperties: &logsConfig,
 	}
 
@@ -394,7 +394,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -410,7 +410,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	appSettings := expandAppServiceAppSettings(d)
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
-			siteConfig.VnetRouteAllEnabled = utils.Bool(strings.EqualFold(*vnetRouteAll, "true"))
+			siteConfig.VnetRouteAllEnabled = pointer.To(strings.EqualFold(*vnetRouteAll, "true"))
 		}
 	}
 
@@ -418,18 +418,18 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
+			ServerFarmID: pointer.To(appServicePlanId),
+			Enabled:      pointer.To(enabled),
+			HTTPSOnly:    pointer.To(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
-	siteEnvelope.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+	siteEnvelope.ClientCertEnabled = pointer.To(d.Get("client_cert_enabled").(bool))
 
 	if *siteEnvelope.ClientCertEnabled {
 		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
@@ -476,7 +476,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -502,7 +502,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		affinity := d.Get("client_affinity_enabled").(bool)
 
 		sitePatchResource := web.SitePatchResource{
-			ID: utils.String(d.Id()),
+			ID: pointer.To(d.Id()),
 			SitePatchResourceProperties: &web.SitePatchResourceProperties{
 				ClientAffinityEnabled: &affinity,
 			},
@@ -557,7 +557,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := expandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{
-			ID:                       utils.String(d.Id()),
+			ID:                       pointer.To(d.Id()),
 			SiteLogsConfigProperties: &logs,
 		}
 
@@ -703,8 +703,8 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -823,7 +823,7 @@ func expandAppServiceAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 	output := make(map[string]*string, len(input))
 
 	for k, v := range input {
-		output[k] = utils.String(v.(string))
+		output[k] = pointer.To(v.(string))
 	}
 
 	return output
@@ -841,7 +841,7 @@ func expandAppServiceConnectionStrings(d *pluginsdk.ResourceData) map[string]*we
 		csValue := vals["value"].(string)
 
 		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
+			Value: pointer.To(csValue),
 			Type:  web.ConnectionStringType(csType),
 		}
 	}
