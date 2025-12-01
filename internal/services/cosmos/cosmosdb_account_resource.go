@@ -6,6 +6,7 @@ package cosmos
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -176,7 +177,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}
 
 				if isMongo && (mongo34found && !enableMongo) {
-					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+					return errors.New("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
 			}),
@@ -493,10 +494,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"mongo_server_version": {
@@ -784,6 +785,21 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
 			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
 		}
+
+		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_enabled"},
+			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_disabled"},
+		}
 	}
 
 	return resource
@@ -828,7 +844,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	partitionMergeEnabled := d.Get("partition_merge_enabled").(bool)
 	burstCapacityEnabled := d.Get("burst_capacity_enabled").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
-	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	r, err := databaseClient.CheckNameExists(ctx, id.DatabaseAccountName)
 	if err != nil {
@@ -887,9 +902,17 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-			DisableLocalAuth:                   pointer.To(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
+	}
+	if v, ok := d.GetOk("local_authentication_enabled"); ok {
+		account.Properties.DisableLocalAuth = pointer.To(!v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+			account.Properties.DisableLocalAuth = pointer.To(v.(bool))
+		}
 	}
 
 	// These values may not have changed but they need to be in the update params...
@@ -928,7 +951,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		account.Properties.BackupPolicy = policy
 	} else if createMode != "" {
-		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+		return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
@@ -988,8 +1011,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: Model nil", id)
+	}
+
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: properties were nil", id)
 	}
+
+	props := existing.Model.Properties
 
 	configLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -1000,8 +1029,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	cosmosLocations := make([]cosmosdb.Location, 0)
 	cosmosLocationsMap := map[string]cosmosdb.Location{}
 
-	if existing.Model.Properties.Locations != nil {
-		for _, l := range *existing.Model.Properties.Locations {
+	if props.Locations != nil {
+		for _, l := range *props.Locations {
 			location := cosmosdb.Location{
 				Id:               l.Id,
 				LocationName:     l.LocationName,
@@ -1015,17 +1044,17 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	var capabilities *[]cosmosdb.Capability
-	if existing.Model.Properties.Capabilities != nil {
-		capabilities = existing.Model.Properties.Capabilities
+	if props.Capabilities != nil {
+		capabilities = props.Capabilities
 	}
 
 	// backup must be updated independently
 	var backup cosmosdb.BackupPolicy
-	if existing.Model.Properties.BackupPolicy != nil {
-		backup = existing.Model.Properties.BackupPolicy
+	if props.BackupPolicy != nil {
+		backup = props.BackupPolicy
 		if d.HasChange("backup") {
 			if v, ok := d.GetOk("backup"); ok {
-				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), string(pointer.From(existing.Model.Properties.CreateMode)))
+				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), pointer.FromEnum(props.CreateMode))
 				if err != nil {
 					return fmt.Errorf("expanding `backup`: %+v", err)
 				}
@@ -1041,304 +1070,317 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 
 				backup = newBackup
-			} else if string(pointer.From(existing.Model.Properties.CreateMode)) != "" {
-				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+			} else if pointer.FromEnum(props.CreateMode) != "" {
+				return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 			}
 		}
 	}
 
 	updateRequired := false
-	if props := existing.Model.Properties; props != nil {
-		location := location.Normalize(pointer.From(existing.Model.Location))
-		offerType := d.Get("offer_type").(string)
-		t := tags.Expand(d.Get("tags").(map[string]interface{}))
-		kind := cosmosdb.DatabaseAccountKind(d.Get("kind").(string))
-		isVirtualNetworkFilterEnabled := pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
-		enableAnalyticalStorage := pointer.To(d.Get("analytical_storage_enabled").(bool))
-		disableLocalAuthentication := pointer.To(d.Get("local_authentication_disabled").(bool))
-		enableAutomaticFailover := pointer.To(d.Get("automatic_failover_enabled").(bool))
+	location := location.Normalize(pointer.From(existing.Model.Location))
+	offerType := d.Get("offer_type").(string)
+	t := tags.Expand(d.Get("tags").(map[string]interface{}))
+	kind := cosmosdb.DatabaseAccountKind(d.Get("kind").(string))
+	isVirtualNetworkFilterEnabled := pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
+	enableAnalyticalStorage := pointer.To(d.Get("analytical_storage_enabled").(bool))
+	enableAutomaticFailover := pointer.To(d.Get("automatic_failover_enabled").(bool))
 
-		networkByPass := cosmosdb.NetworkAclBypassNone
-		if d.Get("network_acl_bypass_for_azure_services").(bool) {
-			networkByPass = cosmosdb.NetworkAclBypassAzureServices
+	networkByPass := cosmosdb.NetworkAclBypassNone
+	if d.Get("network_acl_bypass_for_azure_services").(bool) {
+		networkByPass = cosmosdb.NetworkAclBypassAzureServices
+	}
+
+	ipRangeFilter := common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+
+	publicNetworkAccess := cosmosdb.PublicNetworkAccessEnabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = cosmosdb.PublicNetworkAccessDisabled
+	}
+
+	// NOTE: these fields are expanded directly into the
+	// 'DatabaseAccountCreateUpdateParameters' below or
+	// are included in the 'DatabaseAccountCreateUpdateParameters'
+	// later, however we need to know if they changed or not...
+	// TODO Post 4.0 remove `enable_automatic_failover` from this list
+	fieldsToCheck := []string{
+		"consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
+		"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
+		"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
+		"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
+		"kind", "tags", "enable_automatic_failover", "automatic_failover_enabled", "analytical_storage_enabled",
+		"local_authentication_enabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled",
+	}
+
+	if !features.FivePointOh() {
+		fieldsToCheck = append(fieldsToCheck, "local_authentication_disabled")
+	}
+
+	if d.HasChanges(fieldsToCheck...) {
+		updateRequired = true
+	}
+
+	// Incident : #383341730
+	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
+	//
+	// The 'Identity' field should only ever be sent once to the endpoint, except for updates and removal. If the
+	// 'Identity' field is included in the update call with the 'DefaultIdentity' it will silently fail
+	// per the bug noted above (e.g. Azure Bug #2209567).
+	//
+	// In the update scenario where the end-user would like to update their 'Identity' and their 'DefaultIdentity'
+	// fields at the same time both of these operations need to happen atomically in separate PUT/PATCH calls
+	// to the service else you will hit the bug mentioned above. You need to update the 'Identity' field
+	// first then update the 'DefaultIdentity' in totally different PUT/PATCH calls where you have to drop
+	// the 'Identity' field on the floor when updating the 'DefaultIdentity' field.
+	//
+	// NOTE      : If the 'Identity' field has not changed in the resource, do not send it in the payload.
+	//             this workaround can be removed once the service team fixes the above mentioned bug.
+	//
+	// ADDITIONAL: You cannot update properties and add/remove replication locations or update the enabling of
+	//             multiple write locations at the same time. So you must update any changed properties
+	//             first, then address the replication locations and/or updating/enabling of
+	//             multiple write locations.
+
+	account := cosmosdb.DatabaseAccountCreateUpdateParameters{
+		Location: pointer.To(location),
+		Kind:     pointer.To(kind),
+		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
+			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(offerType),
+			IPRules:                            ipRangeFilter,
+			IsVirtualNetworkFilterEnabled:      isVirtualNetworkFilterEnabled,
+			EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
+			EnableAutomaticFailover:            enableAutomaticFailover,
+			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			Capabilities:                       capabilities,
+			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                          cosmosLocations,
+			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:       props.EnableMultipleWriteLocations,
+			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
+			EnableAnalyticalStorage:            enableAnalyticalStorage,
+			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
+			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
+			NetworkAclBypass:                   pointer.To(networkByPass),
+			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+			BackupPolicy:                       backup,
+			EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
+			EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
+			DisableLocalAuth:                   existing.Model.Properties.DisableLocalAuth,
+		},
+		Tags: t,
+	}
+
+	if d.HasChange("local_authentication_enabled") {
+		account.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("local_authentication_disabled") {
+			account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 		}
+	}
 
-		ipRangeFilter := common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, apiEnvs.KeyVault, apiEnvs.ManagedHSM); err != nil {
+		return err
+	} else if key != nil {
+		account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
+	}
 
-		publicNetworkAccess := cosmosdb.PublicNetworkAccessEnabled
-		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-			publicNetworkAccess = cosmosdb.PublicNetworkAccessDisabled
+	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
+	// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
+	// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
+	updateDefaultIdentity := d.HasChange("default_identity_type")
+
+	// adding 'DefaultIdentity' to avoid causing it to fallback
+	// to "FirstPartyIdentity" on update(s), issue #22466
+	if v, ok := d.GetOk("default_identity_type"); ok {
+		account.Properties.DefaultIdentity = pointer.To(v.(string))
+	}
+
+	// we need the following in the accountProps even if they have not changed...
+	if v, ok := d.GetOk("analytical_storage"); ok {
+		account.Properties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("capacity"); ok {
+		account.Properties.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
+	}
+
+	var createMode string
+	if v, ok := d.GetOk("create_mode"); ok {
+		createMode = v.(string)
+		account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
+	}
+
+	if v, ok := d.GetOk("restore"); ok {
+		account.Properties.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
+	}
+
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "mongo_server_version") {
+		account.Properties.ApiProperties = &cosmosdb.ApiProperties{
+			ServerVersion: pointer.To(cosmosdb.ServerVersion(d.Get("mongo_server_version").(string))),
 		}
+	}
 
-		// NOTE: these fields are expanded directly into the
-		// 'DatabaseAccountCreateUpdateParameters' below or
-		// are included in the 'DatabaseAccountCreateUpdateParameters'
-		// later, however we need to know if they changed or not...
-		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
-			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
-			"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
-			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
-			"kind", "tags", "automatic_failover_enabled", "analytical_storage_enabled",
-			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
-			updateRequired = true
+	// Only do this update if a value has changed above...
+	if updateRequired {
+		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DatabaseAccountCreateUpdateParameters'")
+
+		// Update the database...
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Update 'DatabaseAccountCreateUpdateParameters' [NO CHANGE]")
+	}
 
-		// Incident : #383341730
-		// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
-		//
-		// The 'Identity' field should only ever be sent once to the endpoint, except for updates and removal. If the
-		// 'Identity' field is included in the update call with the 'DefaultIdentity' it will silently fail
-		// per the bug noted above (e.g. Azure Bug #2209567).
-		//
-		// In the update scenario where the end-user would like to update their 'Identity' and their 'DefaultIdentity'
-		// fields at the same time both of these operations need to happen atomically in separate PUT/PATCH calls
-		// to the service else you will hit the bug mentioned above. You need to update the 'Identity' field
-		// first then update the 'DefaultIdentity' in totally different PUT/PATCH calls where you have to drop
-		// the 'Identity' field on the floor when updating the 'DefaultIdentity' field.
-		//
-		// NOTE      : If the 'Identity' field has not changed in the resource, do not send it in the payload.
-		//             this workaround can be removed once the service team fixes the above mentioned bug.
-		//
-		// ADDITIONAL: You cannot update properties and add/remove replication locations or update the enabling of
-		//             multiple write locations at the same time. So you must update any changed properties
-		//             first, then address the replication locations and/or updating/enabling of
-		//             multiple write locations.
+	// Update the following properties independently after the initial CreateOrUpdate...
+	if d.HasChange("multiple_write_locations_enabled") {
+		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations'")
 
-		account := cosmosdb.DatabaseAccountCreateUpdateParameters{
-			Location: pointer.To(location),
-			Kind:     pointer.To(kind),
-			Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(offerType),
-				IPRules:                            ipRangeFilter,
-				IsVirtualNetworkFilterEnabled:      isVirtualNetworkFilterEnabled,
-				EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
-				EnableAutomaticFailover:            enableAutomaticFailover,
-				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
-				Capabilities:                       capabilities,
-				ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-				Locations:                          cosmosLocations,
-				VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-				EnableMultipleWriteLocations:       props.EnableMultipleWriteLocations,
-				PublicNetworkAccess:                pointer.To(publicNetworkAccess),
-				EnableAnalyticalStorage:            enableAnalyticalStorage,
-				Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
-				DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
-				NetworkAclBypass:                   pointer.To(networkByPass),
-				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-				DisableLocalAuth:                   disableLocalAuthentication,
-				BackupPolicy:                       backup,
-				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
-				EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
-			},
-			Tags: t,
-		}
-
-		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, apiEnvs.KeyVault, apiEnvs.ManagedHSM); err != nil {
-			return err
-		} else if key != nil {
-			account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
-		}
-
-		// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
-		// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
-		// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
-		updateDefaultIdentity := false
-		if d.HasChange("default_identity_type") {
-			updateDefaultIdentity = true
-		}
-
-		// adding 'DefaultIdentity' to avoid causing it to fallback
-		// to "FirstPartyIdentity" on update(s), issue #22466
-		if v, ok := d.GetOk("default_identity_type"); ok {
-			account.Properties.DefaultIdentity = pointer.To(v.(string))
-		}
-
-		// we need the following in the accountProps even if they have not changed...
-		if v, ok := d.GetOk("analytical_storage"); ok {
-			account.Properties.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
-		}
-
-		if v, ok := d.GetOk("capacity"); ok {
-			account.Properties.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
-		}
-
-		var createMode string
-		if v, ok := d.GetOk("create_mode"); ok {
-			createMode = v.(string)
-			account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
-		}
-
-		if v, ok := d.GetOk("restore"); ok {
-			account.Properties.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
-		}
-
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "mongo_server_version") {
-			account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-				ServerVersion: pointer.To(cosmosdb.ServerVersion(d.Get("mongo_server_version").(string))),
-			}
-		}
-
-		// Only do this update if a value has changed above...
-		if updateRequired {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DatabaseAccountCreateUpdateParameters'")
+		enableMultipleWriteLocations := pointer.To(d.Get("multiple_write_locations_enabled").(bool))
+		if props.EnableMultipleWriteLocations != enableMultipleWriteLocations {
+			account.Properties.EnableMultipleWriteLocations = enableMultipleWriteLocations
 
 			// Update the database...
 			if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating %q EnableMultipleWriteLocations: %+v", id, err)
 			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Update 'DatabaseAccountCreateUpdateParameters' [NO CHANGE]")
 		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations' [NO CHANGE]")
+	}
 
-		// Update the following properties independently after the initial CreateOrUpdate...
-		if d.HasChange("multiple_write_locations_enabled") {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations'")
-
-			enableMultipleWriteLocations := pointer.To(d.Get("multiple_write_locations_enabled").(bool))
-			if props.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-				account.Properties.EnableMultipleWriteLocations = enableMultipleWriteLocations
-
-				// Update the database...
-				if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
-					return fmt.Errorf("updating %q EnableMultipleWriteLocations: %+v", id, err)
+	// determine if any locations have been renamed/priority reordered and remove them
+	updateLocations := false
+	for _, configLoc := range configLocations {
+		if cosmosLoc, ok := cosmosLocationsMap[pointer.From(configLoc.LocationName)]; ok {
+			// is the location in the config also in the database with the same 'FailoverPriority'?
+			if pointer.From(configLoc.FailoverPriority) != pointer.From(cosmosLoc.FailoverPriority) {
+				// The Failover Priority has been changed in the config...
+				if pointer.From(configLoc.FailoverPriority) == 0 {
+					return fmt.Errorf("cannot change the failover priority of %q location %q to %d", id, pointer.From(configLoc.LocationName), pointer.From(configLoc.FailoverPriority))
 				}
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations' [NO CHANGE]")
-		}
 
-		// determine if any locations have been renamed/priority reordered and remove them
-		updateLocations := false
-		for _, configLoc := range configLocations {
-			if cosmosLoc, ok := cosmosLocationsMap[pointer.From(configLoc.LocationName)]; ok {
-				// is the location in the config also in the database with the same 'FailoverPriority'?
-				if pointer.From(configLoc.FailoverPriority) != pointer.From(cosmosLoc.FailoverPriority) {
-					// The Failover Priority has been changed in the config...
-					if pointer.From(configLoc.FailoverPriority) == 0 {
-						return fmt.Errorf("cannot change the failover priority of %q location %q to %d", id, pointer.From(configLoc.LocationName), pointer.From(configLoc.FailoverPriority))
-					}
-
-					// since the Locations FailoverPriority changed remove it from the map because
-					// we have to update the Location in the database. The Locations
-					// left in the map after this loop are the Locations that are
-					// the same in the database and in the config file...
-					delete(cosmosLocationsMap, pointer.From(configLoc.LocationName))
-					updateLocations = true
-				}
+				// since the Locations FailoverPriority changed remove it from the map because
+				// we have to update the Location in the database. The Locations
+				// left in the map after this loop are the Locations that are
+				// the same in the database and in the config file...
+				delete(cosmosLocationsMap, pointer.From(configLoc.LocationName))
+				updateLocations = true
 			}
 		}
+	}
 
-		if updateLocations {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Removing renamed 'Locations'")
-			locationsUnchanged := make([]cosmosdb.Location, 0, len(cosmosLocationsMap))
-			for _, value := range cosmosLocationsMap {
-				locationsUnchanged = append(locationsUnchanged, value)
-			}
-
-			account.Properties.Locations = locationsUnchanged
-
-			// Update the database...
-			if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
-				return fmt.Errorf("removing %q renamed `locations`: %+v", id, err)
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Removing renamed 'Locations' [NO CHANGE]")
+	if updateLocations {
+		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Removing renamed 'Locations'")
+		locationsUnchanged := make([]cosmosdb.Location, 0, len(cosmosLocationsMap))
+		for _, value := range cosmosLocationsMap {
+			locationsUnchanged = append(locationsUnchanged, value)
 		}
 
-		if d.HasChanges("geo_location") {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Locations'")
-			// add any new/renamed locations
-			account.Properties.Locations = configLocations
+		account.Properties.Locations = locationsUnchanged
 
-			// Update the database locations...
-			err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d)
-			if err != nil {
-				return fmt.Errorf("updating %q `locations`: %+v", id, err)
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Locations' [NO CHANGE]")
+		// Update the database...
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+			return fmt.Errorf("removing %q renamed `locations`: %+v", id, err)
 		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Removing renamed 'Locations' [NO CHANGE]")
+	}
 
-		// Update Identity and Default Identity...
-		identityChanged := false
-		expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if d.HasChanges("geo_location") {
+		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Locations'")
+		// add any new/renamed locations
+		account.Properties.Locations = configLocations
+
+		// Update the database locations...
+		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d)
 		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
+			return fmt.Errorf("updating %q `locations`: %+v", id, err)
+		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Locations' [NO CHANGE]")
+	}
+
+	// Update Identity and Default Identity...
+	identityChanged := false
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	if d.HasChange("identity") {
+		identityChanged = true
+
+		// Looks like you have to always remove all the identities first before you can
+		// reassign/modify them, else it will append any new/changed identities
+		// resulting in a diff...
+		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Setting 'Identity' to 'None'")
+
+		// can't set this back to account, because that will hit the bug...
+		identityVal := cosmosdb.DatabaseAccountUpdateParameters{
+			Identity: pointer.To(identity.LegacySystemAndUserAssignedMap{
+				Type: identity.TypeNone,
+			}),
 		}
 
-		if d.HasChange("identity") {
-			identityChanged = true
+		// Update the database 'Identity' to 'None'...
+		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal, d)
+		if err != nil {
+			return fmt.Errorf("updating 'identity' %q: %+v", id, err)
+		}
 
-			// Looks like you have to always remove all the identities first before you can
-			// reassign/modify them, else it will append any new/changed identities
-			// resulting in a diff...
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Setting 'Identity' to 'None'")
+		// If the Identity was removed from the configuration file it will be set as type None
+		// so we can skip setting the Identity if it is going to be set to None...
+		if expandedIdentity.Type != identity.TypeNone {
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Identity' to %q", expandedIdentity.Type)
 
-			// can't set this back to account, because that will hit the bug...
 			identityVal := cosmosdb.DatabaseAccountUpdateParameters{
-				Identity: pointer.To(identity.LegacySystemAndUserAssignedMap{
-					Type: identity.TypeNone,
-				}),
+				Identity: expandedIdentity,
 			}
 
-			// Update the database 'Identity' to 'None'...
+			// Update the database...
 			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal, d)
 			if err != nil {
 				return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 			}
-
-			// If the Identity was removed from the configuration file it will be set as type None
-			// so we can skip setting the Identity if it is going to be set to None...
-			if expandedIdentity.Type != identity.TypeNone {
-				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Identity' to %q", expandedIdentity.Type)
-
-				identityVal := cosmosdb.DatabaseAccountUpdateParameters{
-					Identity: expandedIdentity,
-				}
-
-				// Update the database...
-				err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal, d)
-				if err != nil {
-					return fmt.Errorf("updating 'identity' %q: %+v", id, err)
-				}
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Identity' [NO CHANGE]")
 		}
-
-		// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets
-		//       triggered if the default value does not match the value in Azure...
-		//
-		// NOTE: When you change the 'Identity', the 'DefaultIdentity' will be set to 'undefined', so if you change
-		//       the identity you must also update the 'DefaultIdentity' as well...
-		if updateDefaultIdentity || identityChanged {
-			// This will now return the default of 'FirstPartyIdentity' if it
-			// is not set in the config, which is correct.
-			configDefaultIdentity := d.Get("default_identity_type").(string)
-			if identityChanged {
-				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because the 'Identity' was changed to %q", configDefaultIdentity, expandedIdentity.Type)
-			} else {
-				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because 'default_identity_type' was changed", configDefaultIdentity)
-			}
-
-			// PATCH instead of PUT...
-			defaultIdentity := cosmosdb.DatabaseAccountUpdateParameters{
-				Properties: &cosmosdb.DatabaseAccountUpdateProperties{
-					DefaultIdentity: pointer.To(configDefaultIdentity),
-				},
-			}
-
-			// Update the database...
-			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity, d)
-			if err != nil {
-				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'DefaultIdentity' [NO CHANGE]")
-		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Identity' [NO CHANGE]")
 	}
 
-	if existing.Model.Properties.Capabilities != nil {
+	// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets
+	//       triggered if the default value does not match the value in Azure...
+	//
+	// NOTE: When you change the 'Identity', the 'DefaultIdentity' will be set to 'undefined', so if you change
+	//       the identity you must also update the 'DefaultIdentity' as well...
+	if updateDefaultIdentity || identityChanged {
+		// This will now return the default of 'FirstPartyIdentity' if it
+		// is not set in the config, which is correct.
+		configDefaultIdentity := d.Get("default_identity_type").(string)
+		if identityChanged {
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because the 'Identity' was changed to %q", configDefaultIdentity, expandedIdentity.Type)
+		} else {
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because 'default_identity_type' was changed", configDefaultIdentity)
+		}
+
+		// PATCH instead of PUT...
+		defaultIdentity := cosmosdb.DatabaseAccountUpdateParameters{
+			Properties: &cosmosdb.DatabaseAccountUpdateProperties{
+				DefaultIdentity: pointer.To(configDefaultIdentity),
+			},
+		}
+
+		// Update the database...
+		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity, d)
+		if err != nil {
+			return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
+		}
+	} else {
+		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'DefaultIdentity' [NO CHANGE]")
+	}
+
+	if props.Capabilities != nil {
 		if d.HasChange("capabilities") {
 			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Capabilities'")
 
@@ -1379,6 +1421,10 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		return fmt.Errorf("retrieving CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroupName, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: Model nil", id)
 	}
 
 	d.Set("name", id.DatabaseAccountName)
@@ -1475,8 +1521,12 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkAclBypassResourceIds))
 
-		if v := existing.Model.Properties.DisableLocalAuth; v != nil {
-			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := props.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_enabled", pointer.To(!pointer.From(props.DisableLocalAuth)))
+
+			if !features.FivePointOh() {
+				d.Set("local_authentication_disabled", props.DisableLocalAuth)
+			}
 		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
@@ -1582,7 +1632,7 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if err := client.DatabaseAccountsDeleteThenPoll(ctx, *id); err != nil {
+	if err = client.DatabaseAccountsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroupName, err)
 	}
 
@@ -1776,7 +1826,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 
 	// and one of them must have a priority of 0...
 	if _, ok := byPriorities[0]; !ok {
-		return nil, fmt.Errorf("there needs to be a `geo_location` with a `failover_priority` of `0`")
+		return nil, errors.New("there needs to be a `geo_location` with a `failover_priority` of `0`")
 	}
 
 	return locations, nil
@@ -1982,7 +2032,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		}
 
 		if v := attr["tier"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
+			return nil, errors.New("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		// Mirror the behavior of the old SDK...

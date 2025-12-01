@@ -184,7 +184,7 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `local_authentication_disabled` - (Optional) Disable local authentication and ensure only MSI and AAD can be used exclusively for authentication. Defaults to `false`. Can be set only when using the SQL API.
+* `local_authentication_enabled` - (Optional) Whether local authentication is allowed, as opposed to only Managed Identity and Microsoft Entra (AAD). This can be set only when using the SQL API. Defaults to `true`. 
 
 * `backup` - (Optional) A `backup` block as defined below.
 
