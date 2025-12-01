@@ -41,21 +41,21 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Standard"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdate(data, "Standard"),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "Standard"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,7 +85,7 @@ func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Standard"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -129,7 +129,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "Standard"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -338,7 +338,7 @@ resource "azurerm_lb_nat_rule" "test" {
 `, r.template(data, sku), data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) complete(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) complete(data acceptance.TestData) string {
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
@@ -358,7 +358,7 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, sku), data.RandomInteger)
+`, r.template(data, "Standard"), data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 %s
@@ -378,10 +378,10 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, sku), data.RandomInteger)
+`, r.template(data, "Standard"), data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -400,7 +400,7 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, sku), data.RandomInteger)
+`, r.template(data, "Standard"), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) requiresImport(data acceptance.TestData) string {
