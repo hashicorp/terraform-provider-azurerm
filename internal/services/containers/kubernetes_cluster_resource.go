@@ -1651,7 +1651,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"node_provisioning_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Note: O+C The API returns default values here even if not set in the request
+				// NOTE: O+C The API returns default values here even if not set in the request
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
