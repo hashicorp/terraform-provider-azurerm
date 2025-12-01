@@ -34,6 +34,15 @@ import (
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
+var validDigiCertCertificateTypes = []string{
+	"Basic-SSL",
+	"BasicEV-SSL",
+	"OV-SSL",
+	"EV-SSL",
+	"ProEV-SSL",
+	"ProOV-SSL",
+}
+
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		// TODO: support Updating additional properties once we have more information about what can be updated
@@ -110,6 +119,11 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"name": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
+									},
+									"certificate_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice(validDigiCertCertificateTypes, false),
 									},
 								},
 							},
@@ -891,6 +905,16 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 	return resp.Response, err
 }
 
+func isValidDigiCertCertificateType(value string) bool {
+	for _, allowed := range validDigiCertCertificateTypes {
+		if allowed == value {
+			return true
+		}
+	}
+
+	return false
+}
+
 func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
 	if len(policies) == 0 || policies[0] == nil {
@@ -902,9 +926,34 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 
 	issuers := policyRaw["issuer_parameters"].([]interface{})
 	issuer := issuers[0].(map[string]interface{})
-	policy.IssuerParameters = &keyvault.IssuerParameters{
-		Name: utils.String(issuer["name"].(string)),
+	issuerName := issuer["name"].(string)
+
+	certificateType := ""
+	if raw, ok := issuer["certificate_type"]; ok && raw != nil {
+		if v, ok := raw.(string); ok {
+			certificateType = strings.TrimSpace(v)
+		}
 	}
+
+	if certificateType != "" {
+		if !strings.EqualFold(issuerName, "DigiCert") {
+			return nil, fmt.Errorf("`certificate_type` can only be specified when the issuer is DigiCert")
+		}
+
+		if !isValidDigiCertCertificateType(certificateType) {
+			return nil, fmt.Errorf("`certificate_type` must be one of [%s] when the issuer is DigiCert", strings.Join(validDigiCertCertificateTypes, ", "))
+		}
+	}
+
+	issuerParams := &keyvault.IssuerParameters{
+		Name: utils.String(issuerName),
+	}
+
+	if certificateType != "" {
+		issuerParams.CertificateType = utils.String(certificateType)
+	}
+
+	policy.IssuerParameters = issuerParams
 
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
@@ -1050,6 +1099,9 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 	if params := input.IssuerParameters; params != nil {
 		issuerParams := make(map[string]interface{})
 		issuerParams["name"] = *params.Name
+		if params.CertificateType != nil {
+			issuerParams["certificate_type"] = *params.CertificateType
+		}
 		policy["issuer_parameters"] = []interface{}{issuerParams}
 	}
 

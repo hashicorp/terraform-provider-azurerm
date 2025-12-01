@@ -287,6 +287,7 @@ The `certificate_policy` block supports the following:
 The `issuer_parameters` block supports the following:
 
 * `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones).
+* `certificate_type` - (Optional) The DigiCert certificate product to request when `name` is set to `DigiCert`. Allowed values are `Basic-SSL`, `BasicEV-SSL`, `OV-SSL`, `EV-SSL`, `ProEV-SSL`, and `ProOV-SSL`.
 
 ---
 
@@ -355,7 +356,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `certificate_data_base64` - The Base64 encoded Key Vault Certificate data.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 * `certificate_attribute` - A `certificate_attribute` block as defined below.
- 
+
 * `resource_manager_id` - The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.
 
 * `resource_manager_versionless_id` - The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.
