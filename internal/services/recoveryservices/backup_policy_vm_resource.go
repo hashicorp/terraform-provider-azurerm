@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
@@ -145,7 +144,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	policyType := protectionpolicies.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &protectionpolicies.AzureIaaSVMProtectionPolicy{
-		TimeZone:         utils.String(d.Get("timezone").(string)),
+		TimeZone:         pointer.To(d.Get("timezone").(string)),
 		PolicyType:       pointer.To(policyType),
 		SchedulePolicy:   schedulePolicy,
 		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
@@ -337,7 +336,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("timezone") {
-		properties.TimeZone = utils.String(d.Get("timezone").(string))
+		properties.TimeZone = pointer.To(d.Get("timezone").(string))
 	}
 
 	if d.HasChange("instant_restore_resource_group") {
@@ -535,10 +534,10 @@ func expandBackupProtectionPolicyVMResourceGroup(d *pluginsdk.ResourceData) *pro
 	if v, ok := d.Get("instant_restore_resource_group").([]interface{}); ok && len(v) > 0 {
 		rgRaw := v[0].(map[string]interface{})
 		output := &protectionpolicies.InstantRPAdditionalDetails{
-			AzureBackupRGNamePrefix: utils.String(rgRaw["prefix"].(string)),
+			AzureBackupRGNamePrefix: pointer.To(rgRaw["prefix"].(string)),
 		}
 		if suffix, ok := rgRaw["suffix"]; ok && suffix != "" {
-			output.AzureBackupRGNameSuffix = utils.String(suffix.(string))
+			output.AzureBackupRGNameSuffix = pointer.To(suffix.(string))
 		}
 		return output
 	}
