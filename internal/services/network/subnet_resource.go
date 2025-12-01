@@ -360,7 +360,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
+		Name:       pointer.To(id.SubnetName),
 		Properties: &properties,
 	}
 
@@ -440,7 +440,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = nil
 		case 1:
 			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
-			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
+			props.AddressPrefix = pointer.To(addressPrefixesRaw[0].(string))
 			props.AddressPrefixes = nil
 		default:
 			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
@@ -509,7 +509,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
+		Name:       pointer.To(id.SubnetName),
 		Properties: &props,
 	}
 

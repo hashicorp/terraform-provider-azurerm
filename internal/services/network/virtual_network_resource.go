@@ -584,7 +584,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("flow_timeout_in_minutes") {
 		payload.Properties.FlowTimeoutInMinutes = nil
 		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
-			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
+			payload.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 		}
 	}
 

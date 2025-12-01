@@ -497,7 +497,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	applicationSecurityGroupAssociation := existing.Model.Properties.ApplicationSecurityGroups
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
