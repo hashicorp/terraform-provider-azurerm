@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -156,7 +157,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	if authenticationType == "Anonymous" {
 		anonAuthProperties := &datafactory.WebAnonymousAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
-			URL:                utils.String(url),
+			URL:                pointer.To(url),
 		}
 		webLinkedService.TypeProperties = anonAuthProperties
 	}
@@ -170,7 +171,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 		basicAuthProperties := &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
-			URL:                utils.String(url),
+			URL:                pointer.To(url),
 			Username:           username,
 			Password:           passwordSecureString,
 		}
