@@ -544,13 +544,17 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if attributes := resp.Attributes; attributes != nil {
+		notBeforeDate := ""
 		if v := attributes.NotBefore; v != nil {
-			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("not_before_date", notBeforeDate)
 
+		expirationDate := ""
 		if v := attributes.Expires; v != nil {
-			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 
 	// Computed

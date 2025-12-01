@@ -30,29 +30,29 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                   string                         `tfschema:"name"`
-	ResourceGroupName      string                         `tfschema:"resource_group_name"`
-	Location               string                         `tfschema:"location"`
-	AdministratorUserName  string                         `tfschema:"administrator_username"`
-	AdministratorPassword  string                         `tfschema:"administrator_password"`
-	AuthConfigAllowedModes []string                       `tfschema:"auth_config_allowed_modes"`
-	CreateMode             string                         `tfschema:"create_mode"`
-	CustomerManagedKey     []CustomerManagedKey           `tfschema:"customer_managed_key"`
-	DataApiModeEnabled     bool                           `tfschema:"data_api_mode_enabled"`
-	Identity               []identity.ModelUserAssigned   `tfschema:"identity"`
-	Restore                []Restore                      `tfschema:"restore"`
-	ShardCount             int64                          `tfschema:"shard_count"`
-	SourceLocation         string                         `tfschema:"source_location"`
-	SourceServerId         string                         `tfschema:"source_server_id"`
-	ComputeTier            string                         `tfschema:"compute_tier"`
-	HighAvailabilityMode   string                         `tfschema:"high_availability_mode"`
-	PublicNetworkAccess    string                         `tfschema:"public_network_access"`
-	PreviewFeatures        []string                       `tfschema:"preview_features"`
-	StorageSizeInGb        int64                          `tfschema:"storage_size_in_gb"`
-	StorageType            string                         `tfschema:"storage_type"`
-	ConnectionStrings      []MongoClusterConnectionString `tfschema:"connection_strings"`
-	Tags                   map[string]string              `tfschema:"tags"`
-	Version                string                         `tfschema:"version"`
+	Name                  string                         `tfschema:"name"`
+	ResourceGroupName     string                         `tfschema:"resource_group_name"`
+	Location              string                         `tfschema:"location"`
+	AdministratorUserName string                         `tfschema:"administrator_username"`
+	AdministratorPassword string                         `tfschema:"administrator_password"`
+	AuthenticationMethods []string                       `tfschema:"authentication_methods"`
+	CreateMode            string                         `tfschema:"create_mode"`
+	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
+	DataApiModeEnabled    bool                           `tfschema:"data_api_mode_enabled"`
+	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
+	Restore               []Restore                      `tfschema:"restore"`
+	ShardCount            int64                          `tfschema:"shard_count"`
+	SourceLocation        string                         `tfschema:"source_location"`
+	SourceServerId        string                         `tfschema:"source_server_id"`
+	ComputeTier           string                         `tfschema:"compute_tier"`
+	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
+	PreviewFeatures       []string                       `tfschema:"preview_features"`
+	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
+	StorageType           string                         `tfschema:"storage_type"`
+	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
+	Tags                  map[string]string              `tfschema:"tags"`
+	Version               string                         `tfschema:"version"`
 }
 
 type MongoClusterConnectionString struct {
@@ -217,7 +217,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
-		"auth_config_allowed_modes": {
+		"authentication_methods": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Computed: true,
@@ -342,13 +342,24 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			parameter := mongoclusters.MongoCluster{
 				Location: location.Normalize(state.Location),
-				Identity: expandMongoClusterIdentity(state.Identity),
 				Properties: &mongoclusters.MongoClusterProperties{
-					AuthConfig:        expandMongoClusterAuthConfig(state.AuthConfigAllowedModes),
+					AuthConfig:        expandMongoClusterAuthConfig(state.AuthenticationMethods),
 					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
 					RestoreParameters: expandMongoClusterRestore(state.Restore),
 				},
 			}
+
+			identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+			if err != nil {
+				return fmt.Errorf(`expanding "identity": %v`, err)
+			}
+			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
+			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
+			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
+			if identityVal != nil && identityVal.Type == identity.TypeNone {
+				identityVal = nil
+			}
+			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -542,8 +553,8 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
 			}
 
-			if metadata.ResourceData.HasChange("auth_config_allowed_modes") {
-				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthConfigAllowedModes)
+			if metadata.ResourceData.HasChange("authentication_methods") {
+				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthenticationMethods)
 			}
 
 			// Only allow enabling `data_api_mode_enabled`, disabling should trigger ForceNew (handled in CustomizeDiff)
@@ -555,7 +566,11 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				payload.Identity = expandMongoClusterIdentity(state.Identity)
+				identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf(`expanding "identity": %v`, err)
+				}
+				payload.Identity = identityVal
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -648,7 +663,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 					state.Version = pointer.From(props.ServerVersion)
 
-					state.AuthConfigAllowedModes = flattenMongoClusterAuthConfig(props.AuthConfig)
+					state.AuthenticationMethods = flattenMongoClusterAuthConfig(props.AuthConfig)
 
 					if v := props.DataApi; v != nil {
 						state.DataApiModeEnabled = pointer.From(v.Mode) == mongoclusters.DataApiModeEnabled
@@ -839,26 +854,6 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 	}
 
 	return results
-}
-
-func expandMongoClusterIdentity(input []identity.ModelUserAssigned) *identity.UserAssignedMap {
-	if len(input) == 0 {
-		return nil
-	}
-
-	identityObj := input[0]
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
-	for _, v := range identityObj.IdentityIds {
-		identityIds[v] = identity.UserAssignedIdentityDetails{
-			// intentionally empty since the expand shouldn't send these values
-		}
-	}
-
-	return &identity.UserAssignedMap{
-		Type:        identityObj.Type,
-		IdentityIds: identityIds,
-	}
 }
 
 func expandMongoClusterCustomerManagedKey(input []CustomerManagedKey) *mongoclusters.EncryptionProperties {

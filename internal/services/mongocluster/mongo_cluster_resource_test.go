@@ -205,20 +205,20 @@ func (r MongoClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                      = "acctest-mc%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  administrator_username    = "adminTerraform"
-  administrator_password    = "QAZwsx123update"
-  shard_count               = "1"
-  compute_tier              = "M30"
-  high_availability_mode    = "ZoneRedundantPreferred"
-  public_network_access     = "Disabled"
-  storage_size_in_gb        = "64"
-  storage_type              = "PremiumSSD"
-  version                   = "8.0"
-  data_api_mode_enabled     = true
-  auth_config_allowed_modes = ["NativeAuth", "MicrosoftEntraID"]
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "ZoneRedundantPreferred"
+  public_network_access  = "Disabled"
+  storage_size_in_gb     = "64"
+  storage_type           = "PremiumSSD"
+  version                = "8.0"
+  data_api_mode_enabled  = true
+  authentication_methods = ["NativeAuth", "MicrosoftEntraID"]
 
   tags = {
     environment = "test"
