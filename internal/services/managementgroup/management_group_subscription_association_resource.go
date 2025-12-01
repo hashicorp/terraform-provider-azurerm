@@ -83,7 +83,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 	existing, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -129,7 +129,7 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		return fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)
@@ -206,7 +206,7 @@ func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementg
 		managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 			CacheControl: &managementGroupCacheControl,
 			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      pointer.FromBool(false),
+			Recurse:      pointer.To(false),
 		})
 		if err != nil {
 			return nil, "", fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)
