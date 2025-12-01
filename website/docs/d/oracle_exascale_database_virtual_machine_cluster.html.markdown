@@ -47,13 +47,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain` - The domain name for the Exadata VM Cluster.
 
-* `enabled_ecpu_count` - The number of ECPUs enable for an Exadata VM cluster on Exascale Infrastructure.
+* `enabled_ecpu_count` - The number of ECPUs enabled for an Exadata VM cluster on Exascale Infrastructure.
 
 * `exascale_database_storage_vault_id` - The OCID of the Exadata Database Storage Vault.
 
 * `grid_infrastructure_version` - The Oracle Grid Infrastructure (GI) software version.
 
-* `grid_image_ocid` - Grid Setup will be done using this Grid Image [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm).
+* `grid_image_ocid` - The Grid Image [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) used for Grid setup.
 
 * `grid_image_type` - The type of Grid Image
 
@@ -77,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `node_count` - The number of nodes in the Exadata VM Cluster.
 
-* `network_security_group_cidr` - A `network_security_group_cidr` block as defined below.
+* `inbound_network_security_group_rule` - A `inbound_network_security_group_rule` block as defined below.
 
 * `network_security_group_url` - The link to OCI Network Security Group exposed to Azure Customer via the Azure Interface.
 
@@ -99,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `shape` - The model name of the Exadata hardware running the Exadata VM Cluster.
 
-* `snapshot_file_system_storage` - A `file_system_storage_details` block as defined below.
+* `snapshot_file_system_storage` - A `snapshot_file_system_storage` block as defined below.
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Exadata VM Cluster.
 
@@ -115,11 +115,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `total_ecpu_count` - The number of Total ECPUs for an Exadata VM cluster on Exascale Infrastructure.
 
-* `total_file_system_storage` - A `file_system_storage_details` block as defined below.
+* `total_file_system_storage` - A `total_file_system_storage` block as defined below.
 
 * `virtual_ip_ids` - The virtual IP (VIP) addresses associated with the Exadata VM cluster on Exascale Infrastructure.
 
-* `virtual_machine_file_system_storage` - A `file_system_storage_details` block as defined below.
+* `virtual_machine_file_system_storage` - A `virtual_machine_file_system_storage` block as defined below.
 
 * `virtual_network_id` - The ID to an Azure Resource Manager Virtual Network resource.
 
@@ -139,19 +139,19 @@ A `data_collection` block exports the following:
 
 ---
 
-A `network_security_group_cidr` block exports the following:
+A `inbound_network_security_group_rule` block exports the following:
 
 * `destination_port_range` - A `destination_port_range` block as defined below.
 
-* `source` - It is a range of IP addresses that a packet coming into the instance can come from.
+* `source_ip_range` - It is a range of IP addresses that a packet coming into the instance can come from.
 
 ---
 
 A `destination_port_range` block exports the following:
 
-* `max` - The maximum port number.
+* `maximum` - The maximum port number.
 
-* `min` - The minimum port number.
+* `minimum` - The minimum port number.
 
 ---
 
@@ -169,7 +169,7 @@ A `iorm_config_cache` block exports the following:
 
 * `database_plans` - A `database_plans` block as defined above.
 
-* `lifecycle_details` - Additional information about the current `lifecycleState`.
+* `lifecycle_details` - Additional information about the current `lifecycle_state`.
 
 * `lifecycle_state` - The current state of IORM configuration for the Exadata DB system.
 
@@ -177,7 +177,19 @@ A `iorm_config_cache` block exports the following:
 
 ---
 
-A `file_system_storage_details` block exports the following:
+A `snapshot_file_system_storage` block exports the following:
+
+* `total_size_in_gb` - Total Capacity in GB.
+
+---
+
+A `total_file_system_storage` block exports the following:
+
+* `total_size_in_gb` - Total Capacity in GB.
+
+---
+
+A `virtual_machine_file_system_storage` block exports the following:
 
 * `total_size_in_gb` - Total Capacity in GB.
 

@@ -18,14 +18,14 @@ type ExascaleDatabaseVirtualMachineClusterStorageModel struct {
 	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
 }
 
-type NetworkSecurityGroupCidrModel struct {
+type NetworkSecurityGroupRuleModel struct {
 	DestinationPortRange []PortRangeModel `tfschema:"destination_port_range"`
-	Source               string           `tfschema:"source"`
+	SourceIpRange        string           `tfschema:"source_ip_range"`
 }
 
 type PortRangeModel struct {
-	Max int64 `tfschema:"max"`
-	Min int64 `tfschema:"min"`
+	Maximum int64 `tfschema:"maximum"`
+	Minimum int64 `tfschema:"minimum"`
 }
 
 func FlattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
@@ -47,21 +47,21 @@ func FlattenVMFileSystemStorage(input exadbvmclusters.ExadbVMClusterStorageDetai
 	})
 }
 
-func FlattenNetworkSecurityGroupCidr(input *[]exadbvmclusters.NsgCidr) []NetworkSecurityGroupCidrModel {
-	output := make([]NetworkSecurityGroupCidrModel, 0)
+func FlattenNetworkSecurityGroupCidr(input *[]exadbvmclusters.NsgCidr) []NetworkSecurityGroupRuleModel {
+	output := make([]NetworkSecurityGroupRuleModel, 0)
 
 	if input != nil {
 		for _, nsgCidr := range *input {
 			var portRangeModel []PortRangeModel
 			if nsgCidr.DestinationPortRange != nil {
 				portRangeModel = append(portRangeModel, PortRangeModel{
-					Max: nsgCidr.DestinationPortRange.Max,
-					Min: nsgCidr.DestinationPortRange.Min,
+					Maximum: nsgCidr.DestinationPortRange.Max,
+					Minimum: nsgCidr.DestinationPortRange.Min,
 				})
 			}
-			output = append(output, NetworkSecurityGroupCidrModel{
+			output = append(output, NetworkSecurityGroupRuleModel{
 				DestinationPortRange: portRangeModel,
-				Source:               nsgCidr.Source,
+				SourceIpRange:        nsgCidr.Source,
 			})
 		}
 	}

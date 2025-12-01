@@ -53,7 +53,7 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 	DataCollection                           []ExascaleDatabaseDataCollectionModel `tfschema:"data_collection"`
 	Domain                                   string                                `tfschema:"domain"`
 	LicenseModel                             string                                `tfschema:"license_model"`
-	NetworkSecurityGroupCidr                 []NetworkSecurityGroupCidrModel       `tfschema:"network_security_group_cidr"`
+	InboundNetworkSecurityGroupRule          []NetworkSecurityGroupRuleModel       `tfschema:"inbound_network_security_group_rule"`
 	Ocid                                     string                                `tfschema:"ocid"`
 	PrivateZoneOcid                          string                                `tfschema:"private_zone_ocid"`
 	SingleClientAccessNameListenerPortTcp    int64                                 `tfschema:"single_client_access_name_listener_port_tcp"`
@@ -71,7 +71,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseVirtualMachineClusterName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 
@@ -85,7 +85,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseVirtualMachineClusterName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 
@@ -94,7 +94,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-				// The service may automatically adjust this value based on the new node_count.
+				// The service automatically adjust this value when the node_count is changed.
 				if d.Id() != "" {
 					return true
 				}
@@ -118,8 +118,15 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{0,12}$`),
-				"The hostname must be no longer than 12 characters, and may contain alphabets, numbers, and hyphens (-).",
+				"The hostname must be no longer than 12 characters, and may contain only alphanumeric characters and hyphens (-).",
 			),
+		},
+
+		"grid_image_ocid": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"node_count": {
@@ -156,7 +163,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-				// The service may automatically adjust this value based on the new node_count.
+				// The service automatically adjust this value when the node_count is changed.
 				if d.Id() != "" {
 					return true
 				}
@@ -172,19 +179,21 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
-				// The service may automatically adjust this value based on the new node_count.
-				if d.Id() != "" {
-					return true
-				}
-				return false
-			},
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntPositive,
+						DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+							// The service automatically adjust this value when the node_count is changed.
+							if d.Id() != "" {
+								return true
+							}
+							return false
+						},
 					},
 				},
 			},
@@ -205,20 +214,20 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"cluster_name": {
-			Type: pluginsdk.TypeString,
-			// The O+C is specified here because the service will set the virtual machine's name as the default value if not specified.
+			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C is specified here because the service will set the virtual machine's name as the default value if not specified.
 			Computed: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{0,10}$`),
-				"The Cluster name must begin with an alphabetic character, be no longer than 11 characters, and may contain alphabets, numbers, and hyphens (-).",
+				"The Cluster name must begin with an alphabetic character, be no longer than 11 characters, and may contain only alphanumeric characters and hyphens (-).",
 			),
 		},
 
 		"data_collection": {
-			Type: pluginsdk.TypeList,
-			// The O+C is specified here because the service will set a default value to the data_collection if not specified.
+			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C is specified here because the service will set a default value to the data_collection if not specified.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
@@ -250,16 +259,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"domain": {
-			Type: pluginsdk.TypeString,
-			// The O+C is specified here because the service will set a default value to the hostname if not specified.
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
-			ForceNew: true,
-		},
-
-		"grid_image_ocid": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			// NOTE: O+C is specified here because the service will set a default value to the hostname if not specified.
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -271,10 +274,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForLicenseModel(), false),
 		},
 
-		"network_security_group_cidr": {
-			Type: pluginsdk.TypeList,
-			// The O+C is specified here because the service will set a default value to the network_security_group_cidr if not specified.
+		"inbound_network_security_group_rule": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C is specified here because the service will set a default value to the inbound_network_security_group_rule if not specified.
 			Computed: true,
 			ForceNew: true,
 			Elem: &pluginsdk.Resource{
@@ -285,14 +288,14 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"max": {
+								"maximum": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IntBetween(1, 65535),
 								},
 
-								"min": {
+								"minimum": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ForceNew:     true,
@@ -301,11 +304,11 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 							},
 						},
 					},
-					"source": {
+					"source_ip_range": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringLenBetween(1, 128),
+						ValidateFunc: validation.IsCIDR,
 					},
 				},
 			},
@@ -335,20 +338,19 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		},
 
 		"system_version": {
-			Type: pluginsdk.TypeString,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 			// O+C if not specified, the default value will be provided by API
-			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.SystemVersion,
 		},
 
 		"time_zone": {
-			Type: pluginsdk.TypeString,
-			// The O+C is specified here because, if not provided, the service defaults the time_zone to UTC.
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ForceNew: true,
+			Default:  "UTC",
 		},
 
 		"tags": commonschema.Tags(),
@@ -402,7 +404,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 
 			param := exadbvmclusters.ExadbVMCluster{
 				Name:     pointer.To(model.Name),
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Zones:    pointer.To(model.Zones),
 				Properties: &exadbvmclusters.ExadbVMClusterProperties{
@@ -447,8 +449,8 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 			if model.LicenseModel != "" {
 				param.Properties.LicenseModel = pointer.To(exadbvmclusters.LicenseModel(model.LicenseModel))
 			}
-			if len(model.NetworkSecurityGroupCidr) > 0 {
-				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.NetworkSecurityGroupCidr))
+			if len(model.InboundNetworkSecurityGroupRule) > 0 {
+				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.InboundNetworkSecurityGroupRule))
 			}
 			if model.PrivateZoneOcid != "" {
 				param.Properties.PrivateZoneOcid = pointer.To(model.PrivateZoneOcid)
@@ -557,8 +559,8 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DataCollection = flattenExadbDataCollectionOptionInterface(props.DataCollectionOptions)
 					state.Domain = pointer.From(props.Domain)
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
-					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
+					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.Ocid = pointer.From(props.Ocid)
 					state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
 					state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
@@ -610,18 +612,18 @@ func flattenExadbDataCollectionOptionInterface(dataCollectionOptions *exadbvmclu
 	return output
 }
 
-func expandNsgCidrs(input []NetworkSecurityGroupCidrModel) []exadbvmclusters.NsgCidr {
+func expandNsgCidrs(input []NetworkSecurityGroupRuleModel) []exadbvmclusters.NsgCidr {
 	output := make([]exadbvmclusters.NsgCidr, 0, len(input))
 
 	// The schema requires at least one item in the networkSecurityGroupCidr list.
 	for _, nsgCidr := range input {
 		portRangeValue := exadbvmclusters.PortRange{
-			Max: nsgCidr.DestinationPortRange[0].Max,
-			Min: nsgCidr.DestinationPortRange[0].Min,
+			Max: nsgCidr.DestinationPortRange[0].Maximum,
+			Min: nsgCidr.DestinationPortRange[0].Minimum,
 		}
 		output = append(output, exadbvmclusters.NsgCidr{
 			DestinationPortRange: pointer.To(portRangeValue),
-			Source:               nsgCidr.Source,
+			Source:               nsgCidr.SourceIpRange,
 		})
 	}
 	return output

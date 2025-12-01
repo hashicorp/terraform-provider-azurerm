@@ -6,7 +6,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -50,7 +50,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	Location                                 string                                              `tfschema:"location"`
 	MemorySizeInGb                           int64                                               `tfschema:"memory_size_in_gb"`
 	NodeCount                                int64                                               `tfschema:"node_count"`
-	NetworkSecurityGroupCidr                 []NetworkSecurityGroupCidrModel                     `tfschema:"network_security_group_cidr"`
+	InboundNetworkSecurityGroupRule          []NetworkSecurityGroupRuleModel                     `tfschema:"inbound_network_security_group_rule"`
 	NetworkSecurityGroupUrl                  string                                              `tfschema:"network_security_group_url"`
 	OciUrl                                   string                                              `tfschema:"oci_url"`
 	Ocid                                     string                                              `tfschema:"ocid"`
@@ -97,8 +97,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Arguments() map[string]
 			Required: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
-				validation.StringDoesNotContainAny("--"),
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 	}
@@ -262,7 +261,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"network_security_group_cidr": {
+		"inbound_network_security_group_rule": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -272,12 +271,12 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"max": {
+								"maximum": {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
 								},
 
-								"min": {
+								"minimum": {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
 								},
@@ -285,7 +284,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 						},
 					},
 
-					"source": {
+					"source_ip_range": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -500,7 +499,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.ListenerPort = pointer.From(props.ListenerPort)
 					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
 					state.NodeCount = props.NodeCount
-					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.NetworkSecurityGroupUrl = pointer.From(props.NsgURL)
 					state.OciUrl = pointer.From(props.OciURL)
 					state.Ocid = pointer.From(props.Ocid)

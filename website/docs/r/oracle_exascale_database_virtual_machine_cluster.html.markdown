@@ -13,22 +13,10 @@ Manages a Exadata VM Cluster on Exascale Infrastructure.
 ## Example Usage
 
 ```hcl
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
-}
-
-resource "azurerm_oracle_exascale_database_storage_vault" "example" {
-  name                = "example-exascale-db-storage-vault"
-  display_name        = "example-exascale-db-storage-vault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  description         = "description"
-  high_capacity_database_storage_input {
-    total_size_in_gb = 300
-  }
-  additional_flash_cache_percentage = 100
-  zones                             = ["3"]
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -57,24 +45,40 @@ resource "azurerm_subnet" "example" {
   }
 }
 
+resource "azurerm_oracle_exascale_database_storage_vault" "example" {
+  name                = "example-exascale-db-storage-vault"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  display_name        = "ExampleExascaleDbStorage"
+  description         = "description"
+  high_capacity_database_storage {
+    total_size_in_gb = 300
+  }
+  additional_flash_cache_percentage = 100
+  zones                             = ["3"]
+}
+
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
-  name                               = "example-exadb-vm-cluster"
-  resource_group_name                = azurerm_resource_group.example.name
-  location                           = azurerm_resource_group.example.location
+  name                = "example-exadb-vm-cluster"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.example.id
-  display_name                       = "example-exadb-vm-cluster"
+  display_name                       = "ExampleExascaleVmCluster"
   enabled_ecpu_count                 = 4
-  hostname                           = "hostname"
+  hostname                           = "host"
   node_count                         = 2
   shape                              = "EXADBXS"
   ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
   subnet_id                          = azurerm_subnet.example.id
-  total_ecpu_count                   = 10
+  total_ecpu_count                   = 8
   virtual_machine_file_system_storage {
-    total_size_in_gb = 120
+    total_size_in_gb = 440
   }
   virtual_network_id = azurerm_virtual_network.example.id
+  zones              = ["3"]
 }
+
 ```
 
 ## Arguments Reference
@@ -91,9 +95,11 @@ The following arguments are supported:
 
 * `enabled_ecpu_count` - (Required) The number of ECPUs to enable for an Exadata VM cluster on Exascale Infrastructure. Possible values range between `8` and `200`, and must be divisible by `4`. Changing this forces a new resource to be created.
 
-* `exascale_database_storage_vault_id` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exadata Database Storage Vault. Changing this forces a new Exadata VM Cluster to be created.
+* `exascale_database_storage_vault_id` - (Required) The Azure Resource ID of the Exadata Database Storage Vault. Changing this forces a new Exadata VM Cluster to be created.
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
+
+* `grid_image_ocid` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created.
 
 * `node_count` - (Required) The number of nodes in the Exadata VM cluster on Exascale Infrastructure. Possible values range between `2` and `10`.
 
@@ -121,11 +127,9 @@ The following arguments are supported:
 
 * `domain` - (Optional) The name of the OCI Private DNS Zone to be associated with the Exadata VM Cluster. This is required for specifying your own private domain name. Changing this forces a new Exadata VM Cluster to be created.
 
-* `grid_image_ocid` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the grid image that is used for grid setup. Changing this forces a new resource to be created.
-
 * `license_model` - (Optional) The Oracle license model that applies to the Exadata VM Cluster. Possible values are `BringYourOwnLicense` and `LicenseIncluded`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `network_security_group_cidr` - (Optional) A `network_security_group_cidr` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
+* `inbound_network_security_group_rule` - (Optional) A `inbound_network_security_group_rule` block as defined below. Changing this forces a new Exadata VM Cluster to be created.
 
 * `private_zone_ocid` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the private zone in which you want DNS records to be created. Changing this forces a new Exadata VM Cluster to be created.
 
@@ -133,11 +137,15 @@ The following arguments are supported:
 
 * `single_client_access_name_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. Possible values range between `1024` and `8999`. Defaults to `2484`. Changing this forces a new Exadata VM Cluster to be created.
 
-* `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX). Changing this forces a new resource to be created.
+* `system_version` - (Optional) Operating system version of the Exadata image. Changing this forces a new resource to be created.
+
+~> **Note:** `system_version` must be less than or equal to the database server's major version (the first two parts of the database server version, e.g. 23.1.X.X.XXXX).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata VM Cluster.
 
-* `time_zone` - (Optional) The time zone of the Exadata VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm). Changing this forces a new Exadata VM Cluster to be created.
+ `time_zone` - (Optional) The time zone of the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
+
+ -> **Note:** For more information on `time_zone`, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm).
 
 ---
 
@@ -157,19 +165,19 @@ A `data_collection` block supports the following:
 
 ---
 
-A `network_security_group_cidr` block supports the following:
+A `inbound_network_security_group_rule` block supports the following:
 
 * `destination_port_range` - (Required) A `destination_port_range` block as defined below.
 
-* `source` - (Required) It is a range of IP addresses that a packet coming into the instance can come from. Changing this forces a new resource to be created.
+* `source_ip_range` - (Required) It is a range of IP addresses that a packet coming into the instance can come from. Changing this forces a new resource to be created.
 
 ---
 
 A `destination_port_range` block supports the following:
 
-* `max` - (Required) The maximum port number, which must not be less than the minimum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
+* `maximum` - (Required) The maximum port number, which must not be less than the minimum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
 
-* `min` - (Required) The minimum port number, which must not be greater than the maximum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
+* `minimum` - (Required) The minimum port number, which must not be greater than the maximum port number. Possible values range between `1` and `65535`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

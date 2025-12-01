@@ -55,7 +55,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_security_group_cidr.#").HasValue("2"),
+				check.That(data.ResourceName).Key("inbound_network_security_group_rule.#").HasValue("2"),
 			),
 		},
 		data.ImportStep("data_collection", "system_version"),
@@ -103,7 +103,7 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) basic(data acceptance.Tes
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["2"]
+  zones                              = local.zones
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
   display_name                       = "OFakeVmacctest%[2]d"
@@ -128,10 +128,10 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) complete(data acceptance.
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["2"]
+  zones                              = local.zones
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVmacctest%[2]d"
+  display_name                       = "OFakeVMNameTest%[2]d"
   enabled_ecpu_count                 = 16
   hostname                           = "host"
   node_count                         = 2
@@ -150,18 +150,18 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
     health_monitoring_enabled  = true
     incident_logs_enabled      = true
   }
-  network_security_group_cidr {
-    source = "10.0.0.0/16"
+  inbound_network_security_group_rule {
+    source_ip_range = "10.0.1.5/32"
     destination_port_range {
-      min = 10000
-      max = 10100
+      minimum = 10000
+      maximum = 10100
     }
   }
-  network_security_group_cidr {
-    source = "10.0.0.0/16"
+  inbound_network_security_group_rule {
+    source_ip_range = "10.0.1.14/32"
     destination_port_range {
-      min = 12000
-      max = 12100
+      minimum = 12000
+      maximum = 12100
     }
   }
   domain                                          = "ociactsubnet.ociactvnet.oraclevcn.com"
@@ -181,7 +181,7 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) update(data acceptance.Te
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
   location                           = "%[3]s"
   name                               = "OFakeVmacctest%[2]d"
-  zones                              = ["2"]
+  zones                              = local.zones
   resource_group_name                = azurerm_resource_group.test.name
   exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
   display_name                       = "OFakeVmacctest%[2]d"
@@ -236,6 +236,12 @@ provider "azurerm" {
   features {}
 }
 
+locals {
+  zones           = ["1"]
+  ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  grid_image_ocid = "ocid1.dbpatch.oc1.ca-toronto-1.an2g6ljrt5t4sqqawwxguqicmwm2qpwadhv6lnlfba5yzhmmfw6rzrbec2iq"
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -279,12 +285,7 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
     total_size_in_gb = 300
   }
   additional_flash_cache_percentage = 100
-  zones                             = ["2"]
-}
-
-locals {
-  ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
-  grid_image_ocid = "ocid1.dbpatch.oc1.iad.anuwcljtt5t4sqqao7hbqabj3nucci6afpbslvhtc2vh276hesoagns66rdq"
+  zones                             = local.zones
 }
 
 
