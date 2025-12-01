@@ -64,7 +64,6 @@ func TestAccPublicIpPrefix_basic(t *testing.T) {
 	})
 }
 
-
 func TestAccPublicIpPrefix_skuStandardV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIpPrefixResource{}
