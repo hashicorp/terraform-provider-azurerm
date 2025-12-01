@@ -901,7 +901,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                         = "1"
   geo_redundant_backup_enabled = true
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
