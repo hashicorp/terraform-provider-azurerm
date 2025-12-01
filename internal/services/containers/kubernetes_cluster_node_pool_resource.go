@@ -94,7 +94,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				gatewayPublicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int)
 
 				if gatewayPublicIPPrefixSize != 0 && mode != string(agentpools.AgentPoolModeGateway) {
-					return fmt.Errorf("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+					return errors.New("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
 				}
 
 				return nil

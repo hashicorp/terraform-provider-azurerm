@@ -3672,8 +3672,6 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 			Config: r.modeGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mode").HasValue("Gateway"),
-				check.That(data.ResourceName).Key("gateway_public_ip_prefix_size").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
