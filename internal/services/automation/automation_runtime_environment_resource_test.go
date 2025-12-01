@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runtimeenvironment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationRuntimeEnvironmentResource struct{}
@@ -26,9 +26,9 @@ func (a AutomationRuntimeEnvironmentResource) Exists(ctx context.Context, client
 	}
 	resp, err := client.Automation.RuntimeEnvironment.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving runtime environment %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccAutomationRuntimeEnvironment_completePowerShell(t *testing.T) {
@@ -86,12 +86,32 @@ func TestAccAutomationRuntimeEnvironment_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completePowerShellAddPackage(data),
+			Config: r.completePowerShellAddPackage(data, "11.2.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationRuntimeEnvironment_update_package(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
+	r := AutomationRuntimeEnvironmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePowerShellAddPackage(data, "8.3.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completePowerShellAddPackage(data, "11.2.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -111,19 +131,17 @@ func TestAccAutomationRuntimeEnvironment_requiresImport(t *testing.T) {
 }
 
 func (a AutomationRuntimeEnvironmentResource) requiresImport(data acceptance.TestData) string {
-	template := a.completePowerShell(data)
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_automation_runtime_environment" "import" {
-  name                    = azurerm_automation_runtime_environment.test.name
-  resource_group_name     = azurerm_automation_runtime_environment.test.resource_group_name
-  automation_account_name = azurerm_automation_runtime_environment.test.automation_account_name
-  runtime_language        = azurerm_automation_runtime_environment.test.runtime_language
-  runtime_version         = azurerm_automation_runtime_environment.test.runtime_version
-  location                = azurerm_automation_runtime_environment.test.location
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = azurerm_automation_runtime_environment.test.name
+  runtime_language      = azurerm_automation_runtime_environment.test.runtime_language
+  runtime_version       = azurerm_automation_runtime_environment.test.runtime_version
+  location              = azurerm_automation_runtime_environment.test.location
 }
-`, template)
+`, a.completePowerShell(data))
 }
 
 func (a AutomationRuntimeEnvironmentResource) basic(data acceptance.TestData, runtime, version string) string {
@@ -132,9 +150,8 @@ func (a AutomationRuntimeEnvironmentResource) basic(data acceptance.TestData, ru
 %s
 
 resource azurerm_automation_runtime_environment "test" {
-  name                    = "acc_%[2]s_basic"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  automation_account_id   = azurerm_automation_account.test.id
+  name                    = "acctest_%[2]s_basic"
 
   runtime_language        = "%[2]s"
   runtime_version         = "%[3]s"
@@ -151,9 +168,9 @@ func (a AutomationRuntimeEnvironmentResource) completePowerShell(data acceptance
 	%s
 
 resource azurerm_automation_runtime_environment "test" {
-  name                    = "powershell_complete"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  automation_account_id   = azurerm_automation_account.test.id
+
+  name                    = "acctest-powershell-complete-%[2]d"
 
   runtime_language        = "PowerShell"
   runtime_version         = "7.2"
@@ -170,18 +187,17 @@ resource azurerm_automation_runtime_environment "test" {
   }
 }
 
-`, a.template(data))
+`, a.template(data), data.RandomInteger)
 }
 
-func (a AutomationRuntimeEnvironmentResource) completePowerShellAddPackage(data acceptance.TestData) string {
+func (a AutomationRuntimeEnvironmentResource) completePowerShellAddPackage(data acceptance.TestData, azPackageVersion string) string {
 	return fmt.Sprintf(`
 
 %s
 
   resource azurerm_automation_runtime_environment "test" {
-    name                    = "powershell_complete"
-    resource_group_name     = azurerm_resource_group.test.name
-    automation_account_name = azurerm_automation_account.test.name
+    automation_account_id   = azurerm_automation_account.test.id
+    name                    = "acctest-powershell-complete-%[2]d"
 
     runtime_language        = "PowerShell"
     runtime_version         = "7.2"
@@ -190,7 +206,7 @@ func (a AutomationRuntimeEnvironmentResource) completePowerShellAddPackage(data 
     description             = "Test automation runtime environment"
 
     runtime_default_packages = {
-      "az" 			= "11.2.0",
+      "az" 			= "%[3]s",
       "azure cli" 	= "2.56.0",
     }
 
@@ -199,7 +215,7 @@ func (a AutomationRuntimeEnvironmentResource) completePowerShellAddPackage(data 
     }
   }
 
-`, a.template(data))
+`, a.template(data), data.RandomInteger, azPackageVersion)
 }
 
 func (a AutomationRuntimeEnvironmentResource) template(data acceptance.TestData) string {

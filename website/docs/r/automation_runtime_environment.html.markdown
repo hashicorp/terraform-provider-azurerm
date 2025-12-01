@@ -3,12 +3,12 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_runtime_environment"
 description: |-
-  Manages a Automation Runtime Environment.
+  Manages an Automation Runtime Environment.
 ---
 
 # azurerm_automation_runtime_environment
 
-Manages a Automation Runtime Environment.
+Manages an Automation Runtime Environment.
 
 ## Example Usage
 
@@ -27,8 +27,7 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_runtime_environment" "example" {
   name                    = "powershell_environment_custom_config"
-  resource_group_name     = azurerm_resource_group.example.name
-  automation_account_name = azurerm_automation_account.example.name
+  automation_account_id   = azurerm_automation_account.example.id
 
   runtime_language = "PowerShell"
   runtime_version  = "7.2"
@@ -53,11 +52,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name for the Automation Runtime Environment. Changing this forces a new Automation Runtime Environment to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
-
 * `location` - (Required) The location where the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
-* `automation_account_name` - (Required) The name of the automation account in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
+* `automation_account_id` - (Required) The ID of the automation account in which the Automation Runtime Environment is created. Changing this forces a new resource to be created.
 
 * `runtime_language` - (Required) The programming language used by the Automation Runtime Environment. Possible values are `Python` and `PowerShell`. Changing this forces a new Automation Runtime Environment to be created.
 

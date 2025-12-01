@@ -5,24 +5,24 @@ package automation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runtimeenvironment"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type AutomationRuntimeEnvironmentResourceModel struct {
 	Name                   string            `tfschema:"name"`
-	ResourceGroupName      string            `tfschema:"resource_group_name"`
-	AutomationAccountName  string            `tfschema:"automation_account_name"`
+	AutomationAccountId    string            `tfschema:"automation_account_id"`
 	RuntimeLanguage        string            `tfschema:"runtime_language"`
 	RuntimeVersion         string            `tfschema:"runtime_version"`
 	RuntimeDefaultPackages map[string]string `tfschema:"runtime_default_packages"`
@@ -43,19 +43,31 @@ func (m AutomationRuntimeEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
+			if rdp, ok := rd.GetOk("runtime_default_packages"); ok && rdp != nil {
+				if rl, ok := rd.GetOk("runtime_language"); ok {
+					if rl.(string) == "Python" {
+						return errors.New("runtime_default_packages cannot be set for runtime_language `Python`")
+					}
+				}
+			}
+
 			if rd.HasChange("runtime_default_packages") {
 				old, new := rd.GetChange("runtime_default_packages")
 				oldMap, newMap := old.(map[string]interface{}), new.(map[string]interface{})
 
 				// Azure API limitation: Runtime environment packages cannot be removed once added
 				if len(oldMap) > len(newMap) {
-					rd.ForceNew("runtime_default_packages")
+					if err := rd.ForceNew("runtime_default_packages"); err != nil {
+						return err
+					}
 				}
 
 				// Azure API limitation: Package names cannot change, only versions can be updated
 				for k := range oldMap {
 					if _, ok := newMap[k]; !ok {
-						rd.ForceNew("runtime_default_packages")
+						if err := rd.ForceNew("runtime_default_packages"); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -75,15 +87,13 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
 		"location": commonschema.Location(),
 
-		"automation_account_name": {
+		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AutomationAccount(),
+			ValidateFunc: runtimeenvironment.ValidateAutomationAccountID,
 		},
 
 		"runtime_language": {
@@ -91,8 +101,8 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string("Python"),
-				string("PowerShell"),
+				"Python",
+				"PowerShell",
 			}, false),
 		},
 
@@ -107,6 +117,7 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
 		},
 
 		"runtime_default_packages": {
@@ -115,7 +126,15 @@ func (m AutomationRuntimeEnvironmentResource) Arguments() map[string]*pluginsdk.
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": {
+			Type:         pluginsdk.TypeMap,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: tags.Validate,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 
@@ -143,7 +162,15 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
+
+			autAccId, err := runtimeenvironment.ParseAutomationAccountIDInsensitively(model.AutomationAccountId)
+			if err != nil {
+				return fmt.Errorf("parsing automation account id %s: %+v", autAccId, err)
+			}
+
+			model.AutomationAccountId = autAccId.String()
+
+			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, autAccId.ResourceGroupName, autAccId.AutomationAccountName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -154,14 +181,16 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			req := runtimeenvironment.RuntimeEnvironment{}
-			req.Properties = &runtimeenvironment.RuntimeEnvironmentProperties{
-				Runtime: &runtimeenvironment.RuntimeProperties{
-					Language: pointer.FromString(model.RuntimeLanguage),
-					Version:  pointer.FromString(model.RuntimeVersion),
+			req := runtimeenvironment.RuntimeEnvironment{
+				Location: location.Normalize(model.Location),
+				Name:     pointer.To(model.Name),
+				Properties: &runtimeenvironment.RuntimeEnvironmentProperties{
+					Runtime: &runtimeenvironment.RuntimeProperties{
+						Language: pointer.To(model.RuntimeLanguage),
+						Version:  pointer.To(model.RuntimeVersion),
+					},
 				},
 			}
-			req.Location = azure.NormalizeLocation(model.Location)
 
 			if model.Tags != nil {
 				req.Tags = &model.Tags
@@ -172,7 +201,7 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Description != "" {
-				req.Properties.Description = pointer.FromString(model.Description)
+				req.Properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err = client.Create(ctx, id, req); err != nil {
@@ -190,7 +219,6 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			client := meta.Client.Automation.RuntimeEnvironment
-
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
@@ -209,23 +237,27 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 				Name: id.RuntimeEnvironmentName,
 			}
 
+			autAccId := runtimeenvironment.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
+
 			if model := resp.Model; model != nil {
-				state.ResourceGroupName = id.ResourceGroupName
-				state.AutomationAccountName = id.AutomationAccountName
-				state.RuntimeLanguage = pointer.ToString(resp.Model.Properties.Runtime.Language)
-				state.RuntimeVersion = pointer.ToString(resp.Model.Properties.Runtime.Version)
-				state.Location = resp.Model.Location
+				state.AutomationAccountId = autAccId.ID()
+				state.Location = model.Location
 
-				if resp.Model.Properties.DefaultPackages != nil {
-					state.RuntimeDefaultPackages = *resp.Model.Properties.DefaultPackages
+				if model.Properties != nil {
+					if model.Properties.DefaultPackages != nil {
+						state.RuntimeDefaultPackages = *model.Properties.DefaultPackages
+					}
+
+					state.Description = pointer.From(model.Properties.Description)
+
+					if model.Properties.Runtime != nil {
+						state.RuntimeLanguage = pointer.From(model.Properties.Runtime.Language)
+						state.RuntimeVersion = pointer.From(model.Properties.Runtime.Version)
+					}
 				}
 
-				if resp.Model.Properties.Description != nil {
-					state.Description = pointer.ToString(resp.Model.Properties.Description)
-				}
-
-				if resp.Model.Tags != nil {
-					state.Tags = *resp.Model.Tags
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
 			}
 
@@ -239,7 +271,6 @@ func (m AutomationRuntimeEnvironmentResource) Update() sdk.ResourceFunc {
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
 			client := meta.Client.Automation.RuntimeEnvironment
-
 			id, err := runtimeenvironment.ParseRuntimeEnvironmentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
@@ -247,24 +278,7 @@ func (m AutomationRuntimeEnvironmentResource) Update() sdk.ResourceFunc {
 
 			var state AutomationRuntimeEnvironmentResourceModel
 			if err = meta.Decode(&state); err != nil {
-				return err
-			}
-
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
-
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", id)
-			}
-
-			if meta.ResourceData.HasChange("runtime_default_packages") {
-				existing.Model.Properties.DefaultPackages = pointer.To(state.RuntimeDefaultPackages)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			param := runtimeenvironment.RuntimeEnvironmentUpdateParameters{
