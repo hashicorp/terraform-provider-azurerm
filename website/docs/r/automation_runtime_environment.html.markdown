@@ -26,8 +26,8 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_runtime_environment" "example" {
-  name                    = "powershell_environment_custom_config"
-  automation_account_id   = azurerm_automation_account.example.id
+  name                  = "powershell_environment_custom_config"
+  automation_account_id = azurerm_automation_account.example.id
 
   runtime_language = "PowerShell"
   runtime_version  = "7.2"
