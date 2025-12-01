@@ -321,8 +321,8 @@ resource "azurerm_lb_outbound_rule" "test" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
-  tcp_reset_enabled = true
-  idle_timeout_in_minutes = 5
+  tcp_reset_enabled        = true
+  idle_timeout_in_minutes  = 5
   allocated_outbound_ports = 512
 
   frontend_ip_configuration {
@@ -374,8 +374,8 @@ resource "azurerm_lb_outbound_rule" "test" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
-  tcp_reset_enabled = false
-  idle_timeout_in_minutes = 10
+  tcp_reset_enabled        = false
+  idle_timeout_in_minutes  = 10
   allocated_outbound_ports = 256
 
   frontend_ip_configuration {
