@@ -184,7 +184,7 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}

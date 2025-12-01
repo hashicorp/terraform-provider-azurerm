@@ -186,6 +186,9 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }

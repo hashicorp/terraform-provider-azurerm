@@ -39,7 +39,37 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-3. Update the `Read()` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+3. Update the `Create()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function. 
+
+    ```go
+    func (r ExampleResource) Create() sdk.ResourceFunc {
+        return sdk.ResourceFunc{
+            Timeout: 30 * time.Minute,
+            Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+                client := metadata.Client.Service.ExampleClient
+                
+                id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+                ...
+                
+                if err := client.CreateOrUpdateThenPoll; err != nil {
+                    return fmt.Errorf("creating %s: %+v", &id, err)
+                }
+                
+                metadata.SetID(id)
+                if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+                    return err
+                }
+                
+                return metadata.Encode(&model)
+            },
+        }
+    }
+    ```
+   
+   > Note: While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event something errors after setting the `id` attribute.
+
+4. Update the `Read()` function to include a step setting the Resource Identity data into state.
 
     ```go
     func (r ExampleResource) Read() sdk.ResourceFunc {
@@ -64,7 +94,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ### Untyped Resources
 
@@ -128,8 +158,37 @@ To add Resource Identity to an untyped resource, follow the steps below.
             }
         }
     ```
+3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
-3. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+    ```go
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := meta.(*clients.Client).Compute.DedicatedHostsClient
+            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+            defer cancel()
+            
+            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+            ...
+            
+            if err := client.CreateOrUpdateThenPoll; err != nil {
+               return fmt.Errorf("creating %s: %+v", &id, err)
+            }
+            
+            d.SetId(id.ID())
+            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+                return err
+            }
+            
+            return resourceExampleRead(d, meta)
+        }
+    }
+    ```
+
+   > Note: While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
+
+4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
         func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -151,7 +210,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
         }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ## Resource Identity Tests
 

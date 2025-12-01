@@ -297,6 +297,9 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
