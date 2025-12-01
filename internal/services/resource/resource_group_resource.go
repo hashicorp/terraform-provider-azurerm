@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -180,7 +181,10 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		pollerType := custompollers.NewResourceGroupPreventDeletePoller(client, *id)
 		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
+		poller.AllowRetryOnError(true)
+		deletePollerCtx, cancel := context.WithTimeout(ctx, time.Minute*10)
+		defer cancel()
+		if err := poller.PollUntilDone(deletePollerCtx); err != nil {
 			return err
 		}
 	}

@@ -49,15 +49,11 @@ func (p resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.Po
 		}
 	}
 
-	if errors.Is(ctx.Err(), context.Canceled) {
-		return pollingFailed, resourceGroupContainsItemsError(p.id.ResourceGroupName, nestedResourceIds)
-	}
-
 	if len(nestedResourceIds) > 0 {
 		return &pollers.PollResult{
 			PollInterval: 30 * time.Second,
 			Status:       pollers.PollingStatusInProgress,
-		}, nil
+		}, resourceGroupContainsItemsError(p.id.ResourceGroupName, nestedResourceIds)
 	}
 
 	return pollingSuccess, nil
