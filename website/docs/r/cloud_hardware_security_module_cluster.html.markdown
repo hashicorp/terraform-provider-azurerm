@@ -63,11 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `activation_state` - The activation state of the Cloud Hardware Security Module Cluster.
 
-* `status_message` - The status message of the Cloud Hardware Security Module Cluster.
-
 * `hsms` - A list of `hsms` blocks as defined below.
 
 * `private_endpoint_connections` - A list of `private_endpoint_connections` blocks as defined below.
+
+* `status_message` - The status message of the Cloud Hardware Security Module Cluster.
 
 ---
 
