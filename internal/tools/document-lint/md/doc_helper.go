@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -70,7 +70,7 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(utils.Int32)
+	file, _ := util.FuncFileLine(pointer.To)
 	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
 }
 
