@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -109,9 +110,9 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),
-		Mode:        utils.String(mode),
-		DisplayName: utils.String(displayName),
-		Description: utils.String(description),
+		Mode:        pointer.To(mode),
+		DisplayName: pointer.To(displayName),
+		Description: pointer.To(description),
 	}
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
@@ -139,7 +140,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	definition := policy.Definition{
-		Name:                 utils.String(name),
+		Name:                 pointer.To(name),
 		DefinitionProperties: &properties,
 	}
 

@@ -584,7 +584,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
 		// set the default value for storage_mb...
 		storageMb = 32768
-		storage.StorageSizeGB = pointer.FromInt64(int64(32))
+		storage.StorageSizeGB = pointer.To(int64(32))
 		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
 	} else {
 		storageMb = int(*storage.StorageSizeGB) * 1024
@@ -1118,7 +1118,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage.AutoGrow = &autoGrow
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
+		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
 	if v, ok := d.GetOk("storage_tier"); ok {
