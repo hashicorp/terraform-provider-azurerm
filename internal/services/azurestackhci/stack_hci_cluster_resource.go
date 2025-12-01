@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -18,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmStackHCIClusterCreate,
 		Read:   resourceArmStackHCIClusterRead,
 		Update: resourceArmStackHCIClusterUpdate,
@@ -71,14 +72,6 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"automanage_configuration_id": {
-				// TODO: this field should be removed in 4.0 - there's an "association" API specifically for this purpose
-				// so we should be outputting this as an association resource.
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
-			},
-
 			"cloud_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -99,6 +92,18 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["automanage_configuration_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
+			Deprecated:   "the `automanage_configuration_id` property has been deprecated in favour of `azurerm_stack_hci_cluster_automanage_configuration_assignment` and will be removed in version 5.0 of the Provider.",
+		}
+	}
+
+	return resource
 }
 
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -122,7 +127,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	cluster := clusters.Cluster{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &clusters.ClusterProperties{
-			AadClientId: utils.String(d.Get("client_id").(string)),
+			AadClientId: pointer.To(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -132,44 +137,46 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.Properties.AadTenantId = utils.String(v.(string))
+		cluster.Properties.AadTenantId = pointer.To(v.(string))
 	} else {
 		tenantId := meta.(*clients.Client).Account.TenantId
-		cluster.Properties.AadTenantId = utils.String(tenantId)
+		cluster.Properties.AadTenantId = pointer.To(tenantId)
 	}
 
 	if _, err := client.Create(ctx, id, cluster); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if v, ok := d.GetOk("automanage_configuration_id"); ok {
-		configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
-		hciAssignmentsClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("automanage_configuration_id"); ok {
+			configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
+			hciAssignmentsClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
 
-		configurationProfileId, err := configurationprofiles.ParseConfigurationProfileID(v.(string))
-		if err != nil {
-			return err
-		}
-
-		if _, err = configurationProfilesClient.Get(ctx, *configurationProfileId); err != nil {
-			return fmt.Errorf("checking for existing %s: %+v", configurationProfileId, err)
-		}
-
-		hciAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
-		assignmentsResp, err := hciAssignmentsClient.Get(ctx, hciAssignmentId)
-		if err != nil && !response.WasNotFound(assignmentsResp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", hciAssignmentId, err)
-		}
-
-		if response.WasNotFound(assignmentsResp.HttpResponse) {
-			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
-				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
-				},
+			configurationProfileId, err := configurationprofiles.ParseConfigurationProfileID(v.(string))
+			if err != nil {
+				return err
 			}
 
-			if _, err := hciAssignmentsClient.CreateOrUpdate(ctx, hciAssignmentId, properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", hciAssignmentId, err)
+			if _, err = configurationProfilesClient.Get(ctx, *configurationProfileId); err != nil {
+				return fmt.Errorf("checking for existing %s: %+v", configurationProfileId, err)
+			}
+
+			hciAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+			assignmentsResp, err := hciAssignmentsClient.Get(ctx, hciAssignmentId)
+			if err != nil && !response.WasNotFound(assignmentsResp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", hciAssignmentId, err)
+			}
+
+			if response.WasNotFound(assignmentsResp.HttpResponse) {
+				properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
+					Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
+						ConfigurationProfile: pointer.To(configurationProfileId.ID()),
+					},
+				}
+
+				if _, err := hciAssignmentsClient.CreateOrUpdate(ctx, hciAssignmentId, properties); err != nil {
+					return fmt.Errorf("creating %s: %+v", hciAssignmentId, err)
+				}
 			}
 		}
 	}
@@ -221,21 +228,22 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	hclAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "default")
-	assignmentResp, err := hciAssignmentsClient.Get(ctx, hclAssignmentId)
-	if err != nil && !response.WasNotFound(assignmentResp.HttpResponse) {
-		return err
-	}
-	configId := ""
-	if model := assignmentResp.Model; model != nil && model.Properties != nil && model.Properties.ConfigurationProfile != nil {
-		parsed, err := configurationprofiles.ParseConfigurationProfileIDInsensitively(*model.Properties.ConfigurationProfile)
-		if err != nil {
+	if !features.FivePointOh() {
+		hclAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+		assignmentResp, err := hciAssignmentsClient.Get(ctx, hclAssignmentId)
+		if err != nil && !response.WasNotFound(assignmentResp.HttpResponse) {
 			return err
 		}
-		configId = parsed.ID()
+		configId := ""
+		if model := assignmentResp.Model; model != nil && model.Properties != nil && model.Properties.ConfigurationProfile != nil {
+			parsed, err := configurationprofiles.ParseConfigurationProfileIDInsensitively(*model.Properties.ConfigurationProfile)
+			if err != nil {
+				return err
+			}
+			configId = parsed.ID()
+		}
+		d.Set("automanage_configuration_id", configId)
 	}
-	d.Set("automanage_configuration_id", configId)
-
 	return nil
 }
 
@@ -263,39 +271,41 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if d.HasChange("automanage_configuration_id") {
-		hciAssignmentClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
-		configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
-		hciAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+	if !features.FivePointOh() {
+		if d.HasChange("automanage_configuration_id") {
+			hciAssignmentClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
+			configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
+			hciAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "default")
 
-		if v, ok := d.GetOk("automanage_configuration_id"); ok {
-			configurationProfileId, err := configurationprofiles.ParseConfigurationProfileID(v.(string))
-			if err != nil {
-				return err
-			}
+			if v, ok := d.GetOk("automanage_configuration_id"); ok {
+				configurationProfileId, err := configurationprofiles.ParseConfigurationProfileID(v.(string))
+				if err != nil {
+					return err
+				}
 
-			if _, err = configurationProfilesClient.Get(ctx, *configurationProfileId); err != nil {
-				return fmt.Errorf("checking for existing %s: %+v", configurationProfileId, err)
-			}
+				if _, err = configurationProfilesClient.Get(ctx, *configurationProfileId); err != nil {
+					return fmt.Errorf("checking for existing %s: %+v", configurationProfileId, err)
+				}
 
-			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
-				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
-				},
-			}
+				properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
+					Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
+						ConfigurationProfile: pointer.To(configurationProfileId.ID()),
+					},
+				}
 
-			if _, err := hciAssignmentClient.CreateOrUpdate(ctx, hciAssignmentId, properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", hciAssignmentId, err)
-			}
-		} else {
-			assignmentResp, err := hciAssignmentClient.Get(ctx, hciAssignmentId)
-			if err != nil && !response.WasNotFound(assignmentResp.HttpResponse) {
-				return err
-			}
+				if _, err := hciAssignmentClient.CreateOrUpdate(ctx, hciAssignmentId, properties); err != nil {
+					return fmt.Errorf("creating %s: %+v", hciAssignmentId, err)
+				}
+			} else {
+				assignmentResp, err := hciAssignmentClient.Get(ctx, hciAssignmentId)
+				if err != nil && !response.WasNotFound(assignmentResp.HttpResponse) {
+					return err
+				}
 
-			if !response.WasNotFound(assignmentResp.HttpResponse) {
-				if _, err := hciAssignmentClient.Delete(ctx, hciAssignmentId); err != nil {
-					return fmt.Errorf("deleting %s: %+v", id, err)
+				if !response.WasNotFound(assignmentResp.HttpResponse) {
+					if _, err := hciAssignmentClient.Delete(ctx, hciAssignmentId); err != nil {
+						return fmt.Errorf("deleting %s: %+v", id, err)
+					}
 				}
 			}
 		}
