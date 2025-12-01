@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceElasticsearch() *pluginsdk.Resource {
@@ -185,7 +185,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &monitorsresource.MonitorProperties{
 			MonitoringStatus: &monitoringStatus,
 			UserInfo: &monitorsresource.UserInfo{
-				EmailAddress: utils.String(d.Get("elastic_cloud_email_address").(string)),
+				EmailAddress: pointer.To(d.Get("elastic_cloud_email_address").(string)),
 			},
 		},
 		Sku: &monitorsresource.ResourceSku{
@@ -360,8 +360,8 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 		action := rules.TagAction(item["action"].(string))
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Action: &action,
-			Name:   utils.String(item["name"].(string)),
-			Value:  utils.String(item["value"].(string)),
+			Name:   pointer.To(item["name"].(string)),
+			Value:  pointer.To(item["value"].(string)),
 		})
 	}
 
@@ -371,9 +371,9 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 
 	return &rules.LogRules{
 		FilteringTags:        &filteringTags,
-		SendAadLogs:          utils.Bool(sendAzureAdLogs),
-		SendActivityLogs:     utils.Bool(sendActivityLogs),
-		SendSubscriptionLogs: utils.Bool(sendSubscriptionLogs),
+		SendAadLogs:          pointer.To(sendAzureAdLogs),
+		SendActivityLogs:     pointer.To(sendActivityLogs),
+		SendSubscriptionLogs: pointer.To(sendSubscriptionLogs),
 	}
 }
 
