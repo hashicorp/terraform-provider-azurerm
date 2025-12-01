@@ -30,7 +30,7 @@ type DatabaseVersionsModel struct {
 type DatabaseVersionItemModel struct {
 	Name                         string `tfschema:"name"`
 	LatestForMajorVersionEnabled bool   `tfschema:"latest_for_major_version_enabled"`
-	SupportsPdb                  bool   `tfschema:"supports_pdb"`
+	SupportsPdbEnabled           bool   `tfschema:"supports_pdb_enabled"`
 	Version                      string `tfschema:"version"`
 }
 
@@ -84,7 +84,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
-					"supports_pdb": {
+					"supports_pdb_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -156,7 +156,7 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 							Name:                         pointer.From(element.Name),
 							Version:                      props.Version,
 							LatestForMajorVersionEnabled: pointer.From(props.IsLatestForMajorVersion),
-							SupportsPdb:                  pointer.From(props.SupportsPdb),
+							SupportsPdbEnabled:           pointer.From(props.SupportsPdb),
 						}
 						state.Versions = append(state.Versions, item)
 					}

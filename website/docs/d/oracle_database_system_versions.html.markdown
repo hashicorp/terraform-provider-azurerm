@@ -58,7 +58,7 @@ A `versions` block exports the following:
 
 * `name` - The name of Oracle Database version.
 
-* `supports_pdb` - Indicates if this version of the Oracle Database software supports pluggable databases.
+* `supports_pdb_enabled` - Indicates if this version of the Oracle Database software supports pluggable databases.
 
 * `version` - A valid Oracle Database version.
 
