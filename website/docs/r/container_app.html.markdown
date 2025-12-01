@@ -172,7 +172,7 @@ A `tcp_scale_rule` block supports the following:
 
 * `name` - (Required) The name of the Scaling Rule
 
-* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
+* `concurrent_connections` - (Required) - The number of concurrent connections to trigger scaling.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
