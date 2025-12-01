@@ -186,7 +186,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
     }
     ```
 
-   > Note: While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
+   > Note: While this may seem redundant given `resourceExampleRead()` gets called after `resourceExampleCreate()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
 
 4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
