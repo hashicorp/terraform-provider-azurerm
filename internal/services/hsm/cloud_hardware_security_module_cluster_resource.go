@@ -362,6 +362,8 @@ func (r CloudHardwareSecurityModuleClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			cluster := *exists.Model
+			// systemData has to be nil for update operations or the API will reject the request
+			cluster.SystemData = nil
 
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
