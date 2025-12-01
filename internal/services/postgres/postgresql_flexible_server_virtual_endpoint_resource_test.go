@@ -273,7 +273,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "east" {
   name     = "acctest%[1]d-east"
-  location = "%[3]s"
+  location = "eastus2"
 }
 
 resource "azurerm_virtual_network" "east" {
@@ -483,7 +483,7 @@ resource "azurerm_postgresql_flexible_server" "west" {
     create = "120m"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 type alternateSubscription struct {
