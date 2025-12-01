@@ -241,26 +241,39 @@ func (r KubernetesFleetUpdateRunResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving existing %s: properties was nil", *id)
+				return fmt.Errorf("retrieving %s: `Model` was nil", *id)
 			}
-			payload := *existing.Model
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `Properties` was nil", *id)
+			}
+			props := existing.Model.Properties
+
+			// The API errors if this field is included in the Update request
+			// unexpected status 400 (400 Bad Request) with error: PropertyChangeNotAllowed:
+			// Changing immutable/read-only properties is not allowed: Status
+			props.Status = nil
 
 			if metadata.ResourceData.HasChange("managed_cluster_update") {
-				payload.Properties.ManagedClusterUpdate = expandKubernetesFleetUpdateRunManagedClusterUpdate(config.ManagedClusterUpdate)
+				props.ManagedClusterUpdate = expandKubernetesFleetUpdateRunManagedClusterUpdate(config.ManagedClusterUpdate)
 			}
 
 			if metadata.ResourceData.HasChange("fleet_update_strategy_id") {
-				payload.Properties.UpdateStrategyId = pointer.To(config.FleetUpdateStrategyId)
+				props.UpdateStrategyId = pointer.To(config.FleetUpdateStrategyId)
 			}
 
 			if metadata.ResourceData.HasChange("stage") {
-				payload.Properties.Strategy.Stages = expandKubernetesFleetUpdateRunStage(config.Stage)
+				if props.Strategy == nil {
+					props.Strategy = &updateruns.UpdateRunStrategy{}
+				}
+				props.Strategy.Stages = expandKubernetesFleetUpdateRunStage(config.Stage)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, updateruns.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, updateruns.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -292,10 +305,14 @@ func (r KubernetesFleetUpdateRunResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.UpdateRunName
 				schema.KubernetesFleetManagerId = commonids.NewKubernetesFleetID(id.SubscriptionId, id.ResourceGroupName, id.FleetName).ID()
-				if model.Properties != nil {
-					schema.ManagedClusterUpdate = flattenKubernetesFleetUpdateRunManagedClusterUpdate(model.Properties.ManagedClusterUpdate)
-					schema.FleetUpdateStrategyId = pointer.From(model.Properties.UpdateStrategyId)
-					schema.Stage = flattenKubernetesFleetUpdateRunStage(model.Properties.Strategy.Stages)
+
+				if props := model.Properties; props != nil {
+					schema.ManagedClusterUpdate = flattenKubernetesFleetUpdateRunManagedClusterUpdate(props.ManagedClusterUpdate)
+					schema.FleetUpdateStrategyId = pointer.From(props.UpdateStrategyId)
+
+					if props.Strategy != nil {
+						schema.Stage = flattenKubernetesFleetUpdateRunStage(props.Strategy.Stages)
+					}
 				}
 			}
 
@@ -419,7 +436,7 @@ func flattenKubernetesFleetUpdateRunStage(input []updateruns.UpdateStage) []Kube
 	for _, stage := range input {
 		output = append(output, KubernetesFleetUpdateRunResourceUpdateStageSchema{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.ToInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.From(stage.AfterStageWaitInSeconds),
 			Group:                   flattenKubernetesFleetUpdateRunGroup(stage.Groups),
 		})
 	}
@@ -428,10 +445,15 @@ func flattenKubernetesFleetUpdateRunStage(input []updateruns.UpdateStage) []Kube
 
 func flattenKubernetesFleetUpdateRunGroup(input *[]updateruns.UpdateGroup) []KubernetesFleetUpdateRunResourceUpdateGroupSchema {
 	output := make([]KubernetesFleetUpdateRunResourceUpdateGroupSchema, 0)
+	if input == nil {
+		return output
+	}
+
 	for _, group := range *input {
 		output = append(output, KubernetesFleetUpdateRunResourceUpdateGroupSchema{
 			Name: group.Name,
 		})
 	}
+
 	return output
 }

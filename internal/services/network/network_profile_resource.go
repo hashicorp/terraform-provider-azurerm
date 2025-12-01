@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,7 +122,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_profile", id.ID())
+		return tf.ImportAsExistsError(azureNetworkProfileResourceName, id.ID())
 	}
 
 	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
@@ -233,14 +233,15 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		return fmt.Errorf("requesting %s: %+v", *id, err)
 	}
+	return resourceNetworkProfileFlatten(d, id, resp.Model)
+}
 
+func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofiles.NetworkProfileId, profile *networkprofiles.NetworkProfile) error {
 	d.Set("name", id.NetworkProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		if props := model.Properties; props != nil {
+	if profile != nil {
+		if props := profile.Properties; props != nil {
 			cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
 			if err := d.Set("container_network_interface", cniConfigs); err != nil {
 				return fmt.Errorf("setting `container_network_interface`: %+v", err)
@@ -251,12 +252,11 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 			}
 		}
-
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		d.Set("location", location.NormalizeNilable(profile.Location))
+		if err := tags.FlattenAndSet(d, profile.Tags); err != nil {
 			return err
 		}
 	}
-
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
