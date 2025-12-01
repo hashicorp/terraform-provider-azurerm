@@ -473,7 +473,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		var ownerPtr *automationrules.IncidentOwnerInfo
 		if ownerIdStr := b["owner_id"].(string); ownerIdStr != "" {
 			ownerPtr = &automationrules.IncidentOwnerInfo{
-				ObjectId: utils.String(ownerIdStr),
+				ObjectId: pointer.To(ownerIdStr),
 			}
 		}
 
