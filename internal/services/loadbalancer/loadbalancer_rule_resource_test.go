@@ -53,10 +53,6 @@ func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
-
-	// complete template requires a 'Standard' SKU.
-	// In order to avoid "requires replacement" for the LB resource, we first need to deploy
-	// the basic template with the 'Standard' SKU.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithSku(data, "Standard"),
@@ -309,9 +305,6 @@ func (r LoadBalancerRule) basic(data acceptance.TestData) string {
 	return r.basicWithSku(data, "Basic")
 }
 
-// Allow the 'basic' template to be configured with a different SKU, such as 'Standard'.
-// This flexibility helps certain tests, such as '_update', to use the basic and complete templates together in a test.
-// (complete template requires 'Standard')
 func (r LoadBalancerRule) basicWithSku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %s
