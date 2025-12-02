@@ -70,6 +70,42 @@ func resourceApiConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"kind": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"parameter_value_type": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"parameter_value_set"},
+			},
+
+			"parameter_value_set": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"parameter_value_type"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"values": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"parameter_values": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -122,6 +158,18 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 		model.Properties.DisplayName = pointer.To(v)
 	}
 
+	if v := d.Get("kind").(string); v != "" {
+		model.Kind = pointer.To(v)
+	}
+
+	if v := d.Get("parameter_value_type").(string); v != "" {
+		model.Properties.ParameterValueType = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("parameter_value_set"); ok {
+		model.Properties.ParameterValueSet = expandParameterValueSet(v.([]interface{}))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -153,6 +201,8 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
+		d.Set("kind", model.Kind)
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
@@ -166,6 +216,12 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 			// The non-secret parameters are returned in `NonSecretParameterValues` instead.
 			if err := d.Set("parameter_values", flattenParameterValues(pointer.From(props.NonSecretParameterValues))); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
+			}
+
+			d.Set("parameter_value_type", props.ParameterValueType)
+
+			if err := d.Set("parameter_value_set", flattenParameterValueSet(props.ParameterValueSet)); err != nil {
+				return fmt.Errorf("setting `parameter_value_set`: %+v", err)
 			}
 		}
 
@@ -213,6 +269,18 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
 	}
 
+	if d.HasChange("kind") {
+		existing.Model.Kind = pointer.To(d.Get("kind").(string))
+	}
+
+	if d.HasChange("parameter_value_type") {
+		props.ParameterValueType = pointer.To(d.Get("parameter_value_type").(string))
+	}
+
+	if d.HasChange("parameter_value_set") {
+		props.ParameterValueSet = expandParameterValueSet(d.Get("parameter_value_set").([]interface{}))
+	}
+
 	if d.HasChange("tags") {
 		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -251,4 +319,55 @@ func flattenParameterValues(input map[string]interface{}) map[string]string {
 	}
 
 	return output
+}
+
+func expandParameterValueSet(input []interface{}) *connections.ParameterValueSet {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &connections.ParameterValueSet{
+		Name: pointer.To(v["name"].(string)),
+	}
+
+	if values, ok := v["values"].(map[string]interface{}); ok && len(values) > 0 {
+		expandedValues := make(map[string]interface{})
+		for key, val := range values {
+			expandedValues[key] = map[string]interface{}{
+				"value": val,
+			}
+		}
+		result.Values = pointer.To(expandedValues)
+	}
+
+	return result
+}
+
+func flattenParameterValueSet(input *connections.ParameterValueSet) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	result := map[string]interface{}{
+		"name": pointer.From(input.Name),
+	}
+
+	values := make(map[string]string)
+	if input.Values != nil {
+		for key, val := range *input.Values {
+			// The API returns values in the format {"key": {"value": "actualValue"}}
+			// We need to extract the "value" field
+			if valueMap, ok := val.(map[string]interface{}); ok {
+				if v, exists := valueMap["value"]; exists {
+					values[key] = fmt.Sprintf("%v", v)
+				}
+			} else {
+				values[key] = fmt.Sprintf("%v", val)
+			}
+		}
+	}
+	result["values"] = values
+
+	return []interface{}{result}
 }

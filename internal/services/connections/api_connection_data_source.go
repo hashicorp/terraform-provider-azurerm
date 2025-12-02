@@ -19,13 +19,21 @@ import (
 )
 
 type ApiConnectionDataSourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	ManagedApiId      string            `tfschema:"managed_api_id"`
-	DisplayName       string            `tfschema:"display_name"`
-	ParameterValues   map[string]string `tfschema:"parameter_values"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name               string                   `tfschema:"name"`
+	ResourceGroupName  string                   `tfschema:"resource_group_name"`
+	Location           string                   `tfschema:"location"`
+	ManagedApiId       string                   `tfschema:"managed_api_id"`
+	DisplayName        string                   `tfschema:"display_name"`
+	Kind               string                   `tfschema:"kind"`
+	ParameterValues    map[string]string        `tfschema:"parameter_values"`
+	ParameterValueType string                   `tfschema:"parameter_value_type"`
+	ParameterValueSet  []ParameterValueSetModel `tfschema:"parameter_value_set"`
+	Tags               map[string]string        `tfschema:"tags"`
+}
+
+type ParameterValueSetModel struct {
+	Name   string            `tfschema:"name"`
+	Values map[string]string `tfschema:"values"`
 }
 
 type ApiConnectionDataSource struct{}
@@ -70,11 +78,41 @@ func (r ApiConnectionDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"parameter_values": {
 			Type:     pluginsdk.TypeMap,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"parameter_value_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"parameter_value_set": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"values": {
+						Type:     pluginsdk.TypeMap,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
 			},
 		},
 
@@ -109,6 +147,7 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(model.Location)
+				state.Kind = pointer.From(model.Kind)
 
 				if props := model.Properties; props != nil {
 					state.DisplayName = pointer.From(props.DisplayName)
@@ -120,6 +159,8 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 					// In version 2016-06-01 the API doesn't return `ParameterValues`.
 					// The non-secret parameters are returned in `NonSecretParameterValues` instead.
 					state.ParameterValues = flattenParameterValues(pointer.From(props.NonSecretParameterValues))
+					state.ParameterValueType = pointer.From(props.ParameterValueType)
+					state.ParameterValueSet = flattenParameterValueSetForDataSource(props.ParameterValueSet)
 				}
 
 				state.Tags = pointer.From(model.Tags)
@@ -127,6 +168,34 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func flattenParameterValueSetForDataSource(input *connections.ParameterValueSet) []ParameterValueSetModel {
+	if input == nil {
+		return []ParameterValueSetModel{}
+	}
+
+	values := make(map[string]string)
+	if input.Values != nil {
+		for key, val := range *input.Values {
+			// The API returns values in the format {"key": {"value": "actualValue"}}
+			// We need to extract the "value" field
+			if valueMap, ok := val.(map[string]interface{}); ok {
+				if v, exists := valueMap["value"]; exists {
+					values[key] = fmt.Sprintf("%v", v)
+				}
+			} else {
+				values[key] = fmt.Sprintf("%v", val)
+			}
+		}
+	}
+
+	return []ParameterValueSetModel{
+		{
+			Name:   pointer.From(input.Name),
+			Values: values,
 		},
 	}
 }
