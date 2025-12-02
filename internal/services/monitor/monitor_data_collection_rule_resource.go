@@ -1087,6 +1087,8 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			metadata.ResourceData.Partial(true)
+
 			if metadata.ResourceData.HasChange("kind") {
 				existing.Kind = expandDataCollectionRuleKind(state.Kind)
 			}
@@ -1138,6 +1140,9 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+
+			metadata.ResourceData.Partial(false)
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,
