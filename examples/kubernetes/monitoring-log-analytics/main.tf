@@ -49,5 +49,6 @@ resource "azurerm_kubernetes_cluster" "example" {
   oms_agent {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.example.id
     msi_auth_for_monitoring_enabled = true
+    container_network_logs_enabled  = false
   }
 }
