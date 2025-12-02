@@ -394,7 +394,7 @@ func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(accountID)
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, accountID)
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, accountID, pluginsdk.ResourceTypeForIdentityVirtual)
 		},
 	}
 }
