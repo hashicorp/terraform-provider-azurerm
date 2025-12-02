@@ -901,7 +901,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                         = "1"
   geo_redundant_backup_enabled = true
 }
-`, data.RandomInteger, data.Locations.Secondary)
+`, data.RandomInteger, "southcentralus")
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
@@ -916,7 +916,7 @@ resource "azurerm_postgresql_flexible_server" "geo_restore" {
   source_server_id                  = azurerm_postgresql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
 }
-`, r.geoRestoreSource(data), data.RandomInteger, data.Locations.Ternary, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
+`, r.geoRestoreSource(data), data.RandomInteger, "northcentralus", time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
 func (r PostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
