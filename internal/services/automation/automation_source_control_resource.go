@@ -10,12 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type Security struct {
@@ -182,12 +181,12 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 
 			var param sourcecontrol.SourceControlCreateOrUpdateParameters
 			param.Properties = sourcecontrol.SourceControlCreateOrUpdateProperties{
-				AutoSync:       utils.Bool(model.AutoSync),
-				Branch:         utils.String(model.Branch),
-				Description:    utils.String(model.Description),
-				FolderPath:     utils.String(model.FolderPath),
-				PublishRunbook: utils.Bool(model.PublishRunbook),
-				RepoURL:        utils.String(model.RepoURL),
+				AutoSync:       pointer.To(model.AutoSync),
+				Branch:         pointer.To(model.Branch),
+				Description:    pointer.To(model.Description),
+				FolderPath:     pointer.To(model.FolderPath),
+				PublishRunbook: pointer.To(model.PublishRunbook),
+				RepoURL:        pointer.To(model.RepoURL),
 				SourceType:     &sourceType,
 			}
 
@@ -196,9 +195,9 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				token := model.SecurityToken[0]
 				tokenType := sourcecontrol.TokenType(token.TokenType)
 				param.Properties.SecurityToken.TokenType = &tokenType
-				param.Properties.SecurityToken.AccessToken = utils.String(token.Token)
+				param.Properties.SecurityToken.AccessToken = pointer.To(token.Token)
 				if token.RefreshToken != "" {
-					param.Properties.SecurityToken.RefreshToken = utils.String(token.RefreshToken)
+					param.Properties.SecurityToken.RefreshToken = pointer.To(token.RefreshToken)
 				}
 			}
 
@@ -279,29 +278,29 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 			var upd sourcecontrol.SourceControlUpdateParameters
 			prop := &sourcecontrol.SourceControlUpdateProperties{}
 			if meta.ResourceData.HasChange("branch") {
-				prop.Branch = utils.String(model.Branch)
+				prop.Branch = pointer.To(model.Branch)
 			}
 			if meta.ResourceData.HasChange("folder_path") {
-				prop.FolderPath = utils.String(model.FolderPath)
+				prop.FolderPath = pointer.To(model.FolderPath)
 			}
 			if meta.ResourceData.HasChange("automatic_sync") {
-				prop.AutoSync = utils.Bool(model.AutoSync)
+				prop.AutoSync = pointer.To(model.AutoSync)
 			}
 			if meta.ResourceData.HasChange("folder_path") {
-				prop.FolderPath = utils.String(model.FolderPath)
+				prop.FolderPath = pointer.To(model.FolderPath)
 			}
 			if meta.ResourceData.HasChange("publish_runbook_enabled") {
-				prop.PublishRunbook = utils.Bool(model.PublishRunbook)
+				prop.PublishRunbook = pointer.To(model.PublishRunbook)
 			}
 			if meta.ResourceData.HasChange("description") {
-				prop.Description = utils.String(model.Description)
+				prop.Description = pointer.To(model.Description)
 			}
 
 			tokenType := sourcecontrol.TokenType(model.SecurityToken[0].TokenType)
 			if meta.ResourceData.HasChange("security") {
 				prop.SecurityToken = &sourcecontrol.SourceControlSecurityTokenProperties{
-					AccessToken:  utils.String(model.SecurityToken[0].TokenType),
-					RefreshToken: utils.String(model.SecurityToken[0].RefreshToken),
+					AccessToken:  pointer.To(model.SecurityToken[0].TokenType),
+					RefreshToken: pointer.To(model.SecurityToken[0].RefreshToken),
 					TokenType:    &tokenType,
 				}
 			}

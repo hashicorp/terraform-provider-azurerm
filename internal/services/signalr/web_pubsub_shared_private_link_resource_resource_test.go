@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebPubsubSharedPrivateLinkResource struct{}
@@ -57,12 +57,12 @@ func (r WebPubsubSharedPrivateLinkResource) Exists(ctx context.Context, clients 
 	resp, err := clients.SignalR.WebPubSubClient.WebPubSub.SharedPrivateLinkResourcesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r WebPubsubSharedPrivateLinkResource) basic(data acceptance.TestData) string {
@@ -71,7 +71,7 @@ func (r WebPubsubSharedPrivateLinkResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -102,7 +102,7 @@ resource "azurerm_web_pubsub_shared_private_link_resource" "test" {
   subresource_name   = "vault"
   target_resource_id = azurerm_key_vault.test.id
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r WebPubsubSharedPrivateLinkResource) requiresImport(data acceptance.TestData) string {

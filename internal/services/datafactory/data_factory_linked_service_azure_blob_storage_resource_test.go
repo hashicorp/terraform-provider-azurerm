@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceAzureBlobStorageResource struct{}
@@ -159,7 +159,7 @@ func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clien
 		return nil, fmt.Errorf("reading Data Factory Azure Storage Blob (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
@@ -366,7 +366,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -388,7 +388,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (LinkedServiceAzureBlobStorageResource) service_endpoint_with_service_principal_linked_key_vault_key(data acceptance.TestData, tenantID string) string {
@@ -415,7 +415,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -439,7 +439,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, tenantID)
 }
 
 func (LinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BackupPolicyPostgreSQLFlexibleServerModel struct {
@@ -392,7 +391,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 	for _, item := range input {
 		results = append(results, backuppolicies.AzureRetentionRule{
 			Name:       item.Name,
-			IsDefault:  utils.Bool(false),
+			IsDefault:  pointer.To(false),
 			Lifecycles: expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(item.LifeCycle),
 		})
 	}
@@ -403,7 +402,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 func expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(input []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule) backuppolicies.BasePolicyRule {
 	result := backuppolicies.AzureRetentionRule{
 		Name:      "Default",
-		IsDefault: utils.Bool(true),
+		IsDefault: pointer.To(true),
 	}
 
 	if len(input) > 0 {
@@ -441,7 +440,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -453,7 +452,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 			Criteria:        expandBackupPolicyPostgreSQLFlexibleServerCriteria(item.Criteria),
 			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(item.Name + "_"),
+				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
 			},
 		}

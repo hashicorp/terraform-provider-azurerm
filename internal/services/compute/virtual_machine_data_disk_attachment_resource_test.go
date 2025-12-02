@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualMachineDataDiskAttachmentResource struct{}
@@ -298,7 +297,7 @@ func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, cli
 		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r VirtualMachineDataDiskAttachmentResource) basic(data acceptance.TestData) string {

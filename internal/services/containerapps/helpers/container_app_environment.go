@@ -14,20 +14,27 @@ type WorkloadProfileSku string
 
 // NOTE: the Workload Profile SKUs aren't defined in the Swagger definition so we define them here
 const (
-	WorkloadProfileSkuConsumption WorkloadProfileSku = "Consumption"
-	WorkloadProfileSkuD4          WorkloadProfileSku = "D4"
-	WorkloadProfileSkuD8          WorkloadProfileSku = "D8"
-	WorkloadProfileSkuD16         WorkloadProfileSku = "D16"
-	WorkloadProfileSkuD32         WorkloadProfileSku = "D32"
-	WorkloadProfileSkuE4          WorkloadProfileSku = "E4"
-	WorkloadProfileSkuE8          WorkloadProfileSku = "E8"
-	WorkloadProfileSkuE16         WorkloadProfileSku = "E16"
-	WorkloadProfileSkuE32         WorkloadProfileSku = "E32"
+	WorkloadProfileSkuConsumption            WorkloadProfileSku = "Consumption"
+	WorkloadProfileSkuConsumptionGpuNc24A100 WorkloadProfileSku = "Consumption-GPU-NC24-A100"
+	WorkloadProfileSkuConsumptionGpuNc8AsT4  WorkloadProfileSku = "Consumption-GPU-NC8as-T4"
+	WorkloadProfileSkuD4                     WorkloadProfileSku = "D4"
+	WorkloadProfileSkuD8                     WorkloadProfileSku = "D8"
+	WorkloadProfileSkuD16                    WorkloadProfileSku = "D16"
+	WorkloadProfileSkuD32                    WorkloadProfileSku = "D32"
+	WorkloadProfileSkuE4                     WorkloadProfileSku = "E4"
+	WorkloadProfileSkuE8                     WorkloadProfileSku = "E8"
+	WorkloadProfileSkuE16                    WorkloadProfileSku = "E16"
+	WorkloadProfileSkuE32                    WorkloadProfileSku = "E32"
+	WorkloadProfileSkuNc24A100               WorkloadProfileSku = "NC24-A100"
+	WorkloadProfileSkuNc48A100               WorkloadProfileSku = "NC48-A100"
+	WorkloadProfileSkuNc96A100               WorkloadProfileSku = "NC96-A100"
 )
 
 func PossibleValuesForWorkloadProfileSku() []string {
 	return []string{
 		string(WorkloadProfileSkuConsumption),
+		string(WorkloadProfileSkuConsumptionGpuNc24A100),
+		string(WorkloadProfileSkuConsumptionGpuNc8AsT4),
 		string(WorkloadProfileSkuD4),
 		string(WorkloadProfileSkuD8),
 		string(WorkloadProfileSkuD16),
@@ -36,6 +43,9 @@ func PossibleValuesForWorkloadProfileSku() []string {
 		string(WorkloadProfileSkuE8),
 		string(WorkloadProfileSkuE16),
 		string(WorkloadProfileSkuE32),
+		string(WorkloadProfileSkuNc24A100),
+		string(WorkloadProfileSkuNc48A100),
+		string(WorkloadProfileSkuNc96A100),
 	}
 }
 

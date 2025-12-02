@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkPeeringResource struct{}
@@ -160,7 +159,7 @@ func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clie
 		return nil, fmt.Errorf("deleting on virtual network peering: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r VirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
