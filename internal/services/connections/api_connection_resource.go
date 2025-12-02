@@ -353,21 +353,28 @@ func flattenParameterValueSet(input *connections.ParameterValueSet) []interface{
 		"name": pointer.From(input.Name),
 	}
 
-	values := make(map[string]string)
-	if input.Values != nil {
-		for key, val := range *input.Values {
-			// The API returns values in the format {"key": {"value": "actualValue"}}
-			// We need to extract the "value" field
-			if valueMap, ok := val.(map[string]interface{}); ok {
-				if v, exists := valueMap["value"]; exists {
-					values[key] = fmt.Sprintf("%v", v)
-				}
-			} else {
-				values[key] = fmt.Sprintf("%v", val)
-			}
-		}
-	}
-	result["values"] = values
+	result["values"] = flattenParameterValueSetValues(input.Values)
 
 	return []interface{}{result}
+}
+
+// flattenParameterValueSetValues extracts values from the API's parameter value set format.
+// The API returns values in the format {"key": {"value": "actualValue"}}
+// This function extracts the "value" field for each key.
+func flattenParameterValueSetValues(input *map[string]interface{}) map[string]string {
+	values := make(map[string]string)
+	if input == nil {
+		return values
+	}
+
+	for key, val := range *input {
+		if valueMap, ok := val.(map[string]interface{}); ok {
+			if v, exists := valueMap["value"]; exists {
+				values[key] = fmt.Sprintf("%v", v)
+			}
+		} else {
+			values[key] = fmt.Sprintf("%v", val)
+		}
+	}
+	return values
 }

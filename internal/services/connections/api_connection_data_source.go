@@ -177,25 +177,10 @@ func flattenParameterValueSetForDataSource(input *connections.ParameterValueSet)
 		return []ParameterValueSetModel{}
 	}
 
-	values := make(map[string]string)
-	if input.Values != nil {
-		for key, val := range *input.Values {
-			// The API returns values in the format {"key": {"value": "actualValue"}}
-			// We need to extract the "value" field
-			if valueMap, ok := val.(map[string]interface{}); ok {
-				if v, exists := valueMap["value"]; exists {
-					values[key] = fmt.Sprintf("%v", v)
-				}
-			} else {
-				values[key] = fmt.Sprintf("%v", val)
-			}
-		}
-	}
-
 	return []ParameterValueSetModel{
 		{
 			Name:   pointer.From(input.Name),
-			Values: values,
+			Values: flattenParameterValueSetValues(input.Values),
 		},
 	}
 }
