@@ -56,14 +56,15 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("frontend_ip_configuration")
-				if len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0 {
+				switch {
+				case len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0:
 					return false
-				} else if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+				case len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0:
 					// Azure does not allow an LB to have all frontend removed, it results in the following error:
 					// Error: "Deleting all frontendIPConfigs from load balancer is not supported."
 					// If the old config had frontends, and new config has none, need to force new LB
 					return true
-				} else {
+				default:
 					for i, nc := range new.([]interface{}) {
 						dataNew := nc.(map[string]interface{})
 						for _, oc := range old.([]interface{}) {
