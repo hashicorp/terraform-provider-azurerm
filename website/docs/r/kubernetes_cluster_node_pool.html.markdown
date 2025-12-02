@@ -158,7 +158,9 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
-* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `kataVmIsolation`, `OCIContainer` and `WasmWasi`. Omitting this field defaults to `OCIContainer`.
+
+~> **Note:** `kataVmIsolation` requires to set os_sku to `AzureLinux` and is only supported on VM sizes that support nested virtualization. For more information, see [Use Pod Sandboxing](https://learn.microsoft.com/en-gb/azure/aks/use-pod-sandboxing).
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
 

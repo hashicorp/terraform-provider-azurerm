@@ -999,6 +999,13 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.workloadRuntime(data, "KataVmIsolation"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3073,7 +3080,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
+  vm_size               = "Standard_D4s_v3"
+  os_sku                = "AzureLinux"
   workload_runtime      = "%s"
   upgrade_settings {
     max_surge = "10%%"

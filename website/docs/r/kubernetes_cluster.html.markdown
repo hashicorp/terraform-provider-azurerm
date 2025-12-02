@@ -449,7 +449,9 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `kataVmIsolation` and `OCIContainer`. Omitting this field defaults to `OCIContainer`.
+
+~> **Note:** `kataVmIsolation` requires to set os_sku to `AzureLinux` and is only supported on VM sizes that support nested virtualization. For more information, see [Use Pod Sandboxing](https://learn.microsoft.com/en-gb/azure/aks/use-pod-sandboxing).
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
 
