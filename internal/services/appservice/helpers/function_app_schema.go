@@ -1402,7 +1402,6 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"18",
 						"20",
 						"22",
-						"24",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
