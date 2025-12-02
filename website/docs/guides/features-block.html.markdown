@@ -93,6 +93,11 @@ provider "azurerm" {
       data_plane_available = false
     }
 
+    storage {
+      data_plane_available              = true
+      data_plane_auth_any_scope_enabled = false
+    }
+
     subscription {
       prevent_cancellation_on_destroy = false
     }
@@ -285,6 +290,13 @@ The `storage` block supports the following:
 * `data_plane_available` - Should the `azurerm_storage_account` resource use data plane APIs? Defaults to `true`.
 
 -> **Note:** This feature flag is intended for use with `azurerm_storage_account` resources that will not use the `queue_properties` and `static_website` blocks. Setting this to `false` will bypass availability checks.
+
+---
+
+The `storage` block supports the following:
+
+* `data_plane_available` - (Optional) Should the `azurerm_storage_account` resource reach to the data plane endpoints during creation? Defaults to `true`.
+* `data_plane_auth_any_scope_enabled` - (Optional) Should the storage data plane client that supports AAD auth (enabled via the provider level attribute `storage_use_azuread`) request the access token using the resource identifier of `https://storage.azure.com` instead of the per-resource resource identifier? Defaults to `false`.
 
 ---
 
