@@ -168,10 +168,6 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
-// Test Logic:
-// 1. Create LB with frontend attached to a subnet
-// 2. Update LB with tags
-// Result: For LB with a frontend, updating the LB other than frontend should result in an update-in-place
 func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
@@ -193,20 +189,12 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 	})
 }
 
-// Test Logic:
-// 1. Create LB with frontend attached to subnet
-// 2. Remove frontend block from LB, but keep LB
-// 3. Remove subnet that deleted frontend was previously attached to
-// Result 1: expecting the removal of frontend to properly trigger a destroy/create replacement of LB
-// Result 2: destruction of subnet should succeed, meaning that the previously removed frontend that was
-//
-//	attached was really destroyed
-//
-// NOTE: Azure only allows removal of frontend config by recreating (destroy/create) the loadbalancer
 func TestAccAzureRMLoadBalancer_zonesSingleRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
+	// NOTE: Azure only allows removal of frontend config by recreating (destroy/create) the loadbalancer
+	// This test will cause a recreate scenario on purpose.
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.zonesSingle(data),
