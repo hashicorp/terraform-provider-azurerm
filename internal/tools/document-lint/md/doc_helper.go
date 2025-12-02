@@ -11,9 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
