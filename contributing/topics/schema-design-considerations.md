@@ -263,7 +263,7 @@ Fields that are in preview should not be supported until they reach General Avai
 
 ## Flattening nested properties
 
-When designing schemas, flatten properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
+When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
 :white_check_mark: **DO**
 ```go
@@ -317,7 +317,7 @@ If a field is an array, proper `MinItems` and `MaxItems` should be set based on 
 
 ## Required fields in Azure Portal vs API documentation
 
-Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, even if the API documentation doesn't specify them as required.
+Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, unless the API accepts the request without them and still functions.
 
 ## AtLeastOneOf validation for TypeList fields
 
@@ -347,3 +347,69 @@ When a `pluginsdk.TypeList` block has no required nested fields, `AtLeastOneOf` 
 }
 ```
 
+## Validation
+
+String arguments must be validated. Use `StringNotEmpty` at a minimum. Validate `name` fields for length and allowed characters. Use `commonids` or SDK-specific functions for Resource IDs. Ensure formats like dates, IPs, and URIs are validated.
+
+Numeric arguments should specify a valid range.
+
+```go
+"description": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: validation.StringIsNotEmpty,
+},
+
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,79}$`),
+		"`name` must be between 1 and 80 characters. It must start with an alphanumeric character and can contain alphanumeric characters, dots (.), hyphens (-), and underscores (_).",
+	),
+},
+
+"subnet_id": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: commonids.ValidateSubnetID,
+},
+
+"sim_policy_id": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: simpolicy.ValidateSimPolicyID,
+},
+
+"extensions_time_budget": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	Default:      "PT1H30M",
+	ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+},
+
+"output_blob_uri": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: validation.IsURLWithHTTPS,
+},
+
+"ip_address": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: azValidate.IPv4Address,
+},
+
+"storage_size_in_gb": {
+	Type:         pluginsdk.TypeInt,
+	Optional:     true,
+	ValidateFunc: validation.IntBetween(32, 16384),
+},
+
+"percentage_filter_value": {
+	Type:         pluginsdk.TypeFloat,
+	Optional:     true,
+	ValidateFunc: validation.FloatBetween(0, 100),
+},
+```

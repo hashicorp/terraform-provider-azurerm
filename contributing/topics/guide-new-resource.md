@@ -639,7 +639,7 @@ func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResourc
 
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
-- Argument names, `model` and `properties` must be wrapped in backticks in error messages and validation messages.
+- Argument names must be wrapped in backticks in error messages.
 
 For example, in this case:
 
@@ -655,9 +655,6 @@ For example, in this case:
 		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
 	),
 },
-
-return fmt.Errorf("retrieving %s: `model` was nil", id)
-return fmt.Errorf("retrieving %s: `properties` was nil", id)
 ```
 
 :no_entry: **DO NOT**
@@ -672,12 +669,61 @@ return fmt.Errorf("retrieving %s: `properties` was nil", id)
 		"The name can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
 	),
 },
-
-return fmt.Errorf("retrieving %s: model was nil", id)
-return fmt.Errorf("retrieving %s: properties was nil", id)
 ```
 
-- Do not return an error in `Update` or `CustomizeDiff` function if the error is by design, use `ForceNew` in `CustomizeDiff` instead so that Terraform will plan a resource recreation.
+- Wrap `model` and `properties` in backticks in error messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        ...
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            ...
+
+            if existing.Model == nil {
+               return fmt.Errorf("retrieving %s: `model` was nil", id)
+            }
+
+            if existing.Model.Properties == nil {
+               return fmt.Errorf("retrieving %s: `properties` was nil", id)
+            }
+            
+            ...
+            return nil
+        },
+    }
+}
+```
+
+:no_entry: **DO NOT**
+
+```
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        ...
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            ...
+
+            if existing.Model == nil {
+               return fmt.Errorf("retrieving %s: model was nil", id)
+            }
+            
+            if existing.Model.Properties == nil {
+               return fmt.Errorf("retrieving %s: properties was nil", id)
+            }
+            
+            ...
+            return nil
+        },
+    }
+}
+```
+
+- Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
 
 :white_check_mark: **DO**
 
@@ -724,59 +770,6 @@ func (r ExampleResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-```
-
-- `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
-
-:white_check_mark: **DO**
-
-```go
-output.Name = pointer.From(input.Name)
-```
-
-:no_entry: **DO NOT**
-
-```go
-if input.Name != nil {
-    output.Name = *input.Name
-}
-```
-
-- Use `pointer.To` to take the address of a value without declaring temporary variables.
-
-:white_check_mark: **DO**
-
-```go
-if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
-    return fmt.Errorf("deleting %s: %+v", newId, err)
-}
-```
-
-:no_entry: **DO NOT**
-
-```go
-asterisk = "*"
-if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: &asterisk}); err != nil {
-    return fmt.Errorf("deleting %s: %+v", newId, err)
-}
-```
-
-- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
-
-:white_check_mark: **DO**
-
-```go
-return &managedclusters.ManagedClusterBootstrapProfile{
-    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
-}
-```
-
-:no_entry: **DO NOT**
-
-```go
-return &managedclusters.ManagedClusterBootstrapProfile{
-    ArtifactSource: pointer.To(managedclusters.ArtifactSource(config["artifact_source"].(string))),
 }
 ```
 
