@@ -606,6 +606,9 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
