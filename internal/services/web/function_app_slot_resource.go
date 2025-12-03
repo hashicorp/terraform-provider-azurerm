@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -248,7 +248,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -281,10 +281,10 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -313,7 +313,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -339,7 +339,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -381,10 +381,10 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
@@ -433,7 +433,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -519,8 +519,8 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("os_type", osType)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -732,7 +732,7 @@ func expandFunctionAppSlotConnectionStrings(d *pluginsdk.ResourceData) map[strin
 		csValue := vals["value"].(string)
 
 		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
+			Value: pointer.To(csValue),
 			Type:  web.ConnectionStringType(csType),
 		}
 	}

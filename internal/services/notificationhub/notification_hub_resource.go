@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubResourceName = "azurerm_notification_hub"
@@ -353,11 +353,11 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCrede
 
 	credentials := hubs.ApnsCredential{
 		Properties: hubs.ApnsCredentialProperties{
-			AppId:    utils.String(teamId),
-			AppName:  utils.String(bundleId),
+			AppId:    pointer.To(teamId),
+			AppName:  pointer.To(bundleId),
 			Endpoint: endpoint,
-			KeyId:    utils.String(keyId),
-			Token:    utils.String(token),
+			KeyId:    pointer.To(keyId),
+			Token:    pointer.To(token),
 		},
 	}
 	return &credentials

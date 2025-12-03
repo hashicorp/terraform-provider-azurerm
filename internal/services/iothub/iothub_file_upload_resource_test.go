@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubFileUploadResource struct{}
@@ -254,12 +254,12 @@ func (IotHubFileUploadResource) Exists(ctx context.Context, clients *clients.Cli
 	if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
 		if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
 			if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubFileUploadResource) basic(data acceptance.TestData) string {

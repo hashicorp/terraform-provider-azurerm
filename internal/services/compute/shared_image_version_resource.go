@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSharedImageVersion() *pluginsdk.Resource {
@@ -235,7 +234,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &galleryimageversions.GalleryImageVersionSafetyProfile{
-				AllowDeletionOfReplicatedLocations: utils.Bool(d.Get("deletion_of_replicated_locations_enabled").(bool)),
+				AllowDeletionOfReplicatedLocations: pointer.To(d.Get("deletion_of_replicated_locations_enabled").(bool)),
 			},
 			StorageProfile: galleryimageversions.GalleryImageVersionStorageProfile{},
 		},
@@ -253,11 +252,11 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		_, err := virtualmachines.ParseVirtualMachineID(v.(string))
 		if err == nil {
 			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
-				VirtualMachineId: utils.String(v.(string)),
+				VirtualMachineId: pointer.To(v.(string)),
 			}
 		} else {
 			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
-				Id: utils.String(v.(string)),
+				Id: pointer.To(v.(string)),
 			}
 		}
 	}

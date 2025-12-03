@@ -359,7 +359,15 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			Enabled: v,
 		}
 		addonProfiles[azurePolicyKey] = props
+	// Always set the azure_policy addon profile to ensure it's synchronized with Azure on every update
+	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
+	props := managedclusters.ManagedClusterAddonProfile{
+		Enabled: azurePolicyEnabled,
+		Config: pointer.To(map[string]string{
+			"version": "v2",
+		}),
 	}
+	addonProfiles[azurePolicyKey] = props
 
 	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
 	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {

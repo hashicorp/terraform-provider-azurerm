@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
@@ -186,9 +185,9 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 			Target:                  targetResourceId,
 			TargetType:              pointer.To(packetcaptures.PacketCaptureTargetTypeAzureVM),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
-			TimeLimitInSeconds:      utils.Int64(int64(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
+			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
+			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
+			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
 			Filters:                 expandVirtualMachinePacketCaptureFilters(d.Get("filter").([]interface{})),
 		},
 	}
@@ -307,11 +306,11 @@ func expandVirtualMachinePacketCaptureFilters(input []interface{}) *[]packetcapt
 		remotePort := inputFilter["remote_port"].(string)
 
 		filter := packetcaptures.PacketCaptureFilter{
-			LocalIPAddress:  utils.String(localIPAddress),
-			LocalPort:       utils.String(localPort),
+			LocalIPAddress:  pointer.To(localIPAddress),
+			LocalPort:       pointer.To(localPort),
 			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
-			RemoteIPAddress: utils.String(remoteIPAddress),
-			RemotePort:      utils.String(remotePort),
+			RemoteIPAddress: pointer.To(remoteIPAddress),
+			RemotePort:      pointer.To(remotePort),
 		}
 		filters = append(filters, filter)
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -138,10 +139,10 @@ func resourceDataFactoryLinkedServiceAzureSearchCreateUpdate(d *pluginsdk.Resour
 			URL: d.Get("url").(string),
 			Key: &datafactory.SecureString{
 				Type:  datafactory.TypeSecureString,
-				Value: utils.String(d.Get("search_service_key").(string)),
+				Value: pointer.To(d.Get("search_service_key").(string)),
 			},
 		},
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		Type:        datafactory.TypeBasicLinkedServiceTypeAzureSearch,
 	}
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
@@ -204,11 +204,11 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("sub_domain") {
-		existing.Model.Properties.Subdomain = utils.String(d.Get("sub_domain").(string))
+		existing.Model.Properties.Subdomain = pointer.To(d.Get("sub_domain").(string))
 	}
 
 	if d.HasChange("display_name") {
-		existing.Model.Properties.DisplayName = utils.String(d.Get("display_name").(string))
+		existing.Model.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
 	}
 
 	if d.HasChange("sku") {
@@ -218,7 +218,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("template") {
-		existing.Model.Properties.Template = utils.String(d.Get("template").(string))
+		existing.Model.Properties.Template = pointer.To(d.Get("template").(string))
 	}
 
 	if d.HasChange("tags") {

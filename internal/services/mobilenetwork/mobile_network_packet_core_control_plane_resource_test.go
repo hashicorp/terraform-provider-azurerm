@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MobileNetworkPacketCoreControlPlaneResource struct{}
@@ -148,11 +148,11 @@ func (r MobileNetworkPacketCoreControlPlaneResource) Exists(ctx context.Context,
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) template(data acceptance.TestData) string {
@@ -237,7 +237,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -304,7 +304,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
 
 
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) withInteropJson(data acceptance.TestData) string {
@@ -444,7 +444,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -511,5 +511,5 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
   depends_on = [azurerm_mobile_network.test]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

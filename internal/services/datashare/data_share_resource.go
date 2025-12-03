@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataShare() *pluginsdk.Resource {
@@ -141,8 +140,8 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	share := share.Share{
 		Properties: &share.ShareProperties{
 			ShareKind:   pointer.To(share.ShareKind(d.Get("kind").(string))),
-			Description: utils.String(d.Get("description").(string)),
-			Terms:       utils.String(d.Get("terms").(string)),
+			Description: pointer.To(d.Get("description").(string)),
+			Terms:       pointer.To(d.Get("terms").(string)),
 		},
 	}
 

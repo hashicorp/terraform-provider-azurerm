@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventHubNamespaceCustomerManagedKeyResource struct{}
@@ -115,10 +115,10 @@ func (r EventHubNamespaceCustomerManagedKeyResource) Exists(ctx context.Context,
 	}
 
 	if resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r EventHubNamespaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {

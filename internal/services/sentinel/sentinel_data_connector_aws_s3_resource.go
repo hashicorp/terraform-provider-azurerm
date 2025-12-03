@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -122,9 +123,9 @@ func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {
 			params := securityinsight.AwsS3DataConnector{
 				Name: &plan.Name,
 				AwsS3DataConnectorProperties: &securityinsight.AwsS3DataConnectorProperties{
-					DestinationTable: utils.String(plan.DestinationTable),
+					DestinationTable: pointer.To(plan.DestinationTable),
 					SqsUrls:          &plan.SqsUrls,
-					RoleArn:          utils.String(plan.AwsRoleArm),
+					RoleArn:          pointer.To(plan.AwsRoleArm),
 					DataTypes: &securityinsight.AwsS3DataConnectorDataTypes{
 						Logs: &securityinsight.AwsS3DataConnectorDataTypesLogs{
 							State: securityinsight.DataTypeStateEnabled,

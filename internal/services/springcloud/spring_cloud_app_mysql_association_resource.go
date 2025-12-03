@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	flexibleServers "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -127,11 +128,11 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: map[string]*string{
-				springCloudAppMysqlAssociationKeyDatabase: utils.String(d.Get("database_name").(string)),
-				springCloudAppMysqlAssociationKeyUsername: utils.String(d.Get("username").(string)),
+				springCloudAppMysqlAssociationKeyDatabase: pointer.To(d.Get("database_name").(string)),
+				springCloudAppMysqlAssociationKeyUsername: pointer.To(d.Get("username").(string)),
 			},
-			Key:        utils.String(d.Get("password").(string)),
-			ResourceID: utils.String(d.Get("mysql_server_id").(string)),
+			Key:        pointer.To(d.Get("password").(string)),
+			ResourceID: pointer.To(d.Get("mysql_server_id").(string)),
 		},
 	}
 
