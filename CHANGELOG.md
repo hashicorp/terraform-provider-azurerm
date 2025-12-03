@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20251107.1191907` ([#31095](https://github.com/hashicorp/terraform-provider-azurerm/issues/31095))
 * Data Source: `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties ([#29426](https://github.com/hashicorp/terraform-provider-azurerm/issues/29426))
+* `azurerm_api_connection` - add support for `kind`, `parameter_value_type`, and `parameter_value_set` properties to enable managed identity authentication ([#16818](https://github.com/hashicorp/terraform-provider-azurerm/issues/16818))
 * `azurerm_container_app` - add support for the `template.cooldown_period_in_seconds` and `template.polling_interval_in_seconds` properties ([#29426](https://github.com/hashicorp/terraform-provider-azurerm/issues/29426))
 * `azurerm_linux_function_app` - add support for `dotnet_version` `10.0` ([#31007](https://github.com/hashicorp/terraform-provider-azurerm/issues/31007))
 * `azurerm_linux_function_app_slot` - add support for `dotnet_version` `10.0` ([#31007](https://github.com/hashicorp/terraform-provider-azurerm/issues/31007))
