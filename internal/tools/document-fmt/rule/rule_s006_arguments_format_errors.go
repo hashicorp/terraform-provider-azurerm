@@ -45,7 +45,7 @@ func (s S006) Run(d *data.TerraformNodeData, fix bool) []error {
 		return nil
 	}
 
-	return forEachDocProperty(d, "", d.DocumentArguments, d.SchemaProperties,
+	return forEachDocProperty(s.ID(), d, "", d.DocumentArguments, d.SchemaProperties,
 		func(fullPath string, schemaProperty *models.SchemaProperty, docProperty *models.DocumentProperty) error {
 			return s.checkPropertyFormat(d, fullPath, schemaProperty, docProperty, fix)
 		},

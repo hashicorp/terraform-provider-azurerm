@@ -88,7 +88,7 @@ func (s S009) checkMissingInDoc(
 		}
 
 		// Skip properties in skip config
-		if isSkipProp(resourceType, fullPath) {
+		if SkipProp(s.ID(), resourceType, fullPath) {
 			continue
 		}
 
@@ -184,7 +184,7 @@ func (s S009) checkMissingInSchema(
 		}
 
 		// Skip properties in skip config
-		if isSkipProp(resourceType, fullPath) {
+		if SkipProp(s.ID(), resourceType, fullPath) {
 			continue
 		}
 

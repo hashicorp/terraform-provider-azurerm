@@ -6,67 +6,91 @@ package rule
 import (
 	"regexp"
 	"strings"
+	"sync"
 )
 
-var skipProps = []string{
-	"all.timezone",
-	"all.time_zone",
-	"all.time_zone_id",
-	"azurerm_nginx_deployment.identity.type", // there is a diff between real supported values and common identity schema
-	"azurerm_kubernetes_cluster.default_node_pool.os_sku",
-	"azurerm_kubernetes_cluster_node_pool.os_sku",
-	"/azurerm_container_app.template..+_scale_rule.authentication.trigger_parameter",
-	"/azurerm_container_app.template..+_probe.header",
-	`/azurerm_automanage_configuration.backup.retention_policy.(?:weekly|daily)_schedule.retention_duration.duration_type`,
-	"/azurerm_sentinel_metadata.dependency.*",
-	"/azurerm_orchestrated_virtual_machine_scale_set.os_profile.(windows|linux)_configuration.secret.certificate",
-	"/azurerm_eventgrid_event_subscription.advanced_filter.*",
-	"/azurerm_eventgrid_system_topic_event_subscription.advanced_filter.*",
+// PropertyExceptions contains properties and the rules they should skip for.
+// Format: property pattern -> rule IDs
+var PropertyExceptions = map[string]map[string]struct{}{
+	// Timezone properties - some values cannot be fully enumerated
+	"all.timezone":     {"S011": {}},
+	"all.time_zone":    {"S011": {}},
+	"all.time_zone_id": {"S011": {}},
+
+	// Key Vault references - these reference external resources
+	"all.key_vault_secret_id":      {"S011": {}},
+	"all.key_vault_key_id":         {"S011": {}},
+	"all.key_vault_certificate_id": {"S011": {}},
+
+	"/azurerm_orchestrated_virtual_machine_scale_set.os_profile.(windows|linux)_configuration.secret.certificate": {"S009": {}}, // Not declared in schema, but certificate expects a `store` param
+	"/azurerm_eventgrid_event_subscription.advanced_filter.*":                                                     {"S009": {}}, // nested properties are generalized and not marked as BLOCk in doc
+	"/azurerm_eventgrid_system_topic_event_subscription.advanced_filter.*":                                        {"S009": {}}, // nested properties are generalized and not marked as BLOCk in doc
 }
 
-var skipConfig = &struct {
-	skipPaths  map[string]struct{}
-	skipRegexp []*regexp.Regexp
-}{
-	skipPaths: map[string]struct{}{},
-}
+var (
+	skipPathsByRule  map[string]map[string]struct{} // ruleID -> property paths
+	skipRegexpByRule map[string][]*regexp.Regexp    // ruleID -> regex patterns
+	initSkipOnce     sync.Once
+)
 
-func init() {
-	for _, k := range skipProps {
-		if strings.HasPrefix(k, "/") {
-			skipConfig.skipRegexp = append(skipConfig.skipRegexp, regexp.MustCompile(k[1:]))
-		} else {
-			skipConfig.skipPaths[k] = struct{}{}
+func initPropertySkipConfig() {
+	initSkipOnce.Do(func() {
+		skipPathsByRule = make(map[string]map[string]struct{})
+		skipRegexpByRule = make(map[string][]*regexp.Regexp)
+
+		for property, rules := range PropertyExceptions {
+			for ruleID := range rules {
+				if strings.HasPrefix(property, "/") {
+					// It's a regex pattern
+					if skipRegexpByRule[ruleID] == nil {
+						skipRegexpByRule[ruleID] = make([]*regexp.Regexp, 0)
+					}
+					skipRegexpByRule[ruleID] = append(skipRegexpByRule[ruleID], regexp.MustCompile(property[1:]))
+				} else {
+					// It's a simple path
+					if skipPathsByRule[ruleID] == nil {
+						skipPathsByRule[ruleID] = make(map[string]struct{})
+					}
+					skipPathsByRule[ruleID][property] = struct{}{}
+				}
+			}
 		}
-	}
+	})
 }
 
-// isSkipProp checks if a property should be skipped in validation
+// SkipProp checks if a property should be skipped for a specific rule
+// ruleID is the rule identifier (e.g., "S007", "S011")
 // rt is the resource type (e.g., "azurerm_storage_account")
 // prop is the property path (e.g., "blob_properties.cors_rule")
-func isSkipProp(rt, prop string) bool {
+func SkipProp(ruleID, rt, prop string) bool {
+	initPropertySkipConfig()
+
+	skipPaths := skipPathsByRule[ruleID]
+	skipRegexps := skipRegexpByRule[ruleID]
+
 	// Check if entire resource is skipped
-	if _, ok := skipConfig.skipPaths[rt]; ok {
+	if _, ok := skipPaths[rt]; ok {
 		return true
 	}
 
 	// Check if specific property path is skipped
-	if _, ok := skipConfig.skipPaths[rt+"."+prop]; ok {
+	fullPath := rt + "." + prop
+	if _, ok := skipPaths[fullPath]; ok {
 		return true
 	}
 
 	// Check if property name (last part) matches an "all.xxx" pattern
-	allKey := prop
-	if idx := strings.LastIndex(prop, "."); idx > 0 {
-		allKey = prop[idx+1:]
+	propName := prop
+	if idx := strings.LastIndex(prop, "."); idx >= 0 {
+		propName = prop[idx+1:]
 	}
-	if _, ok := skipConfig.skipPaths["all."+allKey]; ok {
+	if _, ok := skipPaths["all."+propName]; ok {
 		return true
 	}
 
 	// Check against regex patterns
-	for _, reg := range skipConfig.skipRegexp {
-		if reg.MatchString(rt + "." + prop) {
+	for _, reg := range skipRegexps {
+		if reg.MatchString(fullPath) {
 			return true
 		}
 	}

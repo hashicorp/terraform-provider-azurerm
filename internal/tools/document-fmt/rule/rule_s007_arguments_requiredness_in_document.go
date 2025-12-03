@@ -39,7 +39,7 @@ func (s S007) Run(d *data.TerraformNodeData, fix bool) []error {
 		return nil
 	}
 
-	return forEachSchemaProperty(d, "", d.SchemaProperties, d.DocumentArguments, d.DocumentArguments.BlockDefinitions,
+	return forEachSchemaProperty(s.ID(), d, "", d.SchemaProperties, d.DocumentArguments, d.DocumentArguments.BlockDefinitions,
 		func(fullPath string, schemaProperty *models.SchemaProperty, docProperty *models.DocumentProperty) error {
 			return s.checkPropertyRequiredness(d, fullPath, schemaProperty, docProperty, fix)
 		},

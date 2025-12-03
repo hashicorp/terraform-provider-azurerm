@@ -78,6 +78,7 @@ type PropertyValidatorFunc func(
 
 // forEachSchemaProperty walks through schema properties and calls the validator function for each valid property.
 func forEachSchemaProperty(
+	ruleId string,
 	d *data.TerraformNodeData,
 	parentPath string,
 	schema *models.SchemaProperties,
@@ -103,7 +104,7 @@ func forEachSchemaProperty(
 		}
 
 		// Skip properties in skip config
-		if isSkipProp(d.Name, fullPath) {
+		if SkipProp(ruleId, d.Name, fullPath) {
 			continue
 		}
 
@@ -135,7 +136,7 @@ func forEachSchemaProperty(
 
 			// Recursively check nested properties
 			if nestedDocs != nil && len(nestedDocs.Objects) > 0 {
-				nestedErrs := forEachSchemaProperty(d, fullPath, schemaProperty.Nested, nestedDocs, blockDefinitions, validator)
+				nestedErrs := forEachSchemaProperty(ruleId, d, fullPath, schemaProperty.Nested, nestedDocs, blockDefinitions, validator)
 				errs = append(errs, nestedErrs...)
 			}
 
@@ -163,6 +164,7 @@ type DocPropertyValidatorFunc func(
 
 // forEachDocProperty walks through documented properties and calls the validator function for each.
 func forEachDocProperty(
+	ruleId string,
 	d *data.TerraformNodeData,
 	parentPath string,
 	documentation *models.DocumentProperties,
@@ -190,7 +192,7 @@ func forEachDocProperty(
 		}
 
 		// Skip properties in skip config
-		if isSkipProp(d.Name, fullPath) {
+		if SkipProp(ruleId, d.Name, fullPath) {
 			continue
 		}
 
@@ -210,7 +212,7 @@ func forEachDocProperty(
 			if schemaProperty != nil {
 				nestedSchema = schemaProperty.Nested
 			}
-			nestedErrs := forEachDocProperty(d, fullPath, docProperty.Nested, nestedSchema, validator)
+			nestedErrs := forEachDocProperty(ruleId, d, fullPath, docProperty.Nested, nestedSchema, validator)
 			errs = append(errs, nestedErrs...)
 		}
 	}
