@@ -6,7 +6,7 @@ ENHANCEMENTS:
 * dependencies: `containerregistry` - update to API version `2025-04-01` [GH-30205]
 * `azurerm_container_app_environment` - extend validation for `workload_profile_type` for additional supported SKUs [GH-30738]
 * dependencies: `go-azure-helpers` - update to `v0.75.1` [GH-31148]
-* dependencies: `go-azure-sdk` - update to `v0.20251126.1220923` [GH-30613]
+* dependencies: `go-azure-sdk` - update to `v0.20251202.1181053` [GH-31253]
 * dependencies: `managedidentity` - upgrade API version to `2024-11-30` [GH-30535]
 * `azurerm_mysql_flexible_server` - add support for `version` `8.4` [GH-31099]
 * `azurerm_postgres_flexible_server` - update validation for `customer_managed_key.key_vault_key_id` and `customer_managed_key.geo_backup_key_vault_key_id` to allow managed HSM keys as input [GH-31148]
