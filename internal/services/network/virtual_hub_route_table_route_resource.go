@@ -126,11 +126,20 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName, routeTableId.HubRouteTableName, name)
 
+	newDestinations := d.Get("destinations").(*pluginsdk.Set)
+
 	routes := make([]virtualwans.HubRoute, 0)
 	if hubRoutes := props.Routes; hubRoutes != nil {
 		for _, r := range *hubRoutes {
 			if r.Name == name {
 				return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
+			}
+
+			// Check for duplicate destinations
+			for _, existingDest := range r.Destinations {
+				if newDestinations.Contains(existingDest) {
+					return fmt.Errorf("creating %s: a route with destination %q already exists in route %q - Azure does not allow duplicate destinations in the same route table", id, existingDest, r.Name)
+				}
 			}
 		}
 		routes = *props.Routes
@@ -187,6 +196,22 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 	id, err := parse.HubRouteTableRouteID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// If destinations are being changed, check for duplicates with other routes
+	if d.HasChange("destinations") {
+		newDestinations := d.Get("destinations").(*pluginsdk.Set)
+		for _, r := range *props.Routes {
+			// Skip the current route being updated
+			if r.Name == id.RouteName {
+				continue
+			}
+			for _, existingDest := range r.Destinations {
+				if newDestinations.Contains(existingDest) {
+					return fmt.Errorf("updating %s: a route with destination %q already exists in route %q - Azure does not allow duplicate destinations in the same route table", *id, existingDest, r.Name)
+				}
+			}
+		}
 	}
 
 	routes := *props.Routes
