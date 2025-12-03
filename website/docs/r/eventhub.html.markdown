@@ -106,6 +106,10 @@ A `destination` block supports the following:
 
 * `storage_authentication_id` - (Optional) The id of the user assigned identity that's used to authenticate the Blob Storage Account where messages should be archived. 
 
+-> **Note:** The system-assigned or user-assigned managed identity needs to be enabled for the parent eventhub namespace, otherwise, it cannot be configured in the capture feature.
+
+-> **Note:** The Storage Blob Data Contributor role needs to be assigned to the managed identity used in the capture feature.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

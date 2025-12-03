@@ -641,6 +641,9 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_eventhub" "test" {
@@ -706,13 +709,13 @@ resource "azurerm_eventhub_namespace" "test" {
 resource "azurerm_role_assignment" "saContributorRoleAssignment" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_eventhub_namespace.test.identity[0].principal_id
+  principal_id         = azurerm_eventhub_namespace.test.identity.0.principal_id
 }
 
 resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_eventhub_namespace.test.identity[0].principal_id
+  principal_id         = azurerm_eventhub_namespace.test.identity.0.principal_id
 }
 
 resource "azurerm_eventhub" "test" {
@@ -778,7 +781,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
 
   }
@@ -815,7 +818,7 @@ resource "azurerm_eventhub" "test" {
       blob_container_name         = azurerm_storage_container.test.name
       storage_account_id          = azurerm_storage_account.test.id
       storage_authentication_type = "UserAssigned"
-      storage_authentication_id = azurerm_user_assigned_identity.test.id
+      storage_authentication_id   = azurerm_user_assigned_identity.test.id
     }
   }
 }
