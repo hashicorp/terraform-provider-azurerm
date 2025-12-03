@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/objectreplicationpolicies"
@@ -308,12 +309,12 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 			SourceContainer:      v["source_container_name"].(string),
 			DestinationContainer: v["destination_container_name"].(string),
 			Filters: &objectreplicationpolicies.ObjectReplicationPolicyFilter{
-				MinCreationTime: utils.String(expandArmObjectReplicationMinCreationTime(v["copy_blobs_created_after"].(string))),
+				MinCreationTime: pointer.To(expandArmObjectReplicationMinCreationTime(v["copy_blobs_created_after"].(string))),
 			},
 		}
 
 		if r, ok := v["name"].(string); ok && r != "" {
-			result.RuleId = utils.String(r)
+			result.RuleId = pointer.To(r)
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {

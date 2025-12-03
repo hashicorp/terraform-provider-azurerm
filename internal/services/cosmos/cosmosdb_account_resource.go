@@ -1002,15 +1002,15 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if existing.Model.Properties.Locations != nil {
 		for _, l := range *existing.Model.Properties.Locations {
-			location := cosmosdb.Location{
+			loc := cosmosdb.Location{
 				Id:               l.Id,
 				LocationName:     l.LocationName,
 				FailoverPriority: l.FailoverPriority,
 				IsZoneRedundant:  l.IsZoneRedundant,
 			}
 
-			cosmosLocations = append(cosmosLocations, location)
-			cosmosLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
+			cosmosLocations = append(cosmosLocations, loc)
+			cosmosLocationsMap[location.Normalize(*loc.LocationName)] = loc
 		}
 	}
 
@@ -1678,7 +1678,7 @@ func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, c
 
 				for _, desiredLocation := range account.Properties.Locations {
 					for index, l := range locations {
-						if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+						if location.Normalize(*desiredLocation.LocationName) == location.Normalize(*l.LocationName) {
 							break
 						}
 
@@ -1723,7 +1723,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *c
 		if stalenessPrefix == 0 {
 			stalenessPrefix = 100
 		}
-		policy.MaxStalenessPrefix = pointer.FromInt64(int64(stalenessPrefix))
+		policy.MaxStalenessPrefix = pointer.To(int64(stalenessPrefix))
 	}
 	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
 		if maxInterval == 0 {
@@ -1741,9 +1741,9 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 		data := l.(map[string]interface{})
 
 		location := cosmosdb.Location{
-			LocationName:     pointer.To(azure.NormalizeLocation(data["location"].(string))),
+			LocationName:     pointer.To(location.Normalize(data["location"].(string))),
 			FailoverPriority: pointer.To(int64(data["failover_priority"].(int))),
-			IsZoneRedundant:  pointer.FromBool(data["zone_redundant"].(bool)),
+			IsZoneRedundant:  pointer.To(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -1802,7 +1802,7 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) 
 		m := r.(map[string]interface{})
 		s[i] = cosmosdb.VirtualNetworkRule{
 			Id:                               pointer.To(m["id"].(string)),
-			IgnoreMissingVNetServiceEndpoint: pointer.FromBool(m["ignore_missing_vnet_service_endpoint"].(bool)),
+			IgnoreMissingVNetServiceEndpoint: pointer.To(m["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 	}
 

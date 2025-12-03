@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
@@ -152,7 +151,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(keyVaultId.VaultName),
+		Name: pointer.To(keyVaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,
@@ -226,7 +225,7 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(keyVaultId.VaultName),
+		Name: pointer.To(keyVaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,
@@ -352,7 +351,7 @@ func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 		accessPolicy.ApplicationId = pointer.To(id.ApplicationId())
 	}
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(vaultId.VaultName),
+		Name: pointer.To(vaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,

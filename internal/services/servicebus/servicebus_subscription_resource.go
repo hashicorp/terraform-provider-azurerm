@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusSubscription() *pluginsdk.Resource {
@@ -218,13 +218,13 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	status := subscriptions.EntityStatus(d.Get("status").(string))
 	parameters := subscriptions.SBSubscription{
 		Properties: &subscriptions.SBSubscriptionProperties{
-			DeadLetteringOnMessageExpiration:          utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
-			DeadLetteringOnFilterEvaluationExceptions: utils.Bool(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
-			EnableBatchedOperations:                   utils.Bool(enableBatchedOperations),
-			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
-			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
+			DeadLetteringOnMessageExpiration:          pointer.To(d.Get("dead_lettering_on_message_expiration").(bool)),
+			DeadLetteringOnFilterEvaluationExceptions: pointer.To(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
+			EnableBatchedOperations:                   pointer.To(enableBatchedOperations),
+			MaxDeliveryCount:                          pointer.To(int64(d.Get("max_delivery_count").(int))),
+			RequiresSession:                           pointer.To(d.Get("requires_session").(bool)),
 			Status:                                    &status,
-			IsClientAffine:                            utils.Bool(isClintScopedEnabled),
+			IsClientAffine:                            pointer.To(isClintScopedEnabled),
 			ClientAffineProperties:                    &subscriptions.SBClientAffineProperties{},
 		},
 	}
@@ -297,7 +297,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-			d.Set("status", utils.String(string(*props.Status)))
+			d.Set("status", pointer.To(string(*props.Status)))
 			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 

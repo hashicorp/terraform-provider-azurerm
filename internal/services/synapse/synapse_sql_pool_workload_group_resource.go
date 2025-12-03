@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -118,16 +119,16 @@ func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, 
 
 	parameters := synapse.WorkloadGroup{
 		WorkloadGroupProperties: &synapse.WorkloadGroupProperties{
-			Importance:                   utils.String(d.Get("importance").(string)),
-			MaxResourcePercent:           utils.Int32(int32(d.Get("max_resource_percent").(int))),
-			MaxResourcePercentPerRequest: utils.Float(d.Get("max_resource_percent_per_request").(float64)),
-			MinResourcePercent:           utils.Int32(int32(d.Get("min_resource_percent").(int))),
-			MinResourcePercentPerRequest: utils.Float(d.Get("min_resource_percent_per_request").(float64)),
+			Importance:                   pointer.To(d.Get("importance").(string)),
+			MaxResourcePercent:           pointer.To(int32(d.Get("max_resource_percent").(int))),
+			MaxResourcePercentPerRequest: pointer.To(d.Get("max_resource_percent_per_request").(float64)),
+			MinResourcePercent:           pointer.To(int32(d.Get("min_resource_percent").(int))),
+			MinResourcePercentPerRequest: pointer.To(d.Get("min_resource_percent_per_request").(float64)),
 		},
 	}
 
 	if timeout, ok := d.GetOk("query_execution_timeout_in_seconds"); ok {
-		parameters.QueryExecutionTimeout = utils.Int32(int32(timeout.(int)))
+		parameters.QueryExecutionTimeout = pointer.To(int32(timeout.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, parameters)

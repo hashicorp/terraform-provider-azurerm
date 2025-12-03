@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource {
@@ -182,7 +181,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 	encryptionProtectorProperties := managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorProperties{
 		ServerKeyType:       keyType,
 		ServerKeyName:       &managedInstanceKeyName,
-		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+		AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 	}
 	managedInstanceKeyId := managedinstancekeys.NewManagedInstanceKeyID(managedInstanceId.SubscriptionId, managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, managedInstanceKeyName)
 

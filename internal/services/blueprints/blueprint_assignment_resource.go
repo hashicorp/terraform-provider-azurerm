@@ -259,7 +259,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 	if model := resp.Model; model != nil {
 		p := model.Properties
 
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("target_subscription_id", pointer.From(p.Scope))
 		d.Set("version_id", pointer.From(p.BlueprintId))
 		d.Set("display_name", pointer.From(p.DisplayName))

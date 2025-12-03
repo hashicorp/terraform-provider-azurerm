@@ -131,15 +131,15 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
 			DataSourceInfo: backupinstances.Datasource{
-				DatasourceType:   utils.String("Microsoft.Storage/storageAccounts/blobServices"),
-				ObjectType:       utils.String("Datasource"),
+				DatasourceType:   pointer.To("Microsoft.Storage/storageAccounts/blobServices"),
+				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       storageAccountId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(storageAccountId.StorageAccountName),
-				ResourceType:     utils.String("Microsoft.Storage/storageAccounts"),
-				ResourceUri:      utils.String(storageAccountId.ID()),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(storageAccountId.StorageAccountName),
+				ResourceType:     pointer.To("Microsoft.Storage/storageAccounts"),
+				ResourceUri:      pointer.To(storageAccountId.ID()),
 			},
-			FriendlyName: utils.String(id.BackupInstanceName),
+			FriendlyName: pointer.To(id.BackupInstanceName),
 			PolicyInfo: backupinstances.PolicyInfo{
 				PolicyId: policyId.ID(),
 			},

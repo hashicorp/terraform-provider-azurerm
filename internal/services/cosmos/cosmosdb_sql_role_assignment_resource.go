@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -118,9 +119,9 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
 		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
-			PrincipalID:      utils.String(d.Get("principal_id").(string)),
-			RoleDefinitionID: utils.String(d.Get("role_definition_id").(string)),
-			Scope:            utils.String(d.Get("scope").(string)),
+			PrincipalID:      pointer.To(d.Get("principal_id").(string)),
+			RoleDefinitionID: pointer.To(d.Get("role_definition_id").(string)),
+			Scope:            pointer.To(d.Get("scope").(string)),
 		},
 	}
 
@@ -186,9 +187,9 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := documentdb.SQLRoleAssignmentCreateUpdateParameters{
 		SQLRoleAssignmentResource: &documentdb.SQLRoleAssignmentResource{
-			PrincipalID:      utils.String(d.Get("principal_id").(string)),
-			RoleDefinitionID: utils.String(d.Get("role_definition_id").(string)),
-			Scope:            utils.String(d.Get("scope").(string)),
+			PrincipalID:      pointer.To(d.Get("principal_id").(string)),
+			RoleDefinitionID: pointer.To(d.Get("role_definition_id").(string)),
+			Scope:            pointer.To(d.Get("scope").(string)),
 		},
 	}
 
