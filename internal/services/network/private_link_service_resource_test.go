@@ -78,11 +78,11 @@ func TestAccPrivateLinkService_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
 			),
-      ConfigPlanChecks: resource.ConfigPlanChecks{
-        PreApply: []plancheck.PlanCheck{
-          plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-        },
-      },
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 		{
@@ -92,11 +92,11 @@ func TestAccPrivateLinkService_update(t *testing.T) {
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
 			),
-      ConfigPlanChecks: resource.ConfigPlanChecks{
-        PreApply: []plancheck.PlanCheck{
-          plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-        },
-      },
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 	})
@@ -126,11 +126,11 @@ func TestAccPrivateLinkService_move(t *testing.T) {
 				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.20"),
 			),
-      ConfigPlanChecks: resource.ConfigPlanChecks{
-        PreApply: []plancheck.PlanCheck{
-          plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-        },
-      },
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 		{
