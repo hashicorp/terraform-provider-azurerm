@@ -23,6 +23,7 @@ FEATURES:
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` [GH-30613]
 
 BUG FIXES:
+* `azurerm_traffic_manager_profile` - fix an issue that prevented changing `traffic_view_enabled` from `true` to `false` [GH-31066]
 * `azurerm_resource_group` - fix poller for the `prevent_deletion_if_contains_resources` feature, resolving an Azure eventual consistency issue [GH-31253]
 * `azurerm_key_vault_key` - `not_before_date` and `expiration_date` are now set into state when empty, fixing an issue where drift was not detected [GH-31192]
 * `azurerm_key_vault_secret` - `not_before_date` and `expiration_date` are now set into state when empty, fixing an issue where drift was not detected [GH-31192]
