@@ -223,9 +223,10 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 		Name:     pointer.To(id.TrafficManagerProfileName),
 		Location: pointer.To("global"), // must be provided in request
 		Properties: &profiles.ProfileProperties{
-			TrafficRoutingMethod: &trafficRoutingMethod,
-			DnsConfig:            expandArmTrafficManagerDNSConfig(d),
-			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+			TrafficRoutingMethod:        &trafficRoutingMethod,
+			TrafficViewEnrollmentStatus: expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool)),
+			DnsConfig:                   expandArmTrafficManagerDNSConfig(d),
+			MonitorConfig:               expandArmTrafficManagerMonitorConfig(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -237,10 +238,6 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	if status, ok := d.GetOk("profile_status"); ok {
 		profileStatus := profiles.ProfileStatus(status.(string))
 		profile.Properties.ProfileStatus = &profileStatus
-	}
-
-	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-		profile.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -358,9 +355,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("traffic_view_enabled") {
-		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-			update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
-		}
+		update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool))
 	}
 
 	if _, err := client.Update(ctx, *id, update); err != nil {
