@@ -23,6 +23,7 @@ FEATURES:
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` [GH-30613]
 
 BUG FIXES:
+* Data Source: `azurerm_ssh_public_key` - fix normalisation for `public_key` to avoid removing a literal `EOT` from the base64 encoded content [GH-31249]
 * `azurerm_data_protection_backup_vault` - poll delete request for completion [GH-31202]
 * `azurerm_traffic_manager_profile` - fix an issue that prevented changing `traffic_view_enabled` from `true` to `false` [GH-31066]
 * `azurerm_resource_group` - fix poller for the `prevent_deletion_if_contains_resources` feature, resolving an Azure eventual consistency issue [GH-31253]
