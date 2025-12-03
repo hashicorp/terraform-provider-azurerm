@@ -83,6 +83,13 @@ func (s S011) checkPropertyPossibleValues(
 		return nil
 	}
 
+	// Skip if this property has version changes in upgrade guide
+	// This is because it's not consistent whether possible values change should be documented
+	// when it's in the upgrade feature flag
+	if HasVersionChanges(d.Document.Path, d.Name, path) {
+		return nil
+	}
+
 	origLine := docProperty.Content
 	var message string
 	var fixedLine string

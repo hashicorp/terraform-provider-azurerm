@@ -9,10 +9,6 @@ import (
 )
 
 var skipProps = []string{
-	"azurerm_load_test",
-	"azurerm_kubernetes_fleet_manager",
-	"azurerm_dev_center",
-
 	"all.timezone",
 	"all.time_zone",
 	"all.time_zone_id",
