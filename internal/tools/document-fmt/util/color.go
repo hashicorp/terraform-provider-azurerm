@@ -10,4 +10,7 @@ var (
 	GreenBold = color.New(color.FgGreen, color.Bold).Sprint
 	Red       = color.New(color.FgRed).Sprint
 	RedBold   = color.New(color.FgRed, color.Bold).Sprint
+	Yellow    = color.New(color.FgYellow).Sprint
+	YellowBold = color.New(color.FgYellow, color.Bold).Sprint
+	Bold      = color.New(color.Bold).Sprint
 )

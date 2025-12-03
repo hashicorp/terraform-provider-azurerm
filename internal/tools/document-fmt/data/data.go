@@ -5,16 +5,38 @@ package data
 
 import (
 	"fmt"
+	"reflect"
+	"runtime"
 	"strings"
 
+	gomonkey "github.com/agiledragon/gomonkey/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/mdparser"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
+
+// patchPossibleValuesFn patches validation.StringInSlice to capture possible values
+func patchPossibleValuesFn() {
+	gomonkey.ApplyFunc(validation.StringInSlice,
+		func(valid []string, ignoreCase bool) schema.SchemaValidateFunc { //nolint:staticcheck
+			return func(i interface{}, k string) (warnings []string, errors []error) {
+				var res []string // must have a copy
+				res = append(res, valid...)
+				return res, nil
+			}
+		})
+}
+
+func init() {
+	patchPossibleValuesFn()
+}
 
 // TerraformNodeData contains all data for a resource that may be required for validation/scaffolding
 // TODO: Provider type (struct) containing map of Service type, which should each contain a slice of `TerraformNodeData` structs
@@ -31,9 +53,14 @@ type TerraformNodeData struct {
 	APIs     []API     // APIs used by this resource -- best effort, may not be populated
 	Timeouts []Timeout // Timeouts from *schema.Resource
 
-	Document *markdown.Document // resource document
+	SchemaProperties *models.SchemaProperties
 
-	Errors []error // errors found in this resource
+	Document           *markdown.Document // resource document
+	DocumentArguments  *models.DocumentProperties
+	DocumentAttributes *models.DocumentProperties
+
+	ShouldNormalize bool // whether to normalize document before parsing
+	Errors          []error
 }
 
 func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name string, resourceType ResourceType, source any) (*TerraformNodeData, error) {
@@ -79,10 +106,17 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 	return &result, nil
 }
 
-func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string) []*TerraformNodeData {
+func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string, shouldNormalize bool, shouldLoadPackages bool) []*TerraformNodeData {
 	result := make([]*TerraformNodeData, 0)
 
-	pkgData := loadPackages(providerDir)
+	// Only load packages if needed by the selected rules
+	var pkgData *packageData
+	if shouldLoadPackages {
+		log.WithField("reason", "required by selected rules").Info("loading packages for API analysis")
+		pkgData = loadPackages(providerDir)
+	} else {
+		log.Info("skipping package loading - no rules require it")
+	}
 
 	for _, s := range provider.SupportedTypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
@@ -101,7 +135,9 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 			}
 		}
 
-		service.APIsByResource = findAPIsForTypedResources(*pkgData, service)
+		if pkgData != nil {
+			service.APIsByResource = findAPIsForTypedResources(*pkgData, service)
+		}
 
 		for _, r := range s.DataSources() {
 			name := r.ResourceType()
@@ -118,6 +154,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				log.Error(err)
 				continue
 			}
+			rd.ShouldNormalize = shouldNormalize
 
 			rd.populateAdditionalFields(fs)
 
@@ -139,6 +176,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				log.Error(err)
 				continue
 			}
+			rd.ShouldNormalize = shouldNormalize
 
 			rd.populateAdditionalFields(fs)
 
@@ -162,7 +200,9 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 			}
 		}
 
-		service.APIsByResource = findAPIsForUntypedResources(*pkgData, service)
+		if pkgData != nil {
+			service.APIsByResource = findAPIsForUntypedResources(*pkgData, service)
+		}
 
 		for name, r := range s.SupportedDataSources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
@@ -215,6 +255,8 @@ func (rd *TerraformNodeData) populateAdditionalFields(fs afero.Fs) {
 	rd.populateAPIData()
 	rd.populateTimeouts()
 	rd.populateDocumentData(fs)
+	rd.populateDocumentProperties()
+	rd.populateSchemaProperties()
 }
 
 func (rd *TerraformNodeData) populateAPIData() {
@@ -227,8 +269,96 @@ func (rd *TerraformNodeData) populateDocumentData(fs afero.Fs) {
 	rd.Document.Exists = util.FileExists(fs, rd.Document.Path)
 
 	if rd.Document.Exists {
-		if err := rd.Document.Parse(fs); err != nil {
+		if err := rd.Document.Parse(fs, rd.ShouldNormalize); err != nil {
 			rd.Errors = append(rd.Errors, fmt.Errorf("failed to parse documentation: %+v", err)) // Output error instead?
+		}
+	}
+}
+
+func (rd *TerraformNodeData) populateSchemaProperties() {
+	rd.SchemaProperties = models.NewSchemaProperties()
+
+	populateAllSchemaProperties(rd.SchemaProperties, rd.Resource)
+}
+
+func (rd *TerraformNodeData) populateDocumentProperties() {
+	argumentsSection := rd.Document.GetArgumentsSection()
+
+	if argumentsSection != nil {
+		if parsedProps := parseMdArgToProperties(argumentsSection); parsedProps != nil {
+			rd.DocumentArguments = parsedProps
+		}
+	}
+}
+
+func parseMdArgToProperties(argSection *markdown.ArgumentsSection) *models.DocumentProperties {
+	return mdparser.ParseMarkdownSection(argSection.GetContent())
+}
+
+// extractPossibleValues attempts to extract possible values from ValidateFunc using monkey patch
+func extractPossibleValues(property *schema.Schema) []string {
+	if property.ValidateFunc == nil {
+		return nil
+	}
+
+	// Check if it is StringInSlice validation
+	pc := reflect.ValueOf(property.ValidateFunc).Pointer()
+	fn := runtime.FuncForPC(pc).Name()
+
+	// ValidateFunc may direct use sdk v2.StringInSlice then function name will be patchPossibleValuesFn
+	if strings.Contains(fn, "patchPossibleValuesFn") || strings.Contains(fn, "StringInSlice") {
+		values, _ := property.ValidateFunc(nil, "")
+		return values
+	}
+
+	return nil
+}
+
+// extractDefaultValue extracts the default value from schema
+func extractDefaultValue(property *schema.Schema) interface{} {
+	if property.Default != nil {
+		return property.Default
+	}
+
+	if property.DefaultFunc != nil {
+		if val, err := property.DefaultFunc(); err == nil && val != nil {
+			return val
+		}
+	}
+
+	return nil
+}
+
+func populateAllSchemaProperties(properties *models.SchemaProperties, resource *schema.Resource) {
+	for name, property := range resource.Schema {
+		properties.Objects[name] = &models.SchemaProperty{
+			Name:           name,
+			Type:           strings.TrimPrefix(property.Type.String(), "Type"),
+			Description:    property.Description,
+			Required:       property.Required,
+			Optional:       property.Optional,
+			Computed:       property.Computed,
+			ForceNew:       property.ForceNew,
+			Deprecated:     property.Deprecated != "",
+			PossibleValues: extractPossibleValues(property),
+			DefaultValue:   extractDefaultValue(property),
+		}
+
+		// Handle nested resources
+		if r, ok := property.Elem.(*schema.Resource); ok {
+			schemaProperty := properties.Objects[name]
+			schemaProperty.Block = true
+			schemaProperty.Nested = models.NewSchemaProperties()
+			populateAllSchemaProperties(schemaProperty.Nested, r)
+		}
+
+		// Handle nested schemas (e.g., List of String with validation)
+		if r, ok := property.Elem.(*schema.Schema); ok {
+			properties.Objects[name].NestedType = strings.TrimPrefix(r.Type.String(), "Type")
+			// Extract possible values from nested schema if available
+			if nestedPossibleValues := extractPossibleValues(r); len(nestedPossibleValues) > 0 {
+				properties.Objects[name].PossibleValues = nestedPossibleValues
+			}
 		}
 	}
 }

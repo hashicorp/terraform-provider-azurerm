@@ -4,6 +4,9 @@
 package util
 
 import (
+	"log"
+	"strings"
+
 	"github.com/spf13/afero"
 )
 
@@ -43,4 +46,29 @@ func Map2Slices[K comparable, V any](m map[K]V) ([]K, []V) {
 	}
 
 	return keys, values
+}
+
+func FirstCodeValue(line string) string {
+	if vals := extractCodeValue(line); len(vals) > 0 {
+		return vals[0]
+	}
+	return ""
+}
+
+func extractCodeValue(line string) (res []string) {
+	idx1 := strings.Index(line, "`")
+	for idx1 >= 0 {
+		idx2 := idx1 + 1 + strings.Index(line[idx1+1:], "`")
+		if idx2 > len(line) || idx2 <= idx1 {
+			log.Printf("ExtractCodeValue: code mark ` not closed in '%s'", line)
+			return
+		}
+		res = append(res, line[idx1+1:idx2])
+		nextIdx := strings.Index(line[idx2+1:], "`")
+		if nextIdx < 0 {
+			break
+		}
+		idx1 = idx2 + 1 + nextIdx
+	}
+	return
 }

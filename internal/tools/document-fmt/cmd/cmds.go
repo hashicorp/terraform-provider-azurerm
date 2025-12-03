@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/validator"
 	log "github.com/sirupsen/logrus"
@@ -33,7 +34,8 @@ func Make() *cobra.Command {
 			validateProviderDirectoryAccess(fs)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
+			shouldLoadPackages := rule.ShouldLoadPackages(flags.Linter.Rules)
+			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource, false, shouldLoadPackages)
 
 			v := validator.Validator{}
 			for _, r := range resources {
@@ -76,7 +78,8 @@ func Make() *cobra.Command {
 			validateProviderDirectoryAccess(fs)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
+			shouldLoadPackages := rule.ShouldLoadPackages(flags.Linter.Rules)
+			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource, true, shouldLoadPackages)
 
 			v := validator.Validator{}
 			errCount, resourceWithErrCount := 0, 0
