@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,8 +99,8 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	certificate := devices.CertificateDescription{
 		Properties: &devices.CertificateProperties{
-			IsVerified:  utils.Bool(d.Get("is_verified").(bool)),
-			Certificate: utils.String(d.Get("certificate_content").(string)),
+			IsVerified:  pointer.To(d.Get("is_verified").(bool)),
+			Certificate: pointer.To(d.Get("certificate_content").(string)),
 		},
 	}
 
@@ -162,11 +163,11 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("is_verified") {
-		existing.Properties.IsVerified = utils.Bool(d.Get("is_verified").(bool))
+		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 
 	if d.HasChange("certificate_content") {
-		existing.Properties.Certificate = utils.String(d.Get("certificate_content").(string))
+		existing.Properties.Certificate = pointer.To(d.Get("certificate_content").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, existing, etag); err != nil {
@@ -198,7 +199,7 @@ func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("deleting  %s because Etag is nil", *id)
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, *utils.String(*resp.Etag)); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, *pointer.To(*resp.Etag)); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil

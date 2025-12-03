@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databaseprincipalassignments"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
@@ -127,7 +127,7 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 
 	principalAssignment := databaseprincipalassignments.DatabasePrincipalAssignment{
 		Properties: &databaseprincipalassignments.DatabasePrincipalProperties{
-			TenantId:      utils.String(d.Get("tenant_id").(string)),
+			TenantId:      pointer.To(d.Get("tenant_id").(string)),
 			PrincipalId:   d.Get("principal_id").(string),
 			PrincipalType: databaseprincipalassignments.PrincipalType(d.Get("principal_type").(string)),
 			Role:          databaseprincipalassignments.DatabasePrincipalRole(d.Get("role").(string)),

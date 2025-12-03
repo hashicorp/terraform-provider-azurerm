@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -124,14 +125,14 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:          utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
+			VaultURI:          pointer.To(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
 			KeyVaultCertName:  &keyVaultCertificateId.Name,
-			ExcludePrivateKey: utils.Bool(d.Get("exclude_private_key").(bool)),
+			ExcludePrivateKey: pointer.To(d.Get("exclude_private_key").(bool)),
 		}
 	}
 	if value, ok := d.GetOk("certificate_content"); ok {
 		cert.Properties = &appplatform.ContentCertificateProperties{
-			Content: utils.String(value.(string)),
+			Content: pointer.To(value.(string)),
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	// nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/managementpolicies"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStorageManagementPolicy() *pluginsdk.Resource {
@@ -507,16 +507,16 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.TierToCool = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
-					baseBlob.TierToCool.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+					baseBlob.TierToCool.DaysAfterModificationGreaterThan = pointer.To(float64(sinceMod.(int)))
 				}
 				if sinceAccessOK {
-					baseBlob.TierToCool.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+					baseBlob.TierToCool.DaysAfterLastAccessTimeGreaterThan = pointer.To(float64(sinceAccess.(int)))
 				}
 				if sinceCreateOK {
-					baseBlob.TierToCool.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+					baseBlob.TierToCool.DaysAfterCreationGreaterThan = pointer.To(float64(sinceCreate.(int)))
 				}
 				if autoTierToHotOK {
-					baseBlob.EnableAutoTierToHotFromCool = utils.Bool(autoTierToHotOK)
+					baseBlob.EnableAutoTierToHotFromCool = pointer.To(autoTierToHotOK)
 				}
 			}
 
@@ -544,16 +544,16 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.TierToArchive = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
-					baseBlob.TierToArchive.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+					baseBlob.TierToArchive.DaysAfterModificationGreaterThan = pointer.To(float64(sinceMod.(int)))
 				}
 				if sinceAccessOK {
-					baseBlob.TierToArchive.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+					baseBlob.TierToArchive.DaysAfterLastAccessTimeGreaterThan = pointer.To(float64(sinceAccess.(int)))
 				}
 				if sinceCreateOK {
-					baseBlob.TierToArchive.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+					baseBlob.TierToArchive.DaysAfterCreationGreaterThan = pointer.To(float64(sinceCreate.(int)))
 				}
 				if v := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); v != -1 {
-					baseBlob.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(v.(int)))
+					baseBlob.TierToArchive.DaysAfterLastTierChangeGreaterThan = pointer.To(float64(v.(int)))
 				}
 			}
 
@@ -580,13 +580,13 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.Delete = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
-					baseBlob.Delete.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+					baseBlob.Delete.DaysAfterModificationGreaterThan = pointer.To(float64(sinceMod.(int)))
 				}
 				if sinceAccessOK {
-					baseBlob.Delete.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+					baseBlob.Delete.DaysAfterLastAccessTimeGreaterThan = pointer.To(float64(sinceAccess.(int)))
 				}
 				if sinceCreateOK {
-					baseBlob.Delete.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+					baseBlob.Delete.DaysAfterCreationGreaterThan = pointer.To(float64(sinceCreate.(int)))
 				}
 			}
 
@@ -614,13 +614,13 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.TierToCold = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
-					baseBlob.TierToCold.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+					baseBlob.TierToCold.DaysAfterModificationGreaterThan = pointer.To(float64(sinceMod.(int)))
 				}
 				if sinceAccessOK {
-					baseBlob.TierToCold.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+					baseBlob.TierToCold.DaysAfterLastAccessTimeGreaterThan = pointer.To(float64(sinceAccess.(int)))
 				}
 				if sinceCreateOK {
-					baseBlob.TierToCold.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+					baseBlob.TierToCold.DaysAfterCreationGreaterThan = pointer.To(float64(sinceCreate.(int)))
 				}
 			}
 
@@ -639,7 +639,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
-					snapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
+					snapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan = pointer.To(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
@@ -667,7 +667,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
-					version.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
+					version.TierToArchive.DaysAfterLastTierChangeGreaterThan = pointer.To(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {

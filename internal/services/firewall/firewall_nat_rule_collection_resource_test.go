@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FirewallNatRuleCollectionResource struct{}
@@ -249,10 +249,10 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 		}
 
 		if *rule.Name == id.NatRuleCollectionName {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {

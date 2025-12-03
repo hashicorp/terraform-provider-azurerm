@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicy() *pluginsdk.Resource {
@@ -185,7 +184,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		}
 	}
 	if d.HasChange("email_account_admins_enabled") {
-		payload.Properties.EmailAccountAdmins = utils.Bool(d.Get("email_account_admins_enabled").(bool))
+		payload.Properties.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
 	}
 
 	if d.HasChange("retention_days") {
@@ -213,7 +212,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	}
 
 	if d.HasChange("storage_account_access_key") {
-		payload.Properties.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
+		payload.Properties.StorageAccountAccessKey = pointer.To(d.Get("storage_account_access_key").(string))
 	}
 
 	// StorageAccountAccessKey cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
@@ -222,7 +221,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	}
 
 	if d.HasChange("storage_endpoint") {
-		payload.Properties.StorageEndpoint = utils.String(d.Get("storage_endpoint").(string))
+		payload.Properties.StorageEndpoint = pointer.To(d.Get("storage_endpoint").(string))
 	}
 
 	// StorageEndpoint cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
@@ -377,19 +376,19 @@ func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *manageds
 	}
 
 	if v, ok := d.GetOk("email_account_admins_enabled"); ok {
-		props.EmailAccountAdmins = utils.Bool(v.(bool))
+		props.EmailAccountAdmins = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("retention_days"); ok {
-		props.RetentionDays = utils.Int64(int64(v.(int)))
+		props.RetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		props.StorageAccountAccessKey = utils.String(v.(string))
+		props.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_endpoint"); ok {
-		props.StorageEndpoint = utils.String(v.(string))
+		props.StorageEndpoint = pointer.To(v.(string))
 	}
 
 	return &policy

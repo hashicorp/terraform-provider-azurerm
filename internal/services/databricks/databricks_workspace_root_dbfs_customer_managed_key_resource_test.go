@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DatabricksWorkspaceRootDbfsCustomerManagedKeyResource struct{}
@@ -142,11 +142,11 @@ func (DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) Exists(ctx context.
 	// This is the only way we can tell if the CMK has actually been provisioned or not...
 	if resp.Model != nil && resp.Model.Properties.Parameters != nil && resp.Model.Properties.Parameters.Encryption != nil && resp.Model.Properties.Parameters.Encryption.Value != nil && resp.Model.Properties.Parameters.Encryption.Value.KeySource != nil {
 		if *resp.Model.Properties.Parameters.Encryption.Value.KeySource == workspaces.KeySourceMicrosoftPointKeyvault {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {

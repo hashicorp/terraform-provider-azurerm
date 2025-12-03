@@ -27,6 +27,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone -service-package-name privatedns -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
+var privateDnsZoneResourceName = "azurerm_private_dns_zone"
+
 func resourcePrivateDnsZone() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourcePrivateDnsZoneCreateUpdate,
@@ -173,7 +175,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone", id.ID())
+			return tf.ImportAsExistsError(privateDnsZoneResourceName, id.ID())
 		}
 	}
 
@@ -220,6 +222,10 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourcePrivateDnsZoneRead(d, meta)
 }
 
@@ -249,24 +255,28 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("reading DNS SOA record @: %v", err)
 	}
 
+	return resourcePrivateDnsZoneFlatten(d, id, resp.Model, recordSetResp.Model)
+}
+
+func resourcePrivateDnsZoneFlatten(d *pluginsdk.ResourceData, id *privatezones.PrivateDnsZoneId, privateZone *privatezones.PrivateZone, recordSet *privatedns.RecordSet) error {
 	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if privateZone != nil {
+		if props := privateZone.Properties; props != nil {
 			d.Set("number_of_record_sets", props.NumberOfRecordSets)
 			d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
 			d.Set("max_number_of_virtual_network_links", props.MaxNumberOfVirtualNetworkLinks)
 			d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
 		}
 
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, privateZone.Tags); err != nil {
 			return err
 		}
-	}
 
-	if err = d.Set("soa_record", flattenPrivateDNSZoneSOARecord(recordSetResp.Model)); err != nil {
-		return fmt.Errorf("setting `soa_record`: %+v", err)
+		if err := d.Set("soa_record", flattenPrivateDNSZoneSOARecord(recordSet)); err != nil {
+			return fmt.Errorf("setting `soa_record`: %+v", err)
+		}
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)

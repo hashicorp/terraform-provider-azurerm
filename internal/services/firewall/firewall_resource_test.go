@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FirewallResource struct{}
@@ -385,7 +385,7 @@ func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -398,7 +398,7 @@ func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, st
 		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (FirewallResource) basic(data acceptance.TestData) string {

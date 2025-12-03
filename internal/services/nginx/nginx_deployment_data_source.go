@@ -307,9 +307,9 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.ToString(model.Location)
+				output.Location = pointer.From(model.Location)
 				if tags := model.Tags; tags != nil {
-					output.Tags = pointer.ToMapOfStringStrings(model.Tags)
+					output.Tags = pointer.From(model.Tags)
 				}
 				if model.Sku != nil {
 					output.Sku = model.Sku.Name
@@ -320,17 +320,17 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 				}
 				output.Identity = *flattenedIdentity
 				if props := model.Properties; props != nil {
-					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.NginxVersion = pointer.ToString(props.NginxVersion)
-					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
+					output.IpAddress = pointer.From(props.IPAddress)
+					output.NginxVersion = pointer.From(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
+					output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 
 					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
-									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
 								},
 							}
 						}
@@ -341,7 +341,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 							if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
 								output.FrontendPublic = append(output.FrontendPublic, FrontendPublic{})
 								for _, ip := range *publicIps {
-									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
+									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.From(ip.Id))
 								}
 							}
 
@@ -353,9 +353,9 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 									}
 
 									output.FrontendPrivate = append(output.FrontendPrivate, FrontendPrivate{
-										IpAddress:        pointer.ToString(ip.PrivateIPAddress),
+										IpAddress:        pointer.From(ip.PrivateIPAddress),
 										AllocationMethod: method,
-										SubnetId:         pointer.ToString(ip.SubnetId),
+										SubnetId:         pointer.From(ip.SubnetId),
 									})
 								}
 							}
@@ -363,14 +363,14 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 
 						if netIf := profile.NetworkInterfaceConfiguration; netIf != nil {
 							output.NetworkInterface = []NetworkInterface{
-								{SubnetId: pointer.ToString(netIf.SubnetId)},
+								{SubnetId: pointer.From(netIf.SubnetId)},
 							}
 						}
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
 						if capacity := scaling.Capacity; capacity != nil {
-							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+							output.Capacity = pointer.From(props.ScalingProperties.Capacity)
 						}
 						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
 							profiles := autoScaleProfiles.Profiles
@@ -385,7 +385,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
-						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+						output.Email = pointer.From(props.UserProfile.PreferredEmail)
 					}
 
 					if props.AutoUpgradeProfile != nil {

@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubDpsSharedAccessPolicyResource struct{}
@@ -214,5 +214,5 @@ func (t IotHubDpsSharedAccessPolicyResource) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("loading Shared Access Policy (%s): %+v", id, err)
 	}
 
-	return utils.Bool(accessPolicy.Model != nil && accessPolicy.Model.PrimaryKey != nil), nil
+	return pointer.To(accessPolicy.Model != nil && accessPolicy.Model.PrimaryKey != nil), nil
 }

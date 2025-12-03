@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,7 +64,7 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %s): %+v", id.SiteName, id.ResourceGroup, err)
 	}
@@ -74,7 +75,7 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 
 	target := state.Attributes["resource_group_name"]
 
-	return utils.Bool(*resp.SlotSwapStatus.SourceSlotName == target), nil
+	return pointer.To(*resp.SlotSwapStatus.SourceSlotName == target), nil
 }
 
 func (AppServiceActiveSlotResource) basic(data acceptance.TestData) string {

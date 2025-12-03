@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const EnableMultiVMSyncEnabled string = "True"
@@ -121,8 +121,8 @@ func (r VMWareReplicationPolicyResource) Create() sdk.ResourceFunc {
 					ProviderSpecificInput: &replicationpolicies.InMageRcmPolicyCreationInput{
 						RecoveryPointHistoryInMinutes:     &recoveryPoint,
 						AppConsistentFrequencyInMinutes:   &appConsistency,
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
+						CrashConsistentFrequencyInMinutes: pointer.To(int64(10)),
+						EnableMultiVMSync:                 pointer.To(EnableMultiVMSyncEnabled),
 					},
 				},
 			}
@@ -210,8 +210,8 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 					ReplicationProviderSettings: &replicationpolicies.InMageRcmPolicyCreationInput{
 						RecoveryPointHistoryInMinutes:     &recoveryPoint,
 						AppConsistentFrequencyInMinutes:   &appConsistency,
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
+						EnableMultiVMSync:                 pointer.To(EnableMultiVMSyncEnabled),
+						CrashConsistentFrequencyInMinutes: pointer.To(int64(10)),
 					},
 				},
 			}
