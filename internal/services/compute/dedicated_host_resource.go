@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host -service-package-name compute -properties "name" -compare-values "subscription_id:dedicated_host_group_id,resource_group_name:dedicated_host_group_id,host_group_name:dedicated_host_group_id"
@@ -174,12 +173,12 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	payload := dedicatedhosts.DedicatedHost{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &dedicatedhosts.DedicatedHostProperties{
-			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
+			AutoReplaceOnFailure: pointer.To(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          &licenseType,
-			PlatformFaultDomain:  utils.Int64(int64(d.Get("platform_fault_domain").(int))),
+			PlatformFaultDomain:  pointer.To(int64(d.Get("platform_fault_domain").(int))),
 		},
 		Sku: dedicatedhosts.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -189,6 +188,10 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceDedicatedHostRead(d, meta)
 }
 
@@ -253,7 +256,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("auto_replace_on_failure", "license_type") {
 		payload.Properties = &dedicatedhosts.DedicatedHostProperties{}
 		if d.HasChange("auto_replace_on_failure") {
-			payload.Properties.AutoReplaceOnFailure = utils.Bool(d.Get("auto_replace_on_failure").(bool))
+			payload.Properties.AutoReplaceOnFailure = pointer.To(d.Get("auto_replace_on_failure").(bool))
 		}
 		if d.HasChange("license_type") {
 			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))

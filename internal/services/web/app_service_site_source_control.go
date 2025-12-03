@@ -7,8 +7,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
@@ -114,11 +114,11 @@ func expandAppServiceSiteSourceControl(d *pluginsdk.ResourceData) *web.SiteSourc
 	sourceControl := sourceControlRaw[0].(map[string]interface{})
 
 	result := &web.SiteSourceControlProperties{
-		RepoURL:                   utils.String(sourceControl["repo_url"].(string)),
-		Branch:                    utils.String(sourceControl["branch"].(string)),
-		IsManualIntegration:       utils.Bool(sourceControl["manual_integration"].(bool)),
-		IsMercurial:               utils.Bool(sourceControl["use_mercurial"].(bool)),
-		DeploymentRollbackEnabled: utils.Bool(sourceControl["rollback_enabled"].(bool)),
+		RepoURL:                   pointer.To(sourceControl["repo_url"].(string)),
+		Branch:                    pointer.To(sourceControl["branch"].(string)),
+		IsManualIntegration:       pointer.To(sourceControl["manual_integration"].(bool)),
+		IsMercurial:               pointer.To(sourceControl["use_mercurial"].(bool)),
+		DeploymentRollbackEnabled: pointer.To(sourceControl["rollback_enabled"].(bool)),
 	}
 
 	return result

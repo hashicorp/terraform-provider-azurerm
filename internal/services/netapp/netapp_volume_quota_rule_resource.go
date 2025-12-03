@@ -20,7 +20,6 @@ import (
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeQuotaRuleResource struct{}
@@ -124,7 +123,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
 					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
 					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
-					QuotaTarget:     utils.String(model.QuotaTarget),
+					QuotaTarget:     pointer.To(model.QuotaTarget),
 				},
 			}
 
@@ -168,7 +167,7 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 				}
 
-				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+				update.Properties.QuotaSizeInKiBs = pointer.To(state.QuotaSizeInKiB)
 
 				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)

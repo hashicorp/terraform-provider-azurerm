@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/managedprivateendpoints"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -122,11 +122,11 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 	}
 
 	if v, ok := d.GetOk("private_link_resource_region"); ok {
-		managedPrivateEndpoint.Properties.PrivateLinkResourceRegion = utils.String(v.(string))
+		managedPrivateEndpoint.Properties.PrivateLinkResourceRegion = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("request_message"); ok {
-		managedPrivateEndpoint.Properties.RequestMessage = utils.String(v.(string))
+		managedPrivateEndpoint.Properties.RequestMessage = pointer.To(v.(string))
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, managedPrivateEndpoint)

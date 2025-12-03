@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
@@ -133,7 +133,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 			Category:      d.Get("category").(string),
 			DisplayName:   d.Get("display_name").(string),
 			Query:         d.Get("query").(string),
-			FunctionAlias: utils.String(d.Get("function_alias").(string)),
+			FunctionAlias: pointer.To(d.Get("function_alias").(string)),
 			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
@@ -146,7 +146,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 				result = append(result, item.(string))
 			}
 		}
-		parameters.Properties.FunctionParameters = utils.String(strings.Join(result, ", "))
+		parameters.Properties.FunctionParameters = pointer.To(strings.Join(result, ", "))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {

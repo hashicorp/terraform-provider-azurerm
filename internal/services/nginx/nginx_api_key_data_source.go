@@ -96,8 +96,8 @@ func (m APIKeyDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil && model.Properties != nil {
 				props := model.Properties
-				state.EndDateTime = pointer.ToString(props.EndDateTime)
-				state.Hint = pointer.ToString(props.Hint)
+				state.EndDateTime = pointer.From(props.EndDateTime)
+				state.Hint = pointer.From(props.Hint)
 			}
 
 			meta.SetID(id)

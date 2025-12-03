@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -173,7 +174,7 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	sqlDatabaseName := d.Get("cosmosdb_sql_database_name")
 
 	bindingParameters := map[string]*string{
-		springCloudAppCosmosDbAssociationKeyAPIType: utils.String(apiType),
+		springCloudAppCosmosDbAssociationKeyAPIType: pointer.To(apiType),
 	}
 
 	switch apiType {
@@ -181,23 +182,23 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 		if cassandraKeyspaceName == "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = utils.String(cassandraKeyspaceName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = pointer.To(cassandraKeyspaceName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeGremlin:
 		if gremlinDatabaseName == "" || gremlinGraphName == "" {
 			return fmt.Errorf("`cosmosdb_gremlin_database_name` and `cosmosdb_gremlin_graph_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(gremlinDatabaseName.(string))
-		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = utils.String(gremlinGraphName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(gremlinDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = pointer.To(gremlinGraphName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeMongo:
 		if mongoDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_mongo_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(mongoDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(mongoDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeSql:
 		if sqlDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_sql_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(sqlDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(sqlDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeTable:
 		if cassandraKeyspaceName != "" || gremlinDatabaseName != "" || gremlinGraphName != "" || mongoDatabaseName != "" || sqlDatabaseName != "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name`, `cosmosdb_gremlin_database_name`, `cosmosdb_gremlin_graph_name`, `cosmosdb_mongo_database_name`, `cosmosdb_sql_database_name` should not be set if `api_type` is `%s`", apiType)
@@ -207,8 +208,8 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: bindingParameters,
-			Key:               utils.String(d.Get("cosmosdb_access_key").(string)),
-			ResourceID:        utils.String(d.Get("cosmosdb_account_id").(string)),
+			Key:               pointer.To(d.Get("cosmosdb_access_key").(string)),
+			ResourceID:        pointer.To(d.Get("cosmosdb_account_id").(string)),
 		},
 	}
 

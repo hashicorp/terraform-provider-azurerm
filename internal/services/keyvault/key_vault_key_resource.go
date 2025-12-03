@@ -316,7 +316,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Kty:    keyvault.JSONWebKeyType(keyType),
 		KeyOps: keyOptions,
 		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		},
 
 		Tags: tags.Expand(t),
@@ -331,7 +331,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if !ok {
 			return errors.New("key_size is required when creating an RSA key")
 		}
-		parameters.KeySize = utils.Int32(int32(keySize.(int)))
+		parameters.KeySize = pointer.To(int32(keySize.(int)))
 	}
 	// TODO: support `oct` once this is fixed
 	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
@@ -437,7 +437,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := keyvault.KeyUpdateParameters{
 		KeyOps: keyOptions,
 		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -735,14 +735,14 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 
 	var expiryTime *string = nil // needs to be set to nil if not set
 	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
-		expiryTime = utils.String(rawExpiryTime.(string))
+		expiryTime = pointer.To(rawExpiryTime.(string))
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
 	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
 		lifetimeActionNotify := keyvault.LifetimeActions{
 			Trigger: &keyvault.LifetimeActionsTrigger{
-				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
+				TimeBeforeExpiry: pointer.To(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
 				Type: keyvault.ActionTypeNotify,

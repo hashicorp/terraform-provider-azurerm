@@ -49,6 +49,42 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerOutboundRule_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}
@@ -241,6 +277,112 @@ resource "azurerm_lb_outbound_rule" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerOutboundRule) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "one-%[1]d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "be-%[1]d"
+}
+
+resource "azurerm_lb_outbound_rule" "test" {
+  name                    = "acctest-outbound-rule-%[1]d"
+  loadbalancer_id         = azurerm_lb.test.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  protocol                = "All"
+
+  tcp_reset_enabled        = true
+  idle_timeout_in_minutes  = 5
+  allocated_outbound_ports = 512
+
+  frontend_ip_configuration {
+    name = "one-%[1]d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancerOutboundRule) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "one-%[1]d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "be-%[1]d"
+}
+
+resource "azurerm_lb_outbound_rule" "test" {
+  name                    = "acctest-outbound-rule-%[1]d"
+  loadbalancer_id         = azurerm_lb.test.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  protocol                = "All"
+
+  tcp_reset_enabled        = false
+  idle_timeout_in_minutes  = 10
+  allocated_outbound_ports = 256
+
+  frontend_ip_configuration {
+    name = "one-%[1]d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancerOutboundRule) requiresImport(data acceptance.TestData) string {

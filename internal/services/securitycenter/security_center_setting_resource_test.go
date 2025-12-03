@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterSettingResource struct{}
@@ -115,23 +115,23 @@ func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *client
 	}
 
 	if resp.Model == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
-		return utils.Bool(alertSyncSettings.Properties.Enabled), nil
+		return pointer.To(alertSyncSettings.Properties.Enabled), nil
 	}
 	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
-		return utils.Bool(dataExportSettings.Properties.Enabled), nil
+		return pointer.To(dataExportSettings.Properties.Enabled), nil
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -157,21 +157,21 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 	}
 
 	if resp.Model == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil || !alertSyncSettings.Properties.Enabled {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 	}
 	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil || !dataExportSettings.Properties.Enabled {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (SecurityCenterSettingResource) cfg(settingName string, enabled bool) string {

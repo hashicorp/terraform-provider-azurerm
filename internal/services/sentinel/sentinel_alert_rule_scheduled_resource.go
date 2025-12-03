@@ -402,7 +402,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 
 	param := alertrules.ScheduledAlertRule{
 		Properties: &alertrules.ScheduledAlertRuleProperties{
-			Description:           utils.String(d.Get("description").(string)),
+			Description:           pointer.To(d.Get("description").(string)),
 			DisplayName:           d.Get("display_name").(string),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
@@ -420,10 +420,10 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
-		param.Properties.AlertRuleTemplateName = utils.String(v.(string))
+		param.Properties.AlertRuleTemplateName = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("alert_rule_template_version"); ok {
-		param.Properties.TemplateVersion = utils.String(v.(string))
+		param.Properties.TemplateVersion = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
 		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]interface{}))

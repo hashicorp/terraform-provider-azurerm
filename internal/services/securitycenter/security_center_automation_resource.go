@@ -59,7 +59,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Required:  true,
 				ForceNew:  true,
-				StateFunc: azure.NormalizeLocation,
+				StateFunc: location.StateFunc,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -238,7 +238,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 
 	// Build automation struct
