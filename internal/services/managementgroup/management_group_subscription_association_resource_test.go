@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupSubscriptionAssociation struct{}
@@ -118,14 +117,14 @@ func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, clie
 	resp, err := client.ManagementGroups.GroupsClient.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 		CacheControl: pointer.To("no-cache"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Management Group to check for Subscription Association: %+v", err)
 	}
 
 	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Children == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	present := false
@@ -135,5 +134,5 @@ func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, clie
 		}
 	}
 
-	return utils.Bool(present), nil
+	return pointer.To(present), nil
 }

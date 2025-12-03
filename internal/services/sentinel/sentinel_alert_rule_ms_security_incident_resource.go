@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -158,14 +159,14 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 		Properties: &alertrules.MicrosoftSecurityIncidentCreationAlertRuleProperties{
 			ProductFilter:    alertrules.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
 			DisplayName:      d.Get("display_name").(string),
-			Description:      utils.String(d.Get("description").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
 			Enabled:          d.Get("enabled").(bool),
 			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*pluginsdk.Set).List()),
 		},
 	}
 
 	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
-		param.Properties.AlertRuleTemplateName = utils.String(v.(string))
+		param.Properties.AlertRuleTemplateName = pointer.To(v.(string))
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {

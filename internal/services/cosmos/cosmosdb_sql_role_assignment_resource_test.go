@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,11 +104,11 @@ func (r CosmosDbSQLRoleAssignmentResource) Exists(ctx context.Context, client *c
 	resp, err := client.Cosmos.SqlResourceClient.GetSQLRoleAssignment(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) template(data acceptance.TestData) string {

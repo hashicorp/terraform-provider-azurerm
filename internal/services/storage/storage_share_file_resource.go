@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
@@ -191,9 +191,9 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	input := files.CreateInput{
 		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
-		ContentType:        utils.String(d.Get("content_type").(string)),
-		ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-		ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+		ContentType:        pointer.To(d.Get("content_type").(string)),
+		ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+		ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 	}
 
 	if v, ok := d.GetOk("content_md5"); ok {
@@ -272,9 +272,9 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
 		input := files.SetPropertiesInput{
-			ContentType:        utils.String(d.Get("content_type").(string)),
-			ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-			ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+			ContentType:        pointer.To(d.Get("content_type").(string)),
+			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+			ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 			ContentLength:      int64(d.Get("content_length").(int)),
 			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
 		}

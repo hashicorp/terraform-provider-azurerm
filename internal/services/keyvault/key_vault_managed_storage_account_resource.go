@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -119,10 +120,10 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.StorageAccountCreateParameters{
-		ResourceID:         utils.String(d.Get("storage_account_id").(string)),
-		ActiveKeyName:      utils.String(d.Get("storage_account_key").(string)),
-		AutoRegenerateKey:  utils.Bool(d.Get("regenerate_key_automatically").(bool)),
-		RegenerationPeriod: utils.String(d.Get("regeneration_period").(string)),
+		ResourceID:         pointer.To(d.Get("storage_account_id").(string)),
+		ActiveKeyName:      pointer.To(d.Get("storage_account_key").(string)),
+		AutoRegenerateKey:  pointer.To(d.Get("regenerate_key_automatically").(bool)),
+		RegenerationPeriod: pointer.To(d.Get("regeneration_period").(string)),
 		Tags:               tags.Expand(t),
 	}
 

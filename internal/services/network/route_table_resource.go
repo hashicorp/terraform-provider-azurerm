@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -153,6 +152,9 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -277,9 +279,9 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 		data := configRaw.(map[string]interface{})
 
 		route := routetables.Route{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routetables.RoutePropertiesFormat{
-				AddressPrefix: utils.String(data["address_prefix"].(string)),
+				AddressPrefix: pointer.To(data["address_prefix"].(string)),
 				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}

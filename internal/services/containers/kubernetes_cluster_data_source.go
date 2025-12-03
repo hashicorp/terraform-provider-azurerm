@@ -985,20 +985,20 @@ func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResult
 			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 			} else {
 				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 			}
 
-			return utils.String(rawConfig), flattenedKubeConfig
+			return pointer.To(rawConfig), flattenedKubeConfig
 		}
 	}
 
