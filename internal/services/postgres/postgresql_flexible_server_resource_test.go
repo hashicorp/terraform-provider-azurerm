@@ -416,42 +416,6 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "13"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "14"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "15"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-	})
-}
-
 func TestAccPostgresqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -772,6 +736,19 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (PostgresqlFlexibleServerResource) templateWithLocationOverride(data acceptance.TestData, location string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-postgresql-%d"
+  location = "%s"
+}
+`, data.RandomInteger, location)
+}
+
 func (r PostgresqlFlexibleServerResource) updateOnlyWithStorageTier(data acceptance.TestData, storageTier string) string {
 	return fmt.Sprintf(`
 %s
@@ -859,9 +836,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "%d"
   %s
   sku_name = "GP_Standard_D2s_v3"
-  zone     = "2"
 }
-`, r.template(data), data.RandomInteger, versionNum, createModeProp)
+`, r.templateWithLocationOverride(data, "northcentralus"), data.RandomInteger, versionNum, createModeProp)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
@@ -1466,25 +1442,6 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   replication_role    = "None"
 }
 `, r.basic(data), data.RandomInteger)
-}
-
-func (r PostgresqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  create_mode            = "Update"
-  version                = "%s"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-}
-`, r.template(data), data.RandomInteger, version)
 }
 
 func (r PostgresqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
