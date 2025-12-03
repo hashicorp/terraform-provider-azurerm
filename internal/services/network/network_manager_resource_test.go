@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerResource struct{}
@@ -134,6 +134,20 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerRoutingRuleCollection_update,
 			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
 		},
+		"SubnetIPAMPool": {
+			"ipAddressPool":              testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+		},
+		"VNETIPANPool": {
+			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+		},
 	}
 
 	for group, m := range testCases {
@@ -231,12 +245,12 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	resp, err := clients.Network.NetworkManagers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerResource) basic(data acceptance.TestData) string {

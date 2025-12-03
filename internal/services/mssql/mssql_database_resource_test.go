@@ -2210,7 +2210,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "vault%[2]d"
+  name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   enabled_for_disk_encryption = true

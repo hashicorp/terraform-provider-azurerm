@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -210,7 +210,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 						Dapr:                 helpers.ExpandContainerAppDapr(app.Dapr),
 						Secrets:              secrets,
 						Registries:           registries,
-						MaxInactiveRevisions: pointer.FromInt64(app.MaxInactiveRevisions),
+						MaxInactiveRevisions: pointer.To(app.MaxInactiveRevisions),
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
@@ -287,7 +287,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 						state.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
-						state.MaxInactiveRevisions = pointer.ToInt64(config.MaxInactiveRevisions)
+						state.MaxInactiveRevisions = pointer.From(config.MaxInactiveRevisions)
 					}
 					state.LatestRevisionName = pointer.From(props.LatestRevisionName)
 					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
@@ -385,7 +385,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("max_inactive_revisions") {
-				model.Properties.Configuration.MaxInactiveRevisions = pointer.FromInt64(state.MaxInactiveRevisions)
+				model.Properties.Configuration.MaxInactiveRevisions = pointer.To(state.MaxInactiveRevisions)
 			}
 
 			if metadata.ResourceData.HasChange("dapr") {

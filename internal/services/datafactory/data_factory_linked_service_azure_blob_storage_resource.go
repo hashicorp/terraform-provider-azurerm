@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -244,7 +245,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 	if v, ok := d.GetOk("connection_string"); ok {
 		blobStorageProperties.ConnectionString = &datafactory.SecureString{
-			Value: utils.String(v.(string)),
+			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
 	}
@@ -255,11 +256,11 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 	if v, ok := d.GetOk("sas_uri"); ok {
 		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
-			blobStorageProperties.SasURI = utils.String(v.(string))
+			blobStorageProperties.SasURI = pointer.To(v.(string))
 			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
 		} else {
 			blobStorageProperties.SasURI = &datafactory.SecureString{
-				Value: utils.String(v.(string)),
+				Value: pointer.To(v.(string)),
 				Type:  datafactory.TypeSecureString,
 			}
 		}
@@ -267,28 +268,28 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 	if d.Get("use_managed_identity").(bool) {
 		if v, ok := d.GetOk("service_endpoint"); ok {
-			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
+			blobStorageProperties.ServiceEndpoint = pointer.To(v.(string))
 		}
 	} else {
 		if v, ok := d.GetOk("service_endpoint"); ok {
-			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
+			blobStorageProperties.ServiceEndpoint = pointer.To(v.(string))
 		}
 		if kvsp, ok := d.GetOk("service_principal_linked_key_vault_key"); ok {
 			blobStorageProperties.ServicePrincipalKey = expandAzureKeyVaultSecretReference(kvsp.([]interface{}))
 		} else {
 			secureString := datafactory.SecureString{
-				Value: utils.String(d.Get("service_principal_key").(string)),
+				Value: pointer.To(d.Get("service_principal_key").(string)),
 				Type:  datafactory.TypeSecureString,
 			}
 			blobStorageProperties.ServicePrincipalKey = &secureString
 		}
 
-		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
-		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+		blobStorageProperties.ServicePrincipalID = pointer.To(d.Get("service_principal_id").(string))
+		blobStorageProperties.Tenant = pointer.To(d.Get("tenant_id").(string))
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		AzureBlobStorageLinkedServiceTypeProperties: blobStorageProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage,
 	}
@@ -302,7 +303,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("storage_kind"); ok {
-		blobStorageLinkedService.AccountKind = utils.String(v.(string))
+		blobStorageLinkedService.AccountKind = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -381,7 +382,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
-					return fmt.Errorf("Error setting `key_vault_sas_token`: %+v", err)
+					return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
 				}
 			}
 		}
@@ -389,7 +390,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		if spKey := properties.ServicePrincipalKey; spKey != nil {
 			if kvSPkey, ok := spKey.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("service_principal_linked_key_vault_key", flattenAzureKeyVaultSecretReference(kvSPkey)); err != nil {
-					return fmt.Errorf("Error setting `service_principal_linked_key_vault_key`: %+v", err)
+					return fmt.Errorf("setting `service_principal_linked_key_vault_key`: %+v", err)
 				}
 			}
 		}

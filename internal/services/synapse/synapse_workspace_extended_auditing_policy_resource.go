@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -113,15 +114,15 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	params := synapse.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: &synapse.ExtendedServerBlobAuditingPolicyProperties{
 			State:                       synapse.BlobAuditingPolicyStateEnabled,
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
+			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               pointer.To(int32(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, params)

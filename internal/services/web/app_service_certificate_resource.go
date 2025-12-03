@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -58,7 +59,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
 
 	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	customizedKeyVaultId := d.Get("key_vault_id").(string)
@@ -81,22 +82,22 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			Password: utils.String(password),
+			Password: pointer.To(password),
 		},
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Tags:     tags.Expand(t),
 	}
 
 	if appServicePlanId != "" {
-		certificate.CertificateProperties.ServerFarmID = &appServicePlanId
+		certificate.ServerFarmID = &appServicePlanId
 	}
 
 	if pfxBlob != "" {
 		decodedPfxBlob, err := base64.StdEncoding.DecodeString(pfxBlob)
 		if err != nil {
-			return fmt.Errorf("Could not decode PFX blob: %+v", err)
+			return fmt.Errorf("could not decode PFX blob: %+v", err)
 		}
-		certificate.CertificateProperties.PfxBlob = &decodedPfxBlob
+		certificate.PfxBlob = &decodedPfxBlob
 	}
 
 	if keyVaultSecretId != "" {
@@ -107,7 +108,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 		var keyVaultId *string
 		if customizedKeyVaultId != "" {
-			keyVaultId = utils.String(customizedKeyVaultId)
+			keyVaultId = pointer.To(customizedKeyVaultId)
 		} else {
 			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
@@ -117,12 +118,12 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 			}
 			if keyVaultId == nil {
-				return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+				return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
 			}
 		}
 
-		certificate.CertificateProperties.KeyVaultID = keyVaultId
-		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
+		certificate.KeyVaultID = keyVaultId
+		certificate.KeyVaultSecretName = pointer.To(parsedSecretId.Name)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
@@ -157,8 +158,8 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.CertificateProperties; props != nil {

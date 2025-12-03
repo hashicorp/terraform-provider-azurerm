@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -510,14 +510,14 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
@@ -953,7 +953,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 		result := webapplicationfirewallpolicies.MatchCondition{
 			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
-			NegationConditon: utils.Bool(negationCondition),
+			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
 			Transforms:       &transforms,
 		}
@@ -971,7 +971,7 @@ func expandWebApplicationFirewallPolicyMatchVariable(input []interface{}) []weba
 		selector := v["selector"].(string)
 
 		result := webapplicationfirewallpolicies.MatchVariable{
-			Selector:     utils.String(selector),
+			Selector:     pointer.To(selector),
 			VariableName: webapplicationfirewallpolicies.WebApplicationFirewallMatchVariable(variableName),
 		}
 

@@ -11,6 +11,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -315,21 +316,22 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Kty:    keyvault.JSONWebKeyType(keyType),
 		KeyOps: keyOptions,
 		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		},
 
 		Tags: tags.Expand(t),
 	}
 
-	if parameters.Kty == keyvault.JSONWebKeyTypeEC || parameters.Kty == keyvault.JSONWebKeyTypeECHSM {
+	switch parameters.Kty {
+	case keyvault.JSONWebKeyTypeEC, keyvault.JSONWebKeyTypeECHSM:
 		curveName := d.Get("curve").(string)
 		parameters.Curve = keyvault.JSONWebKeyCurveName(curveName)
-	} else if parameters.Kty == keyvault.JSONWebKeyTypeRSA || parameters.Kty == keyvault.JSONWebKeyTypeRSAHSM {
+	case keyvault.JSONWebKeyTypeRSA, keyvault.JSONWebKeyTypeRSAHSM:
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
-			return fmt.Errorf("Key size is required when creating an RSA key")
+			return errors.New("key_size is required when creating an RSA key")
 		}
-		parameters.KeySize = utils.Int32(int32(keySize.(int)))
+		parameters.KeySize = pointer.To(int32(keySize.(int)))
 	}
 	// TODO: support `oct` once this is fixed
 	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
@@ -370,7 +372,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 				log.Printf("[DEBUG] Key %q recovered with ID: %q", name, *kid)
 			}
 		} else {
-			return fmt.Errorf("Creating Key: %+v", err)
+			return fmt.Errorf("creating Key: %+v", err)
 		}
 	}
 
@@ -435,7 +437,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := keyvault.KeyUpdateParameters{
 		KeyOps: keyOptions,
 		KeyAttributes: &keyvault.KeyAttributes{
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -533,7 +535,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if key.N != nil {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
-				return fmt.Errorf("Could not decode N: %+v", err)
+				return fmt.Errorf("could not decode N: %+v", err)
 			}
 			d.Set("key_size", len(nBytes)*8)
 		}
@@ -542,20 +544,25 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if attributes := resp.Attributes; attributes != nil {
+		notBeforeDate := ""
 		if v := attributes.NotBefore; v != nil {
-			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("not_before_date", notBeforeDate)
 
+		expirationDate := ""
 		if v := attributes.Expires; v != nil {
-			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("versionless_id", id.VersionlessID())
 	if key := resp.Key; key != nil {
-		if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
+		switch key.Kty {
+		case keyvault.JSONWebKeyTypeRSA, keyvault.JSONWebKeyTypeRSAHSM:
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
 				return fmt.Errorf("failed to decode N: %+v", err)
@@ -572,7 +579,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err != nil {
 				return fmt.Errorf("failed to read public key: %+v", err)
 			}
-		} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
+		case keyvault.JSONWebKeyTypeEC, keyvault.JSONWebKeyTypeECHSM:
 			// do ec keys
 			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 			if err != nil {
@@ -645,7 +652,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -728,14 +735,14 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 
 	var expiryTime *string = nil // needs to be set to nil if not set
 	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
-		expiryTime = utils.String(rawExpiryTime.(string))
+		expiryTime = pointer.To(rawExpiryTime.(string))
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
 	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
 		lifetimeActionNotify := keyvault.LifetimeActions{
 			Trigger: &keyvault.LifetimeActionsTrigger{
-				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
+				TimeBeforeExpiry: pointer.To(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
 				Type: keyvault.ActionTypeNotify,
@@ -808,7 +815,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			}
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
-				autoRotation := make(map[string]interface{}, 0)
+				autoRotation := make(map[string]interface{})
 				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
 				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)
 				policy["automatic"] = []map[string]interface{}{autoRotation}

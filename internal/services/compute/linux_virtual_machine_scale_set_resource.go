@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -112,7 +111,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
 	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(exists.HttpResponse) {
@@ -124,7 +122,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
 	additionalCapabilities := ExpandVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
@@ -402,7 +400,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		Location:         location,
 		Sku: &virtualmachinescalesets.Sku{
 			Name:     pointer.To(d.Get("sku").(string)),
-			Capacity: utils.Int64(int64(d.Get("instances").(int))),
+			Capacity: pointer.To(int64(d.Get("instances").(int))),
 
 			// doesn't appear this can be set to anything else, even Promo machines are Standard
 			Tier: pointer.To("Standard"),
@@ -441,6 +439,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
+
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -709,6 +709,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -788,7 +794,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("instances") {
-			sku.Capacity = utils.Int64(int64(d.Get("instances").(int)))
+			sku.Capacity = pointer.To(int64(d.Get("instances").(int)))
 		}
 
 		update.Sku = sku
@@ -915,6 +921,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
@@ -1114,7 +1124,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	scaleToZeroOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleToZeroOnDelete
 	if scaleToZeroOnDelete && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
@@ -1339,6 +1349,18 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"capacity_reservation_group_id",
 			},
+		},
+
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),

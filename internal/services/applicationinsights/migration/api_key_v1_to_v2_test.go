@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestApiKeyV1ToV2(t *testing.T) {
@@ -21,21 +21,21 @@ func TestApiKeyV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/components/component1/apikeys/key1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
 		},
 		{
 			name: "old id - mixed case",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/components/component1/Apikeys/key1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/apiKeys/key1"),
 		},
 	}
 	for _, test := range testData {

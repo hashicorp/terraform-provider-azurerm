@@ -65,7 +65,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 
 func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,7 +93,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 			}
 		}
 
-		if existing.SwiftVirtualNetworkProperties != nil && existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
+		if existing.SwiftVirtualNetworkProperties != nil && existing.SubnetResourceID != nil && *existing.SubnetResourceID != "" {
 			return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", *existing.ID)
 		}
 	}
@@ -122,7 +122,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 
 	connectionEnvelope := web.SwiftVirtualNetwork{
 		SwiftVirtualNetworkProperties: &web.SwiftVirtualNetworkProperties{
-			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
+			SubnetResourceID: pointer.To(d.Get("subnet_id").(string)),
 		},
 	}
 	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx, resourceGroup, name, connectionEnvelope, slotName); err != nil {

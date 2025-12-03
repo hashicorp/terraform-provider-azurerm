@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkwatchers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkWatcherResource struct{}
@@ -77,8 +77,7 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"machineScope":               testAccVirtualMachineScaleSetPacketCapture_machineScope,
 		},
 		"FlowLog": {
-			"basic":                   testAccNetworkWatcherFlowLog_basic,
-			"basicWithVirtualNetwork": testAccNetworkWatcherFlowLog_basicWithVirtualNetwork,
+			"basicWithVirtualNetwork": testAccNetworkWatcherFlowLog_basic,
 			"basicWithSubnet":         testAccNetworkWatcherFlowLog_basicWithSubnet,
 			"basicWithNIC":            testAccNetworkWatcherFlowLog_basicWithNIC,
 			"requiresImport":          testAccNetworkWatcherFlowLog_requiresImport,
@@ -90,6 +89,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"version":                 testAccNetworkWatcherFlowLog_version,
 			"location":                testAccNetworkWatcherFlowLog_location,
 			"tags":                    testAccNetworkWatcherFlowLog_tags,
+			"cannotCreateNewWithNSG":  testAccNetworkWatcherFlowLog_cannotCreateNewWithNSG,
+			"update":                  testAccNetworkWatcherFlowLog_update,
 		},
 	}
 
@@ -195,7 +196,7 @@ func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -208,7 +209,7 @@ func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("deleting Network Watcher %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetworkWatcherResource) basicConfig(data acceptance.TestData) string {

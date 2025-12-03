@@ -8,10 +8,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaAppServiceBackup() *pluginsdk.Schema {
@@ -101,9 +101,9 @@ func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 
 	request := &web.BackupRequest{
 		BackupRequestProperties: &web.BackupRequestProperties{
-			BackupName:        utils.String(name),
-			StorageAccountURL: utils.String(storageAccountUrl),
-			Enabled:           utils.Bool(enabled),
+			BackupName:        pointer.To(name),
+			StorageAccountURL: pointer.To(storageAccountUrl),
+			Enabled:           pointer.To(enabled),
 		},
 	}
 
@@ -113,7 +113,7 @@ func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 		backupSchedule := web.BackupSchedule{}
 
 		if v, ok := schedule["frequency_interval"].(int); ok {
-			backupSchedule.FrequencyInterval = utils.Int32(int32(v))
+			backupSchedule.FrequencyInterval = pointer.To(int32(v))
 		}
 
 		if v, ok := schedule["frequency_unit"]; ok {
@@ -121,11 +121,11 @@ func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 		}
 
 		if v, ok := schedule["keep_at_least_one_backup"]; ok {
-			backupSchedule.KeepAtLeastOneBackup = utils.Bool(v.(bool))
+			backupSchedule.KeepAtLeastOneBackup = pointer.To(v.(bool))
 		}
 
 		if v, ok := schedule["retention_period_in_days"].(int); ok {
-			backupSchedule.RetentionPeriodInDays = utils.Int32(int32(v))
+			backupSchedule.RetentionPeriodInDays = pointer.To(int32(v))
 		}
 
 		if v, ok := schedule["start_time"].(string); ok {
@@ -133,7 +133,7 @@ func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 			backupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
 		}
 
-		request.BackupRequestProperties.BackupSchedule = &backupSchedule
+		request.BackupSchedule = &backupSchedule
 	}
 
 	return request

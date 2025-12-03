@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerAdminRuleCollectionModel struct {
@@ -157,7 +157,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Description = utils.String(model.Description)
+				properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -225,7 +225,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, adminrulecollections.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

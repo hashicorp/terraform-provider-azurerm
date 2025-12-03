@@ -383,10 +383,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 
 		// If we're updating or deleting and we already have an identity stored, validate that the planned identity isn't changing
-		if !req.ResourceBehavior.MutableIdentity && !req.PriorState.Raw.IsNull() && !req.PriorIdentity.Raw.IsNull() && !req.PriorIdentity.Raw.Equal(resp.PlannedIdentity.Raw) {
+		if !req.ResourceBehavior.MutableIdentity && !req.PriorState.Raw.IsNull() && !req.PriorIdentity.Raw.IsFullyNull() && !req.PriorIdentity.Raw.Equal(resp.PlannedIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
-				"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+				"During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 					fmt.Sprintf("Prior Identity: %s\n\n", req.PriorIdentity.Raw.String())+
 					fmt.Sprintf("Planned Identity: %s", resp.PlannedIdentity.Raw.String()),

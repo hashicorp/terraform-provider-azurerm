@@ -8,9 +8,9 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestMergeUserAppSettings(t *testing.T) {
@@ -22,8 +22,8 @@ func TestMergeUserAppSettings(t *testing.T) {
 		{
 			service: []webapps.NameValuePair{
 				{
-					Name:  utils.String("test"),
-					Value: utils.String("ServiceValue"),
+					Name:  pointer.To("test"),
+					Value: pointer.To("ServiceValue"),
 				},
 			},
 			user: map[string]string{
@@ -31,28 +31,28 @@ func TestMergeUserAppSettings(t *testing.T) {
 			},
 			expected: []webapps.NameValuePair{
 				{
-					Name:  utils.String("test"),
-					Value: utils.String("UserValue"),
+					Name:  pointer.To("test"),
+					Value: pointer.To("UserValue"),
 				},
 			},
 		},
 		{
 			service: []webapps.NameValuePair{
 				{
-					Name:  utils.String("test"),
-					Value: utils.String("ServiceValue"),
+					Name:  pointer.To("test"),
+					Value: pointer.To("ServiceValue"),
 				},
 				{
-					Name:  utils.String("test2"),
-					Value: utils.String("ServiceValue2"),
+					Name:  pointer.To("test2"),
+					Value: pointer.To("ServiceValue2"),
 				},
 				{
-					Name:  utils.String("test3"),
-					Value: utils.String("ServiceValue3"),
+					Name:  pointer.To("test3"),
+					Value: pointer.To("ServiceValue3"),
 				},
 				{
-					Name:  utils.String("test4"),
-					Value: utils.String("ServiceValue4"),
+					Name:  pointer.To("test4"),
+					Value: pointer.To("ServiceValue4"),
 				},
 			},
 			user: map[string]string{
@@ -61,20 +61,20 @@ func TestMergeUserAppSettings(t *testing.T) {
 			},
 			expected: []webapps.NameValuePair{
 				{
-					Name:  utils.String("test"),
-					Value: utils.String("UserValue"),
+					Name:  pointer.To("test"),
+					Value: pointer.To("UserValue"),
 				},
 				{
-					Name:  utils.String("test2"),
-					Value: utils.String("ServiceValue2"),
+					Name:  pointer.To("test2"),
+					Value: pointer.To("ServiceValue2"),
 				},
 				{
-					Name:  utils.String("test3"),
-					Value: utils.String("ServiceValue3"),
+					Name:  pointer.To("test3"),
+					Value: pointer.To("ServiceValue3"),
 				},
 				{
-					Name:  utils.String("test4"),
-					Value: utils.String("UserValue4"),
+					Name:  pointer.To("test4"),
+					Value: pointer.To("UserValue4"),
 				},
 			},
 		},

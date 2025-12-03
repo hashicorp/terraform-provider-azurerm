@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -75,7 +76,7 @@ func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertR
 		kind = alertrules.AlertRuleKindThreatIntelligence
 	}
 	if expectKind != kind {
-		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)
+		return fmt.Errorf("'Sentinel Alert Rule' has mismatched kind, expected: %q, got %q", expectKind, kind)
 	}
 	return nil
 }
@@ -279,16 +280,16 @@ func expandAlertRuleAlertDetailsOverride(input []interface{}) *alertrules.AlertD
 	output := &alertrules.AlertDetailsOverride{}
 
 	if v := b["description_format"]; v != "" {
-		output.AlertDescriptionFormat = utils.String(v.(string))
+		output.AlertDescriptionFormat = pointer.To(v.(string))
 	}
 	if v := b["display_name_format"]; v != "" {
-		output.AlertDisplayNameFormat = utils.String(v.(string))
+		output.AlertDisplayNameFormat = pointer.To(v.(string))
 	}
 	if v := b["severity_column_name"]; v != "" {
-		output.AlertSeverityColumnName = utils.String(v.(string))
+		output.AlertSeverityColumnName = pointer.To(v.(string))
 	}
 	if v := b["tactics_column_name"]; v != "" {
-		output.AlertTacticsColumnName = utils.String(v.(string))
+		output.AlertTacticsColumnName = pointer.To(v.(string))
 	}
 	if v := b["dynamic_property"]; v != nil && len(v.([]interface{})) > 0 {
 		output.AlertDynamicProperties = expandAlertRuleAlertDynamicProperties(v.([]interface{}))
@@ -349,7 +350,7 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 		property := alertrules.AlertProperty(b["name"].(string))
 		output = append(output, alertrules.AlertPropertyMapping{
 			AlertProperty: &property,
-			Value:         utils.String(b["value"].(string)),
+			Value:         pointer.To(b["value"].(string)),
 		})
 	}
 
@@ -423,8 +424,8 @@ func expandAlertRuleFieldMapping(input []interface{}) *[]alertrules.FieldMapping
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		result = append(result, alertrules.FieldMapping{
-			Identifier: utils.String(b["identifier"].(string)),
-			ColumnName: utils.String(b["column_name"].(string)),
+			Identifier: pointer.To(b["identifier"].(string)),
+			ColumnName: pointer.To(b["column_name"].(string)),
 		})
 	}
 
@@ -466,7 +467,7 @@ func expandAlertRuleSentinelEntityMapping(input []interface{}) *[]alertrules.Sen
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		result = append(result, alertrules.SentinelEntityMapping{
-			ColumnName: utils.String(b["column_name"].(string)),
+			ColumnName: pointer.To(b["column_name"].(string)),
 		})
 	}
 

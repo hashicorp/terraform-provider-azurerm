@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -306,9 +307,9 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		unmaskedIPLoggingStatus = security.UnmaskedIPLoggingStatusEnabled
 	}
 	solution := security.IoTSecuritySolutionModel{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		IoTSecuritySolutionProperties: &security.IoTSecuritySolutionProperties{
-			DisplayName:                  utils.String(d.Get("display_name").(string)),
+			DisplayName:                  pointer.To(d.Get("display_name").(string)),
 			Status:                       status,
 			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*pluginsdk.Set).List()),
 			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*pluginsdk.Set).List()),
@@ -319,16 +320,16 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("additional_workspace"); ok {
-		solution.IoTSecuritySolutionProperties.AdditionalWorkspaces = expandIotSecuritySolutionAdditionalWorkspace(v.(*pluginsdk.Set).List())
+		solution.AdditionalWorkspaces = expandIotSecuritySolutionAdditionalWorkspace(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("disabled_data_sources"); ok {
-		solution.IoTSecuritySolutionProperties.DisabledDataSources = expandIotSecuritySolutionDisabledDataSources(v.(*pluginsdk.Set).List())
+		solution.DisabledDataSources = expandIotSecuritySolutionDisabledDataSources(v.(*pluginsdk.Set).List())
 	}
 
 	logAnalyticsWorkspaceId := d.Get("log_analytics_workspace_id").(string)
 	if logAnalyticsWorkspaceId != "" {
-		solution.IoTSecuritySolutionProperties.Workspace = utils.String(logAnalyticsWorkspaceId)
+		solution.Workspace = pointer.To(logAnalyticsWorkspaceId)
 	}
 
 	query := d.Get("query_for_resources").(string)
@@ -336,7 +337,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if query != "" || len(querySubscriptions) > 0 {
 		if query != "" && len(querySubscriptions) > 0 {
 			solution.UserDefinedResources = &security.UserDefinedResourcesProperties{
-				Query:              utils.String(query),
+				Query:              pointer.To(query),
 				QuerySubscriptions: utils.ExpandStringSlice(querySubscriptions),
 			}
 		} else {
@@ -461,7 +462,7 @@ func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]securi
 		}
 
 		results = append(results, security.AdditionalWorkspacesProperties{
-			Workspace: utils.String(v["workspace_id"].(string)),
+			Workspace: pointer.To(v["workspace_id"].(string)),
 			Type:      security.Sentinel,
 			DataTypes: &dataTypes,
 		})

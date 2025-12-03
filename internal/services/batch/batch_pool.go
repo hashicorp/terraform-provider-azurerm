@@ -5,6 +5,7 @@ package batch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -591,7 +592,7 @@ func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.Certifica
 
 func expandBatchPoolCertificateReference(ref map[string]interface{}) (*pool.CertificateReference, error) {
 	if len(ref) == 0 {
-		return nil, fmt.Errorf("Error: storage image reference should be defined")
+		return nil, errors.New("storage image reference should be defined")
 	}
 
 	id := ref["id"].(string)
@@ -705,7 +706,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			resourceId := v.(string)
 			if resourceId != "" {
 				identityReference := pool.ComputeNodeIdentityReference{
-					ResourceId: utils.String(resourceId),
+					ResourceId: pointer.To(resourceId),
 				}
 				resourceFile.IdentityReference = &identityReference
 			}
@@ -733,7 +734,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			settingMap := containerSettingsList[0].(map[string]interface{})
 			containerSettings.ImageName = settingMap["image_name"].(string)
 			if containerRunOptions, ok := settingMap["run_options"]; ok {
-				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
+				containerSettings.ContainerRunOptions = pointer.To(containerRunOptions.(string))
 			}
 			if registries, ok := settingMap["registry"].([]interface{}); ok && len(registries) > 0 && registries[0] != nil {
 				containerRegMap := registries[0].(map[string]interface{})
@@ -796,7 +797,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 	}
 
 	if licenseType, ok := d.GetOk("license_type"); ok {
-		result.LicenseType = utils.String(licenseType.(string))
+		result.LicenseType = pointer.To(licenseType.(string))
 	}
 
 	if v, ok := d.GetOk("node_placement"); ok {
@@ -876,7 +877,7 @@ func expandBatchPoolWindowsConfiguration(list []interface{}) *pool.WindowsConfig
 
 	item := list[0].(map[string]interface{})["enable_automatic_updates"].(bool)
 	return &pool.WindowsConfiguration{
-		EnableAutomaticUpdates: utils.Bool(item),
+		EnableAutomaticUpdates: pointer.To(item),
 	}
 }
 
@@ -911,15 +912,15 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if autoUpgradeMinorVersion, ok := ref["auto_upgrade_minor_version"]; ok {
-		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
+		result.AutoUpgradeMinorVersion = pointer.To(autoUpgradeMinorVersion.(bool))
 	}
 
 	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
-		result.EnableAutomaticUpgrade = utils.Bool(autoUpgradeEnabled.(bool))
+		result.EnableAutomaticUpgrade = pointer.To(autoUpgradeEnabled.(bool))
 	}
 
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
-		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
+		result.TypeHandlerVersion = pointer.To(typeHandlerVersion.(string))
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
@@ -1083,15 +1084,15 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*pool.
 	}
 
 	if accountKey, ok := configMap["account_key"]; ok && accountKey != "" {
-		result.AccountKey = utils.String(accountKey.(string))
+		result.AccountKey = pointer.To(accountKey.(string))
 	} else if sasKey, ok := configMap["sas_key"]; ok && sasKey != "" {
-		result.SasKey = utils.String(sasKey.(string))
+		result.SasKey = pointer.To(sasKey.(string))
 	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
 		result.IdentityReference = computedIDRef
 	}
 
 	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
-		result.BlobfuseOptions = utils.String(blobfuseOptions.(string))
+		result.BlobfuseOptions = pointer.To(blobfuseOptions.(string))
 	}
 	return &result, nil
 }
@@ -1110,7 +1111,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*pool.Azure
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1130,7 +1131,7 @@ func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*pool.CIFSMountC
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1148,7 +1149,7 @@ func expandBatchPoolNFSMountConfiguration(list []interface{}) (*pool.NFSMountCon
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 	return &result, nil
 }
@@ -1156,7 +1157,7 @@ func expandBatchPoolNFSMountConfiguration(list []interface{}) (*pool.NFSMountCon
 func expandBatchPoolIdentityReference(ref map[string]interface{}) (*pool.ComputeNodeIdentityReference, error) {
 	var result pool.ComputeNodeIdentityReference
 	if iid, ok := ref["identity_id"]; ok && iid != "" {
-		result.ResourceId = utils.String(iid.(string))
+		result.ResourceId = pointer.To(iid.(string))
 		return &result, nil
 	}
 	return nil, fmt.Errorf("identity_id is empty")
@@ -1176,7 +1177,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	}
 
 	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
-		networkConfiguration.EnableAcceleratedNetworking = pointer.FromBool(v.(bool))
+		networkConfiguration.EnableAcceleratedNetworking = pointer.To(v.(bool))
 	}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
@@ -1415,12 +1416,12 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 			var linuxUserConfig pool.LinuxUserConfiguration
 			if uid, ok := linuxUserConfigMap["uid"]; ok {
 				linuxUserConfig = pool.LinuxUserConfiguration{
-					Uid: utils.Int64(int64(uid.(int))),
-					Gid: utils.Int64(int64(linuxUserConfigMap["gid"].(int))),
+					Uid: pointer.To(int64(uid.(int))),
+					Gid: pointer.To(int64(linuxUserConfigMap["gid"].(int))),
 				}
 			}
 			if sshPrivateKey, ok := linuxUserConfigMap["ssh_private_key"]; ok {
-				linuxUserConfig.SshPrivateKey = utils.String(sshPrivateKey.(string))
+				linuxUserConfig.SshPrivateKey = pointer.To(sshPrivateKey.(string))
 			}
 			result.LinuxUserConfiguration = &linuxUserConfig
 		}

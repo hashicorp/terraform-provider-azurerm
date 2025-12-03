@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkspaceSku string
@@ -223,6 +222,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
+			"service_side_encryption_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"encryption"},
+			},
+
 			"v1_legacy_mode_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -309,14 +316,15 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
-			Encryption:          expandedEncryption,
-			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			ManagedNetwork:      managedNetwork,
-			ProvisionNetworkNow: pointer.To(provisionNetworkNow),
-			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
+			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:                     expandedEncryption,
+			KeyVault:                       pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:                 managedNetwork,
+			ProvisionNetworkNow:            pointer.To(provisionNetworkNow),
+			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
+			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
+			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
@@ -342,7 +350,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("high_business_impact"); ok {
-		workspace.Properties.HbiWorkspace = utils.Bool(v.(bool))
+		workspace.Properties.HbiWorkspace = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
@@ -553,6 +561,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("discovery_url", props.DiscoveryURL)
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
+			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))

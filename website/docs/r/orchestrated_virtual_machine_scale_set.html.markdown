@@ -36,7 +36,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
@@ -148,7 +148,11 @@ A `sku_profile` block supports the following:
 
 A `vm_size` block supports the following:
 
+<<<<<<< HEAD
 * `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
+=======
+* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `CapacityOptimized`, `LowestPrice` and `Prioritized`.
+>>>>>>> 01db6a82ff912bfc210b991b2d60f0696794c448
 
 * `rank` - (Optional) Specifies the priority rank of the VM size. Possible values are integers between `0` and `2`, inclusive.
 
@@ -558,7 +562,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.

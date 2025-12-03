@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/serviceendpointpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -84,6 +84,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 									validation.StringInSlice([]string{
 										"/services/Azure",
 										"/services/Azure/Batch",
+										"/services/Azure/Databricks",
 										"/services/Azure/DataFactory",
 										"/services/Azure/MachineLearning",
 										"/services/Azure/ManagedInstance",
@@ -149,6 +150,9 @@ func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData,
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
 }

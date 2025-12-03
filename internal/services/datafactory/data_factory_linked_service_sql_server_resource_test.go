@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceSQLServerResource struct{}
@@ -97,7 +97,7 @@ func (t LinkedServiceSQLServerResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("reading Data Factory SQL Server(%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceSQLServerResource) basic(data acceptance.TestData) string {
@@ -188,7 +188,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%[1]d"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -218,7 +218,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LinkedServiceSQLServerResource) connection_string_key_vault_reference(data acceptance.TestData) string {
@@ -235,7 +235,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -268,5 +268,5 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     secret_name         = "password"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

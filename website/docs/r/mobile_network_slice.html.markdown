@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
-* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+* `slice_service_type` - (Optional) Slice/service type (SST). Must be between `0` and `255`. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
 * `description` - (Optional) A description for this Mobile Network Slice.
 
@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Mobile Network Slice.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Slice.

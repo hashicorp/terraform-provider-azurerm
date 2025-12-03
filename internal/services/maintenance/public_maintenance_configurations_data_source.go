@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +36,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 			"location": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				StateFunc: azure.NormalizeLocation,
+				StateFunc: location.StateFunc,
 			},
 
 			"scope": {
@@ -131,13 +131,14 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	recurEveryFilterRaw := d.Get("recur_every").(string)
 	recurEveryFilter := recurEveryFilterRaw
-	if recurEveryFilterRaw == recurFridayToSunday {
+	switch recurEveryFilterRaw {
+	case recurFridayToSunday:
 		recurEveryFilter = "week Friday, Saturday, Sunday"
-	} else if recurEveryFilterRaw == recurMondayToThursday {
+	case recurMondayToThursday:
 		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
-	locationFilter := azure.NormalizeLocation(d.Get("location").(string))
+	locationFilter := location.Normalize(d.Get("location").(string))
 	scopeFilter := d.Get("scope").(string)
 
 	if resp.Model != nil {
@@ -145,7 +146,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 			for _, maintenanceConfig := range *resp.Model.Value {
 				var configLocation, configRecurEvery, configScope string
 				if maintenanceConfig.Location != nil {
-					configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)
+					configLocation = location.Normalize(*maintenanceConfig.Location)
 				}
 				if props := maintenanceConfig.Properties; props != nil {
 					if props.MaintenanceWindow != nil && props.MaintenanceWindow.RecurEvery != nil {
@@ -199,7 +200,7 @@ func flattenPublicMaintenanceConfiguration(config publicmaintenanceconfiguration
 
 	output["location"] = ""
 	if config.Location != nil {
-		output["location"] = azure.NormalizeLocation(*config.Location)
+		output["location"] = location.Normalize(*config.Location)
 	}
 
 	var description, recurEvery, timeZone, duration, scope string

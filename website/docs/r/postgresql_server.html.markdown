@@ -42,7 +42,7 @@ resource "azurerm_postgresql_server" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `administrator_login_password_wo` - (Optional, Write-Only) The Password associated with the `administrator_login` for the PostgreSQL Server.
 
-* ~> **Note:** Either `administrator_login_password` or `administrator_login_password_wo` is required when `create_mode` is `Default`.
+~> **Note:** Either `administrator_login_password` or `administrator_login_password_wo` is required when `create_mode` is `Default`.
 
 * `administrator_login_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_login_password_wo`. This property should be incremented when updating `administrator_login_password_wo`.
 
@@ -144,7 +144,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the PostgreSQL Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Server.

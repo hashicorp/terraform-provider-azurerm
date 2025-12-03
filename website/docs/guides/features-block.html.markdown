@@ -81,12 +81,16 @@ provider "azurerm" {
       purge_protected_items_from_vault_on_destroy             = true
     }
 
+    recovery_services_vault {
+      recover_soft_deleted_backup_protected_vm = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
 
-    recovery_services_vault {
-      recover_soft_deleted_backup_protected_vm = true
+    storage {
+      data_plane_available = false
     }
 
     subscription {
@@ -137,11 +141,17 @@ The `features` block supports the following:
 
 * `netapp` - (Optional) A `netapp` block as defined below.
 
+* `postgresql_flexible_server` - (Optional) A `postgresql_flexible_server` block as defined below.
+
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
+
+* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
-* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
+* `storage` - (Optional) A `storage` block as defined below.
+
+* `subscription` - (Optional) A `subscription` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -258,15 +268,23 @@ The `recovery_service` block supports the following:
 
 ---
 
+The `recovery_services_vault` block supports the following:
+
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+
+---
+
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
 
 ---
 
-The `recovery_services_vault` block supports the following:
+The `storage` block supports the following:
 
-* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+* `data_plane_available` - Should the `azurerm_storage_account` resource use data plane APIs? Defaults to `true`.
+
+-> **Note:** This feature flag is intended for use with `azurerm_storage_account` resources that will not use the `queue_properties` and `static_website` blocks. Setting this to `false` will bypass availability checks.
 
 ---
 

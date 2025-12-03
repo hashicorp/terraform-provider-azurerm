@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,24 +123,24 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
+	table.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		table.Resource.DefaultTTL = pointer.To(int32(defaultTTL.(int)))
 	}
 
 	if analyticalTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		table.CassandraTableCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalTTL.(int)))
+		table.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			table.CassandraTableCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
+			table.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		table.CassandraTableCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
+		table.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
 	}
 
 	future, err := client.CreateUpdateCassandraTable(ctx, resourceGroup, account, keyspace, name, table)
@@ -180,10 +181,10 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	table.CassandraTableCreateUpdateProperties.Resource.Schema = expandTableSchema(d)
+	table.Resource.Schema = expandTableSchema(d)
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
-		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		table.Resource.DefaultTTL = pointer.To(int32(defaultTTL.(int)))
 	}
 
 	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, table)
@@ -337,8 +338,8 @@ func expandTableSchemaColumns(input []interface{}) *[]documentdb.Column {
 	for _, col := range input {
 		data := col.(map[string]interface{})
 		column := documentdb.Column{
-			Name: utils.String(data["name"].(string)),
-			Type: utils.String(data["type"].(string)),
+			Name: pointer.To(data["name"].(string)),
+			Type: pointer.To(data["type"].(string)),
 		}
 		columns = append(columns, column)
 	}
@@ -351,7 +352,7 @@ func expandTableSchemaPartitionKeys(input []interface{}) *[]documentdb.Cassandra
 	for _, key := range input {
 		data := key.(map[string]interface{})
 		k := documentdb.CassandraPartitionKey{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 		}
 		keys = append(keys, k)
 	}
@@ -364,8 +365,8 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey 
 	for _, key := range input {
 		data := key.(map[string]interface{})
 		k := documentdb.ClusterKey{
-			Name:    utils.String(data["name"].(string)),
-			OrderBy: utils.String(data["order_by"].(string)),
+			Name:    pointer.To(data["name"].(string)),
+			OrderBy: pointer.To(data["order_by"].(string)),
 		}
 		keys = append(keys, k)
 	}

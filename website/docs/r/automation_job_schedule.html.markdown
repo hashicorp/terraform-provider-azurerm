@@ -30,7 +30,7 @@ resource "azurerm_automation_job_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -54,13 +54,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Automation Job Schedule. The format of the ID is `azurerm_automation_account.id|azurerm_automation_runbook.id`. There is an example in the [#Import](#import) part.
 
-* `job_schedule_id` - The UUID identifying the Automation Job Schedule.
+* `job_schedule_id` - The UUID identifying the Automation Job Schedule. Changing this forces a new resource to be created.
 
 * `resource_manager_id` - The Resource Manager ID of the Automation Job Schedule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Job Schedule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Job Schedule.
@@ -78,4 +78,4 @@ terraform import azurerm_automation_job_schedule.example "/subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation` - 2023-11-01
+* `Microsoft.Automation` - 2024-10-23

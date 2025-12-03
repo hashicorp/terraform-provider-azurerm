@@ -4,13 +4,13 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func CacheExpiration() *pluginsdk.Resource {
@@ -44,18 +44,18 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 		cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheExpiration,
 			Parameters: &cdn.CacheExpirationActionParameters{
-				OdataType:     utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
+				OdataType:     pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
 				CacheBehavior: cdn.CacheBehavior(item["behavior"].(string)),
-				CacheType:     utils.String("All"),
+				CacheType:     pointer.To("All"),
 			},
 		}
 
 		if duration := item["duration"].(string); duration != "" {
 			if cacheExpirationAction.Parameters.CacheBehavior == cdn.CacheBehaviorBypassCache {
-				return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
+				return nil, errors.New("cache expiration duration must not be set when using behavior `BypassCache`")
 			}
 
-			cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
+			cacheExpirationAction.Parameters.CacheDuration = pointer.To(duration)
 		}
 
 		output = append(output, cacheExpirationAction)
@@ -67,7 +67,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleCacheExpirationAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule cache expiration action!")
+		return nil, errors.New("expected a delivery rule cache expiration action")
 	}
 
 	behaviour := ""

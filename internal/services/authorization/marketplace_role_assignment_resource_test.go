@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RoleAssignmentMarketplaceResource struct{}
@@ -188,13 +187,13 @@ func (r RoleAssignmentMarketplaceResource) Exists(ctx context.Context, client *c
 	resp, err := client.Authorization.ScopedRoleAssignmentsClient.GetById(ctx, commonids.NewScopeID(id.ID()), options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (RoleAssignmentMarketplaceResource) emptyNameConfig(roleName string) string {
@@ -301,7 +300,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 provider "azurerm" {
@@ -331,7 +330,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 provider "azurerm" {
@@ -369,7 +368,7 @@ provider "azurerm" {
 resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "%s"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 
   lifecycle {
     ignore_changes = [

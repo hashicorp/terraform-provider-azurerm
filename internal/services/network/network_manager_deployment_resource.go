@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -107,7 +107,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			normalizedLocation := azure.NormalizeLocation(state.Location)
+			normalizedLocation := location.Normalize(state.Location)
 			id := parse.NewNetworkManagerDeploymentID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, normalizedLocation, state.ScopeAccess)
 
 			locks.ByID(id.ID())
@@ -382,7 +382,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *networkmanagers.NetworkManagersClient, id *parse.ManagerDeploymentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
-			Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+			Regions:         &[]string{location.Normalize(id.Location)},
 			DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
 		}
 

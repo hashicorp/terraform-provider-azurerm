@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,7 +17,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomCertSignalrServiceResourceModel struct {
@@ -125,7 +123,7 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
 					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
 				}
-				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
+				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
@@ -143,7 +141,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
-			keyVaultClient := metadata.Client.KeyVault
 			id, err := signalr.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -163,16 +160,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
-
-			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
-			if err != nil {
-				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
-			}
-			vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-			if err != nil {
-				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
-			}
 
 			signalrServiceId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID()
 

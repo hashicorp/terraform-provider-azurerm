@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BillingAccountCostManagementExport struct{}
@@ -106,7 +106,7 @@ func (t BillingAccountCostManagementExport) Exists(ctx context.Context, clients 
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (BillingAccountCostManagementExport) basic(data acceptance.TestData) string {
@@ -145,7 +145,7 @@ resource "azurerm_billing_account_cost_management_export" "test" {
   recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = azurerm_storage_container.test.id
     root_folder_path = "/root"
   }
 
@@ -193,7 +193,7 @@ resource "azurerm_billing_account_cost_management_export" "test" {
   recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = azurerm_storage_container.test.id
     root_folder_path = "/root/updated"
   }
 
@@ -218,7 +218,7 @@ resource "azurerm_billing_account_cost_management_export" "import" {
   recurrence_period_end_date   = azurerm_billing_account_cost_management_export.test.recurrence_period_start_date
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = azurerm_storage_container.test.id
     root_folder_path = "/root"
   }
 

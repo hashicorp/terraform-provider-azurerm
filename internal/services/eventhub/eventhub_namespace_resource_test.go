@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventHubNamespaceResource struct{}
@@ -453,6 +453,26 @@ func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_maximumThroughputUnitsDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.maximumThroughputUnitsDisable(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -525,7 +545,7 @@ func (EventHubNamespaceResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (EventHubNamespaceResource) basic(data acceptance.TestData) string {
@@ -1086,6 +1106,29 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity                 = 1
   auto_inflate_enabled     = true
   maximum_throughput_units = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) maximumThroughputUnitsDisable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                     = "acctesteventhubnamespace-%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  sku                      = "Standard"
+  capacity                 = 1
+  auto_inflate_enabled     = false
+  maximum_throughput_units = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

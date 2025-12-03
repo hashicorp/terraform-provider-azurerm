@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -528,10 +528,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 	for _, itemRaw := range input {
 		item := itemRaw.(map[string]interface{})
 		v := virtualwans.VpnSiteLinkConnection{
-			Name: utils.String(item["name"].(string)),
+			Name: pointer.To(item["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkConnectionProperties{
 				VpnSiteLink: &virtualwans.SubResource{
-					Id: utils.String(item["vpn_site_link_id"].(string)),
+					Id: pointer.To(item["vpn_site_link_id"].(string)),
 				},
 				RoutingWeight:                  pointer.To(int64(item["route_weight"].(int))),
 				VpnConnectionProtocolType:      pointer.To(virtualwans.VirtualNetworkGatewayConnectionProtocol(item["protocol"].(string))),
@@ -673,19 +673,19 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *virtua
 
 	output := &virtualwans.RoutingConfiguration{
 		AssociatedRouteTable: &virtualwans.SubResource{
-			Id: utils.String(raw["associated_route_table"].(string)),
+			Id: pointer.To(raw["associated_route_table"].(string)),
 		},
 	}
 
 	if inboundRouteMapId := raw["inbound_route_map_id"].(string); inboundRouteMapId != "" {
 		output.InboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(inboundRouteMapId),
+			Id: pointer.To(inboundRouteMapId),
 		}
 	}
 
 	if outboundRouteMapId := raw["outbound_route_map_id"].(string); outboundRouteMapId != "" {
 		output.OutboundRouteMap = &virtualwans.SubResource{
-			Id: utils.String(outboundRouteMapId),
+			Id: pointer.To(outboundRouteMapId),
 		}
 	}
 
@@ -813,7 +813,7 @@ func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]virtualwans.Su
 
 	for _, item := range input {
 		results = append(results, virtualwans.SubResource{
-			Id: utils.String(item.(string)),
+			Id: pointer.To(item.(string)),
 		})
 	}
 

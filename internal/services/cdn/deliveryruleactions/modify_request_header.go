@@ -4,12 +4,12 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func ModifyRequestHeader() *pluginsdk.Resource {
@@ -47,14 +47,14 @@ func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.
 		requestHeaderAction := cdn.DeliveryRuleRequestHeaderAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameModifyRequestHeader,
 			Parameters: &cdn.HeaderActionParameters{
-				OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters"),
+				OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters"),
 				HeaderAction: cdn.HeaderAction(item["action"].(string)),
-				HeaderName:   utils.String(item["name"].(string)),
+				HeaderName:   pointer.To(item["name"].(string)),
 			},
 		}
 
 		if value := item["value"].(string); value != "" {
-			requestHeaderAction.Parameters.Value = utils.String(value)
+			requestHeaderAction.Parameters.Value = pointer.To(value)
 		}
 
 		output = append(output, requestHeaderAction)
@@ -66,7 +66,7 @@ func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.
 func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleRequestHeaderAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request header action!")
+		return nil, errors.New("expected a delivery rule request header action")
 	}
 
 	headerAction := ""

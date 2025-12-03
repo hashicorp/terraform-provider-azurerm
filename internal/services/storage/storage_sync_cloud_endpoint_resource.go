@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
@@ -19,10 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_cloud_endpoint -service-package-name storage -properties "cloud_endpoint_name:name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_cloud_endpoint -service-package-name storage -properties "name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id"
 
 func resourceStorageSyncCloudEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -105,8 +105,8 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := cloudendpointresource.CloudEndpointCreateParameters{
 		Properties: &cloudendpointresource.CloudEndpointCreateParametersProperties{
-			StorageAccountResourceId: utils.String(d.Get("storage_account_id").(string)),
-			AzureFileShareName:       utils.String(d.Get("file_share_name").(string)),
+			StorageAccountResourceId: pointer.To(d.Get("storage_account_id").(string)),
+			AzureFileShareName:       pointer.To(d.Get("file_share_name").(string)),
 		},
 	}
 
@@ -121,6 +121,10 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceStorageSyncCloudEndpointRead(d, meta)
 }
 

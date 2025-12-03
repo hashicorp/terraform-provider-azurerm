@@ -219,7 +219,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -275,7 +275,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						log.Printf("[DEBUG] Key %q recovered with ID: %q", config.Name, *kid)
 					}
 				} else {
-					return fmt.Errorf("Creating Key: %+v", err)
+					return fmt.Errorf("creating Key: %+v", err)
 				}
 			}
 
@@ -330,7 +330,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				if key.N != nil {
 					nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 					if err != nil {
-						return fmt.Errorf("Could not decode N: %+v", err)
+						return fmt.Errorf("could not decode N: %+v", err)
 					}
 					schema.KeySize = int64(len(nBytes) * 8)
 				}
@@ -383,7 +383,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			parameters := keyvault.KeyUpdateParameters{
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),

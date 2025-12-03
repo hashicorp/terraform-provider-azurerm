@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ConsumptionBudgetManagementGroupResource struct{}
@@ -122,7 +122,7 @@ func (ConsumptionBudgetManagementGroupResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ConsumptionBudgetManagementGroupResource) basic(data acceptance.TestData) string {
@@ -420,6 +420,34 @@ resource "azurerm_consumption_budget_management_group" "test" {
       "foo@example.com",
       "bar@example.com",
     ]
+  }
+
+  notification {
+    threshold      = 25
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 50
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 75
+    operator       = "EqualTo"
+    threshold_type = "Actual"
+    contact_emails = ["foo@example.com"]
+  }
+
+  notification {
+    threshold      = 125
+    operator       = "EqualTo"
+    threshold_type = "Forecasted"
+    contact_emails = ["foo@example.com"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))

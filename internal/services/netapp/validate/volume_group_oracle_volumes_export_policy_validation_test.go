@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
@@ -32,7 +31,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 0,
 		},
@@ -41,7 +40,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 2,
 		},
@@ -50,7 +49,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 2,
 		},
@@ -59,7 +58,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -68,7 +67,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -77,7 +76,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(true),
-				Nfsv41: utils.Bool(false),
+				Nfsv41: pointer.To(false),
 			},
 			Errors: 1,
 		},
@@ -86,7 +85,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV3),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 1,
 		},

@@ -11,19 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/encryptionscopes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_encryption_scope -service-package-name storage -properties "encryption_scope_name:name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "keyVaultKey"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_encryption_scope -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "keyVaultKey"
 
 func resourceStorageEncryptionScope() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -72,7 +71,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildIDWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
 			},
 
 			"infrastructure_encryption_required": {
@@ -118,12 +117,12 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 			Source: pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string))),
 			State:  pointer.To(encryptionscopes.EncryptionScopeStateEnabled),
 			KeyVaultProperties: &encryptionscopes.EncryptionScopeKeyVaultProperties{
-				KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+				KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 			},
 		},
 	}
 	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
-		payload.Properties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+		payload.Properties.RequireInfrastructureEncryption = pointer.To(v.(bool))
 	}
 
 	if _, err := client.Put(ctx, id, payload); err != nil {
@@ -131,6 +130,10 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
@@ -165,7 +168,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	payload.Properties.State = pointer.To(encryptionscopes.EncryptionScopeStateEnabled)
 	if d.HasChange("key_vault_key_id") {
 		payload.Properties.KeyVaultProperties = &encryptionscopes.EncryptionScopeKeyVaultProperties{
-			KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+			KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 		}
 	}
 	if d.HasChange("source") {
@@ -211,13 +214,14 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 				return nil
 			}
 
-			keyVaultKeyUri := ""
-			if props.KeyVaultProperties != nil && props.KeyVaultProperties.KeyUri != nil {
-				keyVaultKeyUri = *props.KeyVaultProperties.KeyUri
-			}
-			d.Set("key_vault_key_id", keyVaultKeyUri)
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
 			d.Set("source", string(pointer.From(props.Source)))
+
+			keyVaultKeyUri := ""
+			if props.KeyVaultProperties != nil {
+				keyVaultKeyUri = pointer.From(props.KeyVaultProperties.KeyUri)
+			}
+			d.Set("key_vault_key_id", keyVaultKeyUri)
 		}
 	}
 

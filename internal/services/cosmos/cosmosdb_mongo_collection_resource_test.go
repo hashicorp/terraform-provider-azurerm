@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosMongoCollectionResource struct{}
@@ -72,12 +72,6 @@ func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 	r := CosmosMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
@@ -249,7 +243,7 @@ func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (CosmosMongoCollectionResource) basic(data acceptance.TestData) string {

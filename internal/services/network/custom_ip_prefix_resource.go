@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -148,7 +148,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			deadline, ok := ctx.Deadline()
@@ -277,7 +277,7 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -318,7 +318,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -380,7 +380,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {

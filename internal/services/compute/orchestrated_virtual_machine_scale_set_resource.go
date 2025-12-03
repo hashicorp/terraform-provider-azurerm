@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -704,7 +703,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.UserData = pointer.To(userData.(string))
 	}
 
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 	var winConfigRaw []interface{}
 	var linConfigRaw []interface{}
 	var vmssOsProfile *virtualmachinescalesets.VirtualMachineScaleSetOSProfile
@@ -723,6 +722,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+			osType = virtualmachinescalesets.OperatingSystemTypesWindows
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -830,13 +830,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
+		if vmssOsProfile != nil {
+			vmssOsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+		}
+
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
-
-	if virtualMachineProfile.OsProfile == nil {
-		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-	}
-	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
@@ -1001,7 +1000,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{}
 	update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{}
-	osType := virtualmachinescalesets.OperatingSystemTypesWindows
+	var osType virtualmachinescalesets.OperatingSystemTypes
 
 	if !isLegacy {
 		updateProps = virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
@@ -1069,6 +1068,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+				osType = virtualmachinescalesets.OperatingSystemTypesWindows
 				winConfig := winConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -1686,7 +1686,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	if resp.Model != nil && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
@@ -1846,7 +1846,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(capacity)),
 	}
 
 	if input != SkuNameMix {

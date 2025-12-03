@@ -185,15 +185,26 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		}
 
 		// If we're refreshing the resource state (excluding a recently imported resource), validate that the new identity isn't changing
-		if !req.ResourceBehavior.MutableIdentity && !readFollowingImport && !req.CurrentIdentity.Raw.IsNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+		if !req.ResourceBehavior.MutableIdentity && !readFollowingImport && !req.CurrentIdentity.Raw.IsFullyNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
-				"During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+				"During the read operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 					fmt.Sprintf("Current Identity: %s\n\n", req.CurrentIdentity.Raw.String())+
 					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),
 			)
 
+			return
+		}
+	}
+
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Read",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource read. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
 			return
 		}
 	}
