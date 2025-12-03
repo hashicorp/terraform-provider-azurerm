@@ -172,6 +172,19 @@ func resourceEventHub() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
+									"storage_authentication_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(eventhubs.CaptureIdentityTypeSystemAssigned),
+											string(eventhubs.CaptureIdentityTypeUserAssigned),
+										}, false),
+									},
+									"storage_authentication_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+									},
 								},
 							},
 						},
@@ -499,6 +512,18 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 					StorageAccountResourceId: utils.String(storageAccountId),
 				},
 			}
+
+			if destinationAuthType := destination["storage_authentication_type"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
+				authType := eventhubs.CaptureIdentityType(destinationAuthType.(string))
+				captureDescription.Destination.Identity = &eventhubs.CaptureIdentity{
+					Type: &authType,
+				}
+			}
+
+			if destinationAuthTypeId := destination["storage_authentication_id"]; destinationAuthTypeId != nil && destinationAuthTypeId.(string) != "" {
+				authId := destinationAuthTypeId.(string)
+				captureDescription.Destination.Identity.UserAssignedIdentity = &authId
+			}
 		}
 	}
 
@@ -573,6 +598,16 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				}
 				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
+				}
+			}
+
+			if storageIdentity := destination.Identity; storageIdentity != nil {
+				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
+					authType := string(*storageAuthType)
+					destinationOutput["storage_authentication_type"] = authType
+				}
+				if storageAuthId := storageIdentity.UserAssignedIdentity; storageAuthId != nil {
+					destinationOutput["storage_authentication_id"] = *storageAuthId
 				}
 			}
 

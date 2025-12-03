@@ -102,6 +102,10 @@ A `destination` block supports the following:
 
 * `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
 
+* `storage_authentication_type` - (Optional) The identity type used to authenticate the Blob Storage Account where messages should be archived. Possible values are `SystemAssigned`, `UserAssigned`.
+
+* `storage_authentication_id` - (Optional) The id of the user assigned identity that's used to authenticate the Blob Storage Account where messages should be archived. 
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
