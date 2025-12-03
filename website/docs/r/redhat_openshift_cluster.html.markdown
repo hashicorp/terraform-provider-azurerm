@@ -276,7 +276,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
 * `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Red Hat OpenShift cluster.
+* `delete` - (Defaults to 150 minutes) Used when deleting the Red Hat OpenShift cluster.
 
 ## Import
 
