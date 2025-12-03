@@ -775,16 +775,6 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 
-	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-
-	// The delete operation completes and get returns 404 but the vault still appears to exist briefly under resource group.
-	// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/38962
-	pollType := custompollers.NewRecoveryServicesVaultDeletePoller(client, *id)
-	poller := pollers.NewPoller(pollType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 
