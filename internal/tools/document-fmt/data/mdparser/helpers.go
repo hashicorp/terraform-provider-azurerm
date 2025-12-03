@@ -131,9 +131,10 @@ func extractFieldFromLine(line string) *models.DocumentProperty {
 
 				// Update paren depth for content before this code block
 				for i := 0; i < start && i < len(subStr); i++ {
-					if subStr[i] == '(' {
+					switch subStr[i] {
+					case '(':
 						parenDepth++
-					} else if subStr[i] == ')' {
+					case ')':
 						parenDepth--
 					}
 				}
