@@ -4,6 +4,7 @@
 package connections
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -42,6 +43,8 @@ func resourceApiConnection() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceApiConnectionCustomizeDiff),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -73,14 +76,13 @@ func resourceApiConnection() *pluginsdk.Resource {
 			"kind": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"parameter_value_type": {
+			}, "parameter_value_type": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"parameter_value_set"},
+				ConflictsWith: []string{"parameter_value_set", "parameter_values"},
 			},
 
 			"parameter_value_set": {
@@ -149,8 +151,6 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 			Api: &connections.ApiReference{
 				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     pointer.To(d.Get("display_name").(string)),
-			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -164,6 +164,10 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 
 	if v := d.Get("parameter_value_type").(string); v != "" {
 		model.Properties.ParameterValueType = pointer.To(v)
+		// parameter_values must not be set when parameter_value_type is used
+	} else if v, ok := d.GetOk("parameter_values"); ok {
+		// Only set parameter_values if parameter_value_type is not set
+		model.Properties.ParameterValues = pointer.To(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameter_value_set"); ok {
@@ -265,9 +269,6 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 	// so we remove `NonSecretParameterValues` from the request to avoid conflicting parameters.
 	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
 	props.NonSecretParameterValues = nil
-	if d.HasChange("parameter_values") {
-		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
-	}
 
 	if d.HasChange("kind") {
 		existing.Model.Kind = pointer.To(d.Get("kind").(string))
@@ -275,6 +276,11 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("parameter_value_type") {
 		props.ParameterValueType = pointer.To(d.Get("parameter_value_type").(string))
+		// When parameter_value_type is set, parameter_values must be nil
+		props.ParameterValues = nil
+	} else if d.HasChange("parameter_values") {
+		// Only update parameter_values if parameter_value_type is not set
+		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
 	}
 
 	if d.HasChange("parameter_value_set") {
@@ -377,4 +383,18 @@ func flattenParameterValueSetValues(input *map[string]interface{}) map[string]st
 		}
 	}
 	return values
+}
+
+func resourceApiConnectionCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	// Validate that parameter_values is not set when parameter_value_type is set
+	// The Azure API requires parameter_values to be null when parameter_value_type is specified
+	if paramValueType, ok := d.GetOk("parameter_value_type"); ok && paramValueType.(string) != "" {
+		if paramValues, ok := d.GetOk("parameter_values"); ok {
+			if len(paramValues.(map[string]interface{})) > 0 {
+				return fmt.Errorf("`parameter_values` must not be set when `parameter_value_type` is specified - the Azure API requires parameter_values to be null when parameter_value_type is provided")
+			}
+		}
+	}
+
+	return nil
 }
