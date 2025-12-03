@@ -69,7 +69,7 @@ func (s S010) checkPropertyDefaultValue(
 
 	docDefault := docProperty.DefaultValue
 
-	if s.defaultValuesMatch(schemaDefault, docDefault, schemaProperty.Type) {
+	if s.defaultValuesMatch(schemaDefault, docDefault) {
 		return nil
 	}
 
@@ -126,7 +126,7 @@ func (s S010) checkPropertyDefaultValue(
 }
 
 // defaultValuesMatch checks if two default values are equivalent
-func (s S010) defaultValuesMatch(schemaDefault, docDefault, schemaType string) bool {
+func (s S010) defaultValuesMatch(schemaDefault, docDefault string) bool {
 	if schemaDefault == docDefault {
 		return true
 	}

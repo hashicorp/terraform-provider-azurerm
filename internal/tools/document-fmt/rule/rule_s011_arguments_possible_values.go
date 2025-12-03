@@ -45,7 +45,7 @@ func (s S011) Run(d *data.TerraformNodeData, fix bool) []error {
 
 	return forEachSchemaProperty(d, "", d.SchemaProperties, d.DocumentArguments, d.DocumentArguments.BlockDefinitions,
 		func(fullPath string, schemaProperty *models.SchemaProperty, docProperty *models.DocumentProperty) error {
-			return s.checkPropertyPossibleValues(d, fullPath, schemaProperty, docProperty, d.Name, fix)
+			return s.checkPropertyPossibleValues(d, fullPath, schemaProperty, docProperty, fix)
 		},
 	)
 }
@@ -56,7 +56,6 @@ func (s S011) checkPropertyPossibleValues(
 	path string,
 	schemaProperty *models.SchemaProperty,
 	docProperty *models.DocumentProperty,
-	resourceType string,
 	fix bool,
 ) error {
 	schemaPossibleValues := schemaProperty.PossibleValues

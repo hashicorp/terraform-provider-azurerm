@@ -10,7 +10,7 @@ type DocumentProperty struct {
 	Optional bool
 	ForceNew bool // Whether documentation mentions "forces new"
 
-	DefaultValue   string
+	DefaultValue string
 
 	// Block related attributes
 	Block         bool
@@ -23,15 +23,15 @@ type DocumentProperty struct {
 	AdditionalLines []string // Tracks any lines from docs beyond initial property
 
 	// Parsing metadata
-	Enums       map[string]struct{}
-	EnumStart   int      // Start position of enum values in content
-	EnumEnd     int      // End position of enum values in content
-	ParseErrors []string // Errors encountered during parsing
+	Enums        map[string]struct{}
+	EnumStart    int      // Start position of enum values in content
+	EnumEnd      int      // End position of enum values in content
+	ParseErrors  []string // Errors encountered during parsing
 	enumsInOrder []string
-	GuessEnums  []string // Guessed enum values from code blocks
-	Skip        bool     // Whether this field should be skipped in validation (e.g., multiple possible value sections)
-	Count       int      // Property count, for doc parsing to detect duplicate entries
-	Path        string   // xpath-like path (a.b.c)
+	GuessEnums   []string // Guessed enum values from code blocks
+	Skip         bool     // Whether this field should be skipped in validation (e.g., multiple possible value sections)
+	Count        int      // Property count, for doc parsing to detect duplicate entries
+	Path         string   // xpath-like path (a.b.c)
 }
 
 // DocumentProperties represents a collection of document properties

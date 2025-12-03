@@ -59,8 +59,8 @@ func TestExtractFieldFromLine(t *testing.T) {
 			if field.Optional != tt.wantOptional {
 				t.Errorf("extractFieldFromLine() gotOptional = %v, want %v", field.Optional, tt.wantOptional)
 			}
-			if !reflect.DeepEqual(field.PossibleValues, tt.wantEnums) {
-				t.Errorf("extractFieldFromLine() gotEnums = %v, want %v", field.PossibleValues, tt.wantEnums)
+			if !reflect.DeepEqual(field.PossibleValues(), tt.wantEnums) {
+				t.Errorf("extractFieldFromLine() gotEnums = %v, want %v", field.PossibleValues(), tt.wantEnums)
 			}
 		})
 	}
@@ -213,8 +213,8 @@ func TestPossibleValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			field := extractFieldFromLine(tt.line)
-			if !reflect.DeepEqual(field.PossibleValues, tt.wantEnums) {
-				t.Errorf("extractFieldFromLine() PossibleValues = %v, want %v", field.PossibleValues, tt.wantEnums)
+			if !reflect.DeepEqual(field.PossibleValues(), tt.wantEnums) {
+				t.Errorf("extractFieldFromLine() PossibleValues = %v, want %v", field.PossibleValues(), tt.wantEnums)
 			}
 		})
 	}
