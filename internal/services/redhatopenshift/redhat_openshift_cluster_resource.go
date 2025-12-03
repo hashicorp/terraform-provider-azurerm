@@ -531,7 +531,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 
 func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 150 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
