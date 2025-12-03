@@ -31,6 +31,9 @@ BUG FIXES:
 * `azurerm_function_app_hybrid_connection` - remove validation preventing resource import when using an elastic service plan SKU [GH-31134]
 * `azurerm_private_endpoint` - ensure Resource Identity data is set on create to avoid `Missing Resource Identity After Create` errors [GH-31246]
 * `azurerm_storage_account` - ensure Resource Identity data is set on create to avoid `Missing Resource Identity After Create` errors [GH-31246]
+* `azurerm_lb_nat_rule` - fix an issue that prevented changing `floating_ip_enabled` and `tcp_reset_enabled` from `true` to `false` [GH-31244]
+* `azurerm_lb_outbound_rule` - fix an issue that prevented changing `tcp_reset_enabled` from `true` to `false` [GH-31244]
+* `azurerm_lb_rule` - fix an issue that prevented changing `floating_ip_enabled` and `tcp_reset_enabled` from `true` to `false` [GH-31244]
 
 ## 4.54.0 (November 19, 2025)
 
