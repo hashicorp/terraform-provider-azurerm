@@ -40,8 +40,10 @@ func NormalizeSSHKey(input string) (*string, error) {
 	}
 
 	output := input
-	output = strings.ReplaceAll(output, "<<~EOT", "")
-	output = strings.ReplaceAll(output, "EOT", "")
+	if strings.HasPrefix(output, "<<~EOT") && strings.HasSuffix(output, "EOT") {
+		output = strings.TrimPrefix(output, "<<~EOT")
+		output = strings.TrimSuffix(output, "EOT")
+	}
 	output = strings.ReplaceAll(output, "\r", "")
 
 	lines := make([]string, 0)
