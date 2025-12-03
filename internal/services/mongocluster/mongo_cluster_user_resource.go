@@ -31,7 +31,7 @@ type MongoClusterUserResourceModel struct {
 
 type DatabaseRoleModel struct {
 	Database string `tfschema:"database"`
-	Role     string `tfschema:"role"`
+	Name     string `tfschema:"name"`
 }
 
 func (r MongoClusterUserResource) ModelObject() interface{} {
@@ -91,7 +91,7 @@ func (r MongoClusterUserResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"role": {
+					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
@@ -232,7 +232,7 @@ func expandDatabaseRoles(input []DatabaseRoleModel) *[]users.DatabaseRole {
 	for _, v := range input {
 		result = append(result, users.DatabaseRole{
 			Db:   v.Database,
-			Role: users.UserRole(v.Role),
+			Role: users.UserRole(v.Name),
 		})
 	}
 
@@ -248,7 +248,7 @@ func flattenDatabaseRoles(input *[]users.DatabaseRole) []DatabaseRoleModel {
 	for _, v := range *input {
 		results = append(results, DatabaseRoleModel{
 			Database: v.Db,
-			Role:     string(v.Role),
+			Name:     string(v.Role),
 		})
 	}
 

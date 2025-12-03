@@ -42,7 +42,7 @@ resource "azurerm_mongo_cluster_user" "example" {
 
   role {
     database = "admin"
-    role     = "root"
+    name     = "root"
   }
 }
 ```
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `mongo_cluster_id` - (Required) The ID of the Mongo Cluster where the User should exist. Changing this forces a new resource to be created.
 
-* `identity_provider_type` - (Required) The identity provider type for the Mongo Cluster User. Possible value is `MicrosoftEntraID`. Changing this forces a new resource to be created.
+* `identity_provider_type` - (Required) The identity provider type for the Mongo Cluster User. The only possible value is `MicrosoftEntraID`. Changing this forces a new resource to be created.
 
 * `principal_type` - (Required) The principal type for the Mongo Cluster User. Possible values are `user` and `servicePrincipal`. Changing this forces a new resource to be created.
 
@@ -67,7 +67,7 @@ A `role` block supports the following:
 
 * `database` - (Required) The name of the database to which the role will be applied. Changing this forces a new resource to be created.
 
-* `role` - (Required) The role name. Possible value is `root`. Changing this forces a new resource to be created.
+* `name` - (Required) The role name. The only possible value is `root`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

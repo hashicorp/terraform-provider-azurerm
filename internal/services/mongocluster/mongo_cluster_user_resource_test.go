@@ -48,13 +48,13 @@ func TestAccMongoClusterUser_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMongoClusterUser_complete(t *testing.T) {
+func TestAccMongoClusterUser_principalTypeUser(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_user", "test")
 	r := MongoClusterUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.principalTypeUser(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -79,6 +79,10 @@ func (r MongoClusterUserResource) Exists(ctx context.Context, clients *clients.C
 
 func (r MongoClusterUserResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_mongo_cluster_user" "test" {
@@ -89,7 +93,7 @@ resource "azurerm_mongo_cluster_user" "test" {
 
   role {
     database = "admin"
-    role     = "root"
+    name     = "root"
   }
 }
 `, r.template(data))
@@ -107,14 +111,18 @@ resource "azurerm_mongo_cluster_user" "import" {
 
   role {
     database = azurerm_mongo_cluster_user.test.role.0.database
-    role     = azurerm_mongo_cluster_user.test.role.0.role
+    name     = azurerm_mongo_cluster_user.test.role.0.name
   }
 }
 `, r.basic(data))
 }
 
-func (r MongoClusterUserResource) complete(data acceptance.TestData) string {
+func (r MongoClusterUserResource) principalTypeUser(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 data "azuread_domains" "test" {
@@ -135,7 +143,7 @@ resource "azurerm_mongo_cluster_user" "test" {
 
   role {
     database = "admin"
-    role     = "root"
+    name     = "root"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -143,10 +151,6 @@ resource "azurerm_mongo_cluster_user" "test" {
 
 func (r MongoClusterUserResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
