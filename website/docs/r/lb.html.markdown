@@ -53,6 +53,8 @@ The following arguments are supported:
 
 * `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as documented below.
 
+-> **Note:** Azure Load Balancer does not allow the complete removal of all previously attached frontend configurations. If you have previously applied with one or more `frontend_ip_configuration` arguments, the removal of them all will result in a replacement  (destroy/create) of the Load Balancer.
+
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
 -> **Note:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
@@ -78,8 +80,6 @@ The `frontend_ip_configuration` block supports the following:
 * `private_ip_address_version` - (Optional) The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
 * `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
 * `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
-
--> **Note:** Azure Load Balancer does not allow the complete removal of all previously attached frontend configurations. If you have previously applied with one or more `frontend_ip_configuration` arguments, the removal of them all will result in a replacement  (destroy/create) of the Load Balancer.
 
 ## Attributes Reference
 
