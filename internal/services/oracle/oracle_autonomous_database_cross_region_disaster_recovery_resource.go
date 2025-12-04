@@ -44,7 +44,6 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
 	MtlsConnectionRequired       bool              `tfschema:"mtls_connection_required"`
 	NationalCharacterSet         string            `tfschema:"national_character_set"`
 	SubnetId                     string            `tfschema:"subnet_id"`
-	VnetId                       string            `tfschema:"virtual_network_id"`
 
 	// Optional
 	CustomerContacts                 []string `tfschema:"customer_contacts"`
@@ -53,8 +52,6 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -64,55 +61,37 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"location": commonschema.Location(),
+
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
-
-		// Cross Region Disaster Recovery
-		// Required
-
+		"replicate_automatic_backups_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+			ForceNew: true,
+		},
 		"source_autonomous_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
 		},
-
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
-
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
-		// Optional
-		"replicate_automatic_backups_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		},
-
 		"tags": commonschema.TagsForceNew(),
 	}
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"remote_disaster_recovery_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -137,9 +116,12 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeInt,
+		"customer_contacts": {
+			Type:     pluginsdk.TypeList,
 			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 		"database_version": {
 			Type:     pluginsdk.TypeString,
@@ -147,6 +129,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 		},
 		"database_workload": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"data_storage_size_in_tb": {
+			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 		"license_model": {
@@ -161,12 +147,9 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
+		"remote_disaster_recovery_type": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 	}
 }
@@ -206,6 +189,11 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 			if location.Normalize(model.Location) == location.Normalize(sourceLocation) {
 				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
 			}
+			subnetId, err := commonids.ParseSubnetID(model.SubnetId)
+			if err != nil {
+				return err
+			}
+			VnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
 
 			if sourceDb.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: `Properties` was nil", sourceId)
@@ -240,7 +228,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 					LicenseModel:                   sourceProps.LicenseModel,
 					NcharacterSet:                  sourceProps.NcharacterSet,
 					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(model.VnetId),
+					VnetId:                         pointer.To(VnetId.ID()),
 				},
 			}
 
@@ -304,7 +292,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(model.Tags)
-				state.VnetId = pointer.From(props.VnetId)
 			}
 			return metadata.Encode(&state)
 		},
@@ -323,7 +310,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

@@ -36,7 +36,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cross Region Disaster Recovery Autonomous Database.
 
-* `actual_used_data_storage_size_in_tb` -  The current amount of storage in use for user and system data in terabytes.
+* `actual_used_data_storage_size_in_tb` - The current amount of storage in use for user and system data in terabytes.
 
 * `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `actual_used_data_storage_size_in_tb` value to determine if a manual shrink operation is appropriate for your allocated storage.
 
@@ -58,17 +58,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 -> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
-* `customer_contacts` - A list of Customer's contact email addresses.
-
-* `database_node_storage_size_in_gb` - The Database node storage size in, in Gigabytes.
+* `customer_contacts` - A list of Customer's contact email addresses
 
 * `data_storage_size_in_gb` - The quantity of data in the database in Gigabytes.
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
+* `database_node_storage_size_in_gb` - The Database node storage size in Gigabytes.
+
 * `database_version` - The Oracle Database version for Autonomous Database.
 
-* `database_workload` -  The Autonomous Database workload type.
+* `database_workload` - The Autonomous Database workload type.
 
 * `display_name` - The user-friendly name for the Cross Region Disaster Recovery Autonomous Database.
 
@@ -82,7 +82,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `lifecycle_state` - The current state of the backup.
 
-* `local_adg_auto_failover_max_data_loss_limit_in_seconds` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.
+* `local_adg_auto_failover_max_data_loss_limit_in_seconds` - Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.
 
 * `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
 
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_timestamp_in_utc` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_timestamp_in_utc` - The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
@@ -104,11 +104,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `preview` - Indicates if the Autonomous Database version is a preview version.
 
-* `preview_version_with_service_terms_accepted` -  Indicates if the Autonomous Database version is a preview version with service terms accepted.
-
-* `private_endpoint_url` - The private endpoint for the resource.
+* `preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
 
 * `private_endpoint_ip` - The private endpoint IP address for the resource.
+
+* `private_endpoint_url` - The private endpoint for the resource.
 
 * `private_endpoint_label` - The private endpoint label for the resource.
 
@@ -120,7 +120,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `replicate_automatic_backups_enabled` - If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
 
-* `source_autonomous_database_id` - The Immutable Azure Resource ID of autonomous database for which cross region disaster recovery autonomous database was created.
+* `source_autonomous_database_id` - The ID of autonomous database for which cross region disaster recovery autonomous database was created.
 
 * `source_location` - The Azure Region where source autonomous database for which cross region disaster recovery autonomous database is located
 
@@ -136,9 +136,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_local_data_guard_enabled_in_utc` - The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
-* `time_maintenance_begin_in_utc` -  The timestamp when maintenance will begin.
+* `time_maintenance_begin_in_utc` - The timestamp when maintenance will begin.
 
-* `time_maintenance_end_in_utc` -  The timestamp when maintenance will end.
+* `time_maintenance_end_in_utc` - The timestamp when maintenance will end.
 
 * `time_of_last_failover_in_utc` - The timestamp of the last failover operation.
 
@@ -150,7 +150,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_reclamation_of_free_autonomous_database_in_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
-* `virtual_network_id` - The ID to an Azure Resource Manager virtual network resource.
+* `virtual_network_id` - The ID of an Azure Resource Manager virtual network resource.
 
 ## Timeouts
 

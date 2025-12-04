@@ -26,7 +26,7 @@ func (a AdbsCrossRegionDisasterRecoveryResource) Exists(ctx context.Context, cli
 	}
 	resp, err := client.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
@@ -108,13 +108,13 @@ resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
-  name                          = local.crdr_dbname
-  display_name                  = local.crdr_dbname
-  location                      = "%[4]s"
-  resource_group_name           = azurerm_resource_group.crdr_rg.name
-  subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
-  virtual_network_id            = azurerm_virtual_network.fra_vnet_test.id
-  source_autonomous_database_id = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
+  name                                = local.crdr_dbname
+  display_name                        = local.crdr_dbname
+  location                            = "%[4]s"
+  resource_group_name                 = azurerm_resource_group.crdr_rg.name
+  subnet_id                           = azurerm_subnet.fra_vnet_subnet_test.id
+  source_autonomous_database_id       = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
+  replicate_automatic_backups_enabled = false
 
 }
 `, a.template(data), data.RandomInteger, "eastus", "westus")
@@ -156,14 +156,12 @@ resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
-  name                          = local.crdr_dbname
-  resource_group_name           = azurerm_resource_group.crdr_rg.name
-  display_name                  = local.crdr_dbname
-  location                      = "%[4]s"
-  source_autonomous_database_id = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
-  subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
-  virtual_network_id            = azurerm_virtual_network.fra_vnet_test.id
-
+  name                                = local.crdr_dbname
+  resource_group_name                 = azurerm_resource_group.crdr_rg.name
+  display_name                        = local.crdr_dbname
+  location                            = "%[4]s"
+  source_autonomous_database_id       = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
+  subnet_id                           = azurerm_subnet.fra_vnet_subnet_test.id
   replicate_automatic_backups_enabled = true
 
   tags = {
@@ -183,7 +181,6 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "im
   location                      = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.location
   resource_group_name           = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.resource_group_name
   subnet_id                     = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.subnet_id
-  virtual_network_id            = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.virtual_network_id
   source_autonomous_database_id = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.source_autonomous_database_id
 }
 `, a.basic(data))
@@ -194,7 +191,7 @@ func (a AdbsCrossRegionDisasterRecoveryResource) template(data acceptance.TestDa
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "crdr_rg" {
-  name     = "CRDRacctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 

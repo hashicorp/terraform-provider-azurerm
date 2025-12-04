@@ -3,13 +3,13 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database_cross_region_disaster_recovery"
 description: |-
-  Manages an Cross Region Disaster Recovery Autonomous Database.
+  Manages a Cross Region Disaster Recovery Autonomous Database.
 ---
 
 # azurerm_oracle_autonomous_database_cross_region_disaster_recovery
 
 Manages Cross Region Disaster Recovery Autonomous Database.
-Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of Autonomous Database for which you want to create a Disaster Recovery instance. Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from region of main Autonomous Database. You must create a separate virtual network and subnet in this second region for Cross Region Disaster Recovery Autonomous Database to be able to communicate with it's original database.
+Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of Autonomous Database for which you want to create a Disaster Recovery instance. Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from region of main Autonomous Database. You must create a separate virtual network and subnet in this second region for Cross Region Disaster Recovery Autonomous Database to be able to communicate with its original database.
 
 ## Example Usage
 
@@ -73,15 +73,12 @@ resource "azurerm_subnet" "dr_subnet" {
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "dr_example" {
-  name                          = "exampledr"
-  display_name                  = "ExampleDR"
-  location                      = "westus"
-  resource_group_name           = azurerm_resource_group.example.name
-  source_autonomous_database_id = azurerm_oracle_autonomous_database.primary.id
-  subnet_id                     = azurerm_subnet.dr_subnet.id
-  virtual_network_id            = azurerm_virtual_network.dr_vnet.id
-
-  // Optional attributes
+  name                                = "exampledr"
+  display_name                        = "ExampleDR"
+  location                            = "westus"
+  resource_group_name                 = azurerm_resource_group.example.name
+  source_autonomous_database_id       = azurerm_oracle_autonomous_database.primary.id
+  subnet_id                           = azurerm_subnet.dr_subnet.id
   replicate_automatic_backups_enabled = true
 
   tags = {
@@ -103,17 +100,13 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new resource to be created.
 
-* `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new resource to be created.
+* `replicate_automatic_backups_enabled` - (Required) If true, 7 days of backups are replicated across regions. Changing this forces a new resource to be created.
 
-* `source_autonomous_database_id` - (Required) The Azure Resource ID of the source (primary) Autonomous Database. Changing this forces a new resource to be created.
+* `source_autonomous_database_id` - (Required) The ID of the source (primary) Autonomous Database. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The Azure Resource ID of the subnet in the target region. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Required) The Azure Resource ID of the virtual network in the target region. Changing this forces a new resource to be created.
-
-* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions.
-
-* `tags` - (Optional) Map of tags to assign to the resource.Changing this forces a new resource to be created.
+* `tags` - (Optional) Map of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -139,7 +132,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `database_version` - The Oracle Database version for Autonomous Database.
 
-* `database_workload` -  The Autonomous Database workload type.
+* `database_workload` - The Autonomous Database workload type.
 
 * `license_model` - The Oracle license model that applied to the Oracle Autonomous Database.
 
@@ -162,7 +155,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cross Region Disaster Recovery Autonomous Database can be imported using the `resource id`.
 
 ```shell
-terraform import azurerm_oracle_autonomous_database_cross_region_disaster_recovery.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/autonomousDatabases/autonomousDatabases1
+terraform import azurerm_oracle_autonomous_database_cross_region_disaster_recovery.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/autonomousDatabases/database1
 ```
 
 ## API Providers

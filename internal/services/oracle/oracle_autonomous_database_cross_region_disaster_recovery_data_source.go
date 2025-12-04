@@ -6,6 +6,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -95,13 +95,12 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 
 func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
@@ -109,13 +108,183 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		// Cross Region Disaster Recovery
+		"actual_used_data_storage_size_in_tb": {
+			Type:     pluginsdk.TypeFloat,
+			Computed: true,
+		},
+		"allocated_storage_size_in_tb": {
+			Type:     pluginsdk.TypeFloat,
+			Computed: true,
+		},
+		"allowed_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"auto_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"auto_scaling_for_storage_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"available_upgrade_versions": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"backup_retention_period_in_days": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"character_set": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"compute_count": {
+			Type:     pluginsdk.TypeFloat,
+			Computed: true,
+		},
+		"cpu_core_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"customer_contacts": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"data_storage_size_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"data_storage_size_in_tb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"database_node_storage_size_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"database_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"database_workload": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"failed_data_recovery_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"in_memory_area_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"license_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"lifecycle_details": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"lifecycle_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"local_adg_auto_failover_max_data_loss_limit_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"local_data_guard_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"memory_per_oracle_compute_unit_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"mtls_connection_required": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"national_character_set": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"next_long_term_backup_timestamp_in_utc": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"oci_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"ocid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"peer_database_ids": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"preview": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"preview_version_with_service_terms_accepted": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"private_endpoint_ip": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"private_endpoint_label": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"private_endpoint_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"provisionable_cpus": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeInt,
+			},
+		},
+		"remote_data_guard_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 		"remote_disaster_recovery_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"service_console_url": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"source": {
@@ -134,299 +303,71 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		// AutonomousDatabaseProperties
-		"actual_used_data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-
-		"allocated_storage_size_in_tb": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-
-		"auto_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"auto_scaling_for_storage_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"available_upgrade_versions": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"backup_retention_period_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"compute_count": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-
-		"cpu_core_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"data_storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"database_node_storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"database_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"database_workload": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"failed_data_recovery_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"in_memory_area_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"local_adg_auto_failover_max_data_loss_limit_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"local_data_guard_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"memory_per_oracle_compute_unit_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"national_character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"next_long_term_backup_timestamp_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"oci_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"preview": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"preview_version_with_service_terms_accepted": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"remote_data_guard_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"peer_database_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"private_endpoint_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"private_endpoint_ip": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"private_endpoint_label": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"provisionable_cpus": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeInt,
-			},
-		},
-
-		"service_console_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"sql_web_developer_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
+		"tags": commonschema.TagsDataSource(),
 		"time_created_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_data_guard_role_changed_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_deletion_of_free_autonomous_database": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_local_data_guard_enabled_on_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_maintenance_begin_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_maintenance_end_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_of_last_failover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_of_last_refresh_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_of_last_refresh_point_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_of_last_switchover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"time_reclamation_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
 		"used_data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-
 		"used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-
 		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"allowed_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"tags": commonschema.TagsDataSource(),
 	}
 }
 
