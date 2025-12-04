@@ -1314,7 +1314,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin                        = "azure"
     static_egress_gateway_profile_enabled = %t
   }
 
