@@ -123,7 +123,7 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 	})
 }
 
-func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Clie
 	return pointer.To(true), nil
 }
 
-func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Network.VirtualNetworks
 
@@ -189,7 +189,7 @@ func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(c
 	}
 }
 
-func (t ResourceGroupResource) basic(data acceptance.TestData) string {
+func (r ResourceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,8 +202,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
-	template := t.basic(data)
+func (r ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +214,7 @@ resource "azurerm_resource_group" "import" {
 `, template)
 }
 
-func (t ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
+func (r ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -231,7 +231,7 @@ resource "azurerm_resource_group" "test" {
 `, featureFlagEnabled, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,7 +249,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -266,7 +266,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
