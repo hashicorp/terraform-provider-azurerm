@@ -23,11 +23,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -773,16 +771,6 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-
-	// The delete operation completes and get returns 404 but the vault still appears to exist briefly under resource group.
-	// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/38962
-	pollType := custompollers.NewRecoveryServicesVaultDeletePoller(client, *id)
-	poller := pollers.NewPoller(pollType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
 	}
 
 	return nil
