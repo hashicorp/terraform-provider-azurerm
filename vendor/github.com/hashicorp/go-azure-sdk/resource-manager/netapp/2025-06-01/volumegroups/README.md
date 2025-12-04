@@ -63,19 +63,3 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
-
-### Example Usage: `VolumeGroupsClient.ListByNetAppAccount`
-
-```go
-ctx := context.TODO()
-id := volumegroups.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName")
-
-read, err := client.ListByNetAppAccount(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```

@@ -7,9 +7,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestKeyResourceV1ToV2(t *testing.T) {
@@ -24,7 +24,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/labelName",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/keyName?label=labelName"),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label=labelName"),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -32,7 +32,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/key:name%2Ftest?label=test%3Alabel%2Fname"),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/key:name%2Ftest?label=test%3Alabel%2Fname"),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -40,7 +40,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/%00",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -48,7 +48,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -56,7 +56,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -64,7 +64,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzurePublic().AppConfiguration,
 		},
 		{
@@ -72,7 +72,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.azure.cn/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.azure.cn/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzureChina().AppConfiguration,
 		},
 		{
@@ -80,7 +80,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
-			expected:                    utils.String("https://appConf1.azconfig.azure.us/kv/keyName?label="),
+			expected:                    pointer.To("https://appConf1.azconfig.azure.us/kv/keyName?label="),
 			appConfigurationEnvironment: environments.AzureUSGovernment().AppConfiguration,
 		},
 	}

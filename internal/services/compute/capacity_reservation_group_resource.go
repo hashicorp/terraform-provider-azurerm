@@ -96,6 +96,10 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCapacityReservationGroupRead(d, meta)
 }
 

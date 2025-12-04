@@ -16,17 +16,17 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.74.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20251024.1223440
-	github.com/hashicorp/go-azure-sdk/sdk v0.20251024.1223440
+	github.com/hashicorp/go-azure-helpers v0.75.1
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20251202.1181053
+	github.com/hashicorp/go-azure-sdk/sdk v0.20251202.1181053
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/terraform-json v0.27.2
-	github.com/hashicorp/terraform-plugin-framework v1.16.0
-	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
+	github.com/hashicorp/terraform-plugin-framework v1.16.1
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-mux v0.21.0
@@ -43,8 +43,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
-	golang.org/x/crypto v0.43.0
-	golang.org/x/text v0.30.0
+	golang.org/x/crypto v0.45.0
+	golang.org/x/text v0.31.0
 	golang.org/x/tools v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -96,10 +96,10 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.32.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	google.golang.org/grpc v1.75.1 // indirect
@@ -107,4 +107,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.6.0 // indirect
 )
 
-go 1.24.5
+go 1.25.3

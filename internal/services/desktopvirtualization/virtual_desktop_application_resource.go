@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var applicationType = "azurerm_virtual_desktop_application"
@@ -149,14 +149,14 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 
 	payload := application.Application{
 		Properties: application.ApplicationProperties{
-			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
-			Description:          utils.String(d.Get("description").(string)),
-			FilePath:             utils.String(d.Get("path").(string)),
+			FriendlyName:         pointer.To(d.Get("friendly_name").(string)),
+			Description:          pointer.To(d.Get("description").(string)),
+			FilePath:             pointer.To(d.Get("path").(string)),
 			CommandLineSetting:   application.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
-			CommandLineArguments: utils.String(d.Get("command_line_arguments").(string)),
-			ShowInPortal:         utils.Bool(d.Get("show_in_portal").(bool)),
-			IconPath:             utils.String(d.Get("icon_path").(string)),
-			IconIndex:            utils.Int64(int64(d.Get("icon_index").(int))),
+			CommandLineArguments: pointer.To(d.Get("command_line_arguments").(string)),
+			ShowInPortal:         pointer.To(d.Get("show_in_portal").(bool)),
+			IconPath:             pointer.To(d.Get("icon_path").(string)),
+			IconIndex:            pointer.To(int64(d.Get("icon_index").(int))),
 		},
 	}
 

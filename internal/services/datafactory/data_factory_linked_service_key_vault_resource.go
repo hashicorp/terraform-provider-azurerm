@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -139,7 +140,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	azureKeyVaultLinkedService := &datafactory.AzureKeyVaultLinkedService{
-		Description:                              utils.String(d.Get("description").(string)),
+		Description:                              pointer.To(d.Get("description").(string)),
 		AzureKeyVaultLinkedServiceTypeProperties: azureKeyVaultProperties,
 		Type:                                     datafactory.TypeBasicLinkedServiceTypeAzureKeyVault,
 	}

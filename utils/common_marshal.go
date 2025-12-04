@@ -6,6 +6,8 @@ package utils
 import (
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func ExpandStringSlice(input []interface{}) *[]string {
@@ -51,7 +53,7 @@ func ExpandPtrMapStringString(input map[string]interface{}) *map[string]string {
 func ExpandMapStringPtrString(input map[string]interface{}) map[string]*string {
 	result := make(map[string]*string)
 	for k, v := range input {
-		result[k] = String(v.(string))
+		result[k] = pointer.To(v.(string))
 	}
 	return result
 }
@@ -157,7 +159,7 @@ func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *stri
 			result = append(result, "")
 		}
 	}
-	return String(strings.Join(result, delimiter))
+	return pointer.To(strings.Join(result, delimiter))
 }
 
 func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string {
@@ -169,7 +171,7 @@ func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string 
 			result = append(result, "")
 		}
 	}
-	return String(strings.Join(result, delimiter))
+	return pointer.To(strings.Join(result, delimiter))
 }
 
 func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {

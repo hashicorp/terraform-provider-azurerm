@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEndpointStorageContainerResource struct{}
@@ -365,13 +365,13 @@ func (t IotHubEndpointStorageContainerResource) Exists(ctx context.Context, clie
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubEndpointStorageContainerResource) authenticationTypeDefault(data acceptance.TestData) string {

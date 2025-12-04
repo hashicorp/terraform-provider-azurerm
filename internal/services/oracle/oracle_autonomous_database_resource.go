@@ -72,7 +72,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -347,6 +346,8 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			// Check what needs to be updated
 			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
 			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+			needsPasswordUpdate := metadata.ResourceData.HasChange("admin_password")
+			needsBackupRetentionDaysUpdate := metadata.ResourceData.HasChange("backup_retention_period_in_days")
 
 			// Step 1: Handle general updates (everything except backup schedule)
 			if needsGeneralUpdate {
@@ -356,9 +357,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if metadata.ResourceData.HasChange("tags") {
 					generalUpdate.Tags = pointer.To(model.Tags)
-				}
-				if metadata.ResourceData.HasChange("backup_retention_period_in_days") {
-					generalUpdate.Properties.BackupRetentionPeriodInDays = pointer.To(model.BackupRetentionPeriodInDays)
 				}
 				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
 					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
@@ -378,6 +376,31 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
+				}
+			}
+
+			// update password
+			if needsPasswordUpdate {
+				passwordUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						AdminPassword: pointer.To(model.AdminPassword),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, passwordUpdate); err != nil {
+					return fmt.Errorf("updating Admin password for %s: %+v", *id, err)
+				}
+			}
+
+			if needsBackupRetentionDaysUpdate {
+				backupRetentionDaysUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						BackupRetentionPeriodInDays: pointer.To(model.BackupRetentionPeriodInDays),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, backupRetentionDaysUpdate); err != nil {
+					return fmt.Errorf("updating `backup_retention_period_in_days` for %s: %+v", *id, err)
 				}
 			}
 
@@ -441,7 +464,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
 				state.Location = result.Model.Location
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.Name = pointer.ToString(result.Model.Name)
+				state.Name = pointer.From(result.Model.Name)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
@@ -513,7 +536,6 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
 	return metadata.ResourceData.HasChange("tags") ||
-		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
 		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
 		metadata.ResourceData.HasChange("compute_count") ||
 		metadata.ResourceData.HasChange("auto_scaling_enabled") ||

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -239,8 +240,8 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	return &datafactory.AzureKeyVaultSecretReference{
 		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }

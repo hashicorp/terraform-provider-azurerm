@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -130,12 +131,12 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 
 	parameters := synapse.WorkloadClassifier{
 		WorkloadClassifierProperties: &synapse.WorkloadClassifierProperties{
-			Context:    utils.String(d.Get("context").(string)),
-			EndTime:    utils.String(d.Get("end_time").(string)),
-			Importance: utils.String(d.Get("importance").(string)),
-			Label:      utils.String(d.Get("label").(string)),
-			MemberName: utils.String(d.Get("member_name").(string)),
-			StartTime:  utils.String(d.Get("start_time").(string)),
+			Context:    pointer.To(d.Get("context").(string)),
+			EndTime:    pointer.To(d.Get("end_time").(string)),
+			Importance: pointer.To(d.Get("importance").(string)),
+			Label:      pointer.To(d.Get("label").(string)),
+			MemberName: pointer.To(d.Get("member_name").(string)),
+			StartTime:  pointer.To(d.Get("start_time").(string)),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName, parameters)
