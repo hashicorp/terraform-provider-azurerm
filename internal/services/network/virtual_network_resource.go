@@ -405,6 +405,10 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceVirtualNetworkRead(d, meta)
 }
 
@@ -584,7 +588,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("flow_timeout_in_minutes") {
 		payload.Properties.FlowTimeoutInMinutes = nil
 		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
-			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
+			payload.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 		}
 	}
 
@@ -610,15 +614,21 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	networkSecurityGroupNames := make([]string, 0)
 	if payload.Properties != nil && payload.Properties.Subnets != nil {
 		for _, subnet := range *payload.Properties.Subnets {
-			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
-				parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
-				if err != nil {
-					return err
-				}
+			if subnet.Properties != nil {
+				// remove readonly properties as they are not managed by TF - large networks can cause ARM API limit errors
+				subnet.Properties.IPConfigurations = nil
+				subnet.Properties.PrivateEndpoints = nil
 
-				networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
-				if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
-					networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
+				if subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
+					parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
+					if err != nil {
+						return err
+					}
+
+					networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
+					if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+						networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
+					}
 				}
 			}
 		}

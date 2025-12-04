@@ -324,7 +324,7 @@ func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []
 		v := item.(map[string]interface{})
 		results = append(results, backuppolicies.AzureRetentionRule{
 			Name:      v["name"].(string),
-			IsDefault: utils.Bool(false),
+			IsDefault: pointer.To(false),
 			Lifecycles: []backuppolicies.SourceLifeCycle{
 				{
 					DeleteAfter: backuppolicies.AbsoluteDeleteOption{
@@ -345,7 +345,7 @@ func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []
 func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) backuppolicies.BasePolicyRule {
 	return backuppolicies.AzureRetentionRule{
 		Name:      "Default",
-		IsDefault: utils.Bool(true),
+		IsDefault: pointer.To(true),
 		Lifecycles: []backuppolicies.SourceLifeCycle{
 			{
 				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
@@ -368,7 +368,7 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]b
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -379,7 +379,7 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]b
 			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(v["name"].(string) + "_"),
+				Id:      pointer.To(v["name"].(string) + "_"),
 				TagName: v["name"].(string),
 			},
 		}

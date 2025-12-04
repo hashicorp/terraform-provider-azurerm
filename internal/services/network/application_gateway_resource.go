@@ -226,6 +226,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"host_name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -1719,6 +1725,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApplicationGatewayRead(d, meta)
 }
 
@@ -2422,6 +2432,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 			Name: &name,
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            pointer.To(applicationgateways.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity)),
+				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
 				Path:                           pointer.To(path),
 				PickHostNameFromBackendAddress: pointer.To(pickHostNameFromBackendAddress),
 				Port:                           pointer.To(port),
@@ -2509,6 +2520,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 
 		if props := v.Properties; props != nil {
 			output["cookie_based_affinity"] = props.CookieBasedAffinity
+			output["dedicated_backend_connection_enabled"] = pointer.From(props.DedicatedBackendConnection)
 
 			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
 				output["affinity_cookie_name"] = affinityCookieName
@@ -4846,6 +4858,7 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%d", m["port"].(int)))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["cookie_based_affinity"].(string))
+		buf.WriteString(fmt.Sprintf("%t", m["dedicated_backend_connection_enabled"].(bool)))
 
 		if v, ok := m["path"]; ok {
 			buf.WriteString(v.(string))

@@ -9,16 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/dscnodeconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscnodeconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
@@ -107,13 +107,13 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: dscnodeconfiguration.ContentSource{
 				Type:  &contentSourceType,
-				Value: utils.String(content),
+				Value: pointer.To(content),
 			},
 			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
-				Name: utils.String(configurationName),
+				Name: pointer.To(configurationName),
 			},
 		},
-		Name: utils.String(id.NodeConfigurationName),
+		Name: pointer.To(id.NodeConfigurationName),
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)

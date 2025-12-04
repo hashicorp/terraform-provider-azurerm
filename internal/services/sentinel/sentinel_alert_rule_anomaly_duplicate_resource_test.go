@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SentinelAlertRuleAnomalyDuplicateResource struct{}
@@ -40,7 +40,7 @@ func (r SentinelAlertRuleAnomalyDuplicateResource) Exists(ctx context.Context, c
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Anomaly Built In %q (Workspace %q / Resource Group %q): %+v", id.SecurityMLAnalyticsSettingName, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	return utils.Bool(resp != nil), nil
+	return pointer.To(resp != nil), nil
 }
 
 func TestAccSentinelAlertRuleAnomalyDuplicate_basic(t *testing.T) {

@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
@@ -888,10 +887,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
-			VMSize:                 utils.String(d.Get("vm_size").(string)),
-			DisplayName:            utils.String(d.Get("display_name").(string)),
+			VMSize:                 pointer.To(d.Get("vm_size").(string)),
+			DisplayName:            pointer.To(d.Get("display_name").(string)),
 			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
-			TaskSlotsPerNode:       utils.Int64(int64(d.Get("max_tasks_per_node").(int))),
+			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -1403,8 +1402,8 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
 			NodeDeallocationOption: &nodeDeallocationOption,
 			ResizeTimeout:          &resizeTimeout,
-			TargetDedicatedNodes:   utils.Int64(int64(targetDedicatedNodes)),
-			TargetLowPriorityNodes: utils.Int64(int64(targetLowPriorityNodes)),
+			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
+			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
 		}
 	}
 

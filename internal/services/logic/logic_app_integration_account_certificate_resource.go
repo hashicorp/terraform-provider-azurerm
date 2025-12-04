@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountCertificate() *pluginsdk.Resource {
@@ -132,7 +132,7 @@ func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("public_certificate"); ok {
-		parameters.Properties.PublicCertificate = utils.String(v.(string))
+		parameters.Properties.PublicCertificate = pointer.To(v.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -209,13 +209,13 @@ func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *integr
 
 	result := integrationaccountcertificates.KeyVaultKeyReference{
 		KeyVault: integrationaccountcertificates.KeyVaultKeyReferenceKeyVault{
-			Id: utils.String(v["key_vault_id"].(string)),
+			Id: pointer.To(v["key_vault_id"].(string)),
 		},
 		KeyName: v["key_name"].(string),
 	}
 
 	if keyVersion := v["key_version"].(string); keyVersion != "" {
-		result.KeyVersion = utils.String(keyVersion)
+		result.KeyVersion = pointer.To(keyVersion)
 	}
 
 	return &result

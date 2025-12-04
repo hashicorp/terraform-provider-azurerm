@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbookdraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
@@ -308,7 +308,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-		location := azure.NormalizeLocation(d.Get("location").(string))
+		location := location.Normalize(d.Get("location").(string))
 		t := d.Get("tags").(map[string]interface{})
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
@@ -399,9 +399,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RunbookName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	model := resp.Model
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.Normalize(model.Location))
 
 	d.Set("automation_account_name", id.AutomationAccountName)
 	if props := model.Properties; props != nil {

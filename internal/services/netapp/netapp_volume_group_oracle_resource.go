@@ -23,7 +23,6 @@ import (
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupOracleResource struct{}
@@ -372,7 +371,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
-			replicationClient := metadata.Client.NetApp.VolumeReplicationClient
+			volumeClient := metadata.Client.NetApp.VolumeClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model netAppModels.NetAppVolumeGroupOracleModel
@@ -403,12 +402,12 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := volumegroups.VolumeGroupDetails{
-				Location: utils.String(location.Normalize(model.Location)),
+				Location: pointer.To(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
 					GroupMetaData: &volumegroups.VolumeGroupMetaData{
-						GroupDescription:      utils.String(model.GroupDescription),
+						GroupDescription:      pointer.To(model.GroupDescription),
 						ApplicationType:       pointer.To(volumegroups.ApplicationTypeORACLE),
-						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
+						ApplicationIdentifier: pointer.To(model.ApplicationIdentifier),
 					},
 					Volumes: volumeList,
 				},
@@ -424,7 +423,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
-			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
+			if err := authorizeVolumeReplication(ctx, volumeList, volumeClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
 
@@ -477,7 +476,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)) {
 							storageQuotaInBytes := int64(metadata.ResourceData.Get(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)).(int) * 1073741824)
-							update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+							update.Properties.UsageThreshold = pointer.To(storageQuotaInBytes)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.export_policy_rule", volumeItem)) {
@@ -493,8 +492,8 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 									rule := volumegroups.ExportPolicyRule{}
 
 									v := ruleRaw.(map[string]interface{})
-									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
-									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
+									rule.Nfsv3 = pointer.To(v["nfsv3_enabled"].(bool))
+									rule.Nfsv41 = pointer.To(v["nfsv41_enabled"].(bool))
 
 									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
 								}
@@ -546,7 +545,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.throughput_in_mibps", volumeItem)) {
 							throughputMibps := metadata.ResourceData.Get(fmt.Sprintf("%v.throughput_in_mibps", volumeItem))
-							update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+							update.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.tags", volumeItem)) {

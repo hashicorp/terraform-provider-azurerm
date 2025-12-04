@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestDevTestLabV0ToV1(t *testing.T) {
@@ -21,14 +21,14 @@ func TestDevTestLabV0ToV1(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.devtestlab/labs/lab1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1"),
 		},
 	}
 	for _, test := range testData {
