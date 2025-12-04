@@ -1,6 +1,7 @@
 ## 4.55.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_oracle_autonomous_database` - the `admin_password` property is no longer `ForceNew` [GH-30966]
 * `azurerm_container_app_environment_certificate` - add support for the `certificate_key_vault` block [GH-30510]
 * `azurerm_mongo_cluster` - support for new properties `customer_managed_key`, `data_api_mode_enabled`, `identity`, `restore`, `auth_config_allowed_modes` and `storage_type` [GH-31100]
 * dependencies: `containerregistry` - update to API version `2025-04-01` [GH-30205]
