@@ -5,12 +5,10 @@ package plugintest
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -527,136 +525,41 @@ func (wd *WorkingDir) Schemas(ctx context.Context) (*tfjson.ProviderSchemas, err
 }
 
 func (wd *WorkingDir) Query(ctx context.Context) ([]tfjson.LogMsg, error) {
+	var messages []tfjson.LogMsg
+	var diags []tfjson.LogMsg
+
 	logging.HelperResourceTrace(ctx, "Calling Terraform CLI providers query command")
 
 	args := []tfexec.QueryOption{tfexec.Reattach(wd.reattachInfo)}
 
-	var messages []tfjson.LogMsg
+	logs, err := wd.tf.QueryJSON(context.Background(), args...)
 
-	// Query the provider using the Terraform CLI function
-	//var buffer bytes.Buffer
-
-	// var unmarshalled map[string]any
-
-	// This returns a slice of log messages but is not expressed as a valid JSON array, so we're going to convert the
-	// buffer to a string, split this on new line then process each line individually since we're only interested in
-	// the list/query log messages
-	var logEmit *tfexec.LogMsgEmitter
-	var execErr, err error
-
-	logEmit, execErr = wd.tf.QueryJSON(context.Background(), args...)
-
-	if execErr != nil {
-		return nil, fmt.Errorf("error running terraform query command: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("running terraform query command: %w", err)
 	}
 
-	//bufSplit := strings.Split(string(buffer.Bytes()), "\n")
-
-	/*for _, line := range bufSplit {
-		if line == "" {
+	for msg := range logs {
+		if msg.Msg == nil {
 			continue
 		}
-		err := json.Unmarshal([]byte(line), &unmarshalled)
-		if err != nil {
-			return nil, err
+
+		if msg.Err != nil {
+			return nil, fmt.Errorf("retrieving message: %w", msg.Err)
 		}
 
-		traverse, _ := tfjsonpath.Traverse(unmarshalled, tfjsonpath.New("list_resource_found"))
-		if traverse != nil {
-			return traverse, nil
+		if msg.Msg.Level() == tfjson.Error {
+			// TODO reimplement missing .tf config error
+			diags = append(diags, msg.Msg)
+			continue
 		}
-	}*/
-
-	var message tfjson.LogMsg
-	var related bool
-
-	message, related, err = logEmit.NextMessage()
-
-	if related == false && err != nil {
-		return nil, fmt.Errorf("error no messages found from terraform query command: %w", err)
+		messages = append(messages, msg.Msg)
 	}
 
-	// possibly use iterator pattern here
-
-	for err != nil || message != nil {
-		message, related, err = logEmit.NextMessage()
-		messages = append(messages, message)
-	}
-
-	if related == true {
-		return nil, fmt.Errorf("error running terraform query command: %w", err)
+	if len(diags) > 0 {
+		return nil, fmt.Errorf("running terraform query command returned diagnostics: %+v", diags)
 	}
 
 	logging.HelperResourceTrace(ctx, "Called Terraform CLI providers query command")
 
 	return messages, nil
-
-	// do a type conversion to list start data or list found message
-
-	//for _, line := range bufSplit {
-	//	if line == "" {
-	//		continue
-	//	}
-	//	d := json.NewDecoder(bytes.NewReader([]byte(line)))
-	//
-	//	mt := msgType{}
-	//	err := d.Decode(&mt)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	msg, err := unmarshalResult(mt.Type, []byte(line))
-	//	if err != nil {
-	//		// TODO
-	//	}
-	//
-	//	if msg != nil {
-	//		returned = append(returned, *msg)
-	//	}
-	//}
-
-	//returned := make([]string, len(results))
-	//for i, r := range results {
-	//	returned[i] = r.Address
-	//}
-}
-
-// Taken from https://github.com/hashicorp/terraform-json/pull/169/
-const (
-	MessageListResourceFound tfjson.LogMessageType = "list_resource_found"
-)
-
-type ListResourceFoundMessage struct {
-	baseLogMessage
-	Address        string                     `json:"address"`
-	DisplayName    string                     `json:"display_name"`
-	Identity       map[string]json.RawMessage `json:"identity"`
-	ResourceType   string                     `json:"resource_type"`
-	ResourceObject map[string]json.RawMessage `json:"resource_object,omitempty"`
-	Config         string                     `json:"config,omitempty"`
-	ImportConfig   string                     `json:"import_config,omitempty"`
-}
-
-type baseLogMessage struct {
-	Lvl  tfjson.LogMessageLevel `json:"@level"`
-	Msg  string                 `json:"@message"`
-	Time time.Time              `json:"@timestamp"`
-}
-
-type msgType struct {
-	Type tfjson.LogMessageType `json:"type"`
-}
-
-type Result struct {
-	ListResourceFoundMessage `json:"list_resource_found"`
-}
-
-func unmarshalResult(t tfjson.LogMessageType, b []byte) (*tfjson.ListResourceFoundData, error) {
-	v := tfjson.ListResourceFoundData{}
-	switch t {
-	case MessageListResourceFound:
-		return &v, json.Unmarshal(b, &v)
-	}
-
-	return nil, nil
 }
