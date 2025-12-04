@@ -400,7 +400,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				}
 
 				if err := client.UpdateThenPoll(ctx, *id, backupRetentionDaysUpdate); err != nil {
-					return fmt.Errorf("updating Admin password for %s: %+v", *id, err)
+					return fmt.Errorf("updating `backup_retention_period_in_days` for %s: %+v", *id, err)
 				}
 			}
 
