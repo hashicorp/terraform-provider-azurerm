@@ -75,7 +75,7 @@ The following attributes are exported:
 
 * `public_network_access_enabled` - Whether public network access is allowed for the Cognitive Services Account.
 
-* `qna_runtime_endpoint` - The link to the QNA runtime. This is only available when the `kind` is `QnAMaker`.
+* `qna_runtime_endpoint` - The link to the QNA runtime.
 
 * `sku_name` - The SKU name of the Cognitive Services Account.
 
@@ -91,7 +91,7 @@ The following attributes are exported:
 
 A `customer_managed_key` block exports the following:
 
-* `key_vault_key_id` - The ID of the Key Vault Key which is used to Encrypt the data in this Cognitive Services Account.
+* `key_vault_key_id` - The ID of the Key Vault Key which is used to encrypt the data in this Cognitive Services Account.
 
 * `identity_client_id` - The Client ID of the User Assigned Identity that has access to the key.
 
@@ -111,11 +111,11 @@ An `identity` block exports the following:
 
 A `network_acls` block exports the following:
 
-* `bypass` - Whether to allow trusted Azure Services to access the service.
+* `bypass` - Whether trusted Azure Services are allowed to access the service.
 
 * `default_action` - The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`.
 
-* `ip_rules` - One or more IP Addresses, or CIDR Blocks to be able to access the Cognitive Services Account.
+* `ip_rules` - One or more IP Addresses, or CIDR Blocks that are able to access the Cognitive Services Account.
 
 * `virtual_network_rules` - A `virtual_network_rules` block as defined below.
 
@@ -123,7 +123,7 @@ A `network_acls` block exports the following:
 
 A `network_injection` block exports the following:
 
-* `scenario` - The feature that network injection applied to.
+* `scenario` - The feature that network injection is applied to.
 
 * `subnet_id` - The ID of the subnet which the Agent Client is injected into.
 
@@ -139,7 +139,7 @@ A `virtual_network_rules` block exports the following:
 
 A `storage` block exports the following:
 
-* `storage_account_id` - The ID of the Storage Account resource associated to this Cognitive Services Account.
+* `storage_account_id` - The ID of the Storage Account resource associated with this Cognitive Services Account.
 
 * `identity_client_id` - The client ID of the managed identity associated with the storage resource.
 

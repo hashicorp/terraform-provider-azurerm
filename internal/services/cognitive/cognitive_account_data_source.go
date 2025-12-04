@@ -309,7 +309,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
-				return fmt.Errorf("setting `storages` for %s: %+v", id, err)
+				return fmt.Errorf("setting `storage` for %s: %+v", id, err)
 			}
 
 			if localAuthEnabled {
