@@ -18,7 +18,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomCertWebPubsubModel struct {
@@ -121,7 +120,7 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 				},
 			}
 			if keyVaultCertificateId.Version != "" {
-				customCertObj.Properties.KeyVaultSecretVersion = utils.String(keyVaultCertificateId.Version)
+				customCertObj.Properties.KeyVaultSecretVersion = pointer.To(keyVaultCertificateId.Version)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {

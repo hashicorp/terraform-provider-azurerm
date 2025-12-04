@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2589,7 +2589,7 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency cosmosd
 	return acceptance.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("name").Exists(),
 		check.That(data.ResourceName).Key("resource_group_name").Exists(),
-		check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+		check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 		check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 		check.That(data.ResourceName).Key("offer_type").HasValue(string(cosmosdb.DatabaseAccountOfferTypeStandard)),
 		check.That(data.ResourceName).Key("consistency_policy.0.consistency_level").HasValue(string(consistency)),

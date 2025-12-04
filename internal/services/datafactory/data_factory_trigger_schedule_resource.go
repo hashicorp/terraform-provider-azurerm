@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -271,9 +272,9 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	props := &datafactory.ScheduleTriggerTypeProperties{
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
-			Interval:  utils.Int32(int32(d.Get("interval").(int))),
+			Interval:  pointer.To(int32(d.Get("interval").(int))),
 			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]interface{})),
-			TimeZone:  utils.String(d.Get("time_zone").(string)),
+			TimeZone:  pointer.To(d.Get("time_zone").(string)),
 		},
 	}
 
@@ -292,15 +293,15 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 
 	scheduleProps := &datafactory.ScheduleTrigger{
 		ScheduleTriggerTypeProperties: props,
-		Description:                   utils.String(d.Get("description").(string)),
+		Description:                   pointer.To(d.Get("description").(string)),
 	}
 
 	if pipelineName := d.Get("pipeline_name").(string); len(pipelineName) != 0 {
 		scheduleProps.Pipelines = &[]datafactory.TriggerPipelineReference{
 			{
 				PipelineReference: &datafactory.PipelineReference{
-					ReferenceName: utils.String(pipelineName),
-					Type:          utils.String("PipelineReference"),
+					ReferenceName: pointer.To(pipelineName),
+					Type:          pointer.To("PipelineReference"),
 				},
 				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
 			},
@@ -364,9 +365,9 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	props := &datafactory.ScheduleTriggerTypeProperties{
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
-			Interval:  utils.Int32(int32(d.Get("interval").(int))),
+			Interval:  pointer.To(int32(d.Get("interval").(int))),
 			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]interface{})),
-			TimeZone:  utils.String(d.Get("time_zone").(string)),
+			TimeZone:  pointer.To(d.Get("time_zone").(string)),
 		},
 	}
 
@@ -385,7 +386,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 
 	scheduleProps := &datafactory.ScheduleTrigger{
 		ScheduleTriggerTypeProperties: props,
-		Description:                   utils.String(d.Get("description").(string)),
+		Description:                   pointer.To(d.Get("description").(string)),
 	}
 
 	pipelineName := d.Get("pipeline_name").(string)
@@ -396,8 +397,8 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		scheduleProps.Pipelines = &[]datafactory.TriggerPipelineReference{
 			{
 				PipelineReference: &datafactory.PipelineReference{
-					ReferenceName: utils.String(pipelineName),
-					Type:          utils.String("PipelineReference"),
+					ReferenceName: pointer.To(pipelineName),
+					Type:          pointer.To("PipelineReference"),
 				},
 				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
 			},
@@ -547,7 +548,7 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 		value := v.(map[string]interface{})
 		monthlyOccurrences = append(monthlyOccurrences, datafactory.RecurrenceScheduleOccurrence{
 			Day:        datafactory.DayOfWeek(value["weekday"].(string)),
-			Occurrence: utils.Int32(int32(value["week"].(int))),
+			Occurrence: pointer.To(int32(value["week"].(int))),
 		})
 	}
 	if len(monthlyOccurrences) > 0 {
@@ -614,8 +615,8 @@ func expandDataFactoryPipelines(input []interface{}) *[]datafactory.TriggerPipel
 		config := item.(map[string]interface{})
 		v := datafactory.TriggerPipelineReference{
 			PipelineReference: &datafactory.PipelineReference{
-				ReferenceName: utils.String(config["name"].(string)),
-				Type:          utils.String("PipelineReference"),
+				ReferenceName: pointer.To(config["name"].(string)),
+				Type:          pointer.To("PipelineReference"),
 			},
 			Parameters: config["parameters"].(map[string]interface{}),
 		}
@@ -634,7 +635,7 @@ func flattenDataFactoryPipelines(pipelines *[]datafactory.TriggerPipelineReferen
 
 	for _, item := range *pipelines {
 		v := make(map[string]interface{})
-		v["name"] = utils.String(*item.PipelineReference.ReferenceName)
+		v["name"] = pointer.To(*item.PipelineReference.ReferenceName)
 		v["parameters"] = item.Parameters
 		res = append(res, v)
 	}

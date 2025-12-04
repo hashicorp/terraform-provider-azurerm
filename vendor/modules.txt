@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251114.1193342
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251202.1181053
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -366,6 +366,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-previe
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies
@@ -421,22 +422,17 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/archives
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/archiveversions
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/cacherules
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/connectedregistries
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/credentialsets
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/exportpipelines
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/importpipelines
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/operation
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/pipelineruns
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/privateendpointconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/replications
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/scopemaps
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens
-github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/webhooks
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/cacherules
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/connectedregistries
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/credentialsets
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/operation
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/replications
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/scopemaps
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/tokens
+github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/webhooks
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetmembers
@@ -1268,7 +1264,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20251114.1193342
+# github.com/hashicorp/go-azure-sdk/sdk v0.20251202.1181053
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest

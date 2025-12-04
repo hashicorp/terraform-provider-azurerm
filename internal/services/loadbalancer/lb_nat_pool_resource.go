@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
@@ -301,11 +300,11 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *loadbalance
 	}
 
 	if v, ok := d.GetOk("floating_ip_enabled"); ok {
-		properties.EnableFloatingIP = utils.Bool(v.(bool))
+		properties.EnableFloatingIP = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = utils.Bool(v.(bool))
+		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
 	properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))

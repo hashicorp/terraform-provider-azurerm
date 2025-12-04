@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MarketplaceAgreementResource struct{}
@@ -89,12 +88,12 @@ func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clien
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if accept := props.Accepted; accept != nil && *accept {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (MarketplaceAgreementResource) basic(offer string) string {

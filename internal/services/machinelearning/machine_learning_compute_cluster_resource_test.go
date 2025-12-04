@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ComputeClusterResource struct{}
@@ -215,11 +215,11 @@ func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Clie
 	computeResource, err := computeClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(computeResource.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Model.Properties != nil), nil
+	return pointer.To(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeClusterResource) basic(data acceptance.TestData) string {

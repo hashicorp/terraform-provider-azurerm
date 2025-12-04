@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetappFileVolumeAttachment struct {
@@ -96,7 +96,7 @@ func (r NetappFileVolumeAttachmentResource) Create() sdk.ResourceFunc {
 			}
 
 			input := datastores.Datastore{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &datastores.DatastoreProperties{
 					NetAppVolume: &datastores.NetAppVolume{
 						Id: state.NetAppVolumeId,

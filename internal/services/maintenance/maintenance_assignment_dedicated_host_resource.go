@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
@@ -103,10 +103,10 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 
 	// set assignment name to configuration name
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationId: utils.String(configurationId.ID()),
-			ResourceId:                 utils.String(dedicatedHostId.ID()),
+			MaintenanceConfigurationId: pointer.To(configurationId.ID()),
+			ResourceId:                 pointer.To(dedicatedHostId.ID()),
 		},
 	}
 
