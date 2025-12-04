@@ -21,6 +21,7 @@ FEATURES:
 * **New Resource**: `azurerm_log_analytics_workspace_table_custom_log` [GH-30800]
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager` [GH-30613]
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` [GH-30613]
+* **New Resource**: `azurerm_mongo_cluster_user` [GH-31205]
 
 BUG FIXES:
 * Data Source: `azurerm_ssh_public_key` - fix normalisation for `public_key` to avoid removing a literal `EOT` from the base64 encoded content [GH-31249]
