@@ -32,12 +32,12 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQuery(),
-				QueryResultChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 			{
 				Query:             true,
 				Config:            r.basicQueryByResourceGroupName(data),
-				QueryResultChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 		},
 	})
