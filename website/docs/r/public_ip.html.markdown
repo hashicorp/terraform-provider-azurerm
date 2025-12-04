@@ -82,6 +82,8 @@ The following arguments are supported:
 
 -> **Note:** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
 
+-> **Note:** `Basic` will be deprecated. [Read more](https://azure.microsoft.com/en-us/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/).
+
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
 -> **Note:** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.

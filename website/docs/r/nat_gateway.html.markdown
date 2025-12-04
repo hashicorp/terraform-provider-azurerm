@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
 
+-> **Note:** When `StandardV2` is enabled, service API will also enable `zones`. The user has to explicitly set this property in the Terraform configuration or handle it using `ignore_changes`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 * `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
