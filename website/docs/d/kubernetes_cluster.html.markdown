@@ -275,6 +275,8 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
+* `container_network_logs_enabled` - Is Container Network Logs collection enabled?
+
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.
 
 ---

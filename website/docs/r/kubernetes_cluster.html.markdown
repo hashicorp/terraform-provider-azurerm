@@ -774,6 +774,8 @@ An `oms_agent` block supports the following:
 
 * `msi_auth_for_monitoring_enabled` - (Optional) Is managed identity authentication for monitoring enabled?
 
+* `container_network_logs_enabled` - (Optional) Is Container Network Logs collection enabled?
+
 ---
 
 An `ingress_application_gateway` block supports the following:
