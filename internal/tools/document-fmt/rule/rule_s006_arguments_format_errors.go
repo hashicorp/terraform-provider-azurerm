@@ -65,7 +65,7 @@ func (s S006) checkPropertyFormat(
 	}
 
 	// Skip Computed properties for now
-	if schemaProperty.Computed {
+	if schemaProperty != nil && schemaProperty.Computed {
 		return nil
 	}
 

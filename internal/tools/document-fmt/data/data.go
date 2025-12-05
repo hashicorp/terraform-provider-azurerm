@@ -59,8 +59,7 @@ type TerraformNodeData struct {
 	DocumentArguments  *models.DocumentProperties
 	DocumentAttributes *models.DocumentProperties
 
-	ShouldNormalize bool // whether to normalize document before parsing
-	Errors          []error
+	Errors []error
 }
 
 func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name string, resourceType ResourceType, source any) (*TerraformNodeData, error) {
