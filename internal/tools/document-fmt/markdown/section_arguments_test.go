@@ -16,7 +16,7 @@ func TestNormalizeArgumentsContent(t *testing.T) {
 		"* `name`- (Required) The name.",
 		"* `port`- (Required) The port. Defaults to `-1`.",
 	} {
-		res := normalizeArgumentsContent([]string{val})
+		res, _ := normalizeArgumentsContent([]string{val})
 		t.Logf("from `%s` => `%s`", val, res[0])
 	}
 }

@@ -25,6 +25,10 @@ var PropertyExceptions = map[string]map[string]struct{}{
 	"/azurerm_orchestrated_virtual_machine_scale_set.os_profile.(windows|linux)_configuration.secret.certificate": {"S009": {}}, // Not declared in schema, but certificate expects a `store` param
 	"/azurerm_eventgrid_event_subscription.advanced_filter.*":                                                     {"S009": {}}, // nested properties are generalized and not marked as BLOCk in doc
 	"/azurerm_eventgrid_system_topic_event_subscription.advanced_filter.*":                                        {"S009": {}}, // nested properties are generalized and not marked as BLOCk in doc
+
+	"/azurerm_load_test.encryption.identity.*":                                                                             {"S009": {}, "S008": {}}, // There's diff between documented identity and schema
+	"/azurerm_container_app.template..+_scale_rule.authentication.trigger_parameter":                                       {"S007": {}},             // multiple nested properties share the same sub-property name, but have different required/optional
+	"/azurerm_automanage_configuration.backup.retention_policy.(?:weekly|daily)_schedule.retention_duration.duration_type": {"S010": {}},             // Some block reference the same property name but with different default values
 }
 
 var (

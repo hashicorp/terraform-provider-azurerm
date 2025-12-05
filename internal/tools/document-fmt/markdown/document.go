@@ -39,7 +39,7 @@ func (d *Document) Write(fs afero.Fs) error {
 	return nil
 }
 
-func (d *Document) Parse(fs afero.Fs, shouldNormalize bool) error {
+func (d *Document) Parse(fs afero.Fs, shouldNormalizeMd bool) error {
 	var current Section
 	var content []string
 
@@ -86,11 +86,15 @@ func (d *Document) Parse(fs afero.Fs, shouldNormalize bool) error {
 		d.Sections = append(d.Sections, current)
 	}
 
-	// Apply normalization to Arguments section if requested
-	if shouldNormalize {
+	// Apply normalization to section if requested
+	if shouldNormalizeMd {
 		for _, section := range d.Sections {
-			if argSection, ok := section.(*ArgumentsSection); ok {
-				argSection.Normalize()
+			if normalizable, ok := section.(SectionWithNormalize); ok {
+				normalizedContent, hasChange := normalizable.Normalize()
+				if hasChange {
+					section.SetContent(normalizedContent)
+					d.HasChange = true
+				}
 			}
 		}
 	}

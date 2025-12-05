@@ -42,21 +42,24 @@ func (s *ArgumentsSection) Template() string {
 
 // Normalize applies formatting normalization to the Arguments section content
 // This should be called before parsing to clean up common formatting issues
-func (s *ArgumentsSection) Normalize() {
+func (s *ArgumentsSection) Normalize() (normalizedContents []string, hasChange bool) {
 	if len(s.content) == 0 {
-		return
+		return nil, false
 	}
 	// Simply call the existing normalizeArgumentsContent helper
-	s.content = normalizeArgumentsContent(s.content)
+	return normalizeArgumentsContent(s.content)
 }
 
 // normalizeArgumentsContent normalizes Arguments section content without section detection
-func normalizeArgumentsContent(lines []string) []string {
+func normalizeArgumentsContent(lines []string) (normalizedContents []string, hasChange bool) {
 	normalized := make([]string, 0, len(lines))
 	var skipThisLine int
 	var inCodeBlock bool
+	hasChange = false
 
 	for idx, line := range lines {
+		originalLine := line
+
 		// Handle code block detection
 		if strings.HasPrefix(line, "```") {
 			inCodeBlock = !inCodeBlock
@@ -93,9 +96,6 @@ func normalizeArgumentsContent(lines []string) []string {
 		if strings.HasPrefix(line, "*") && !strings.HasSuffix(line, ".") {
 			idx2 := idx + 1
 			for idx2 < len(lines) {
-				if idx2 >= len(lines) {
-					break
-				}
 				l2 := lines[idx2]
 				if l2 == "" {
 					break
@@ -144,18 +144,13 @@ func normalizeArgumentsContent(lines []string) []string {
 			return "- (Required)"
 		})
 
-		// Fix missing dash after property name: "`-" -> "` -"
-		// Only replace when dash is followed by space or letter (not a digit)
-		line = regexp.MustCompile("`-([^0-9])").ReplaceAllString(line, "` -$1")
-
 		// Property line processing (after position fixes to avoid double dash)
 		if strings.HasPrefix(line, "*") {
 			line = tryFixProp(line)
 		}
 
 		// Add missing marker prefix for properties
-		if (strings.Contains(line, "(Optional)") || strings.Contains(line, "(Required)")) &&
-			strings.HasPrefix(line, "`") && !strings.HasPrefix(line, "*") {
+		if (strings.Contains(line, "(Optional)") || strings.Contains(line, "(Required)")) && strings.HasPrefix(line, "`") {
 			line = "* " + line
 		}
 
@@ -163,7 +158,11 @@ func normalizeArgumentsContent(lines []string) []string {
 		line = removeRedundantSpace(line)
 
 		normalized = append(normalized, line)
+
+		if originalLine != line {
+			hasChange = true
+		}
 	}
 
-	return normalized
+	return normalized, hasChange
 }

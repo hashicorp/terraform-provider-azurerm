@@ -178,10 +178,6 @@ func forEachDocProperty(
 	}
 
 	for name, docProperty := range documentation.Objects {
-		// Skip properties that are not marked as Required or Optional
-		if !docProperty.Required && !docProperty.Optional {
-			continue
-		}
 		if name == "id" {
 			continue
 		}

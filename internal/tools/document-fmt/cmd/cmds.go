@@ -79,7 +79,8 @@ func Make() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			shouldLoadPackages := rule.ShouldLoadPackages(flags.Linter.Rules)
-			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource, true, shouldLoadPackages)
+			shouldNormalizeMd := rule.ShouldNormalizeMd(flags.Linter.Rules)
+			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource, shouldNormalizeMd, shouldLoadPackages)
 
 			v := validator.Validator{}
 			errCount, resourceWithErrCount := 0, 0

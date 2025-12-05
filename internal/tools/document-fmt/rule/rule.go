@@ -60,9 +60,28 @@ var RulesRequiringPackageLoad = map[string]bool{
 	"S001": true, // API Section validation needs API data from loaded packages
 }
 
+// RulesRequiringPackageLoad contains rule IDs that need normalize markdowns
+var RulesRequiringNormalizingMd = map[string]bool{
+	"S006": true,
+	"S007": true,
+	"S008": true,
+	"S009": true,
+	"S010": true,
+	"S011": true,
+}
+
 func ShouldLoadPackages(ruleIDs []string) bool {
 	for _, ruleID := range ruleIDs {
 		if RulesRequiringPackageLoad[ruleID] {
+			return true
+		}
+	}
+	return false
+}
+
+func ShouldNormalizeMd(ruleIDs []string) bool {
+	for _, ruleID := range ruleIDs {
+		if RulesRequiringNormalizingMd[ruleID] {
 			return true
 		}
 	}

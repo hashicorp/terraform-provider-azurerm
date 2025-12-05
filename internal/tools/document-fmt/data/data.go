@@ -106,7 +106,7 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 	return &result, nil
 }
 
-func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string, shouldNormalize bool, shouldLoadPackages bool) []*TerraformNodeData {
+func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string, shouldNormalizeMd bool, shouldLoadPackages bool) []*TerraformNodeData {
 	result := make([]*TerraformNodeData, 0)
 
 	// Only load packages if needed by the selected rules
@@ -154,9 +154,8 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				log.Error(err)
 				continue
 			}
-			rd.ShouldNormalize = shouldNormalize
 
-			rd.populateAdditionalFields(fs)
+			rd.populateAdditionalFields(fs, false)
 
 			result = append(result, rd)
 		}
@@ -176,9 +175,8 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				log.Error(err)
 				continue
 			}
-			rd.ShouldNormalize = shouldNormalize
 
-			rd.populateAdditionalFields(fs)
+			rd.populateAdditionalFields(fs, shouldNormalizeMd)
 
 			result = append(result, rd)
 		}
@@ -218,7 +216,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				}
 			}
 
-			rd.populateAdditionalFields(fs)
+			rd.populateAdditionalFields(fs, false)
 
 			result = append(result, rd)
 		}
@@ -237,7 +235,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 				}
 			}
 
-			rd.populateAdditionalFields(fs)
+			rd.populateAdditionalFields(fs, shouldNormalizeMd)
 
 			result = append(result, rd)
 		}
@@ -251,10 +249,10 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 	return result
 }
 
-func (rd *TerraformNodeData) populateAdditionalFields(fs afero.Fs) {
+func (rd *TerraformNodeData) populateAdditionalFields(fs afero.Fs, shouldNormalizeMd bool) {
 	rd.populateAPIData()
 	rd.populateTimeouts()
-	rd.populateDocumentData(fs)
+	rd.populateDocumentData(fs, shouldNormalizeMd)
 	rd.populateDocumentProperties()
 	rd.populateSchemaProperties()
 }
@@ -265,11 +263,11 @@ func (rd *TerraformNodeData) populateAPIData() {
 	}
 }
 
-func (rd *TerraformNodeData) populateDocumentData(fs afero.Fs) {
+func (rd *TerraformNodeData) populateDocumentData(fs afero.Fs, shouldNormalizeMd bool) {
 	rd.Document.Exists = util.FileExists(fs, rd.Document.Path)
 
 	if rd.Document.Exists {
-		if err := rd.Document.Parse(fs, rd.ShouldNormalize); err != nil {
+		if err := rd.Document.Parse(fs, shouldNormalizeMd); err != nil {
 			rd.Errors = append(rd.Errors, fmt.Errorf("failed to parse documentation: %+v", err)) // Output error instead?
 		}
 	}

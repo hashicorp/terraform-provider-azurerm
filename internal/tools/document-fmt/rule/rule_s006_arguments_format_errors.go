@@ -64,6 +64,11 @@ func (s S006) checkPropertyFormat(
 		return nil
 	}
 
+	// Skip Computed properties for now
+	if schemaProperty.Computed {
+		return nil
+	}
+
 	for _, parseErr := range docProperty.ParseErrors {
 		// Check if "block is not defined" error should be converted to "incorrectly block marked"
 		if strings.Contains(parseErr, mdparser.BlcokNotDefined) && schemaProperty != nil {
