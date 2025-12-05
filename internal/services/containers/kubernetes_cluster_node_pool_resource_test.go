@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -3678,6 +3679,18 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_gatewayValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.gatewayValidationConfig(data),
+			ExpectError: regexp.MustCompile("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`"),
+		},
+	})
+}
+
 func (r KubernetesClusterNodePoolResource) modeGatewayConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3699,6 +3712,27 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/mode=gateway:NoSchedule",
   ]
+}
+`, r.templateStaticEgressGatewayConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) gatewayValidationConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 2
+  mode                  = "System"
+  vnet_subnet_id        = azurerm_subnet.test.id
+
+  gateway_public_ip_prefix_size = 30
 }
 `, r.templateStaticEgressGatewayConfig(data))
 }
