@@ -1,6 +1,7 @@
 ## 4.56.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_cognitive_account` - add support for the `kind` property to rollback or upgrade from `OpenAI` to `AIServices` [GH-31063]
 
 FEATURES:
 
