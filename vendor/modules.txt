@@ -230,6 +230,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiv
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/namedvalue
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy
