@@ -265,10 +265,8 @@ func TestParseErrorsInFieldExtraction(t *testing.T) {
 				if !found {
 					t.Errorf("expected error %q but got %v", tt.expectedError, field.ParseErrors)
 				}
-			} else {
-				if len(field.ParseErrors) > 0 {
-					t.Errorf("unexpected parse errors: %v", field.ParseErrors)
-				}
+			} else if len(field.ParseErrors) > 0 {
+				t.Errorf("unexpected parse errors: %v", field.ParseErrors)
 			}
 		})
 	}
