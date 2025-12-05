@@ -20,6 +20,7 @@ type ManagerNetworkGroupModel struct {
 	Name             string `tfschema:"name"`
 	NetworkManagerId string `tfschema:"network_manager_id"`
 	Description      string `tfschema:"description"`
+	MemberType       string `tfschema:"member_type"`
 }
 
 type ManagerNetworkGroupResource struct{}
@@ -58,6 +59,13 @@ func (r ManagerNetworkGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
+
+		"member_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(networkgroups.GroupMemberTypeVirtualNetwork),
+			ValidateFunc: validation.StringInSlice(networkgroups.PossibleValuesForGroupMemberType(), false),
+		},
 	}
 }
 
@@ -91,7 +99,9 @@ func (r ManagerNetworkGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			group := networkgroups.NetworkGroup{
-				Properties: &networkgroups.NetworkGroupProperties{},
+				Properties: &networkgroups.NetworkGroupProperties{
+					MemberType: pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType),
+				},
 			}
 
 			if model.Description != "" {
@@ -144,6 +154,10 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("member_type") {
+				properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
+			}
+
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model, networkgroups.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -184,6 +198,7 @@ func (r ManagerNetworkGroupResource) Read() sdk.ResourceFunc {
 				Name:             id.NetworkGroupName,
 				NetworkManagerId: networkgroups.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				Description:      pointer.From(properties.Description),
+				MemberType:       pointer.FromEnum(properties.MemberType),
 			}
 
 			return metadata.Encode(&state)
