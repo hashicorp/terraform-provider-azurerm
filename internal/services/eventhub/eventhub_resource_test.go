@@ -238,6 +238,7 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
 			),
 		},
+		data.ImportStep()
 		{
 			Config: r.partitionCountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -245,6 +246,7 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
 			),
 		},
+		data.ImportStep()
 	})
 }
 
@@ -260,6 +262,7 @@ func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.dedicatedClusterStandardPartitionCountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -267,6 +270,7 @@ func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
