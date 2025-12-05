@@ -74,11 +74,11 @@ func (s S006) checkPropertyFormat(
 		if strings.Contains(parseErr, mdparser.BlcokNotDefined) && schemaProperty != nil {
 			// If schema property exists but is not a block, update the error type
 			if schemaProperty.Nested == nil || len(schemaProperty.Nested.Objects) == 0 {
-				parseErr = "incorrectly block marked"
+				parseErr = mdparser.IncorrectlyBlockMarked
 			}
 		}
 
-		if strings.Contains(parseErr, "misspell of name from") {
+		if strings.Contains(parseErr, mdparser.MisspelNameOfProperty) {
 			continue
 		}
 
@@ -89,9 +89,9 @@ func (s S006) checkPropertyFormat(
 		switch {
 		case strings.Contains(parseErr, mdparser.IncorrectlyBlockMarked):
 			message = fmt.Sprintf("The document incorrectly implies `%s` is a block (contains phrases like 'as defined below')", fullPath)
-		case strings.Contains(parseErr, "duplicate"):
+		case strings.Contains(parseErr, mdparser.DuplicateFieldsFound):
 			message = fmt.Sprintf("%s: `%s`", parseErr, fullPath)
-		case strings.Contains(parseErr, "no field name found"):
+		case strings.Contains(parseErr, mdparser.NoFieldNameFound):
 			message = fmt.Sprintf("following should be formatted as: `* `field` - (Required/Optional) Xxx...`\n  %s\n", docProperty.Content)
 		default:
 			message = parseErr

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/mdparser"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 )
@@ -213,7 +214,7 @@ func TestS009_Run(t *testing.T) {
 					Name:        "locaton",
 					Content:     "* `locaton` - (Required) The location.",
 					Required:    true,
-					ParseErrors: []string{"misspell of name from location"},
+					ParseErrors: []string{mdparser.MisspelNameOfProperty + " from `location` to `locaton`"},
 				}
 				props.Objects["locaton"] = prop
 				return props

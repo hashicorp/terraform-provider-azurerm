@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/mdparser"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 )
@@ -42,7 +43,7 @@ func TestS006_Run(t *testing.T) {
 					Name:        "config",
 					Content:     "* `config` - (Optional) Configuration as defined below.",
 					Optional:    true,
-					ParseErrors: []string{"incorrectly block marked"},
+					ParseErrors: []string{mdparser.IncorrectlyBlockMarked},
 				}
 				return props
 			}(),
@@ -55,7 +56,7 @@ func TestS006_Run(t *testing.T) {
 				return props
 			}(),
 			expectedErrors: 1,
-			errorContains:  []string{"incorrectly block marked"},
+			errorContains:  []string{"incorrectly implies", "is a block"},
 		},
 		{
 			name: "duplicate property",
@@ -65,13 +66,13 @@ func TestS006_Run(t *testing.T) {
 					Name:        "name",
 					Content:     "* `name` - (Required) The name.",
 					Required:    true,
-					ParseErrors: []string{"duplicate property definition"},
+					ParseErrors: []string{mdparser.DuplicateFieldsFound},
 				}
 				return props
 			}(),
 			schemaProps:    models.NewSchemaProperties(),
 			expectedErrors: 1,
-			errorContains:  []string{"duplicate"},
+			errorContains:  []string{"Duplicate fields declared"},
 		},
 		{
 			name: "no field name found",
@@ -81,7 +82,7 @@ func TestS006_Run(t *testing.T) {
 					Name:        "bad",
 					Required:    true,
 					Content:     "* Some malformed line without proper format",
-					ParseErrors: []string{"no field name found"},
+					ParseErrors: []string{mdparser.NoFieldNameFound},
 				}
 				return props
 			}(),
@@ -97,7 +98,7 @@ func TestS006_Run(t *testing.T) {
 					Name:        "nested_field",
 					Required:    true,
 					Content:     "* `nested_field` - Field as defined below.",
-					ParseErrors: []string{"incorrectly block marked"},
+					ParseErrors: []string{mdparser.IncorrectlyBlockMarked},
 				}
 				props := models.NewDocumentProperties()
 				props.Objects["block"] = &models.DocumentProperty{
@@ -124,7 +125,7 @@ func TestS006_Run(t *testing.T) {
 				return props
 			}(),
 			expectedErrors: 1,
-			errorContains:  []string{"incorrectly block marked"},
+			errorContains:  []string{"incorrectly implies", "is a block"},
 		},
 		{
 			name: "misspelling error skipped",
@@ -134,7 +135,7 @@ func TestS006_Run(t *testing.T) {
 					Name:        "locaton",
 					Optional:    true,
 					Content:     "* `locaton` - (Required) Location.",
-					ParseErrors: []string{"misspell of name from location"},
+					ParseErrors: []string{mdparser.MisspelNameOfProperty},
 				}
 				return props
 			}(),

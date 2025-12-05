@@ -51,3 +51,71 @@ func TestParseMarkdownSection(t *testing.T) {
 		}
 	}
 }
+
+func TestParseErrors(t *testing.T) {
+	testCases := []struct {
+		name          string
+		content       []string
+		expectedError string
+		propertyName  string
+	}{
+		{
+			name: "duplicate_property",
+			content: []string{
+				"* `name` - (Required) The name.",
+				"* `name` - (Optional) Duplicate name.",
+			},
+			expectedError: DuplicateFieldsFound,
+			propertyName:  "name",
+		},
+		{
+			name: "block_not_defined",
+			content: []string{
+				"* `config` - (Required) A `config` block as defined below.",
+			},
+			expectedError: "block `config` not defined",
+			propertyName:  "config",
+		},
+		{
+			name: "misspelled_block_name",
+			content: []string{
+				"* `setting` - (Required) A `settings` block as defined below.",
+				"",
+				"---",
+				"",
+				"A `setting` block supports the following:",
+				"",
+				"* `value` - (Required) The value.",
+			},
+			expectedError: MisspelNameOfProperty,
+			propertyName:  "setting",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			properties := ParseMarkdownSection(tc.content)
+
+			prop, exists := properties.Objects[tc.propertyName]
+			if !exists {
+				t.Fatalf("property %s not found", tc.propertyName)
+			}
+
+			if len(prop.ParseErrors) == 0 {
+				t.Fatalf("expected parse error but got none")
+			}
+
+			found := false
+			for _, err := range prop.ParseErrors {
+				if strings.Contains(err, tc.expectedError) {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				t.Errorf("expected error containing %q, got %v", tc.expectedError, prop.ParseErrors)
+			}
+		})
+	}
+}

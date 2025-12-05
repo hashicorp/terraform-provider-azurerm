@@ -73,7 +73,7 @@ func extractFieldFromLine(line string) *models.DocumentProperty {
 		if field.ParseErrors == nil {
 			field.ParseErrors = []string{}
 		}
-		field.ParseErrors = append(field.ParseErrors, "no field name found")
+		field.ParseErrors = append(field.ParseErrors, NoFieldNameFound)
 		return field
 	}
 	field.Name = res[1]

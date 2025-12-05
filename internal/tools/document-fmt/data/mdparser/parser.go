@@ -14,6 +14,9 @@ import (
 const (
 	BlcokNotDefined        = "block is not defined in the documentation"
 	IncorrectlyBlockMarked = "The document incorrectly implies this field is a block"
+	NoFieldNameFound       = "No field name found"
+	DuplicateFieldsFound   = "Duplicate fields declared"
+	MisspelNameOfProperty  = "Misspell of name"
 )
 
 // ParseMarkdownSection is the main entry point for parsing markdown content into DocumentProperties.
@@ -78,7 +81,7 @@ func (m *mark) buildField() {
 					if arg.ParseErrors == nil {
 						arg.ParseErrors = []string{}
 					}
-					arg.ParseErrors = append(arg.ParseErrors, "duplicate fields declared")
+					arg.ParseErrors = append(arg.ParseErrors, DuplicateFieldsFound)
 				} else {
 					m.fields[f.Name] = f
 				}
@@ -133,7 +136,7 @@ func (m *mark) buildStruct() {
 					if f.ParseErrors == nil {
 						f.ParseErrors = []string{}
 					}
-					f.ParseErrors = append(f.ParseErrors, fmt.Sprintf("misspell of name from `%s` to `%s`", f.Name, f.BlockTypeName))
+					f.ParseErrors = append(f.ParseErrors, fmt.Sprintf("%s from `%s` to `%s`", MisspelNameOfProperty, f.Name, f.BlockTypeName))
 				} else {
 					if f.ParseErrors == nil {
 						f.ParseErrors = []string{}
@@ -188,7 +191,7 @@ func (m *mark) blockOfName(name string, parent string) (*markBlock, string) {
 			key := fmt.Sprintf("%s:%s:%d", block.Name, block.Of, len(block.Fields))
 			if existing, exists := uniqueDefinitions[key]; exists {
 				if !blocksHaveSameDefinition(existing, block) {
-					msg = fmt.Sprintf("duplicate block exists as name `%s`", name)
+					msg = DuplicateFieldsFound
 					break
 				}
 			} else {

@@ -146,6 +146,16 @@ func normalizeArgumentsContent(lines []string) (normalizedContents []string, has
 
 		// Property line processing (after position fixes to avoid double dash)
 		if strings.HasPrefix(line, "*") {
+			for k, v := range OrderFixMap {
+				if strings.Contains(line, k) && !strings.Contains(line, v) {
+					line = strings.Replace(line, k, v, 1)
+				}
+			}
+			for k, v := range RequiredCaseFix {
+				if strings.Contains(line, k) && !strings.Contains(line, v) {
+					line = strings.Replace(line, k, v, 1)
+				}
+			}
 			line = tryFixProp(line)
 		}
 

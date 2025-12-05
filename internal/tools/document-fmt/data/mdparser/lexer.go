@@ -68,7 +68,7 @@ func (b *markBlock) asProperties() *models.DocumentProperties {
 				if f.ParseErrors == nil {
 					f.ParseErrors = []string{}
 				}
-				f.ParseErrors = append(f.ParseErrors, "duplicate field `"+f.Name+"` in block "+b.Name)
+				f.ParseErrors = append(f.ParseErrors, DuplicateFieldsFound)
 			}
 			res.Objects[f.Name] = f
 			res.Names = append(res.Names, f.Name)

@@ -16,6 +16,15 @@ var (
 	tryBlockPropReg = regexp.MustCompile("[*] `.*` .*(One or more |A |A list of ) [^.,]* blocks?.*")
 	defaultValueReg = regexp.MustCompile(`[. ]+[d|D]efaults to (\w+)[,.]`)
 	spaceReg        = regexp.MustCompile(` \s+`)
+
+	OrderFixMap = map[string]string{
+		"(Optional) -": "- (Optional)",
+		"(Required) -": "- (Required)",
+	}
+	RequiredCaseFix = map[string]string{
+		"- (optional)": "- (Optional)",
+		"- (required)": "- (Required)",
+	}
 )
 
 // replaceNBSP replaces non-breaking spaces and other non-standard spaces with regular spaces

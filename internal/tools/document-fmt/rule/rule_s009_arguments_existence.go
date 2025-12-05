@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/mdparser"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 )
@@ -190,7 +191,7 @@ func (s S009) checkMissingInSchema(
 
 		if len(docProperty.ParseErrors) > 0 {
 			for _, parseErr := range docProperty.ParseErrors {
-				if strings.Contains(parseErr, "misspell of name from") {
+				if strings.Contains(parseErr, mdparser.MisspelNameOfProperty) {
 					issue := NewValidationIssue(
 						s.ID(),
 						s.Name(),

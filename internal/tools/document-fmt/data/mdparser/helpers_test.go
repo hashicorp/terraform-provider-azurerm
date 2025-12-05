@@ -6,6 +6,7 @@ package mdparser
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -215,6 +216,92 @@ func TestPossibleValues(t *testing.T) {
 			field := extractFieldFromLine(tt.line)
 			if !reflect.DeepEqual(field.PossibleValues(), tt.wantEnums) {
 				t.Errorf("extractFieldFromLine() PossibleValues = %v, want %v", field.PossibleValues(), tt.wantEnums)
+			}
+		})
+	}
+}
+
+func TestParseErrorsInFieldExtraction(t *testing.T) {
+	tests := []struct {
+		name          string
+		line          string
+		wantError     bool
+		expectedError string
+	}{
+		{
+			name:          "missing field name",
+			line:          "* - (Required) This is a description without a field name.",
+			wantError:     true,
+			expectedError: NoFieldNameFound,
+		},
+		{
+			name:          "missing field name",
+			line:          "*`fieldname`- (Required) This is a description without a field name.",
+			wantError:     true,
+			expectedError: NoFieldNameFound,
+		},
+		{
+			name:      "valid field",
+			line:      "* `name` - (Required) The name of the resource.",
+			wantError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := extractFieldFromLine(tt.line)
+
+			if tt.wantError {
+				if len(field.ParseErrors) == 0 {
+					t.Errorf("expected parse error but got none")
+				}
+				found := false
+				for _, err := range field.ParseErrors {
+					if strings.Contains(err, tt.expectedError) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("expected error %q but got %v", tt.expectedError, field.ParseErrors)
+				}
+			} else {
+				if len(field.ParseErrors) > 0 {
+					t.Errorf("unexpected parse errors: %v", field.ParseErrors)
+				}
+			}
+		})
+	}
+}
+
+func TestBlockPropertyDetection(t *testing.T) {
+	tests := []struct {
+		name      string
+		line      string
+		wantBlock bool
+	}{
+		{
+			name:      "block with 'as defined below'",
+			line:      "* `config` - (Required) A `config` block as defined below.",
+			wantBlock: true,
+		},
+		{
+			name:      "block with 'as detailed below'",
+			line:      "* `settings` - (Optional) One or more `settings` blocks as detailed below.",
+			wantBlock: true,
+		},
+		{
+			name:      "not a block",
+			line:      "* `name` - (Required) The name of the resource.",
+			wantBlock: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			isBlock := guessBlockProperty(tt.line)
+			if isBlock != tt.wantBlock {
+				t.Errorf("guessBlockProperty() = %v, want %v", isBlock, tt.wantBlock)
 			}
 		})
 	}
