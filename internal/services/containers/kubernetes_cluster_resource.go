@@ -1327,7 +1327,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"static_egress_gateway_profile_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
