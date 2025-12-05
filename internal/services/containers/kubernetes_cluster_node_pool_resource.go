@@ -1130,12 +1130,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
-		gatewayPublicIPPrefixSize := 31
 		if props.GatewayProfile != nil {
-			gatewayPublicIPPrefixSize = int(*props.GatewayProfile.PublicIPPrefixSize)
-		}
-		if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
-			return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
+			if err := d.Set("gateway_public_ip_prefix_size", int(*props.GatewayProfile.PublicIPPrefixSize)); err != nil {
+				return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
+			}
 		}
 
 		if props.CreationData != nil {
