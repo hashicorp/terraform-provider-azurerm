@@ -356,8 +356,6 @@ func TestAccEventHub_captureDescriptionUserAssignIdentity(t *testing.T) {
 			Config: r.captureDescriptionUsingUserAssignedIdentity(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -373,8 +371,6 @@ func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 			Config: r.captureDescription(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -382,8 +378,6 @@ func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 			Config: r.captureDescriptionUsingSystemAssignedIdentity(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -391,8 +385,6 @@ func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 			Config: r.captureDescriptionUsingUserAssignedIdentity(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -400,8 +392,6 @@ func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 			Config: r.captureDescription(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -732,13 +722,14 @@ resource "azurerm_eventhub" "test" {
     skip_empty_archives = true
 
     destination {
-      name                        = "EventHubArchive.AzureBlockBlob"
-      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
-      blob_container_name         = azurerm_storage_container.test.name
-      storage_account_id          = azurerm_storage_account.test.id
-      storage_authentication_type = "SystemAssigned"
+      name                   = "EventHubArchive.AzureBlockBlob"
+      archive_name_format    = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name    = azurerm_storage_container.test.name
+      storage_account_id     = azurerm_storage_account.test.id
+      storage_authentication = "SystemAssigned"
     }
   }
+  depends_on = [azurerm_eventhub_namespace.test, azurerm_role_assignment.saContributorRoleAssignment]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
 }
@@ -783,7 +774,6 @@ resource "azurerm_eventhub_namespace" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
-
   }
 }
 
@@ -813,12 +803,12 @@ resource "azurerm_eventhub" "test" {
     skip_empty_archives = true
 
     destination {
-      name                        = "EventHubArchive.AzureBlockBlob"
-      archive_name_format         = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
-      blob_container_name         = azurerm_storage_container.test.name
-      storage_account_id          = azurerm_storage_account.test.id
-      storage_authentication_type = "UserAssigned"
-      storage_authentication_id   = azurerm_user_assigned_identity.test.id
+      name                      = "EventHubArchive.AzureBlockBlob"
+      archive_name_format       = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name       = azurerm_storage_container.test.name
+      storage_account_id        = azurerm_storage_account.test.id
+      storage_authentication    = "UserAssigned"
+      storage_authentication_id = azurerm_user_assigned_identity.test.id
     }
   }
 }

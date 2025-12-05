@@ -172,7 +172,7 @@ func resourceEventHub() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
-									"storage_authentication_type": {
+									"storage_authentication": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -513,7 +513,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 				},
 			}
 
-			if destinationAuthType := destination["storage_authentication_type"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
+			if destinationAuthType := destination["storage_authentication"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
 				authType := eventhubs.CaptureIdentityType(destinationAuthType.(string))
 				captureDescription.Destination.Identity = &eventhubs.CaptureIdentity{
 					Type: &authType,
@@ -604,7 +604,7 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 			if storageIdentity := destination.Identity; storageIdentity != nil {
 				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
 					authType := string(*storageAuthType)
-					destinationOutput["storage_authentication_type"] = authType
+					destinationOutput["storage_authentication"] = authType
 				}
 				if storageAuthId := storageIdentity.UserAssignedIdentity; storageAuthId != nil {
 					destinationOutput["storage_authentication_id"] = *storageAuthId
