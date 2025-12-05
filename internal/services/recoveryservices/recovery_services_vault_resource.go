@@ -142,9 +142,23 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			},
 
 			"soft_delete_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       true,
+				ConflictsWith: []string{"soft_delete_status"},
+				Deprecated:    "use soft_delete_status instead",
+			},
+
+			"soft_delete_status": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Default:       vaults.SoftDeleteStateEnabled,
+				ConflictsWith: []string{"soft_delete_enabled"},
+				ValidateFunc: validation.StringInSlice([]string{
+					string(vaults.SoftDeleteStateEnabled),
+					string(vaults.SoftDeleteStateDisabled),
+					string(vaults.SoftDeleteStateAlwaysON),
+				}, false),
 			},
 
 			"monitoring": {
@@ -309,11 +323,30 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
+	// old logic via soft_delete_enabled
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+	} else {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+	}
+	// new logic via soft_delete_status, supercedes soft_delete_enabled
+	if sds := d.Get("soft_delete_status").(string); sds == string(vaults.SoftDeleteStateEnabled) {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+	} else if sds == string(vaults.SoftDeleteStateAlwaysON) {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON
+		cfg.Properties.SoftDeleteFeatureState = &state
+		// does this matter ? shouldn't it just test for the target, it's creation of a vault
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON)}
 	} else {
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
 		cfg.Properties.SoftDeleteFeatureState = &state
@@ -521,11 +554,30 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
+	// old logic via soft_delete_enabled
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+	} else {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+	}
+	// new logic via soft_delete_status, supercedes soft_delete_enabled
+	if sds := d.Get("soft_delete_status").(string); sds == string(vaults.SoftDeleteStateEnabled) {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+	} else if sds == string(vaults.SoftDeleteStateAlwaysON) {
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON
+		cfg.Properties.SoftDeleteFeatureState = &state
+		// does this matter ? shouldn't it just test for the target
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON)}
 	} else {
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
 		cfg.Properties.SoftDeleteFeatureState = &state
@@ -620,12 +672,25 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("retrieving %s: %+v", cfgId, err)
 		}
 
+		// old soft_delete_enabled
 		softDeleteEnabled := false
 		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-			softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+			// true if Enabled or AlawysON - both represent true here
+			if *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled || *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+				softDeleteEnabled = true
+			}
+
 		}
 
 		d.Set("soft_delete_enabled", softDeleteEnabled)
+
+		// new soft_delete_status
+		softDeleteStatus := string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)
+		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
+			softDeleteStatus = string(*cfg.Model.Properties.SoftDeleteFeatureState)
+		}
+
+		d.Set("soft_delete_status", softDeleteStatus)
 
 		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
