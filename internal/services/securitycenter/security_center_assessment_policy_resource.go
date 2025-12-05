@@ -108,6 +108,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					StateFunc: func(v interface{}) string {
+						return normalizeThreatValue(v.(string))
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"AccountBreach",
 						"DataExfiltration",
