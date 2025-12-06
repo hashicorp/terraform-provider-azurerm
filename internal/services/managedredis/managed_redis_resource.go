@@ -105,7 +105,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
+			ForceNew:     false,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
@@ -506,6 +506,11 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				clusterUpdateRequired = true
 			}
 
+			if metadata.ResourceData.HasChange("sku_name") {
+				clusterParams.Sku.Name = redisenterprise.SkuName(state.SkuName)
+				clusterUpdateRequired = true
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				clusterParams.Tags = pointer.To(state.Tags)
 				clusterUpdateRequired = true
@@ -676,6 +681,19 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
 							}
 						}
+					}
+				}
+			}
+
+			if metadata.ResourceDiff.HasChanges("sku_name") {
+				if resId := metadata.ResourceDiff.Id(); resId != "" {
+					clusterId, err := redisenterprise.ParseRedisEnterpriseID(resId)
+					if err != nil {
+						return err
+					}
+					clusterClient := metadata.Client.ManagedRedis.Client
+					if err := isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName); err != nil {
+						return err
 					}
 				}
 			}
@@ -858,4 +876,26 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	}
 
 	return ""
+}
+
+func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) error {
+	skusForScaling, err := clusterClient.ListSkusForScaling(ctx, *clusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving skus for scaling: %+v", err)
+	}
+	if skusForScaling.Model.Skus == nil {
+		return fmt.Errorf("no valid scaling SKUs returned by Azure for current cluster state")
+	}
+
+	validSku := false
+	for _, sku := range *skusForScaling.Model.Skus {
+		if *sku.Name == targetSkuName {
+			validSku = true
+			break
+		}
+	}
+	if !validSku {
+		return fmt.Errorf("%s is not valid for scaling from the current SKU and resource configuration", targetSkuName)
+	}
+	return nil
 }
