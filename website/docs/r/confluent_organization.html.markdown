@@ -10,6 +10,10 @@ description: |-
 
 Manages a Confluent Organization on Azure.
 
+## API
+
+- **API Version**: `2024-07-01`
+
 ## Example Usage
 
 ```hcl
