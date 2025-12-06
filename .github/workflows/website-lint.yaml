@@ -9,6 +9,8 @@ on:
   pull_request:
     types: ["opened", "synchronize"]
     paths:
+      # Temporary path for testing, should be removed before merge
+      - "internal/tools/document-fmt/**"
       - ".github/workflows/website-lint.yaml"
       - "website/**"
       - "internal/services/**"
