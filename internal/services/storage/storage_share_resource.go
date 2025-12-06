@@ -154,6 +154,11 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.TransactionOptimizedAccessTier),
 					}, false),
 			},
+
+			"rbac_scope_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 
@@ -401,6 +406,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", id.ShareName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("rbac_scope_id", resourceManagerId.ID())
 
 		return nil
 	}
@@ -478,6 +484,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("url", shares.NewShareID(*accountId, id.ShareName).ID())
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
 	return nil
 }
