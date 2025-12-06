@@ -214,7 +214,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -316,11 +316,11 @@ resource "azuread_application" "test2" {
 }
 
 resource "azuread_service_principal" "test2" {
-  application_id = azuread_application.test2.application_id
+  client_id = azuread_application.test2.client_id
 }
 
 resource "azuread_service_principal_password" "test2" {
-  service_principal_id = azuread_service_principal.test2.object_id
+  service_principal_id = azuread_service_principal.test2.id
 }
 
 resource "azurerm_role_assignment" "role_network3" {
@@ -336,7 +336,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -365,7 +365,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test2.application_id
+    client_id     = azuread_application.test2.client_id
     client_secret = azuread_service_principal_password.test2.value
   }
 
@@ -393,7 +393,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain      = "aro-%[3]s.com"
-    version     = "4.14.16"
+    version     = "4.18.26"
     pull_secret = <<SECRET
 %[4]s
 SECRET
@@ -448,7 +448,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -501,7 +501,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -553,7 +553,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
-    version      = "4.14.16"
+    version      = "4.18.26"
     fips_enabled = true
   }
 
@@ -662,7 +662,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -798,7 +798,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.14.16"
+    version = "4.18.26"
   }
 
   network_profile {
@@ -857,7 +857,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain                      = "aro-%[3]s.com"
-    version                     = "4.14.16"
+    version                     = "4.18.26"
     managed_resource_group_name = "acctestrg-aro-infra-%[3]s"
   }
 
@@ -927,12 +927,12 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
-  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
