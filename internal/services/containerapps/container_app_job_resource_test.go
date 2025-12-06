@@ -541,7 +541,7 @@ resource "azurerm_container_app_job" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ContainerAppJobResource) eventTriggerScaleRuleSystemAndUserIdentity(data acceptance.TestData) string { 1Code has comments. Press enter to view.
+func (r ContainerAppJobResource) eventTriggerScaleRuleSystemAndUserIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {

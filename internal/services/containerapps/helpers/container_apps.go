@@ -3194,7 +3194,6 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						commonids.ValidateUserAssignedIdentityID,
 						validation.StringInSlice([]string{"system"}, true),
 					),
-					Description: "The identity to use for accessing key vault reference.",
 				},
 
 				"custom_rule_type": {
@@ -3261,9 +3260,8 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"identity": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The identity to use for accessing key vault reference.",
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"custom_rule_type": {
