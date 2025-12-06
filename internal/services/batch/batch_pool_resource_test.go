@@ -66,7 +66,7 @@ func TestAccBatchPool_identity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.identitySingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -79,25 +79,31 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
+	// Test updating from no identity to single identity to multiple different identities to single identity to no identity
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
-				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("22_04-lts"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-jammy"),
-				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
-				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
 		{
-			Config: r.identity(data),
+			Config: r.identitySingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.identityMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.identitySingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -107,15 +113,6 @@ func TestAccBatchPool_identityUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
-				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("22_04-lts"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-jammy"),
-				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
-				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
-				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -321,6 +318,8 @@ func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
 }
 
 func TestAccBatchPool_certificates(t *testing.T) {
+	t.Skipf("skipping as 'Azure Batch Certificates' feature was retired on 02/29/2024")
+
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
@@ -989,6 +988,7 @@ resource "azurerm_batch_pool" "test" {
   account_name                  = azurerm_batch_account.test.name
   display_name                  = "Test Acc Pool"
   vm_size                       = "STANDARD_A1_V2"
+  max_tasks_per_node            = 2
   node_agent_sku_id             = "batch.node.ubuntu 22.04"
   stop_pending_resize_operation = true
 
@@ -1095,38 +1095,40 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) identity(data acceptance.TestData) string {
+func (BatchPoolResource) identitySingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-batch-%d"
-  location = "%s"
+  name     = "acctestRG-batch-%[1]d"
+  location = "%[2]s"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%s"
+resource "azurerm_user_assigned_identity" "test1" {
+  name                = "acctestUAI-%[3]s-1"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
+  name                = "testaccbatch%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
+  name                = "testaccpool%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
   vm_size             = "STANDARD_A1_V2"
   identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test1.id
+    ]
   }
 
   fixed_scale {
@@ -1140,7 +1142,64 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchPoolResource) identityMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestUAI-%[3]s-2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test3" {
+  name                = "acctestUAI-%[3]s-3"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "STANDARD_A1_V2"
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test2.id,
+      azurerm_user_assigned_identity.test3.id
+    ]
+  }
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BatchPoolResource) requiresImport(data acceptance.TestData) string {
@@ -1976,11 +2035,12 @@ resource "azurerm_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    storage_type = "Standard_LRS"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
   }
 
   tags = {
