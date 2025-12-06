@@ -57,6 +57,7 @@ import (
 	apiversionsets_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
 	certificate_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
+	logger_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/logger"
 	policyfragment_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
@@ -97,6 +98,7 @@ type Client struct {
 	GroupUsersClient                   *groupuser.GroupUserClient
 	IdentityProviderClient             *identityprovider.IdentityProviderClient
 	LoggerClient                       *logger.LoggerClient
+	LoggerClient_v2024_05_01           *logger_v2024_05_01.LoggerClient
 	NamedValueClient                   *namedvalue.NamedValueClient
 	NotificationRecipientEmailClient   *notificationrecipientemail.NotificationRecipientEmailClient
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
@@ -337,6 +339,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(loggerClient.Client, o.Authorizers.ResourceManager)
 
+	loggerClient_v2024_05_01, err := logger_v2024_05_01.NewLoggerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Logger client: %+v", err)
+	}
+	o.Configure(loggerClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	openIdConnectClient, err := openidconnectprovider.NewOpenidConnectProviderClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building OpenId Connect client: %+v", err)
@@ -479,6 +487,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GroupUsersClient:                   groupUsersClient,
 		IdentityProviderClient:             identityProviderClient,
 		LoggerClient:                       loggerClient,
+		LoggerClient_v2024_05_01:           loggerClient_v2024_05_01,
 		NamedValueClient:                   namedValueClient,
 		NotificationRecipientEmailClient:   notificationRecipientEmailClient,
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
