@@ -14,6 +14,7 @@ import (
 type MobileNetworkSimPolicyDataSource struct{}
 
 func TestAccMobileNetworkSimPolicyDataSource_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 	d := MobileNetworkSimPolicyDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -30,7 +31,7 @@ func TestAccMobileNetworkSimPolicyDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.default_session_type`).HasValue("IPv4"),
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.qos_indicator`).HasValue("9"),
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.preemption_capability`).HasValue("NotPreempt"),
-				check.That(data.ResourceName).Key(`slice.0.data_network.0.preemption_vulnerability`).HasValue("Preemptable"),
+				check.That(data.ResourceName).Key(`slice.0.data_network.0.preemption_vulnerability`).HasValue("Preemptible"),
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.allowed_services_ids.#`).HasValue("1"),
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.data_network_id`).Exists(),
 				check.That(data.ResourceName).Key(`slice.0.data_network.0.max_buffered_packets`).HasValue("200"),

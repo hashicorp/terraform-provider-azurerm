@@ -20,6 +20,7 @@ import (
 type MobileNetworkPacketCoreDataPlaneResource struct{}
 
 func TestAccMobileNetworkPacketCoreDataPlane_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +35,7 @@ func TestAccMobileNetworkPacketCoreDataPlane_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreDataPlane_withAccessInterface(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +50,7 @@ func TestAccMobileNetworkPacketCoreDataPlane_withAccessInterface(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreDataPlane_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +65,7 @@ func TestAccMobileNetworkPacketCoreDataPlane_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreDataPlane_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,6 +80,7 @@ func TestAccMobileNetworkPacketCoreDataPlane_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreDataPlane_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

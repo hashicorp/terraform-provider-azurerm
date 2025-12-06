@@ -6,6 +6,8 @@ description: |-
   Manages a Mobile Network Sim Policy.
 ---
 
+~> **Note:** The `azurerm_mobile_network_sim_policy` resource has been deprecated because [Azure Private 5G Core is deprecated on Sep 30, 2025](https://learn.microsoft.com/en-us/previous-versions/azure/private-5g-core/private-5g-core-overview) and will be removed in v5.0 of the AzureRM Provider.
+
 # azurerm_mobile_network_sim_policy
 
 Manages a Mobile Network Sim Policy.
@@ -76,7 +78,7 @@ resource "azurerm_mobile_network_sim_policy" "example" {
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
       allowed_services_ids                    = [azurerm_mobile_network_service.example.id]
       session_aggregate_maximum_bit_rate {
         downlink = "1 Gbps"
@@ -151,7 +153,7 @@ A `data_network` block supports the following:
 
 * `preemption_capability` - (Optional) The Preemption Capability of a QoS Flow, it controls whether it can preempt another QoS Flow with a lower priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreempt` and `MayPreempt`, Defaults to `NotPreempt`.
 
-* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow, it controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptable`. Defaults to `NotPreemptable`.
+* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow, it controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptible`. Defaults to `NotPreemptable`.
 
 ---
 
