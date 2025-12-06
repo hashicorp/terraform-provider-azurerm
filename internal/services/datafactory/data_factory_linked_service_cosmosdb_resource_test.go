@@ -48,6 +48,22 @@ func TestAccDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceCosmosDb_credential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
+	r := LinkedServiceCosmosDBResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.credential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("database").HasValue("fizz"),
+				check.That(data.ResourceName).Key("credential_name").HasValue(fmt.Sprintf("my-user-%d", data.RandomInteger)),
+			),
+		},
+	})
+}
+
 func TestAccDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 	r := LinkedServiceCosmosDBResource{}
@@ -139,6 +155,46 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
   connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceCosmosDBResource) credential(data acceptance.TestData) string {
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "my-user-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_credential_user_managed_identity" "test" {
+  name            = azurerm_user_assigned_identity.test.name
+  description     = "Short description of this credential"
+  data_factory_id = azurerm_data_factory.test.id
+  identity_id     = azurerm_user_assigned_identity.test.id
+}
+
+resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  credential_name 	= azurerm_data_factory_credential_user_managed_identity.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (LinkedServiceCosmosDBResource) accountkey(data acceptance.TestData) string {
