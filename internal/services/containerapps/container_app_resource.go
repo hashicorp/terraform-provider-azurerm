@@ -32,6 +32,7 @@ type ContainerAppModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 	Location             string `tfschema:"location"`
 
+	Kind         string                      `tfschema:"kind"`
 	RevisionMode string                      `tfschema:"revision_mode"`
 	Ingress      []helpers.Ingress           `tfschema:"ingress"`
 	Registries   []helpers.Registry          `tfschema:"registry"`
@@ -97,7 +98,15 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"ingress": helpers.ContainerAppIngressSchema(),
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containerapps.KindFunctionapp),
+				string(containerapps.KindWorkflowapp),
+			}, false),
+			Description: "The kind of container app. Possible values include: `functionapp`, `workflowapp`. This value is not returned by the API and will be stored in the Terraform state only.",
+		}, "ingress": helpers.ContainerAppIngressSchema(),
 
 		"registry": helpers.ContainerAppRegistrySchema(),
 
@@ -219,6 +228,10 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(app.Tags),
 			}
 
+			if app.Kind != "" {
+				containerApp.Kind = pointer.To(containerapps.Kind(app.Kind))
+			}
+
 			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(app.Identity)
 			if err != nil {
 				return err
@@ -261,6 +274,8 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.ContainerAppName
 			state.ResourceGroup = id.ResourceGroupName
+
+			state.Kind = metadata.ResourceData.Get("kind").(string)
 
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
@@ -425,6 +440,14 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = tags.Expand(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("kind") {
+				if state.Kind != "" {
+					model.Kind = pointer.To(containerapps.Kind(state.Kind))
+				} else {
+					model.Kind = nil
+				}
 			}
 
 			model.Properties.Template = helpers.ExpandContainerAppTemplate(state.Template, metadata)
