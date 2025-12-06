@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type ConfluentEnvironmentResource struct{}
@@ -73,12 +73,12 @@ func (r ConfluentEnvironmentResource) Exists(ctx context.Context, client *client
 	resp, err := client.Confluent.EnvironmentClient.OrganizationGetEnvironmentById(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ConfluentEnvironmentResource) template(data acceptance.TestData) string {
