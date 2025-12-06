@@ -108,9 +108,6 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					StateFunc: func(v interface{}) string {
-						return normalizeThreatValue(v.(string))
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"AccountBreach",
 						"DataExfiltration",
@@ -248,13 +245,13 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			}
 			d.Set("categories", utils.FlattenStringSlice(&categories))
 
-			threats := make([]string, 0)
+			threats := make([]interface{}, 0)
 			if props.Threats != nil {
 				for _, item := range *props.Threats {
 					threats = append(threats, normalizeThreatValue(string(item)))
 				}
 			}
-			d.Set("threats", utils.FlattenStringSlice(&threats))
+			d.Set("threats", pluginsdk.NewSet(set.HashStringIgnoreCase, threats))
 		}
 	}
 
