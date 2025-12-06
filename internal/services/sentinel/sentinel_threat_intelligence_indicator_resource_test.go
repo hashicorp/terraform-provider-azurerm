@@ -25,7 +25,7 @@ func TestAccSecurityInsightsIndicator_basicDomainName(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "domain-name", "http://test.com"),
+			Config: r.basic(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,7 +81,7 @@ func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "domain-name", "http://test.com"),
+			Config: r.basic(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -95,7 +95,7 @@ func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "domain-name", "http://test.com"),
+			Config: r.complete(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -109,14 +109,14 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "domain-name", "http://example.com"),
+			Config: r.complete(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, "domain-name", "http://example.com"),
+			Config: r.update(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -188,7 +188,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
 }
 
 func (r SecurityInsightsIndicatorResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, "domain-name", "http://test.com")
+	config := r.basic(data, "domain-name", "test.com")
 	return fmt.Sprintf(`
 			%s
 
@@ -248,7 +248,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   confidence      = 5
   created_by      = "testcraeted@microsoft.com"
   description     = "updated indicator"
-  display_name    = "updated"
+  display_name    = "test"
   language        = "en"
   pattern_version = 1
   revoked         = true
@@ -263,8 +263,8 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   granular_marking {
     language = "en"
   }
-  source            = "updated Sentinel"
-  validate_from_utc = "2022-12-15T16:00:00Z"
+  source            = "test Sentinel"
+  validate_from_utc = "2023-12-15T16:00:00Z"
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
