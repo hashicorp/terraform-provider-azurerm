@@ -246,7 +246,9 @@ The following arguments are supported:
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below.
+
+-> **Note:** Removing or modifying existing disks in-place are not supported and will force a new resource to be created.
 
 * `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block as defined below. Changing this forces a new resource to be created.
  
