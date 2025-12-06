@@ -1,0 +1,17 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and update with your values
+
+# Prefix for resource naming
+prefix = "example"
+
+# Existing Resource Group
+resource_group_name = "existing-resource-group-name"
+
+# Existing IoT Operations Instance
+instance_name = "existing-iotoperations-instance"
+
+# Existing IoT Operations Broker
+broker_name = "existing-iotoperations-broker"
+
+# Authentication audience
+audience = "aio-internal"
