@@ -357,6 +357,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_managed_instance`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+* The property `proxy_override` no longer accepts `Default` as a value and now defaults to `Redirect`.
 
 ### `azurerm_mssql_server`
 
