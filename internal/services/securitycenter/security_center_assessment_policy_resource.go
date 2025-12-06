@@ -4,7 +4,6 @@
 package securitycenter
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -42,8 +41,6 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			_, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(id)
 			return err
 		}),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(customizeDiffThreatsignoreCase),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"description": {
@@ -248,10 +245,24 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			}
 			d.Set("categories", utils.FlattenStringSlice(&categories))
 
+			// Get the current threats from config/state to match their casing
+			configThreats := d.Get("threats").(*pluginsdk.Set)
+			configThreatMap := make(map[string]string) // lowercase -> original casing
+			for _, t := range configThreats.List() {
+				threatStr := t.(string)
+				configThreatMap[strings.ToLower(threatStr)] = threatStr
+			}
+
 			threats := make([]string, 0)
 			if props.Threats != nil {
 				for _, item := range *props.Threats {
-					threats = append(threats, normalizeThreatValue(string(item)))
+					apiValue := string(item)
+					// Try to match with config casing first, otherwise normalize
+					if configValue, ok := configThreatMap[strings.ToLower(apiValue)]; ok {
+						threats = append(threats, configValue)
+					} else {
+						threats = append(threats, normalizeThreatValue(apiValue))
+					}
 				}
 			}
 			d.Set("threats", utils.FlattenStringSlice(&threats))
@@ -363,41 +374,4 @@ func normalizeThreatValue(value string) string {
 	}
 
 	return value
-}
-
-func customizeDiffThreatsignoreCase(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	// Handle case-insensitive comparison for threats
-	oldThreats, newThreats := diff.GetChange("threats")
-
-	if oldThreats == nil || newThreats == nil {
-		return nil
-	}
-
-	oldSet := oldThreats.(*pluginsdk.Set)
-	newSet := newThreats.(*pluginsdk.Set)
-
-	// If the sets have different sizes, there's a real change
-	if oldSet.Len() != newSet.Len() {
-		return nil
-	}
-
-	// Convert to slices for comparison
-	oldList := oldSet.List()
-	newList := newSet.List()
-
-	// Check if all items match case-insensitively
-	oldMap := make(map[string]bool)
-	for _, item := range oldList {
-		oldMap[strings.ToLower(item.(string))] = true
-	}
-
-	for _, item := range newList {
-		if !oldMap[strings.ToLower(item.(string))] {
-			// Found an item that doesn't match - there's a real change
-			return nil
-		}
-	}
-
-	// All items match case-insensitively, so clear the diff for threats
-	return diff.Clear("threats")
 }
