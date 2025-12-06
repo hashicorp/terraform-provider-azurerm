@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -105,7 +104,6 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			"threats": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -182,7 +180,6 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 		for _, item := range v.(*pluginsdk.Set).List() {
 			threats = append(threats, assessmentsmetadata.Threats(item.(string)))
 		}
-		log.Printf("[DEBUG] Sending threats to API during Create: %v", threats)
 		params.Properties.Threats = &threats
 	}
 
@@ -246,32 +243,13 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			}
 			d.Set("categories", utils.FlattenStringSlice(&categories))
 
-			// Get the current threats from config/state to match their casing
-			configThreats := d.Get("threats").(*pluginsdk.Set)
-			configThreatMap := make(map[string]string) // lowercase -> original casing
-			for _, t := range configThreats.List() {
-				threatStr := t.(string)
-				configThreatMap[strings.ToLower(threatStr)] = threatStr
-			}
-			log.Printf("[DEBUG] Current threats from config/state: %v", configThreats.List())
-
 			threats := make([]string, 0)
 			if props.Threats != nil {
-				log.Printf("[DEBUG] Threats received from API: %v", *props.Threats)
 				for _, item := range *props.Threats {
-					apiValue := string(item)
-					// Try to match with config casing first, otherwise normalize
-					if configValue, ok := configThreatMap[strings.ToLower(apiValue)]; ok {
-						log.Printf("[DEBUG] Matched API threat '%s' to config value '%s'", apiValue, configValue)
-						threats = append(threats, configValue)
-					} else {
-						normalized := normalizeThreatValue(apiValue)
-						log.Printf("[DEBUG] No config match for API threat '%s', normalized to '%s'", apiValue, normalized)
-						threats = append(threats, normalized)
-					}
+					threatValue := string(item)
+					threats = append(threats, normalizeThreatValue(threatValue))
 				}
 			}
-			log.Printf("[DEBUG] Final threats being set to state: %v", threats)
 			d.Set("threats", utils.FlattenStringSlice(&threats))
 		}
 	}
@@ -322,7 +300,6 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
 			threats = append(threats, (assessmentsmetadata.Threats)(item.(string)))
 		}
-		log.Printf("[DEBUG] Updating threats, sending to API: %v", threats)
 		existing.Model.Properties.Threats = &threats
 	}
 
@@ -363,8 +340,6 @@ func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, 
 }
 
 func normalizeThreatValue(value string) string {
-	// The API returns threats in camelCase, but we need to normalize to PascalCase
-	// to match the user's input and avoid perpetual diffs
 	threatMap := map[string]string{
 		"accountbreach":        "AccountBreach",
 		"dataexfiltration":     "DataExfiltration",
@@ -378,10 +353,8 @@ func normalizeThreatValue(value string) string {
 
 	lowerValue := strings.ToLower(value)
 	if normalized, ok := threatMap[lowerValue]; ok {
-		log.Printf("[DEBUG] Normalized threat value '%s' (lowercase: '%s') to '%s'", value, lowerValue, normalized)
 		return normalized
 	}
 
-	log.Printf("[WARN] Threat value '%s' (lowercase: '%s') not found in normalization map, returning as-is", value, lowerValue)
 	return value
 }
