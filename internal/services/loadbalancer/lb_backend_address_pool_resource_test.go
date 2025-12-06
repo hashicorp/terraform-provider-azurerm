@@ -140,7 +140,7 @@ func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicSkuBasic(data),
+			Config: r.standardSkuBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
