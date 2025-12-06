@@ -408,7 +408,7 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 		resilientVMDeletionEnabled = pointer.From(vmDeletion.Enabled)
 	}
 
-	return
+	return resilientVMCreationEnabled, resilientVMDeletionEnabled
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {

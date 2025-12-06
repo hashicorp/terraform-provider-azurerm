@@ -12,12 +12,12 @@ func DatadogMonitorsName(i interface{}, k string) (warnings []string, errors []e
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_-]{2,32}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must be between 2 and 32 characters in length, can only contain alphanumeric characters, underscore and hyphen symbols", k))
 	}
 
-	return
+	return warnings, errors
 }

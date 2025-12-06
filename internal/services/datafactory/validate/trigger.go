@@ -12,7 +12,7 @@ func TriggerTimespan(i interface{}, k string) (warnings []string, errors []error
 	value, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^\-?((\d+)\.)?(\d\d):(60|([0-5][0-9])):(60|([0-5][0-9]))`).MatchString(value) {

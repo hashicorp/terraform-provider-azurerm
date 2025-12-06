@@ -240,5 +240,5 @@ func expandHyperVToAzurePolicyDetail(input *replicationpolicies.Policy) (out *re
 	if isA2A {
 		out = &detail
 	}
-	return
+	return out, isA2A
 }

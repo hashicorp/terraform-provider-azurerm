@@ -23,13 +23,13 @@ import (
 type ConfluentOrganizationResource struct{}
 
 type ConfluentOrganizationResourceModel struct {
-	Name              string                       `tfschema:"name"`
-	ResourceGroupName string                       `tfschema:"resource_group_name"`
-	Location          string                       `tfschema:"location"`
-	OfferDetail       []ConfluentOfferDetailModel  `tfschema:"offer_detail"`
-	UserDetail        []ConfluentUserDetailModel   `tfschema:"user_detail"`
-	LinkOrganization  []ConfluentLinkOrgModel      `tfschema:"link_organization"`
-	Tags              map[string]string            `tfschema:"tags"`
+	Name              string                      `tfschema:"name"`
+	ResourceGroupName string                      `tfschema:"resource_group_name"`
+	Location          string                      `tfschema:"location"`
+	OfferDetail       []ConfluentOfferDetailModel `tfschema:"offer_detail"`
+	UserDetail        []ConfluentUserDetailModel  `tfschema:"user_detail"`
+	LinkOrganization  []ConfluentLinkOrgModel     `tfschema:"link_organization"`
+	Tags              map[string]string           `tfschema:"tags"`
 
 	OrganizationId    string `tfschema:"organization_id"`
 	SsoUrl            string `tfschema:"sso_url"`

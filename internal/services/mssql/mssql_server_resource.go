@@ -785,7 +785,7 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
-	return
+	return err
 }
 
 func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
@@ -793,5 +793,5 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 	if old.(bool) && d.HasChange("administrator_login_password") {
 		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
-	return
+	return err
 }

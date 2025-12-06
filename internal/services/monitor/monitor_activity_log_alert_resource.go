@@ -961,7 +961,7 @@ func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.Ale
 func flattenMonitorActivityLogAlertAction(input activitylogalertsapis.ActionList) (result []interface{}) {
 	result = make([]interface{}, 0)
 	if input.ActionGroups == nil {
-		return
+		return result
 	}
 	for _, action := range *input.ActionGroups {
 		v := make(map[string]interface{})

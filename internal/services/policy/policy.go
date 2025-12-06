@@ -189,5 +189,5 @@ func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
 	var ins policyRule
 	err = json.Unmarshal([]byte(ruleStr), &ins)
 	res = ins.Then.Details.RoleDefinitionIds
-	return
+	return res, err
 }

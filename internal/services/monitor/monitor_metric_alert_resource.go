@@ -879,7 +879,7 @@ func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.Webtes
 func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (result []interface{}) {
 	result = make([]interface{}, 0)
 	if input == nil {
-		return
+		return result
 	}
 	for _, action := range *input {
 		v := make(map[string]interface{})

@@ -12,7 +12,7 @@ func ElasticSanVolumeName(i interface{}, k string) (warnings []string, errors []
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
-		return
+		return warnings, errors
 	}
 
 	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$`).Match([]byte(v)); !matched {

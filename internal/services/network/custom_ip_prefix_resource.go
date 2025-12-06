@@ -77,14 +77,14 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 				v, ok := i.(string)
 				if !ok {
 					errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-					return
+					return warnings, errors
 				}
 
 				if _, _, err := net.ParseCIDR(v); err != nil {
 					errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 network, got %v: %v", k, i, err))
 				}
 
-				return
+				return warnings, errors
 			},
 		},
 
@@ -416,7 +416,7 @@ func (t commissionedStates) strings() (out []string) {
 	for _, s := range t {
 		out = append(out, string(s))
 	}
-	return
+	return out
 }
 
 // updateCommissionedState implements a state machine to coordinate transitions between different values of CommissionedState for both v4 and v6 prefixes.
@@ -471,7 +471,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		case customipprefixes.CommissionedStateCommissioned:
 			out = commissionedStates{customipprefixes.CommissionedStateCommissioning}
 		}
-		return
+		return out
 	}
 
 	// finalStatesFor returns the known final states for the current transitioning state
@@ -486,7 +486,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		case customipprefixes.CommissionedStateDecommissioning:
 			out = commissionedStates{customipprefixes.CommissionedStateProvisioned}
 		}
-		return
+		return out
 	}
 
 	// shouldNotAdvertise determines whether to set the noInternetAdvertise flag, which can only be set at the point of transitioning to `Commissioning`

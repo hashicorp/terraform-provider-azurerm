@@ -13,13 +13,13 @@ func ProtocolWithPort(input interface{}, k string) (warnings []string, errors []
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
-		return
+		return warnings, errors
 	}
 
 	parts := strings.Split(v, ":")
 	if len(parts) != 2 {
 		errors = append(errors, fmt.Errorf("expected %s to be a two part string separated by a `:`, e.g. TCP:80", k))
-		return
+		return warnings, errors
 	}
 
 	if parts[0] != "TCP" && parts[0] != "UDP" {
@@ -31,5 +31,5 @@ func ProtocolWithPort(input interface{}, k string) (warnings []string, errors []
 		errors = append(errors, fmt.Errorf("port in %s must me an integer value between 1 and 65535, got %q", k, parts[1]))
 	}
 
-	return
+	return warnings, errors
 }

@@ -331,7 +331,7 @@ func (r CustomLocationResource) getCredentials(t *testing.T) (credential, privat
 		t.Fatalf("failed to generate key: %+v", err)
 	}
 
-	return
+	return credential, privateKey, publicKey
 }
 
 func (r CustomLocationResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {

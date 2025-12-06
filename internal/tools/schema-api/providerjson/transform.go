@@ -132,7 +132,7 @@ func decodeConfigMode(input schema.SchemaConfigMode) (out string) {
 	case 4:
 		out = "Attribute"
 	}
-	return
+	return out
 }
 
 func decodeElem(input interface{}) interface{} {

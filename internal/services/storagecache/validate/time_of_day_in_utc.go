@@ -12,7 +12,7 @@ func TimeOfDayInUTC(i interface{}, k string) (warnings []string, errors []error)
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]|[0-9]):([0-5][0-9])$").MatchString(v) {

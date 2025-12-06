@@ -13,12 +13,12 @@ func PolicySetDefinitionID(i interface{}, k string) (warnings []string, errors [
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.PolicySetDefinitionID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a Policy Set Definition ID: %+v", v, err))
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

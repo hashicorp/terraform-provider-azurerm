@@ -12,12 +12,12 @@ func FlexibleServerBackupName(i interface{}, k string) (warnings []string, error
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[-\w\._]+$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q is not a valid backup name, got %v", k, v))
-		return
+		return warnings, errors
 	}
-	return
+	return warnings, errors
 }

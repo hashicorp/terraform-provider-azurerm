@@ -13,12 +13,12 @@ func CertificateContactsID(input interface{}, k string) (warnings []string, erro
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.CertificateContactsID(v); err != nil {
 		errors = append(errors, err)
 	}
 
-	return
+	return warnings, errors
 }

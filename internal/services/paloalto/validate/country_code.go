@@ -263,15 +263,15 @@ func ISO3361CountryCode(input interface{}, k string) (warnings []string, errors 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))
-		return
+		return warnings, errors
 	}
 
 	for _, a := range ISO3166_1_alpha2 {
 		if a == v {
-			return
+			return warnings, errors
 		}
 	}
 	errors = append(errors, fmt.Errorf("%s (%q) is not a valid ISO3361-1 Alpha-2 country code, see the official Palo Alto supported list at https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA10g000000ClFFCA0 for more information", k, v))
 
-	return
+	return warnings, errors
 }

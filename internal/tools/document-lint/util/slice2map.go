@@ -8,5 +8,5 @@ func Slice2Map(in []string) (out map[string]struct{}) {
 	for _, k := range in {
 		out[k] = struct{}{}
 	}
-	return
+	return out
 }

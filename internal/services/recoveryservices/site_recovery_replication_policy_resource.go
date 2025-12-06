@@ -227,5 +227,5 @@ func expandA2APolicyDetail(input *replicationpolicies.Policy) (out *replicationp
 	if isA2A {
 		out = &detail
 	}
-	return
+	return out, isA2A
 }

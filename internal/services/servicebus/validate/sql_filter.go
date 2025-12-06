@@ -11,7 +11,7 @@ func SqlFilter(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	// SqlFilters can not be empty
@@ -23,7 +23,7 @@ func SqlFilter(i interface{}, k string) (warnings []string, errors []error) {
 	// SqlFilters have a maximum length of 1024
 	if len(v) > 1024 {
 		errors = append(errors, fmt.Errorf("%q is of length %d, which exceeds the maximum length of 1024", k, len(v)))
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

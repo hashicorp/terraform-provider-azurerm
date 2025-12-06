@@ -19,5 +19,5 @@ func IsCert(i interface{}, k string) (warning []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%s is an invalid X.509 certificate", k))
 	}
 
-	return
+	return warning, errors
 }

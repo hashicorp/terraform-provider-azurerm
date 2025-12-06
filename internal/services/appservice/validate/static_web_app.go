@@ -26,7 +26,7 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 	value, ok := v.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected %s to be a string", k))
-		return
+		return warnings, errs
 	}
 
 	if len(value) < 8 {
@@ -53,5 +53,5 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 		errs = append(errs, errors.New("the password must contain at least one symbol"))
 	}
 
-	return
+	return warnings, errs
 }

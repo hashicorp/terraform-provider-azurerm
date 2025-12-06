@@ -610,7 +610,7 @@ func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsS
 		ldaps.ExternalAccess = &access
 	}
 
-	return
+	return ldaps
 }
 
 func expandDomainServiceNotifications(input []interface{}) *domainservices.NotificationSettings {
@@ -758,7 +758,7 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 
 func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
-		return
+		return ret
 	}
 
 	for _, in := range *input {
@@ -788,7 +788,7 @@ func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []
 		ret = append(ret, repl)
 	}
 
-	return
+	return ret
 }
 
 func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) []interface{} {

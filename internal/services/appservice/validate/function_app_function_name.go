@@ -12,7 +12,7 @@ func FunctionAppFunctionName(input interface{}, key string) (warnings []string, 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z](([-_0-9a-zA-Z-]{0,126})[-_0-9a-zA-Z])?$`).Match([]byte(v)); !matched {

@@ -45,7 +45,7 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSite(ctx context.Context, id r
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
+		return result, err
 	}
 
 	var resp *client.Response
@@ -55,19 +55,19 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSite(ctx context.Context, id r
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
+		return result, err
 	}
 
 	var values struct {
 		Values *[]VMwareRunAsAccount `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
-		return
+		return result, err
 	}
 
 	result.Model = values.Values
 
-	return
+	return result, err
 }
 
 // GetAllRunAsAccountsInSiteComplete retrieves all the results into a single object

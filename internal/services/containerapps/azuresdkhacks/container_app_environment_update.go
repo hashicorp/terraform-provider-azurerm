@@ -41,11 +41,11 @@ func (c ManagedEnvironmentsClient) Update(ctx context.Context, id managedenviron
 
 	req, err := c.client.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
+		return result, err
 	}
 
 	if err = req.Marshal(input); err != nil {
-		return
+		return result, err
 	}
 
 	var resp *client.Response
@@ -55,15 +55,15 @@ func (c ManagedEnvironmentsClient) Update(ctx context.Context, id managedenviron
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
+		return result, err
 	}
 
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.client.Client)
 	if err != nil {
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (c ManagedEnvironmentsClient) UpdateThenPoll(ctx context.Context, id managedenvironments.ManagedEnvironmentId, input ManagedEnvironment) error {

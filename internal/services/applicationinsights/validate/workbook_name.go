@@ -12,13 +12,13 @@ func StringDoesNotContainUpperCaseLetter(input interface{}, k string) (warnings 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if strings.ToLower(v) != v {
 		errors = append(errors, fmt.Errorf("expected value of %s to not contain any uppercase letter", k))
-		return
+		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }

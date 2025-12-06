@@ -14,13 +14,13 @@ func WindowsAdminUsername(i interface{}, k string) (warnings []string, errors []
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
-		return
+		return warnings, errors
 	}
 
 	// adminUsername must not be empty.
 	if strings.TrimSpace(v) == "" {
 		errors = append(errors, fmt.Errorf("%q must not be empty", k))
-		return
+		return warnings, errors
 	}
 
 	// adminUsername Max-length 20 characters.
@@ -41,5 +41,5 @@ func WindowsAdminUsername(i interface{}, k string) (warnings []string, errors []
 		}
 	}
 
-	return
+	return warnings, errors
 }

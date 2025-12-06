@@ -50,7 +50,7 @@ func CosmosMaxThroughput(i interface{}, k string) (warnings []string, errors []e
 	v, ok := i.(int)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
-		return
+		return warnings, errors
 	}
 
 	if v < 1000 {
