@@ -49,10 +49,13 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					keyVaultValidate.NestedItemName,
+					validation.StringLenBetween(1, 127),
+				),
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
