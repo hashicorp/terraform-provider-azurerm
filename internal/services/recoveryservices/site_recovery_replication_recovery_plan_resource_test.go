@@ -210,8 +210,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {

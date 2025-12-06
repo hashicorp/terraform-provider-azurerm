@@ -50,6 +50,103 @@ func parseAlertsState(input string) (*AlertsState, error) {
 	return &out, nil
 }
 
+type AuthType string
+
+const (
+	AuthTypeAAD                  AuthType = "AAD"
+	AuthTypeACS                  AuthType = "ACS"
+	AuthTypeAccessControlService AuthType = "AccessControlService"
+	AuthTypeAzureActiveDirectory AuthType = "AzureActiveDirectory"
+	AuthTypeInvalid              AuthType = "Invalid"
+)
+
+func PossibleValuesForAuthType() []string {
+	return []string{
+		string(AuthTypeAAD),
+		string(AuthTypeACS),
+		string(AuthTypeAccessControlService),
+		string(AuthTypeAzureActiveDirectory),
+		string(AuthTypeInvalid),
+	}
+}
+
+func (s *AuthType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAuthType(input string) (*AuthType, error) {
+	vals := map[string]AuthType{
+		"aad":                  AuthTypeAAD,
+		"acs":                  AuthTypeACS,
+		"accesscontrolservice": AuthTypeAccessControlService,
+		"azureactivedirectory": AuthTypeAzureActiveDirectory,
+		"invalid":              AuthTypeInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AuthType(input)
+	return &out, nil
+}
+
+type BCDRSecurityLevel string
+
+const (
+	BCDRSecurityLevelExcellent BCDRSecurityLevel = "Excellent"
+	BCDRSecurityLevelFair      BCDRSecurityLevel = "Fair"
+	BCDRSecurityLevelGood      BCDRSecurityLevel = "Good"
+	BCDRSecurityLevelPoor      BCDRSecurityLevel = "Poor"
+)
+
+func PossibleValuesForBCDRSecurityLevel() []string {
+	return []string{
+		string(BCDRSecurityLevelExcellent),
+		string(BCDRSecurityLevelFair),
+		string(BCDRSecurityLevelGood),
+		string(BCDRSecurityLevelPoor),
+	}
+}
+
+func (s *BCDRSecurityLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBCDRSecurityLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseBCDRSecurityLevel(input string) (*BCDRSecurityLevel, error) {
+	vals := map[string]BCDRSecurityLevel{
+		"excellent": BCDRSecurityLevelExcellent,
+		"fair":      BCDRSecurityLevelFair,
+		"good":      BCDRSecurityLevelGood,
+		"poor":      BCDRSecurityLevelPoor,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BCDRSecurityLevel(input)
+	return &out, nil
+}
+
 type BackupStorageVersion string
 
 const (
@@ -223,6 +320,47 @@ func parseEnhancedSecurityState(input string) (*EnhancedSecurityState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := EnhancedSecurityState(input)
+	return &out, nil
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func (s *IdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"systemassigned": IdentityTypeSystemAssigned,
+		"userassigned":   IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
 	return &out, nil
 }
 
@@ -737,6 +875,50 @@ func parseStandardTierStorageRedundancy(input string) (*StandardTierStorageRedun
 	return &out, nil
 }
 
+type State string
+
+const (
+	StateDisabled State = "Disabled"
+	StateEnabled  State = "Enabled"
+	StateInvalid  State = "Invalid"
+)
+
+func PossibleValuesForState() []string {
+	return []string{
+		string(StateDisabled),
+		string(StateEnabled),
+		string(StateInvalid),
+	}
+}
+
+func (s *State) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseState(input string) (*State, error) {
+	vals := map[string]State{
+		"disabled": StateDisabled,
+		"enabled":  StateEnabled,
+		"invalid":  StateInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := State(input)
+	return &out, nil
+}
+
 type TriggerType string
 
 const (
@@ -775,6 +957,59 @@ func parseTriggerType(input string) (*TriggerType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := TriggerType(input)
+	return &out, nil
+}
+
+type UsagesUnit string
+
+const (
+	UsagesUnitBytes          UsagesUnit = "Bytes"
+	UsagesUnitBytesPerSecond UsagesUnit = "BytesPerSecond"
+	UsagesUnitCount          UsagesUnit = "Count"
+	UsagesUnitCountPerSecond UsagesUnit = "CountPerSecond"
+	UsagesUnitPercent        UsagesUnit = "Percent"
+	UsagesUnitSeconds        UsagesUnit = "Seconds"
+)
+
+func PossibleValuesForUsagesUnit() []string {
+	return []string{
+		string(UsagesUnitBytes),
+		string(UsagesUnitBytesPerSecond),
+		string(UsagesUnitCount),
+		string(UsagesUnitCountPerSecond),
+		string(UsagesUnitPercent),
+		string(UsagesUnitSeconds),
+	}
+}
+
+func (s *UsagesUnit) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUsagesUnit(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUsagesUnit(input string) (*UsagesUnit, error) {
+	vals := map[string]UsagesUnit{
+		"bytes":          UsagesUnitBytes,
+		"bytespersecond": UsagesUnitBytesPerSecond,
+		"count":          UsagesUnitCount,
+		"countpersecond": UsagesUnitCountPerSecond,
+		"percent":        UsagesUnitPercent,
+		"seconds":        UsagesUnitSeconds,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UsagesUnit(input)
 	return &out, nil
 }
 
