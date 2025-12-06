@@ -21,6 +21,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		AutonomousDatabaseCloneFromDatabaseDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
+		DatabaseVersionsDataSource{},
 		DBNodesDataSource{},
 		DBServersDataSource{},
 		DbSystemShapesDataSource{},
