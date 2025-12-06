@@ -75,6 +75,21 @@ func TestAccNatGateway_update(t *testing.T) {
 	})
 }
 
+func TestAccNatGateway_standardVTwo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
+	r := NatGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardVTwo(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NatGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := natgateways.ParseNatGatewayID(state.ID)
 	if err != nil {
@@ -207,4 +222,25 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
   public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (NatGatewayResource) standardVTwo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-network-%d"
+  location = "%s"
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctestnatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+  zones               = ["1", "2", "3"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
+* `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
+
+-> **Note:** When `StandardV2` is enabled, service API will also enable `zones`. The user has to explicitly set this property in the Terraform configuration or handle it using `ignore_changes`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
