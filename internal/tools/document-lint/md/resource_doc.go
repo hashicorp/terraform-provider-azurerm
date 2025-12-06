@@ -166,7 +166,7 @@ func extractBlockNames(line string) (res []string) {
 		}
 		return names
 	}
-	return
+	return res
 }
 
 var blockPropRegs = []*regexp.Regexp{

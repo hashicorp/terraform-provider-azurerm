@@ -13,12 +13,12 @@ func MicrosoftCustomerAccountBillingScopeID(input interface{}, key string) (warn
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.MicrosoftCustomerAccountBillingScopeID(v); err != nil {
 		errors = append(errors, err)
 	}
 
-	return
+	return warnings, errors
 }

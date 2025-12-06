@@ -12,22 +12,22 @@ func FlexibleServerName(i interface{}, k string) (warnings []string, errors []er
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if len(v) < 3 {
 		errors = append(errors, fmt.Errorf("length should equal to or greater than %d, got %q", 3, v))
-		return
+		return warnings, errors
 	}
 
 	if len(v) > 63 {
 		errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 63, v))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[a-z0-9]([a-z0-9-]+[a-z0-9])?$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must only contains numbers, lowercase characters and '-', got %v", k, v))
-		return
+		return warnings, errors
 	}
-	return
+	return warnings, errors
 }

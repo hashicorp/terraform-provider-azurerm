@@ -15,19 +15,19 @@ func IntegrationAccountPartnerBusinessIdentityValue() pluginsdk.SchemaValidateFu
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
+			return warnings, errors
 		}
 
 		if len(v) > 128 {
 			errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 128, v))
-			return
+			return warnings, errors
 		}
 
 		if !regexp.MustCompile(`^[A-Za-z0-9-() ._]+$`).MatchString(v) {
 			errors = append(errors, fmt.Errorf("%q contains only letters, numbers, dots, parentheses, hyphens and underscores", k))
-			return
+			return warnings, errors
 		}
 
-		return
+		return warnings, errors
 	}
 }

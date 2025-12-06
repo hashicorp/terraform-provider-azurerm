@@ -248,7 +248,7 @@ func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen
 
 func flattenNotificationHubAuthorizationRuleRights(input *[]hubs.AccessRights) (manage bool, send bool, listen bool) {
 	if input == nil {
-		return
+		return manage, send, listen
 	}
 
 	for _, right := range *input {

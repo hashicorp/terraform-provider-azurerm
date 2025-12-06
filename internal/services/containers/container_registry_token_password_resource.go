@@ -369,7 +369,7 @@ func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPas
 			}
 		}
 	}
-	return
+	return password1, password2
 }
 
 func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containerregistry_v2025_04_01.Client, id tokens.TokenId) ([]tokens.TokenPassword, bool, error) {

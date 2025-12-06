@@ -12,7 +12,7 @@ func absolutePath(i interface{}, k string) (warnings []string, errs []error) {
 	v, ok := i.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errs
 	}
 
 	if !strings.HasPrefix(v, "/") {
@@ -25,7 +25,7 @@ func relativePath(i interface{}, k string) (warnings []string, errs []error) {
 	v, ok := i.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errs
 	}
 
 	if strings.HasPrefix(v, "/") {

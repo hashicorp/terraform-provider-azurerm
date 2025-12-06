@@ -15,12 +15,12 @@ func DatabasePrincipalID(input interface{}, key string) (warnings []string, erro
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.DatabasePrincipalID(v); err != nil {
 		errors = append(errors, err)
 	}
 
-	return
+	return warnings, errors
 }

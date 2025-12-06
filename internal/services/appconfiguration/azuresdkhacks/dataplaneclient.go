@@ -39,7 +39,7 @@ func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, l
 		}()
 	}
 	result.page, err = c.GetKeyValues(ctx, key, label, after, acceptDatetime, selectParameter)
-	return
+	return result, err
 }
 
 func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []appconfiguration.KeyValueFields) (result KeyValueListResultPage, err error) {
@@ -57,27 +57,27 @@ func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label str
 	req, err := c.client.GetKeyValuesPreparer(ctx, key, label, after, acceptDatetime, selectParameter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := c.client.GetKeyValuesSender(req)
 	if err != nil {
 		result.kvlr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result.kvlr, err = c.GetKeyValuesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 	if result.kvlr.hasNextLink() && result.kvlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (c DataPlaneClient) getKeyValuesNextResults(ctx context.Context, lastResults KeyValueListResult) (result KeyValueListResult, err error) {
@@ -86,7 +86,7 @@ func (c DataPlaneClient) getKeyValuesNextResults(ctx context.Context, lastResult
 		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
-		return
+		return result, err
 	}
 	resp, err := c.client.GetKeyValuesSender(req)
 	if err != nil {
@@ -97,7 +97,7 @@ func (c DataPlaneClient) getKeyValuesNextResults(ctx context.Context, lastResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", resp, "Failure responding to next results request")
 	}
-	return
+	return result, err
 }
 
 func (c DataPlaneClient) GetKeyValuesResponder(resp *http.Response) (result KeyValueListResult, err error) {
@@ -107,5 +107,5 @@ func (c DataPlaneClient) GetKeyValuesResponder(resp *http.Response) (result KeyV
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }

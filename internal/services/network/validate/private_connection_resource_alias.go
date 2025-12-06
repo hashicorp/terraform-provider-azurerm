@@ -12,12 +12,12 @@ func PrivateConnectionResourceAlias(input interface{}, key string) (warnings []s
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", key))
-		return
+		return warnings, errors
 	}
 
 	if !strings.HasSuffix(v, ".azure.privatelinkservice") {
 		errors = append(errors, fmt.Errorf("expected %q to have suffix `.azure.privatelinkservice`", key))
 	}
 
-	return
+	return warnings, errors
 }

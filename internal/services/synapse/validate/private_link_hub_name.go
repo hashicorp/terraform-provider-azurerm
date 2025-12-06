@@ -12,7 +12,7 @@ func PrivateLinkHubName(i interface{}, k string) (warnings []string, errors []er
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	// The name attribute rules are :
@@ -21,7 +21,7 @@ func PrivateLinkHubName(i interface{}, k string) (warnings []string, errors []er
 
 	if !regexp.MustCompile(`^[a-z0-9]{1,45}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must be between 1 and 45 characters long and can contain only lowercase letters or numbers", k))
-		return
+		return warnings, errors
 	}
 	return warnings, errors
 }

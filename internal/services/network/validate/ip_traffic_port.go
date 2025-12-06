@@ -13,7 +13,7 @@ func IpTrafficPort(v interface{}, k string) (warnings []string, errors []error) 
 	value := v.(string)
 
 	if value == "*" {
-		return
+		return warnings, errors
 	}
 
 	err := fmt.Errorf("%q must be a single port between `0` and `65535` or a range in the format `start-end`, or wildcard(`*`)", k)
@@ -22,18 +22,18 @@ func IpTrafficPort(v interface{}, k string) (warnings []string, errors []error) 
 		ports := strings.Split(value, "-")
 		if len(ports) != 2 {
 			errors = append(errors, err)
-			return
+			return warnings, errors
 		}
 		if !isValidPortRange(ports[0], ports[1]) {
 			errors = append(errors, err)
-			return
+			return warnings, errors
 		}
-		return
+		return warnings, errors
 	}
 
 	if !isValidPort(value) {
 		errors = append(errors, err)
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

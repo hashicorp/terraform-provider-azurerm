@@ -15,14 +15,14 @@ func IntegrationAccountSchemaFileName() pluginsdk.SchemaValidateFunc {
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
+			return warnings, errors
 		}
 
 		if !strings.HasSuffix(v, ".xsd") {
 			errors = append(errors, fmt.Errorf("%q ends with `.xsd`", k))
-			return
+			return warnings, errors
 		}
 
-		return
+		return warnings, errors
 	}
 }

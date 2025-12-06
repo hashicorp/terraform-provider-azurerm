@@ -14,7 +14,7 @@ func FuncFileLine(f interface{}) (file string, line int) {
 		vf = reflect.ValueOf(f)
 	}
 	if vf.IsNil() {
-		return
+		return file, line
 	}
 	return PointerFileLine(vf)
 }
@@ -22,5 +22,5 @@ func FuncFileLine(f interface{}) (file string, line int) {
 func PointerFileLine(v reflect.Value) (file string, line int) {
 	pc := v.Pointer()
 	file, line = runtime.FuncForPC(pc).FileLine(pc)
-	return
+	return file, line
 }

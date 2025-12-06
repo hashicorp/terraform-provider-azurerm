@@ -51,7 +51,7 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 		}
 	}
 
-	return
+	return errors
 }
 
 func (r TypedSDKBitCheck) Name() string {
@@ -87,5 +87,5 @@ func checkForBits(model reflect.Type) (errors []error) {
 		default:
 		}
 	}
-	return
+	return errors
 }

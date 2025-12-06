@@ -12,7 +12,7 @@ func SystemCenterVirtualMachineManagerVirtualMachineInstanceMacAddress(i interfa
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile("^[a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}$").MatchString(v) {

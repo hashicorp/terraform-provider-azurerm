@@ -12,7 +12,7 @@ func SystemCenterVirtualMachineManagerVirtualNetworkName(i interface{}, k string
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile("^[a-zA-Z0-9]([-.a-zA-Z0-9]{0,52}[a-zA-Z0-9])?$").MatchString(v) {

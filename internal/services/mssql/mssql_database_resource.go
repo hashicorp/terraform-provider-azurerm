@@ -1485,7 +1485,7 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 			SqlServerResourceId:      pointer.To(d.Get("server_id").(string)),
 		}
 	}
-	return
+	return out
 }
 
 // The following data comes from the results of "az maintenance public-configuration list --query "[?contains(name, `SQL`) && contains(name, `DB`)]".name --output table"

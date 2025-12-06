@@ -22,7 +22,7 @@ func ExtractCodeValue(line string) (res []string) {
 		idx2 := idx1 + 1 + strings.Index(line[idx1+1:], "`")
 		if idx2 > len(line) || idx2 <= idx1 {
 			log.Printf("ExtractCodeValue: code mark ` not closed in '%s'", line)
-			return
+			return res
 		}
 		res = append(res, line[idx1+1:idx2])
 		nextIdx := strings.Index(line[idx2+1:], "`")
@@ -31,7 +31,7 @@ func ExtractCodeValue(line string) (res []string) {
 		}
 		idx1 = idx2 + 1 + nextIdx
 	}
-	return
+	return res
 }
 
 var timeoutValueReg = regexp.MustCompile(`[0-9]+ (hours?|minutes?)`)
@@ -45,7 +45,7 @@ func TimeoutValueIdx(line string) (start, end int) {
 		}
 		return idx[0], idx[1]
 	}
-	return
+	return start, end
 }
 
 func NormalizeResourceName(rt string) string {

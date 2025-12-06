@@ -193,21 +193,21 @@ func checkPossibleValues(r *schema.Resource, md *model.ResourceDoc) (res []Check
 	_ = schemModel
 	if md == nil {
 		log.Printf("%s no match document exists", r.ResourceType)
-		return
+		return res
 	}
 	// loop over document model
 	for name, field := range md.Args {
 		partRes := diffField(r, field, []string{name})
 		res = append(res, partRes...)
 	}
-	return
+	return res
 }
 
 // xPath property name for parent nodes
 func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []Checker) {
 	fullPath := strings.Join(xPath, ".")
 	if isSkipProp(r.ResourceType, fullPath) {
-		return
+		return res
 	}
 
 	// if end property
@@ -221,7 +221,7 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 			if hasVersionChanges(r.ResourceType, fullPath) {
 				log.Printf("[SKIP] %s.%s: Skipping possible values validation due to version changes detected in upgrade guide (missed: %v, spare: %v)",
 					r.ResourceType, fullPath, missed, spare)
-				return
+				return res
 			}
 
 			if !mayExistsInDoc(mdField.Content, wanted) {
@@ -229,24 +229,24 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 				res = append(res, newPossibleValueDiff(base, wanted, docVal, missed, spare))
 			}
 		}
-		return
+		return res
 	}
 	// check if r has such path
 	if !r.HasPathFor(xPath) {
 		log.Printf("%s %s has no path [%s], there must be an error in markdwon", color.YellowString("[WARN]"), r.ResourceType, strings.Join(xPath, "."))
-		return
+		return res
 	}
 	for _, sub := range mdField.Subs {
 		subRes := diffField(r, sub, append(xPath, sub.Name))
 		res = append(res, subRes...)
 	}
-	return
+	return res
 }
 
 func SliceDiff(want, got []string, caseInSensitive bool) (missed, spare []string) {
 	// if `want` is nil then it may only write in doc, skip this
 	if len(want) == 0 {
-		return
+		return missed, spare
 	}
 	// cross-check
 	wantCpy, gotCpy := want, got
@@ -275,7 +275,7 @@ func SliceDiff(want, got []string, caseInSensitive bool) (missed, spare []string
 		}
 	}
 
-	return
+	return missed, spare
 }
 
 // return true values exists in doc but may not with code quote

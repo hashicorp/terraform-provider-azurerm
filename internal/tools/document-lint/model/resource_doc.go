@@ -164,19 +164,19 @@ func (f *Field) AllSubBlock(name string, needBlock bool) (res []*Field) {
 	// name **or** guessed block type name equals name
 	if f.Typ == FieldTypeBlock && f.BlockTypeName == name {
 		res = append(res, f)
-		return
+		return res
 	}
 	if !needBlock {
 		// if not need block type
 		if f.BlockTypeName == "" && f.Name == name {
 			res = append(res, f)
-			return
+			return res
 		}
 	}
 	for _, f1 := range f.Subs {
 		res = append(res, f1.AllSubBlock(name, needBlock)...)
 	}
-	return
+	return res
 }
 
 type Timeout struct {
@@ -341,7 +341,7 @@ func (r *ResourceDoc) TuneSubBlocks() (fixNames []string) {
 	for _, f := range r.Attr {
 		partial(f)
 	}
-	return
+	return fixNames
 }
 
 func (r *ResourceDoc) HasCircularRef() string {

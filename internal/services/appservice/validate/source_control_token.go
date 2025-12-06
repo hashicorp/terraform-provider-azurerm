@@ -11,10 +11,10 @@ func AppServiceSourceControlTokenID(input interface{}, key string) (warnings []s
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 	if v != expectedID {
 		errors = append(errors, fmt.Errorf("ID must be exactly %q", expectedID))
 	}
-	return
+	return warnings, errors
 }

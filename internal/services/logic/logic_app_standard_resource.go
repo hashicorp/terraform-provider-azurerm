@@ -1236,7 +1236,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 			result[k] = v.(string)
 		}
 
-		return
+		return result
 	}
 
 	eMap := make(map[string]string)

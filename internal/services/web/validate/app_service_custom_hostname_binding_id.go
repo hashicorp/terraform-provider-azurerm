@@ -13,11 +13,11 @@ func AppServiceCustomHostnameBindingID(i interface{}, k string) (warnings []stri
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.AppServiceCustomHostnameBindingID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as App Service Custom Hostname ID: %+v", k, err))
 	}
-	return
+	return warnings, errors
 }

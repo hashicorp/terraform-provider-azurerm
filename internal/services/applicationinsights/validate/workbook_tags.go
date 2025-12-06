@@ -12,7 +12,7 @@ import (
 func WorkbookTags(i interface{}, k string) (warnings []string, errors []error) {
 	warnings, errors = tags.Validate(i, k)
 	if len(errors) > 0 {
-		return
+		return warnings, errors
 	}
 
 	tagsMap := i.(map[string]interface{})
@@ -20,5 +20,5 @@ func WorkbookTags(i interface{}, k string) (warnings []string, errors []error) {
 		errors = append(errors, fmt.Errorf("a tag with the key `hidden-title` should not be used to set the display name. Please Use `display_name` instead"))
 	}
 
-	return
+	return warnings, errors
 }

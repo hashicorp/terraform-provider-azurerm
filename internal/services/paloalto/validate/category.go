@@ -85,16 +85,16 @@ func CategoryNames(input interface{}, k string) (warnings []string, errors []err
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))
-		return
+		return warnings, errors
 	}
 
 	for _, c := range categoryList {
 		if strings.EqualFold(v, c) {
-			return
+			return warnings, errors
 		}
 	}
 
 	errors = append(errors, fmt.Errorf("%q is not a valid category name", v))
 
-	return
+	return warnings, errors
 }

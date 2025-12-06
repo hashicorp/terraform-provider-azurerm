@@ -12,7 +12,7 @@ import (
 func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
 	v, ok := value.(map[string]interface{})
 	if !ok {
-		return
+		return warnings, errors
 	}
 
 	for k := range v {
@@ -28,7 +28,7 @@ func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []erro
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
 var cSharpKeywords = map[string]*struct{}{

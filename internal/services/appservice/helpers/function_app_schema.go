@@ -2653,7 +2653,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 
 func ParseWebJobsStorageString(input string) (name, key string) {
 	if input == "" {
-		return
+		return name, key
 	}
 
 	parts := strings.Split(input, ";")
@@ -2666,7 +2666,7 @@ func ParseWebJobsStorageString(input string) (name, key string) {
 		}
 	}
 
-	return
+	return name, key
 }
 
 func MergeUserAppSettings(systemSettings *[]webapps.NameValuePair, userSettings map[string]string) *[]webapps.NameValuePair {

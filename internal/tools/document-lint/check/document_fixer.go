@@ -141,11 +141,11 @@ func (f *Fixer) TryFix() (err error) {
 
 func (f *Fixer) WriteBack() (err error) {
 	if len(f.Diff) == 0 {
-		return
+		return err
 	}
 	if f.FixedContent == "" {
 		log.Printf("%s no content to write back, skip", f.MDFile)
-		return
+		return err
 	}
 	fd, err := os.OpenFile(f.MDFile, os.O_TRUNC|os.O_RDWR, 0o66)
 	if err != nil {

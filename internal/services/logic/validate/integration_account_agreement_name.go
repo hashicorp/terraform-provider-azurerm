@@ -15,19 +15,19 @@ func IntegrationAccountAgreementName() pluginsdk.SchemaValidateFunc {
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
+			return warnings, errors
 		}
 
 		if len(v) > 80 {
 			errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 80, v))
-			return
+			return warnings, errors
 		}
 
 		if !regexp.MustCompile(`^[A-Za-z0-9-().]+$`).MatchString(v) {
 			errors = append(errors, fmt.Errorf("%q contains only letters, numbers, dots, parentheses and hyphens", k))
-			return
+			return warnings, errors
 		}
 
-		return
+		return warnings, errors
 	}
 }

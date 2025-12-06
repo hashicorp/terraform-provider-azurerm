@@ -107,7 +107,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
-		return
+		return errors
 	}
 
 	// check we have the essentials
@@ -131,7 +131,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				d.PropertyNameMap[v[0]] = v[1]
 			default:
 				errors = append(errors, fmt.Errorf("invalid property name: %s", property))
-				return
+				return errors
 			}
 		}
 	}
@@ -151,7 +151,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
-				return
+				return errors
 			}
 			d.KnownValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
@@ -165,13 +165,13 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
-				return
+				return errors
 			}
 			d.CompareValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
 	}
 
-	return
+	return errors
 }
 
 func (d *resourceIdentityData) exec() error {

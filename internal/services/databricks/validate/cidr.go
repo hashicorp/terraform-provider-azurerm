@@ -13,12 +13,12 @@ func CIDRIsIPv4OrIPv6(input interface{}, key string) (warnings []string, errors 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	if _, _, err := net.ParseCIDR(v); err != nil {
 		errors = append(errors, err)
 	}
 
-	return
+	return warnings, errors
 }
