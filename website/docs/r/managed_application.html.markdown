@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -103,6 +105,16 @@ The `plan` block exports the following:
 
 ~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Managed Application. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Managed Application.
+
+~> **Note:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -110,6 +122,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Managed Application.
 
 * `outputs` - The name and value pairs that define the managed application outputs.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Identity.
+
+~> **Note:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Managed Application has been created.
 
 ## Timeouts
 
