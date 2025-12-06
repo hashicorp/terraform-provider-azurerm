@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var addOnAppGatewaySubnetCIDR string = "10.225.0.0/16" // AKS will use 10.224.0.0/12 for the aks subnet so use 10.225.0.0/16 for the app gateway subnet
+var addOnAppGatewaySubnetCIDR string = "10.225.0.0/24" // Azure CNI Overlay requires AGIC subnet prefix length to be /24 or smaller
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
@@ -756,6 +756,13 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
+resource "azurerm_subnet" "nodepool" {
+  name                 = "acctestnodepool%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.1.0/24"]
+}
+
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -841,9 +848,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodepool.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -856,8 +864,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  network_profile {
+    network_plugin = "azure"
+    network_mode   = "transparent"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
@@ -969,6 +982,13 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
+resource "azurerm_subnet" "nodepool" {
+  name                 = "acctestnodepool%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.1.0/24"]
+}
+
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -991,9 +1011,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodepool.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1007,8 +1028,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  network_profile {
+    network_plugin = "azure"
+    network_mode   = "transparent"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) addonProfileOpenServiceMeshConfig(data acceptance.TestData, enabled bool) string {
