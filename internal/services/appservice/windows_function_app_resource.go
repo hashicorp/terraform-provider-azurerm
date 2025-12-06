@@ -69,6 +69,7 @@ type WindowsFunctionAppModel struct {
 	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
+	E2eEncryptionEnabled               bool                                   `tfschema:"e2e_encryption_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -252,6 +253,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true,
 			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
+		"e2e_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -533,16 +540,17 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(functionApp.ServicePlanId),
-					Enabled:                  pointer.To(functionApp.Enabled),
-					HTTPSOnly:                pointer.To(functionApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
-					DailyMemoryTimeQuota:     pointer.To(functionApp.DailyMemoryTimeQuota),
-					VnetBackupRestoreEnabled: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(functionApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:              pointer.To(functionApp.ServicePlanId),
+					Enabled:                   pointer.To(functionApp.Enabled),
+					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:            pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					DailyMemoryTimeQuota:      pointer.To(functionApp.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(functionApp.E2eEncryptionEnabled),
 				},
 			}
 
@@ -771,6 +779,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -1003,6 +1012,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {

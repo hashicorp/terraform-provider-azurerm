@@ -140,6 +140,8 @@ The following arguments are supported:
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
+* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
+
 ---
 
 an `auth_settings` block supports the following:
