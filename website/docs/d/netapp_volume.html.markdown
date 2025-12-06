@@ -45,7 +45,7 @@ The following attributes are exported:
   
 * `zone` - The Availability Zone in which the Volume is located.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
 
 * `protocols` - A list of protocol types enabled on volume.
 
@@ -96,6 +96,12 @@ A `data_protection_backup_policy` block supports the following:
 * `policy_enabled` - Backup policy is enabled or not.
 
 ---
+
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN).
 
 ## Timeouts
 
