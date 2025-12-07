@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
@@ -136,13 +137,13 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	parameters := webhook.WebhookCreateOrUpdateParameters{
 		Name: id.WebHookName,
 		Properties: webhook.WebhookCreateOrUpdateProperties{
-			IsEnabled:  utils.Bool(enabled),
+			IsEnabled:  pointer.To(enabled),
 			ExpiryTime: &expiryTime,
 			Parameters: &webhookParameters,
 			Runbook: &webhook.RunbookAssociationProperty{
-				Name: utils.String(runbookName),
+				Name: pointer.To(runbookName),
 			},
-			RunOn: utils.String(runOn),
+			RunOn: pointer.To(runOn),
 		},
 	}
 
@@ -165,7 +166,7 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	} else {
 		if d.Get("uri") != nil {
-			parameters.Properties.Uri = utils.String(d.Get("uri").(string))
+			parameters.Properties.Uri = pointer.To(d.Get("uri").(string))
 		}
 	}
 

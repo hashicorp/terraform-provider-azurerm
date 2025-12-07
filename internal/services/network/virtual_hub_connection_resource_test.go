@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -137,7 +137,7 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 		data.Subscriptions.Primary,
 		fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger),
 		fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger),
-		fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger),
+		fmt.Sprintf("acctestvhubconn-%d", data.RandomInteger),
 	)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -336,7 +336,7 @@ func (r VirtualHubConnectionResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -405,7 +405,7 @@ func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.Tes
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = %t
@@ -525,7 +525,7 @@ resource "azurerm_virtual_hub" "test" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[1]d"
+  name                      = "acctestvhubconn-%[1]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }

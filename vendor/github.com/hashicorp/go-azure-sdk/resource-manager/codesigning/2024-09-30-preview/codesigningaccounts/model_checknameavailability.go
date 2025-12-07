@@ -5,4 +5,5 @@ package codesigningaccounts
 
 type CheckNameAvailability struct {
 	Name string `json:"name"`
+	Type string `json:"type"`
 }

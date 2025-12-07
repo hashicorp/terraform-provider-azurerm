@@ -929,7 +929,7 @@ func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel
 	for _, v := range inputList {
 		input := v
 		output := securityinsight.ThreatIntelligenceKillChainPhase{
-			KillChainName: utils.String(killChainName),
+			KillChainName: pointer.To(killChainName),
 		}
 
 		if input.PhaseName != "" {

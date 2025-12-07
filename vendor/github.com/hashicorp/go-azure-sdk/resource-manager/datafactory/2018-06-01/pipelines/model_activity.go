@@ -139,6 +139,14 @@ func UnmarshalActivityImplementation(input []byte) (Activity, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "DatabricksJob") {
+		var out DatabricksJobActivity
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into DatabricksJobActivity: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "DatabricksNotebook") {
 		var out DatabricksNotebookActivity
 		if err := json.Unmarshal(input, &out); err != nil {

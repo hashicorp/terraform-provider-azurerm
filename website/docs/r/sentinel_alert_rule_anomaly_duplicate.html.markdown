@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `threshold_observation` - (Optional) A list of `threshold_observation` blocks as defined below.
 
--> **NOTE:** un-specified `multi_select_observation`, `single_select_observation`, `prioritized_exclude_observation` and `threshold_observation` will be inherited from the built-in Anomaly Alert Rule.
+-> **Note:** un-specified `multi_select_observation`, `single_select_observation`, `prioritized_exclude_observation` and `threshold_observation` will be inherited from the built-in Anomaly Alert Rule.
 
 ---
 
@@ -156,7 +156,7 @@ A `required_data_connector` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Built In Anomaly Alert Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Built In Anomaly Alert Rule.

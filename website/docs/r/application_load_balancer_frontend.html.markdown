@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Gateway for Containers Frontend.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway for Containers Frontend.
@@ -61,3 +61,9 @@ Application Gateway for Containers Frontend can be imported using the `resource 
 ```shell
 terraform import azurerm_application_load_balancer_frontend.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceNetworking/trafficControllers/alb1/frontends/frontend1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceNetworking` - 2025-01-01

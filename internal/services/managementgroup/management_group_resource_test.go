@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupResource struct{}
@@ -200,13 +199,13 @@ func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Clie
 	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: pointer.To("no-cache"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Management Group %s: %v", id.GroupId, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r ManagementGroupResource) basic() string {

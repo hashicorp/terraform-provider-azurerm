@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,7 +90,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			HasError:    false,
 			ExpectValue: time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC),
 			Expect: func(v interface{}) bool {
-				return v.(time.Time) == time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC)
+				return v.(time.Time).Equal(time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC))
 			},
 		},
 	}

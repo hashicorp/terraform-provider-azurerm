@@ -25,7 +25,7 @@ func IPAddressInAzureReservedAPIPARange(i interface{}, k string) (warnings []str
 	azureAPIPAStart := net.ParseIP("169.254.21.0")
 	azureAPIPAEnd := net.ParseIP("169.254.22.255")
 
-	if !(bytes.Compare(ip, azureAPIPAStart) >= 0 && bytes.Compare(ip, azureAPIPAEnd) <= 0) {
+	if bytes.Compare(ip, azureAPIPAStart) < 0 || bytes.Compare(ip, azureAPIPAEnd) > 0 {
 		errors = append(errors, fmt.Errorf("%s is not within Azure reserved APIPA range: [%s, %s]", ip, azureAPIPAStart, azureAPIPAEnd))
 		return warnings, errors
 	}

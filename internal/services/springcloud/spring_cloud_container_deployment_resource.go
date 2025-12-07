@@ -12,6 +12,7 @@ import (
 	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -24,6 +25,8 @@ import (
 
 func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_container_deployment` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudContainerDeploymentCreateUpdate,
 		Read:   resourceSpringCloudContainerDeploymentRead,
 		Update: resourceSpringCloudContainerDeploymentCreateUpdate,
@@ -205,16 +208,16 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
 			Tier:     service.Sku.Tier,
-			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+			Capacity: pointer.To(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: appplatform.CustomContainerUserSourceInfo{
 				CustomContainer: &appplatform.CustomContainer{
-					Server:            utils.String(d.Get("server").(string)),
-					ContainerImage:    utils.String(d.Get("image").(string)),
+					Server:            pointer.To(d.Get("server").(string)),
+					ContainerImage:    pointer.To(d.Get("image").(string)),
 					Command:           utils.ExpandStringSlice(d.Get("commands").([]interface{})),
 					Args:              utils.ExpandStringSlice(d.Get("arguments").([]interface{})),
-					LanguageFramework: utils.String(d.Get("language_framework").(string)),
+					LanguageFramework: pointer.To(d.Get("language_framework").(string)),
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
@@ -332,8 +335,8 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU:    utils.String(cpuResult),
-		Memory: utils.String(memResult),
+		CPU:    pointer.To(cpuResult),
+		Memory: pointer.To(memResult),
 	}
 
 	return &result

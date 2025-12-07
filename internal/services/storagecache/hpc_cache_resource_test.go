@@ -42,6 +42,9 @@ const (
 )
 
 func TestAccHPCCache_basic(t *testing.T) {
+	// https://azure.microsoft.com/en-us/updates?id=hpccacheretirement
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -58,6 +61,8 @@ func TestAccHPCCache_basic(t *testing.T) {
 }
 
 func TestAccHPCCache_mtu(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -90,6 +95,8 @@ func TestAccHPCCache_mtu(t *testing.T) {
 }
 
 func TestAccHPCCache_ntpServer(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -121,6 +128,8 @@ func TestAccHPCCache_ntpServer(t *testing.T) {
 }
 
 func TestAccHPCCache_dnsSetting(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -152,6 +161,8 @@ func TestAccHPCCache_dnsSetting(t *testing.T) {
 }
 
 func TestAccHPCCache_requiresImport(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -166,6 +177,8 @@ func TestAccHPCCache_requiresImport(t *testing.T) {
 }
 
 func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -202,6 +215,8 @@ func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 }
 
 func TestAccHPCCache_updateTags(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -226,6 +241,8 @@ func TestAccHPCCache_updateTags(t *testing.T) {
 }
 
 func TestAccHPCCache_directoryAD(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -277,6 +294,8 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 }
 
 func TestAccHPCCache_directoryLDAP(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -309,6 +328,8 @@ func TestAccHPCCache_directoryLDAP(t *testing.T) {
 }
 
 func TestAccHPCCache_directoryFlatFile(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -341,6 +362,8 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 }
 
 func TestAccHPCCache_customerManagedKeyWithAutoKeyRotationEnabled(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -363,6 +386,8 @@ func TestAccHPCCache_customerManagedKeyWithAutoKeyRotationEnabled(t *testing.T) 
 }
 
 func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -385,6 +410,8 @@ func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
 }
 
 func TestAccHPCCache_systemAssigned(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -400,6 +427,8 @@ func TestAccHPCCache_systemAssigned(t *testing.T) {
 }
 
 func TestAccHPCCache_systemAssignedAndUserAssigned(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
@@ -420,7 +449,7 @@ func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.Caches.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.Caches.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache (%s): %+v", id.String(), err)
 	}

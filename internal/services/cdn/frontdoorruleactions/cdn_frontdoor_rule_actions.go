@@ -286,7 +286,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			}
 
 			if cacheDuration != "" {
-				cacheConfiguration.CacheDuration = utils.String(cacheDuration)
+				cacheConfiguration.CacheDuration = pointer.To(cacheDuration)
 			}
 
 			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {

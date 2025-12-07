@@ -21,11 +21,12 @@ import (
 )
 
 type BackupInstanceMySQLFlexibleServerModel struct {
-	Name           string `tfschema:"name"`
-	Location       string `tfschema:"location"`
-	VaultId        string `tfschema:"vault_id"`
-	BackupPolicyId string `tfschema:"backup_policy_id"`
-	ServerId       string `tfschema:"server_id"`
+	Name            string `tfschema:"name"`
+	Location        string `tfschema:"location"`
+	VaultId         string `tfschema:"vault_id"`
+	BackupPolicyId  string `tfschema:"backup_policy_id"`
+	ServerId        string `tfschema:"server_id"`
+	ProtectionState string `tfschema:"protection_state"`
 }
 
 type DataProtectionBackupInstanceMySQLFlexibleServerResource struct{}
@@ -64,7 +65,12 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Arguments() map
 }
 
 func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"protection_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.ResourceFunc {
@@ -204,6 +210,8 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Read() sdk.Reso
 						return err
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
+
+					state.ProtectionState = pointer.FromEnum(props.CurrentProtectionState)
 				}
 			}
 

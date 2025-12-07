@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
@@ -146,7 +146,7 @@ func (KeyVaultManagedHardwareSecurityModuleResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
@@ -234,7 +234,7 @@ provider "azurerm" {
 }
 %[1]s
 resource "azurerm_key_vault" "test" {
-  name                       = "acc%[2]d"
+  name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -311,7 +311,7 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[2]d"
+  name                     = "acctestkvHsm%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"
@@ -320,7 +320,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   purge_protection_enabled = false
   %[4]s
 }
-`, template, data.RandomInteger, certCount, activateConfig)
+`, template, data.RandomString, certCount, activateConfig)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {

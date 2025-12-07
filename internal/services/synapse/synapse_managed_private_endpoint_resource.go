@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,10 +91,10 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return fmt.Errorf("retrieving Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
-	if workspace.WorkspaceProperties == nil || workspace.WorkspaceProperties.ManagedVirtualNetwork == nil {
+	if workspace.WorkspaceProperties == nil || workspace.ManagedVirtualNetwork == nil {
 		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
-	virtualNetworkName := *workspace.WorkspaceProperties.ManagedVirtualNetwork
+	virtualNetworkName := *workspace.ManagedVirtualNetwork
 
 	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, virtualNetworkName, d.Get("name").(string))
 	client, err := synapseClient.ManagedPrivateEndpointsClient(workspaceId.Name, *synapseDomainSuffix)
@@ -114,8 +115,8 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 
 	managedPrivateEndpoint := managedvirtualnetwork.ManagedPrivateEndpoint{
 		Properties: &managedvirtualnetwork.ManagedPrivateEndpointProperties{
-			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
-			GroupID:               utils.String(d.Get("subresource_name").(string)),
+			PrivateLinkResourceID: pointer.To(d.Get("target_resource_id").(string)),
+			GroupID:               pointer.To(d.Get("subresource_name").(string)),
 		},
 	}
 	if _, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint); err != nil {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,11 +55,11 @@ func (r SpringCloudGatewayCustomDomainResource) Exists(ctx context.Context, clie
 	resp, err := client.AppPlatform.GatewayCustomDomainClient.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SpringCloudGatewayCustomDomainResource) template(data acceptance.TestData) string {

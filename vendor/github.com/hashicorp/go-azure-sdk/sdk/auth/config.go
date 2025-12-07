@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
-// Credentials sets up NewAuthorizer to return an Authorizer based on the provided credentails.
+// Credentials sets up NewAuthorizer to return an Authorizer based on the provided credentials.
 type Credentials struct {
 	// Specifies the national cloud environment to use
 	Environment environments.Environment
@@ -18,6 +18,8 @@ type Credentials struct {
 	ClientID string
 	// TenantID specifies the Azure Active Directory Tenant to connect to, which must be a valid UUID.
 	TenantID string
+	// ForceAuthAtTenant forces the Authoriser to obtain tokens at the Tenant scope rather than limiting to Subscription - Currently only meaningful for CLI based authentication
+	ForceAuthAtTenant bool
 
 	// EnableAuthenticatingUsingAzureCLI specifies whether Azure CLI authentication should be checked.
 	EnableAuthenticatingUsingAzureCLI bool
@@ -43,6 +45,9 @@ type Credentials struct {
 	EnableAuthenticatingUsingManagedIdentity bool
 	// CustomManagedIdentityEndpoint specifies a custom endpoint which should be used for Managed Identity.
 	CustomManagedIdentityEndpoint string
+
+	// CustomManagedIdentityAPIVersion specifies the API version to use for IMDS.
+	CustomManagedIdentityAPIVersion string
 
 	// Enables OIDC authentication (federated client credentials).
 	EnableAuthenticationUsingOIDC bool

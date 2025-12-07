@@ -12,8 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
 )
 
 type Client struct {
@@ -21,6 +24,7 @@ type Client struct {
 	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
 	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
+	AFDCustomDomainsClient          *afdcustomdomains.AFDCustomDomainsClient
 	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
 	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient            *rules.RulesClient
@@ -31,6 +35,8 @@ type Client struct {
 	CustomDomainsClient             *cdnSdk.CustomDomainsClient
 	EndpointsClient                 *cdnSdk.EndpointsClient
 	ProfilesClient                  *cdnSdk.ProfilesClient
+
+	AFDEndpointsClient *afdendpoints.AFDEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -45,6 +51,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+
+	afdCustomDomainsClient, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AFDCustomDomainsClient: %+v", err)
+	}
+	o.Configure(afdCustomDomainsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorSecurityPoliciesClient, err := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -88,11 +100,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	profilesClient := cdnSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
+	afdEndpointsClient, err := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure Front Door Endpoints CLient: %+v", err)
+	}
+	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
+
 	client := Client{
 		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
 		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          &frontDoorOriginsClient,
 		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
+		AFDCustomDomainsClient:          afdCustomDomainsClient,
 		FrontDoorSecurityPoliciesClient: frontDoorSecurityPoliciesClient,
 		FrontDoorRoutesClient:           &frontDoorRoutesClient,
 		FrontDoorRulesClient:            frontDoorRulesClient,
@@ -103,6 +122,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		CustomDomainsClient:             &customDomainsClient,
 		EndpointsClient:                 &endpointsClient,
 		ProfilesClient:                  &profilesClient,
+
+		AFDEndpointsClient: afdEndpointsClient,
 	}
 
 	return &client, nil

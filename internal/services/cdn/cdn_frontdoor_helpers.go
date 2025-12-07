@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
@@ -57,7 +58,7 @@ func expandResourceReference(input string) *cdn.ResourceReference {
 	}
 
 	return &cdn.ResourceReference{
-		ID: utils.String(input),
+		ID: pointer.To(input),
 	}
 }
 
@@ -221,7 +222,7 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 	for _, customDomain := range input {
 		if id, err := parse.FrontDoorCustomDomainID(customDomain.(string)); err == nil {
 			results = append(results, cdn.ActivatedResourceReference{
-				ID: utils.String(id.ID()),
+				ID: pointer.To(id.ID()),
 			})
 		}
 	}

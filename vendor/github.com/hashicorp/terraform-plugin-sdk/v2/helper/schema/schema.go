@@ -93,6 +93,22 @@ type Schema struct {
 	// with Required.
 	Optional bool
 
+	// RequiredForImport indicates whether the practitioner must enter a value
+	// in the import block for this attribute when importing a resource.
+	//
+	// RequiredForImport is only valid for identity schemas and either
+	// RequiredForImport or OptionalForImport must be set to true.
+	RequiredForImport bool
+
+	// OptionalForImport indicates whether the practitioner can choose to not
+	// enter a value in the import block for this attribute when importing a
+	// resource. For example, this can be data that would normally be the default
+	// of the configured provider running the import.
+	//
+	// OptionalForImport is only valid for identity schemas and either
+	// RequiredForImport or OptionalForImport must be set to true.
+	OptionalForImport bool
+
 	// Computed indicates whether the provider may return its own value for
 	// this attribute or not. Computed cannot be used with Required. If
 	// Required and Optional are both false, the attribute will be considered
@@ -631,8 +647,30 @@ type InternalMap = schemaMap
 // schemaMap is a wrapper that adds nice functions on top of schemas.
 type schemaMap map[string]*Schema
 
+// schemaMapWithIdentity is a wrapper around schemaMap that allows passing an
+// identity schema to ResourceData{} structs that are returned.
+type schemaMapWithIdentity struct {
+	schemaMap
+	identitySchema map[string]*Schema
+}
+
 func (m schemaMap) panicOnError() bool {
 	return os.Getenv("TF_ACC") != ""
+}
+
+// Data returns a ResourceData for the given schema, state, and diff.
+//
+// The diff is optional.
+func (m schemaMapWithIdentity) Data(
+	s *terraform.InstanceState,
+	d *terraform.InstanceDiff) (*ResourceData, error) {
+	return &ResourceData{
+		schema:         m.schemaMap,
+		identitySchema: m.identitySchema,
+		state:          s,
+		diff:           d,
+		panicOnError:   m.panicOnError(),
+	}, nil
 }
 
 // Data returns a ResourceData for the given schema, state, and diff.
@@ -641,12 +679,7 @@ func (m schemaMap) panicOnError() bool {
 func (m schemaMap) Data(
 	s *terraform.InstanceState,
 	d *terraform.InstanceDiff) (*ResourceData, error) {
-	return &ResourceData{
-		schema:       m,
-		state:        s,
-		diff:         d,
-		panicOnError: m.panicOnError(),
-	}, nil
+	return schemaMapWithIdentity{m, nil}.Data(s, d)
 }
 
 // DeepCopy returns a copy of this schemaMap. The copy can be safely modified
@@ -659,9 +692,20 @@ func (m *schemaMap) DeepCopy() schemaMap {
 	return *copiedMap.(*schemaMap)
 }
 
+// DeepCopy returns a copy of this schemaMapWithIdentity. The copy can be safely modified
+// without affecting the original.
+func (m *schemaMapWithIdentity) DeepCopy() schemaMapWithIdentity {
+	copiedMap := schemaMapWithIdentity{}
+	copiedMap.schemaMap = m.schemaMap.DeepCopy()
+	identitySchema := schemaMap(m.identitySchema)
+	copiedMap.identitySchema = identitySchema.DeepCopy()
+
+	return copiedMap
+}
+
 // Diff returns the diff for a resource given the schema map,
 // state, and configuration.
-func (m schemaMap) Diff(
+func (m schemaMapWithIdentity) Diff(
 	ctx context.Context,
 	s *terraform.InstanceState,
 	c *terraform.ResourceConfig,
@@ -677,16 +721,18 @@ func (m schemaMap) Diff(
 		result.RawConfig = s.RawConfig
 		result.RawState = s.RawState
 		result.RawPlan = s.RawPlan
+		result.Identity = s.Identity
 	}
 
 	d := &ResourceData{
-		schema:       m,
-		state:        s,
-		config:       c,
-		panicOnError: m.panicOnError(),
+		schema:         m.schemaMap,
+		identitySchema: m.identitySchema,
+		state:          s,
+		config:         c,
+		panicOnError:   m.panicOnError(),
 	}
 
-	for k, schema := range m {
+	for k, schema := range m.schemaMap {
 		err := m.diff(ctx, k, schema, result, d, false)
 		if err != nil {
 			return nil, err
@@ -714,11 +760,36 @@ func (m schemaMap) Diff(
 			return nil, err
 		}
 		for _, k := range rd.UpdatedKeys() {
-			err := m.diff(ctx, k, mc[k], result, rd, false)
+			err := m.diff(ctx, k, mc.schemaMap[k], result, rd, false)
 			if err != nil {
 				return nil, err
 			}
 		}
+		// copy over identity data (by getting it so we also include changes)
+		// In order to build the final identity attributes, we read the full
+		// attribute set as a map[string]interface{}, write it to a MapFieldWriter,
+		// and then use that map.
+		rawMapIdentity := make(map[string]interface{})
+		identityData, err := rd.Identity()
+		if err == nil && d.identitySchema != nil {
+			for k := range d.identitySchema {
+				raw := identityData.get([]string{k})
+				if raw.Exists && !raw.Computed {
+					rawMapIdentity[k] = raw.Value
+					if raw.ValueProcessed != nil {
+						rawMapIdentity[k] = raw.ValueProcessed
+					}
+				}
+			}
+
+			mapWIdentity := &MapFieldWriter{Schema: d.identitySchema}
+			if err := mapWIdentity.WriteField(nil, rawMapIdentity); err != nil {
+				log.Printf("[ERR] Error writing identity fields: %s", err)
+				return nil, err
+			}
+
+			result.Identity = mapWIdentity.Map()
+		} // TODO: else log error?
 	}
 
 	if handleRequiresNew {
@@ -743,7 +814,7 @@ func (m schemaMap) Diff(
 			d.init()
 
 			// Perform the diff again
-			for k, schema := range m {
+			for k, schema := range m.schemaMap {
 				err := m.diff(ctx, k, schema, result2, d, false)
 				if err != nil {
 					return nil, err
@@ -758,11 +829,37 @@ func (m schemaMap) Diff(
 					return nil, err
 				}
 				for _, k := range rd.UpdatedKeys() {
-					err := m.diff(ctx, k, mc[k], result2, rd, false)
+					err := m.diff(ctx, k, mc.schemaMap[k], result2, rd, false)
 					if err != nil {
 						return nil, err
 					}
 				}
+				// copy over identity data (by getting it so we also include changes)
+				// In order to build the final identity attributes, we read the full
+				// attribute set as a map[string]interface{}, write it to a MapFieldWriter,
+				// and then use that map.
+				rawMapIdentity := make(map[string]interface{})
+				identityData, err := rd.Identity()
+				if err == nil && d.identitySchema != nil {
+					for k := range d.identitySchema {
+						raw := identityData.get([]string{k})
+						if raw.Exists && !raw.Computed {
+							rawMapIdentity[k] = raw.Value
+							if raw.ValueProcessed != nil {
+								rawMapIdentity[k] = raw.ValueProcessed
+							}
+						}
+					}
+
+					mapWIdentity := &MapFieldWriter{Schema: d.identitySchema}
+					if err := mapWIdentity.WriteField(nil, rawMapIdentity); err != nil {
+						log.Printf("[ERR] Error writing identity fields: %s", err)
+						return nil, err
+					}
+
+					result2.Identity = mapWIdentity.Map()
+				} // TODO: else log error?
+
 			}
 
 			// Force all the fields to not force a new since we know what we
@@ -817,6 +914,18 @@ func (m schemaMap) Diff(
 	return result, nil
 }
 
+// Diff returns the diff for a resource given the schema map,
+// state, and configuration.
+func (m schemaMap) Diff(
+	ctx context.Context,
+	s *terraform.InstanceState,
+	c *terraform.ResourceConfig,
+	customizeDiff CustomizeDiffFunc,
+	meta interface{},
+	handleRequiresNew bool) (*terraform.InstanceDiff, error) {
+	return schemaMapWithIdentity{m, nil}.Diff(ctx, s, c, customizeDiff, meta, handleRequiresNew)
+}
+
 // Validate validates the configuration against this schema mapping.
 func (m schemaMap) Validate(c *terraform.ResourceConfig) diag.Diagnostics {
 	return m.validateObject("", m, c, cty.Path{})
@@ -829,6 +938,7 @@ func (m schemaMap) InternalValidate(topSchemaMap schemaMap) error {
 	return m.internalValidate(topSchemaMap, false)
 }
 
+// TODO: Think about how to check something is a resource Identity so that we can check if RequiredForImport or OptionalForImport is set
 func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) error {
 	if topSchemaMap == nil {
 		topSchemaMap = m
@@ -860,6 +970,13 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 
 		if v.WriteOnly && v.ForceNew {
 			return fmt.Errorf("%s: WriteOnly cannot be set with ForceNew", k)
+		}
+
+		if v.RequiredForImport {
+			return fmt.Errorf("%s: RequiredForImport is only valid for resource identity schemas", k)
+		}
+		if v.OptionalForImport {
+			return fmt.Errorf("%s: OptionalForImport is only valid for resource identity schemas", k)
 		}
 
 		computedOnly := v.Computed && !v.Optional
@@ -896,6 +1013,10 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 
 		if v.Required && v.Default != nil {
 			return fmt.Errorf("%s: Default cannot be set with Required", k)
+		}
+
+		if v.WriteOnly && v.Default != nil {
+			return fmt.Errorf("%s: Default cannot be set with WriteOnly", k)
 		}
 
 		if v.WriteOnly && v.Default != nil {
@@ -1652,7 +1773,7 @@ func (m schemaMap) diffString(
 // DiffSuppressOnRefresh, checks whether the new value is materially different
 // than the old and if not it overwrites the new value with the old one,
 // in-place.
-func (m schemaMap) handleDiffSuppressOnRefresh(ctx context.Context, oldState, newState *terraform.InstanceState) {
+func (m schemaMapWithIdentity) handleDiffSuppressOnRefresh(ctx context.Context, oldState, newState *terraform.InstanceState) {
 	if newState == nil || oldState == nil {
 		return // nothing to do, then
 	}
@@ -1672,7 +1793,7 @@ func (m schemaMap) handleDiffSuppressOnRefresh(ctx context.Context, oldState, ne
 			continue // no change to test
 		}
 
-		schemaList := addrToSchema(strings.Split(k, "."), m)
+		schemaList := addrToSchema(strings.Split(k, "."), m.schemaMap)
 		if len(schemaList) == 0 {
 			continue // no schema? weird, but not our responsibility to handle
 		}

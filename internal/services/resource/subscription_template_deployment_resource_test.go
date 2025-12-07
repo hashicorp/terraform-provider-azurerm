@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubscriptionTemplateDeploymentResource struct{}
@@ -144,12 +144,12 @@ func (t SubscriptionTemplateDeploymentResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Subscription Template Deployment (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (SubscriptionTemplateDeploymentResource) emptyConfig(data acceptance.TestData) string {

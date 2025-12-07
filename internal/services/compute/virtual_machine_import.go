@@ -44,22 +44,19 @@ func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceT
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machines", resourceType, string(osType))
 		}
 
-		// we don't support VM's without an OS Profile / attach
-		if vm.Model.Properties.OsProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource doesn't support attaching OS Disks - please use the `azurerm_virtual_machine` resource instead", resourceType)
-		}
-
-		hasSshKeys := false
-		if osType == virtualmachines.OperatingSystemTypesLinux {
-			if linux := vm.Model.Properties.OsProfile.LinuxConfiguration; linux != nil {
-				if linux.Ssh != nil && linux.Ssh.PublicKeys != nil {
-					hasSshKeys = len(*linux.Ssh.PublicKeys) > 0
+		if vm.Model.Properties.OsProfile != nil { // machines importing existing managed disks do not have an OSProfile
+			hasSshKeys := false
+			if osType == virtualmachines.OperatingSystemTypesLinux {
+				if linux := vm.Model.Properties.OsProfile.LinuxConfiguration; linux != nil {
+					if linux.Ssh != nil && linux.Ssh.PublicKeys != nil {
+						hasSshKeys = len(*linux.Ssh.PublicKeys) > 0
+					}
 				}
 			}
-		}
 
-		if !hasSshKeys {
-			d.Set("admin_password", "ignored-as-imported")
+			if !hasSshKeys {
+				d.Set("admin_password", "ignored-as-imported")
+			}
 		}
 
 		return []*pluginsdk.ResourceData{d}, nil

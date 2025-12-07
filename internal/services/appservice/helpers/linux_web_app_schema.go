@@ -1161,7 +1161,7 @@ func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	registryHost := trimURLScheme(strings.TrimSuffix(applicationStack.DockerRegistryUrl, "/"))
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 

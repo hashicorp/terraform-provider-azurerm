@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosSqlContainerResource struct{}
@@ -69,21 +69,14 @@ func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorageTTL(data),
+			Config: r.analyticalStorageTTL(data, 600),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.analyticalStorageTTL_removed(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.analyticalStorageTTL(data),
+			Config: r.analyticalStorageTTL(data, 601),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -256,7 +249,7 @@ func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients
 		return nil, fmt.Errorf("reading Cosmos SQL Container (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosSqlContainerResource) basic(data acceptance.TestData) string {
@@ -342,7 +335,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) analyticalStorageTTL(data acceptance.TestData) string {
+func (CosmosSqlContainerResource) analyticalStorageTTL(data acceptance.TestData, analyticalStorageTTL int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -358,29 +351,9 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   account_name           = azurerm_cosmosdb_account.test.name
   database_name          = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths    = ["/definition/id"]
-  analytical_storage_ttl = 600
+  analytical_storage_ttl = %[3]d
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
-}
-
-func (CosmosSqlContainerResource) analyticalStorageTTL_removed(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "test" {
-  name                = "acctest-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-}
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_paths = ["/definition/id"]
-}
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, analyticalStorageTTL)
 }
 
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {

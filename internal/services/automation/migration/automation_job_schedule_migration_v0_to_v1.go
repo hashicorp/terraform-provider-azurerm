@@ -8,9 +8,9 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	pluginsdk "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

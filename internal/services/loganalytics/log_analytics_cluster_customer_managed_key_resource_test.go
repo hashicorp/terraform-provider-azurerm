@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsClusterCustomerManagedKeyResource struct{}
@@ -86,7 +86,7 @@ func (t LogAnalyticsClusterCustomerManagedKeyResource) Exists(ctx context.Contex
 		}
 	}
 
-	return utils.Bool(enabled), nil
+	return pointer.To(enabled), nil
 }
 
 func (LogAnalyticsClusterCustomerManagedKeyResource) template(data acceptance.TestData) string {
@@ -114,7 +114,7 @@ resource "azurerm_log_analytics_cluster" "test" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                = "vault%[3]s"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

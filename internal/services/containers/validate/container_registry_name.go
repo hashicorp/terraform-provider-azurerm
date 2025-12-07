@@ -19,7 +19,7 @@ func ContainerRegistryName(v interface{}, k string) (warnings []string, errors [
 		errors = append(errors, fmt.Errorf("%q cannot be less than 5 characters: %q", k, value))
 	}
 
-	if len(value) >= 50 {
+	if len(value) > 50 {
 		errors = append(errors, fmt.Errorf("%q cannot be longer than 50 characters: %q %d", k, value, len(value)))
 	}
 

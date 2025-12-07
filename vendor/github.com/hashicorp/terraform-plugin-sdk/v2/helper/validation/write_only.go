@@ -22,6 +22,10 @@ import (
 // For lists: cty.Index(cty.UnknownVal(cty.Number)),
 // For maps: cty.Index(cty.UnknownVal(cty.String)),
 // For sets: cty.Index(cty.UnknownVal(cty.Object(nil))),
+//
+// NOTE: This validator will produce persistent warnings for practitioners on every Terraform run as long as the specified non-write-only attribute
+// has a value in the configuration. The validator will also produce warnings for users of shared modules
+// who cannot immediately take action on the warning.
 func PreferWriteOnlyAttribute(oldAttribute cty.Path, writeOnlyAttribute cty.Path) schema.ValidateRawResourceConfigFunc {
 	return func(ctx context.Context, req schema.ValidateResourceConfigFuncRequest, resp *schema.ValidateResourceConfigFuncResponse) {
 		if !req.WriteOnlyAttributesAllowed {

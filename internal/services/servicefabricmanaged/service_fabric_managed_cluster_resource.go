@@ -14,14 +14,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomFabricSetting struct {
@@ -120,6 +119,7 @@ type ClusterResourceModel struct {
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
+	SubnetId             string                               `tfschema:"subnet_id"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
 	UpgradeWave          managedcluster.ClusterUpgradeCadence `tfschema:"upgrade_wave"`
 }
@@ -213,7 +213,8 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(managedcluster.SkuNameStandard),
 			}, false),
 		},
-		"tags": tags.Schema(),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -255,7 +256,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku:        managedcluster.Sku{Name: model.Sku},
 			}
@@ -397,7 +398,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku: managedcluster.Sku{
 					Name: model.Sku,
@@ -569,12 +570,14 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	}
 
 	model.DNSName = properties.DnsName
+	model.SubnetId = pointer.From(properties.SubnetId)
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.ManagedClusterAddOnFeatureDnsService {
+			switch feature {
+			case managedcluster.ManagedClusterAddOnFeatureDnsService:
 				model.DNSService = true
-			} else if feature == managedcluster.ManagedClusterAddOnFeatureBackupRestoreService {
+			case managedcluster.ManagedClusterAddOnFeatureBackupRestoreService:
 				model.BackupRestoreService = true
 			}
 		}
@@ -749,7 +752,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	}
 	out.AddonFeatures = &addons
 
-	out.AdminPassword = utils.String(model.Password)
+	out.AdminPassword = pointer.To(model.Password)
 	out.AdminUserName = model.Username
 
 	out.DnsName = model.Name
@@ -757,13 +760,17 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		out.DnsName = model.DNSName
 	}
 
+	if v := model.SubnetId; v != "" {
+		out.SubnetId = pointer.To(v)
+	}
+
 	if auth := model.Authentication; len(auth) > 0 {
 		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
 			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
 				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-					ClientApplication:  utils.String(adAuth[0].ClientApp),
-					ClusterApplication: utils.String(adAuth[0].ClusterApp),
-					TenantId:           utils.String(adAuth[0].TenantId),
+					ClientApplication:  pointer.To(adAuth[0].ClientApp),
+					ClusterApplication: pointer.To(adAuth[0].ClusterApp),
+					TenantId:           pointer.To(adAuth[0].TenantId),
 				}
 			}
 		}
@@ -771,9 +778,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 			clients := make([]managedcluster.ClientCertificate, len(certs))
 			for idx, cert := range certs {
 				clients[idx] = managedcluster.ClientCertificate{
-					CommonName: utils.String(cert.CommonName),
+					CommonName: pointer.To(cert.CommonName),
 					IsAdmin:    cert.CertificateType == CertTypeAdmin,
-					Thumbprint: utils.String(cert.Thumbprint),
+					Thumbprint: pointer.To(cert.Thumbprint),
 				}
 			}
 			out.Clients = &clients
@@ -816,7 +823,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.String(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.To(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 

@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MobileNetworkSliceResource struct{}
@@ -92,15 +93,30 @@ func (r MobileNetworkSliceResource) Exists(ctx context.Context, clients *clients
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MobileNetworkSliceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_mobile_network_slice" "test" {
+  name               = "acctest-mns-%d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = azurerm_mobile_network.test.location
+  slice_service_type = 1
+}
+`, r.template(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -109,15 +125,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_mobile_network_slice" "test" {
-  name              = "acctest-mns-%d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = azurerm_mobile_network.test.location
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "acctest-mns-%d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = azurerm_mobile_network.test.location
+  slice_service_type = 1
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MobileNetworkSliceResource) requiresImport(data acceptance.TestData) string {
@@ -126,13 +139,10 @@ func (r MobileNetworkSliceResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_mobile_network_slice" "import" {
-  name              = azurerm_mobile_network_slice.test.name
-  mobile_network_id = azurerm_mobile_network_slice.test.mobile_network_id
-  location          = azurerm_mobile_network_slice.test.location
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = azurerm_mobile_network_slice.test.name
+  mobile_network_id  = azurerm_mobile_network_slice.test.mobile_network_id
+  location           = azurerm_mobile_network_slice.test.location
+  slice_service_type = 1
 }
 `, template)
 }
@@ -147,14 +157,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_mobile_network_slice" "test" {
-  name              = "acctest-mns-%d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = azurerm_mobile_network.test.location
-  description       = "my favorite slice"
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "acctest-mns-%d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = azurerm_mobile_network.test.location
+  description        = "my favorite slice"
+  slice_service_type = 1
 
   tags = {
     key = "value"
@@ -173,14 +180,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_mobile_network_slice" "test" {
-  name              = "acctest-mns-%d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = azurerm_mobile_network.test.location
-  description       = "my favorite slice2"
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "acctest-mns-%d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = azurerm_mobile_network.test.location
+  description        = "my favorite slice2"
+  slice_service_type = 2
 
   tags = {
     key = "value"

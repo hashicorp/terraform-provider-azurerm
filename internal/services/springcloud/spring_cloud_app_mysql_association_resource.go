@@ -8,10 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	flexibleServers "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -29,6 +31,8 @@ const (
 
 func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudAppMysqlAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppMysqlAssociationRead,
 		Update: resourceSpringCloudAppMysqlAssociationCreateUpdate,
@@ -124,11 +128,11 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: map[string]*string{
-				springCloudAppMysqlAssociationKeyDatabase: utils.String(d.Get("database_name").(string)),
-				springCloudAppMysqlAssociationKeyUsername: utils.String(d.Get("username").(string)),
+				springCloudAppMysqlAssociationKeyDatabase: pointer.To(d.Get("database_name").(string)),
+				springCloudAppMysqlAssociationKeyUsername: pointer.To(d.Get("username").(string)),
 			},
-			Key:        utils.String(d.Get("password").(string)),
-			ResourceID: utils.String(d.Get("mysql_server_id").(string)),
+			Key:        pointer.To(d.Get("password").(string)),
+			ResourceID: pointer.To(d.Get("mysql_server_id").(string)),
 		},
 	}
 

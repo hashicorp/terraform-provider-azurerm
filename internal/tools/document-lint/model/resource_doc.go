@@ -311,9 +311,10 @@ func (r *ResourceDoc) AllProp() Properties {
 }
 
 func (r *ResourceDoc) CurProp(pos PosType) Properties {
-	if pos == PosArgs {
+	switch pos {
+	case PosArgs:
 		return r.Args
-	} else if pos == PosAttr {
+	case PosAttr:
 		return r.Attr
 	}
 	return nil

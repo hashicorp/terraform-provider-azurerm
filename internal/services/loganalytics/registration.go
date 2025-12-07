@@ -20,7 +20,9 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		LogAnalyticsWorkspaceTableDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -30,6 +32,7 @@ func (r Registration) Resources() []sdk.Resource {
 		LogAnalyticsQueryPackQueryResource{},
 		LogAnalyticsSolutionResource{},
 		LogAnalyticsWorkspaceTableResource{},
+		WorkspaceTableCustomLogResource{},
 	}
 }
 

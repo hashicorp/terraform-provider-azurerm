@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -35,7 +35,7 @@ func (r NetAppBackupPolicyResource) ResourceType() string {
 }
 
 func (r NetAppBackupPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backuppolicy.ValidateBackupPolicyID
+	return backuppolicies.ValidateBackupPolicyID
 }
 
 func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -68,17 +68,19 @@ func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"monthly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"enabled": {
@@ -105,7 +107,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := backuppolicy.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
+			id := backuppolicies.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
 			// Validations
 			if errorList := netAppValidate.ValidateNetAppBackupPolicyCombinedRetention(model.DailyBackupsToKeep, model.WeeklyBackupsToKeep, model.MonthlyBackupsToKeep); len(errorList) > 0 {
@@ -113,7 +115,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.BackupPoliciesGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -124,10 +126,10 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			parameters := backuppolicy.BackupPolicy{
+			parameters := backuppolicies.BackupPolicy{
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
-				Properties: backuppolicy.BackupPolicyProperties{
+				Properties: backuppolicies.BackupPolicyProperties{
 					DailyBackupsToKeep:   pointer.To(model.DailyBackupsToKeep),
 					WeeklyBackupsToKeep:  pointer.To(model.WeeklyBackupsToKeep),
 					MonthlyBackupsToKeep: pointer.To(model.MonthlyBackupsToKeep),
@@ -135,7 +137,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.BackupPoliciesCreateThenPoll(ctx, id, parameters)
+			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -153,7 +155,7 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BackupPolicyClient
 
-			id, err := backuppolicy.ParseBackupPolicyID(metadata.ResourceData.Id())
+			id, err := backuppolicies.ParseBackupPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -164,8 +166,8 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			update := backuppolicy.BackupPolicyPatch{
-				Properties: &backuppolicy.BackupPolicyProperties{},
+			update := backuppolicies.BackupPolicyPatch{
+				Properties: &backuppolicies.BackupPolicyProperties{},
 			}
 
 			// Checking properties with changes
@@ -191,7 +193,7 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			if err := client.BackupPoliciesUpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -206,7 +208,7 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BackupPolicyClient
 
-			id, err := backuppolicy.ParseBackupPolicyID(metadata.ResourceData.Id())
+			id, err := backuppolicies.ParseBackupPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -217,7 +219,7 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.BackupPoliciesGet(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -251,12 +253,12 @@ func (r NetAppBackupPolicyResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BackupPolicyClient
 
-			id, err := backuppolicy.ParseBackupPolicyID(metadata.ResourceData.Id())
+			id, err := backuppolicies.ParseBackupPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.BackupPoliciesDeleteThenPoll(ctx, pointer.From(id)); err != nil {
+			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -269,7 +271,7 @@ func (r NetAppBackupPolicyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func waitForBackupPolicyDeletion(ctx context.Context, client *backuppolicy.BackupPolicyClient, id backuppolicy.BackupPolicyId) error {
+func waitForBackupPolicyDeletion(ctx context.Context, client *backuppolicies.BackupPoliciesClient, id backuppolicies.BackupPolicyId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -291,9 +293,9 @@ func waitForBackupPolicyDeletion(ctx context.Context, client *backuppolicy.Backu
 	return nil
 }
 
-func netappBackupPolicyStateRefreshFunc(ctx context.Context, client *backuppolicy.BackupPolicyClient, id backuppolicy.BackupPolicyId) pluginsdk.StateRefreshFunc {
+func netappBackupPolicyStateRefreshFunc(ctx context.Context, client *backuppolicies.BackupPoliciesClient, id backuppolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.BackupPoliciesGet(ctx, id)
+		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)

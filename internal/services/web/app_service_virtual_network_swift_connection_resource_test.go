@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,12 +98,12 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Cont
 	resp, err := clients.Web.AppServicesClient.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.SwiftVirtualNetworkProperties != nil), nil
+	return pointer.To(resp.SwiftVirtualNetworkProperties != nil), nil
 }
 
 func (t AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {

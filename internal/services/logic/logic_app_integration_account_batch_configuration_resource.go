@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
@@ -342,11 +343,11 @@ func expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(input []inte
 	v := input[0].(map[string]interface{})
 
 	if batchSize := v["batch_size"].(int); batchSize != 0 {
-		result.BatchSize = utils.Int64(int64(batchSize))
+		result.BatchSize = pointer.To(int64(batchSize))
 	}
 
 	if messageCount := v["message_count"].(int); messageCount != 0 {
-		result.MessageCount = utils.Int64(int64(messageCount))
+		result.MessageCount = pointer.To(int64(messageCount))
 	}
 
 	if recurrence := v["recurrence"].([]interface{}); len(recurrence) != 0 {
@@ -365,19 +366,19 @@ func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input [
 	frequency := integrationaccountbatchconfigurations.RecurrenceFrequency(v["frequency"].(string))
 	result := integrationaccountbatchconfigurations.WorkflowTriggerRecurrence{
 		Frequency: &frequency,
-		Interval:  utils.Int64(int64(v["interval"].(int))),
+		Interval:  pointer.To(int64(v["interval"].(int))),
 	}
 
 	if startTime := v["start_time"].(string); startTime != "" {
-		result.StartTime = utils.String(startTime)
+		result.StartTime = pointer.To(startTime)
 	}
 
 	if endTime := v["end_time"].(string); endTime != "" {
-		result.EndTime = utils.String(endTime)
+		result.EndTime = pointer.To(endTime)
 	}
 
 	if timeZone := v["time_zone"].(string); timeZone != "" {
-		result.TimeZone = utils.String(timeZone)
+		result.TimeZone = pointer.To(timeZone)
 	}
 
 	if schedule := v["schedule"].([]interface{}); len(schedule) != 0 {
@@ -431,7 +432,7 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 		day := integrationaccountbatchconfigurations.DayOfWeek(v["weekday"].(string))
 		results = append(results, integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence{
 			Day:        &day,
-			Occurrence: utils.Int64(int64(v["week"].(int))),
+			Occurrence: pointer.To(int64(v["week"].(int))),
 		})
 	}
 

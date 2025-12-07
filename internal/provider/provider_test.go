@@ -311,6 +311,7 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {
+	t.Skip("skipping test for now, as it requires Azure CLI authentication to be set up in the environment which is not compatible with MFA Requirement")
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}

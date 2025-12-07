@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebAppActiveSlotResource struct{}
@@ -111,7 +111,7 @@ func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)
 	}
 
-	return utils.Bool(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
+	return pointer.To(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
 }
 
 func (r WebAppActiveSlotResource) basicWindows(data acceptance.TestData) string {

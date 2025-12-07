@@ -133,6 +133,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Default: string(cdn.MinimumTLSVersionTLS12),
 		}
 	}
+
 	return &pluginsdk.Resource{
 		Create: resourceArmCdnEndpointCustomDomainCreate,
 		Read:   resourceArmCdnEndpointCustomDomainRead,
@@ -152,6 +153,18 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		},
 
 		Schema: schema,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "cdn_endpoint_id", "host_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -183,7 +196,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 
 	props := cdn.CustomDomainParameters{
 		CustomDomainPropertiesParameters: &cdn.CustomDomainPropertiesParameters{
-			HostName: utils.String(d.Get("host_name").(string)),
+			HostName: pointer.To(d.Get("host_name").(string)),
 		},
 	}
 
@@ -434,7 +447,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	raw := input[0].(map[string]interface{})
 	output := &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
-			OdataType:       utils.String("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
+			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
@@ -480,14 +493,14 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 
 	output := &cdn.UserManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.KeyVaultCertificateSourceParameters{
-			OdataType:         utils.String("#Microsoft.Azure.Cdn.Models.KeyVaultCertificateSourceParameters"),
+			OdataType:         pointer.To("#Microsoft.Azure.Cdn.Models.KeyVaultCertificateSourceParameters"),
 			SubscriptionID:    pointer.To(keyVaultId.SubscriptionId),
 			ResourceGroupName: pointer.To(keyVaultId.ResourceGroupName),
 			VaultName:         pointer.To(keyVaultId.VaultName),
 			SecretName:        pointer.To(keyVaultSecretId.Name),
 			SecretVersion:     SecretVersion,
-			UpdateRule:        utils.String("NoAction"),
-			DeleteRule:        utils.String("NoAction"),
+			UpdateRule:        pointer.To("NoAction"),
+			DeleteRule:        pointer.To("NoAction"),
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
 		ProtocolType:      cdn.ProtocolTypeServerNameIndication,

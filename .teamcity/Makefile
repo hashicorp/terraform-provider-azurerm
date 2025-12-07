@@ -1,7 +1,7 @@
 default: tools
 
 tools:
-	mvn -U dependency:sources
+	mvn -U dependency:resolve-sources
 
 test: validate
 	mvn test -DtestPackage=tests

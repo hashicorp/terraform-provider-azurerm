@@ -5,12 +5,12 @@ package cdn
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func endpointDeliveryRule() *pluginsdk.Schema {
@@ -164,8 +164,8 @@ func endpointDeliveryRule() *pluginsdk.Schema {
 
 func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.DeliveryRule, error) {
 	deliveryRule := cdn.DeliveryRule{
-		Name:  utils.String(rule["name"].(string)),
-		Order: utils.Int32(int32(rule["order"].(int))),
+		Name:  pointer.To(rule["name"].(string)),
+		Order: pointer.To(int32(rule["order"].(int))),
 	}
 
 	deliveryRule.Conditions = expandDeliveryRuleConditions(rule)

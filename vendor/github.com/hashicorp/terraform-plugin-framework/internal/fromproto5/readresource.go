@@ -17,7 +17,7 @@ import (
 
 // ReadResourceRequest returns the *fwserver.ReadResourceRequest
 // equivalent of a *tfprotov5.ReadResourceRequest.
-func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
+func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior, identitySchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}
@@ -26,6 +26,8 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 
 	fw := &fwserver.ReadResourceRequest{
 		Resource:           reqResource,
+		ResourceBehavior:   resourceBehavior,
+		IdentitySchema:     identitySchema,
 		ClientCapabilities: ReadResourceClientCapabilities(proto5.ClientCapabilities),
 	}
 
@@ -34,6 +36,12 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	diags.Append(currentStateDiags...)
 
 	fw.CurrentState = currentState
+
+	currentIdentity, currentIdentityDiags := ResourceIdentity(ctx, proto5.CurrentIdentity, identitySchema)
+
+	diags.Append(currentIdentityDiags...)
+
+	fw.CurrentIdentity = currentIdentity
 
 	providerMeta, providerMetaDiags := ProviderMeta(ctx, proto5.ProviderMeta, providerMetaSchema)
 

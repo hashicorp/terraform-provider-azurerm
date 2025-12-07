@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,12 +86,12 @@ func (r AppServiceSlotCustomHostnameBindingResource) Exists(ctx context.Context,
 	resp, err := clients.Web.AppServicesClient.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.HostNameBindingProperties != nil), nil
+	return pointer.To(resp.HostNameBindingProperties != nil), nil
 }
 
 func (AppServiceSlotCustomHostnameBindingResource) basicConfig(data acceptance.TestData) string {
@@ -229,7 +230,7 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctAS%[5]s"
+  name                = "acctestAS%[5]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id

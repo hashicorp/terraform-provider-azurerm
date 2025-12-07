@@ -19,7 +19,7 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 	}
 
 	if len(value) != 7 && len(value) != 3 {
-		errors = append(errors, fmt.Errorf("The len of %q should be 3 or 7: %q", k, value))
+		errors = append(errors, fmt.Errorf("the len of %q should be 3 or 7: %q", k, value))
 		return warnings, errors
 	}
 

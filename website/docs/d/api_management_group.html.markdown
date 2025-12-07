@@ -24,7 +24,7 @@ output "group_type" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `api_management_name` - The Name of the API Management Service in which this Group exists.
 
@@ -46,6 +46,12 @@ output "group_type" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Group.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

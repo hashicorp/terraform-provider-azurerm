@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_route_ids` - (Required) One or more IDs of the Front Door Route to which the Front Door Custom Domain is associated with.
 
--> **NOTE:** This should include all of the Front Door Route resources that the Front Door Custom Domain is associated with. If the list of Front Door Routes is not complete you will receive the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` your Front Door Custom Domain.
+-> **Note:** This should include all of the Front Door Route resources that the Front Door Custom Domain is associated with. If the list of Front Door Routes is not complete you will receive the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` your Front Door Custom Domain.
 
 ## Attributes Reference
 
@@ -130,11 +130,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Custom Domain Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain Association.
-* `update` - (Defaults to 30 minutes) Used when retrieving the Front Door Custom Domain Association.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Custom Domain Association.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Custom Domain Association.
 
 ## Import

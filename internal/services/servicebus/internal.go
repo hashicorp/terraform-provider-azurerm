@@ -5,14 +5,15 @@ package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -111,11 +112,11 @@ func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDi
 	manage, hasManage := d.GetOk("manage")
 
 	if !hasListen && !hasSend && !hasManage {
-		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
+		return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
 	}
 
 	if manage.(bool) && (!listen.(bool) || !send.(bool)) {
-		return fmt.Errorf("if `manage` is set both `listen` and `send` must be set to true too")
+		return errors.New("if `manage` is set both `listen` and `send` must be set to true too")
 	}
 
 	return nil

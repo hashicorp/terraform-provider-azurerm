@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,13 +26,15 @@ type SliceResourceModel struct {
 	MobileNetworkId                                  string                                                          `tfschema:"mobile_network_id"`
 	Description                                      string                                                          `tfschema:"description"`
 	Location                                         string                                                          `tfschema:"location"`
-	SingleNetworkSliceSelectionAssistanceInformation []SingleNetworkSliceSelectionAssistanceInformationResourceModel `tfschema:"single_network_slice_selection_assistance_information"`
+	SliceDifferentiator                              string                                                          `tfschema:"slice_differentiator"`
+	SliceServiceType                                 int64                                                           `tfschema:"slice_service_type"`
+	SingleNetworkSliceSelectionAssistanceInformation []SingleNetworkSliceSelectionAssistanceInformationResourceModel `tfschema:"single_network_slice_selection_assistance_information,removedInNextMajorVersion"`
 	Tags                                             map[string]string                                               `tfschema:"tags"`
 }
 
 type SingleNetworkSliceSelectionAssistanceInformationResourceModel struct {
-	SliceDifferentiator string `tfschema:"slice_differentiator"`
-	SliceServiceType    int64  `tfschema:"slice_service_type"`
+	SliceDifferentiator string `tfschema:"slice_differentiator,removedInNextMajorVersion"`
+	SliceServiceType    int64  `tfschema:"slice_service_type,removedInNextMajorVersion"`
 }
 
 type SliceResource struct{}
@@ -51,7 +54,7 @@ func (r SliceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r SliceResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,17 +77,57 @@ func (r SliceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"single_network_slice_selection_assistance_information": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
+		"slice_service_type": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 255),
+		},
+
+		"slice_differentiator": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[A-Fa-f0-9]{6}$`),
+				"Slice Differentiator must be a 6 digit hex string",
+			),
+		},
+
+		"tags": commonschema.Tags(),
+	}
+
+	if !features.FivePointOh() {
+		s["slice_service_type"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.IntBetween(0, 255),
+			ConflictsWith: []string{"single_network_slice_selection_assistance_information"},
+		}
+
+		s["slice_differentiator"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[A-Fa-f0-9]{6}$`),
+				"Slice Differentiator must be a 6 digit hex string",
+			),
+			ConflictsWith: []string{"single_network_slice_selection_assistance_information"},
+		}
+
+		s["single_network_slice_selection_assistance_information"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"slice_service_type", "slice_differentiator"},
+			MaxItems:      1,
+			Deprecated:    "`single_network_slice_selection_assistance_information` has been deprecated and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level. The `single_network_slice_selection_assistance_information` block will be removed in v5.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// TODO: these fields can be moved to the top-level in 4.0
-
 					"slice_differentiator": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:       pluginsdk.TypeString,
+						Optional:   true,
+						Deprecated: "`single_network_slice_selection_assistance_information` has been deprecated and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level. The `single_network_slice_selection_assistance_information` block will be removed in v5.0 of the AzureRM Provider.",
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[A-Fa-f0-9]{6}$`),
 							"Slice Differentiator must be a 6 digit hex string",
@@ -94,14 +137,15 @@ func (r SliceResource) Arguments() map[string]*pluginsdk.Schema {
 					"slice_service_type": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
+						Deprecated:   "`single_network_slice_selection_assistance_information` has been deprecated and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level. The `single_network_slice_selection_assistance_information` block will be removed in v5.0 of the AzureRM Provider.",
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 				},
 			},
-		},
-
-		"tags": commonschema.Tags(),
+		}
 	}
+
+	return s
 }
 
 func (r SliceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -134,16 +178,26 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := slice.Slice{
-				Location:   location.Normalize(model.Location),
-				Properties: slice.SlicePropertiesFormat{},
-				Tags:       &model.Tags,
+				Location: location.Normalize(model.Location),
+				Properties: slice.SlicePropertiesFormat{
+					Snssai: slice.Snssai{
+						Sst: model.SliceServiceType,
+					},
+				},
+				Tags: &model.Tags,
 			}
 
 			if model.Description != "" {
 				properties.Properties.Description = &model.Description
 			}
 
-			properties.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
+			if model.SliceDifferentiator != "" {
+				properties.Properties.Snssai.Sd = &model.SliceDifferentiator
+			}
+
+			if !features.FivePointOh() && len(model.SingleNetworkSliceSelectionAssistanceInformation) > 0 {
+				properties.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -190,8 +244,21 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("snssai") {
+			if metadata.ResourceData.HasChange("single_network_slice_selection_assistance_information") {
+				if !features.FivePointOh() {
+					updateModel.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
+				}
+			}
+			if metadata.ResourceData.HasChange("single_network_slice_selection_assistance_information") {
 				updateModel.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
+			}
+
+			if metadata.ResourceData.HasChange("slice_service_type") {
+				updateModel.Properties.Snssai.Sst = model.SliceServiceType
+			}
+
+			if metadata.ResourceData.HasChange("slice_differentiator") {
+				updateModel.Properties.Snssai.Sd = &model.SliceDifferentiator
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -238,11 +305,14 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 					state.Description = *model.Properties.Description
 				}
 
-				state.SingleNetworkSliceSelectionAssistanceInformation = flattenSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.Properties.Snssai)
-
-				if model.Tags != nil {
-					state.Tags = *model.Tags
+				if !features.FivePointOh() {
+					state.SingleNetworkSliceSelectionAssistanceInformation = flattenSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.Properties.Snssai)
 				}
+				state.SliceServiceType = model.Properties.Snssai.Sst
+				if model.Properties.Snssai.Sd != nil {
+					state.SliceDifferentiator = *model.Properties.Snssai.Sd
+				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)

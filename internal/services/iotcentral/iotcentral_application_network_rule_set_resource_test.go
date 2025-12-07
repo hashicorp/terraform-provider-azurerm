@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTCentralApplicationNetworkRuleSetResource struct{}
@@ -186,7 +186,7 @@ func (IoTCentralApplicationNetworkRuleSetResource) Exists(ctx context.Context, c
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.NetworkRuleSets != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.NetworkRuleSets != nil), nil
 }
 
 func (r IoTCentralApplicationNetworkRuleSetResource) basic(data acceptance.TestData) string {

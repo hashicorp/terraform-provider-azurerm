@@ -4,13 +4,13 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func URLRedirect() *pluginsdk.Resource {
@@ -71,7 +71,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 		item := v.(map[string]interface{})
 
 		params := cdn.URLRedirectActionParameters{
-			OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
+			OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
 			RedirectType: cdn.RedirectType(item["redirect_type"].(string)),
 		}
 
@@ -80,19 +80,19 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 		}
 
 		if hostname := item["hostname"]; hostname.(string) != "" {
-			params.CustomHostname = utils.String(hostname.(string))
+			params.CustomHostname = pointer.To(hostname.(string))
 		}
 
 		if path := item["path"]; path.(string) != "" {
-			params.CustomPath = utils.String(path.(string))
+			params.CustomPath = pointer.To(path.(string))
 		}
 
 		if queryString := item["query_string"]; queryString.(string) != "" {
-			params.CustomQueryString = utils.String(queryString.(string))
+			params.CustomQueryString = pointer.To(queryString.(string))
 		}
 
 		if fragment := item["fragment"]; fragment.(string) != "" {
-			params.CustomFragment = utils.String(fragment.(string))
+			params.CustomFragment = pointer.To(fragment.(string))
 		}
 
 		output = append(output, cdn.URLRedirectAction{
@@ -107,7 +107,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url redirect action!")
+		return nil, errors.New("expected a delivery rule url redirect action")
 	}
 
 	customHostname := ""

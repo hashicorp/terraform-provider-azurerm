@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualDesktopScalingPlanHostPoolAssociation() *pluginsdk.Resource {
@@ -108,7 +108,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
 		HostPoolArmPath:    &hostPoolStr,
-		ScalingPlanEnabled: utils.Bool(d.Get("enabled").(bool)),
+		ScalingPlanEnabled: pointer.To(d.Get("enabled").(bool)),
 	})
 
 	payload := scalingplan.ScalingPlanPatch{
@@ -212,7 +212,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 		for _, referenceId := range *v {
 			if referenceId.HostPoolArmPath != nil {
 				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
-					referenceId.ScalingPlanEnabled = utils.Bool(d.Get("enabled").(bool))
+					referenceId.ScalingPlanEnabled = pointer.To(d.Get("enabled").(bool))
 				}
 			}
 			hostPoolReferences = append(hostPoolReferences, referenceId)

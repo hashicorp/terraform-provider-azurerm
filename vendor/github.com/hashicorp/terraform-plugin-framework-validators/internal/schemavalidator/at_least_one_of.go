@@ -29,6 +29,7 @@ var (
 	_ validator.Object  = AtLeastOneOfValidator{}
 	_ validator.Set     = AtLeastOneOfValidator{}
 	_ validator.String  = AtLeastOneOfValidator{}
+	_ validator.Dynamic = AtLeastOneOfValidator{}
 )
 
 // AtLeastOneOfValidator is the underlying struct implementing AtLeastOneOf.
@@ -57,6 +58,7 @@ func (av AtLeastOneOfValidator) MarkdownDescription(_ context.Context) string {
 
 func (av AtLeastOneOfValidator) Validate(ctx context.Context, req AtLeastOneOfValidatorRequest, res *AtLeastOneOfValidatorResponse) {
 	// If attribute configuration is not null, validator already succeeded.
+	// If attribute configuration is unknown, delay the validation until it is known.
 	if !req.ConfigValue.IsNull() {
 		return
 	}
@@ -245,6 +247,20 @@ func (av AtLeastOneOfValidator) ValidateSet(ctx context.Context, req validator.S
 }
 
 func (av AtLeastOneOfValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := AtLeastOneOfValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &AtLeastOneOfValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av AtLeastOneOfValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := AtLeastOneOfValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

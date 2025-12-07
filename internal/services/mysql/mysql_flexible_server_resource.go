@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	hsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -126,9 +128,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ConflictsWith: []string{"customer_managed_key.0.managed_hsm_key_id"},
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -152,6 +155,16 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+						"managed_hsm_key_id": {
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+							ConflictsWith: []string{"customer_managed_key.0.key_vault_key_id"},
+							RequiredWith: []string{
+								"identity",
+								"customer_managed_key.0.primary_user_assigned_identity_id",
+							},
 						},
 					},
 				},
@@ -288,6 +301,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(360, 48000),
 						},
 
+						"log_on_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -307,10 +326,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
+					string(validate.ServerVersionEightPointFour),
 				}, false),
 			},
 
@@ -560,7 +579,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
+			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption, meta)
 			if err != nil {
 				return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
 			}
@@ -774,6 +793,23 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
+		// log_on_disk_enabled must be updated first when auto_grow_enabled and log_on_disk_enabled are updated from true to false in one request
+		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) && !newLogOnDiskEnabled.(bool) {
+			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) && !newAutoGrowEnabled.(bool) {
+				logOnDiskDisabled := servers.EnableStatusEnumDisabled
+				parameters := servers.ServerForUpdate{
+					Properties: &servers.ServerPropertiesForUpdate{
+						Storage: &servers.Storage{
+							LogOnDisk: &logOnDiskDisabled,
+						},
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+					return fmt.Errorf("disabling `log_on_disk_enabled` for %s: %+v", *id, err)
+				}
+			}
+		}
+
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
 				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
@@ -782,6 +818,18 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 			return fmt.Errorf("disabling `auto_grow_enabled` for %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("version") {
+		parameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Version: pointer.To(servers.ServerVersion(d.Get("version").(string))),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating `version` for %s: %+v", *id, err)
 		}
 	}
 
@@ -857,9 +905,15 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoIoScaling = servers.EnableStatusEnumEnabled
 	}
 
+	logOnDisk := servers.EnableStatusEnumDisabled
+	if v := input["log_on_disk_enabled"].(bool); v {
+		logOnDisk = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
 		AutoGrow:      &autoGrow,
 		AutoIoScaling: &autoIoScaling,
+		LogOnDisk:     &logOnDisk,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -889,10 +943,11 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":            size,
-			"iops":               iops,
-			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
-			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"size_gb":             size,
+			"iops":                iops,
+			"auto_grow_enabled":   *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled":  *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"log_on_disk_enabled": *storage.LogOnDisk == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
@@ -1049,6 +1104,10 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 		dataEncryption.PrimaryKeyURI = pointer.To(keyVaultKeyId)
 	}
 
+	if hsmManagedKeyId := v["managed_hsm_key_id"].(string); hsmManagedKeyId != "" {
+		dataEncryption.PrimaryKeyURI = pointer.To(hsmManagedKeyId)
+	}
+
 	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
 		dataEncryption.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityId)
 	}
@@ -1064,15 +1123,27 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	return &dataEncryption
 }
 
-func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interface{}, error) {
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption, meta interface{}) ([]interface{}, error) {
 	if de == nil || *de.Type == servers.DataEncryptionTypeSystemManaged {
 		return []interface{}{}, nil
 	}
 
+	env := meta.(*clients.Client).Account.Environment
+
 	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
-		item["key_vault_key_id"] = *de.PrimaryKeyURI
+		isHsmKey, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, pointer.From(de.PrimaryKeyURI))
+		if err != nil {
+			return nil, err
+		}
+
+		if isHsmKey {
+			item["managed_hsm_key_id"] = pointer.From(de.PrimaryKeyURI)
+		} else {
+			item["key_vault_key_id"] = pointer.From(de.PrimaryKeyURI)
+		}
 	}
+
 	if identity := de.PrimaryUserAssignedIdentityId; identity != nil {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
 		if err != nil {

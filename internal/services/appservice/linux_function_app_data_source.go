@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -200,7 +199,7 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppComputed(),
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -302,7 +301,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(functionApp.HttpResponse) {
-					return fmt.Errorf("Linux %s not found", id)
+					return fmt.Errorf("the Linux %s was not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}

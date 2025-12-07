@@ -8,9 +8,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -126,7 +126,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -202,7 +202,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -243,14 +243,14 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			Properties: &botservice.WebChatChannelProperties{
 				Sites: &[]botservice.WebChatSite{
 					{
-						SiteName:  utils.String("Default Site"),
-						IsEnabled: utils.Bool(true),
+						SiteName:  pointer.To("Default Site"),
+						IsEnabled: pointer.To(true),
 					},
 				},
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(*existing.Location)),
+		Location: pointer.To(location.Normalize(*existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
@@ -269,14 +269,14 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	for _, item := range input {
 		site := item.(map[string]interface{})
 		result := botservice.WebChatSite{
-			IsEnabled:                   utils.Bool(true),
-			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
-			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+			IsEnabled:                   pointer.To(true),
+			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          pointer.To(!site["storage_enabled"].(bool)),
 		}
 
 		if siteName := site["name"].(string); siteName != "" {
-			result.SiteName = utils.String(siteName)
+			result.SiteName = pointer.To(siteName)
 		}
 
 		results = append(results, result)

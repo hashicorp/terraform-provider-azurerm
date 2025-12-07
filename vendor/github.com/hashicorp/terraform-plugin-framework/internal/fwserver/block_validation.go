@@ -76,6 +76,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeR
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
+				ClientCapabilities:      req.ClientCapabilities,
 				Config:                  req.Config,
 			}
 			nestedBlockObjectResp := &ValidateAttributeResponse{}
@@ -110,6 +111,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeR
 				AttributeConfig:         value,
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
+				ClientCapabilities:      req.ClientCapabilities,
 				Config:                  req.Config,
 			}
 			nestedBlockObjectResp := &ValidateAttributeResponse{}
@@ -143,6 +145,7 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeR
 			AttributeConfig:         o,
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
+			ClientCapabilities:      req.ClientCapabilities,
 			Config:                  req.Config,
 		}
 		nestedBlockObjectResp := &ValidateAttributeResponse{}
@@ -203,10 +206,11 @@ func BlockValidateList(ctx context.Context, block fwxschema.BlockWithListValidat
 	}
 
 	validateReq := validator.ListRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, blockValidator := range block.ListValidators() {
@@ -268,10 +272,11 @@ func BlockValidateObject(ctx context.Context, block fwxschema.BlockWithObjectVal
 	}
 
 	validateReq := validator.ObjectRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, blockValidator := range block.ObjectValidators() {
@@ -333,10 +338,11 @@ func BlockValidateSet(ctx context.Context, block fwxschema.BlockWithSetValidator
 	}
 
 	validateReq := validator.SetRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, blockValidator := range block.SetValidators() {
@@ -395,10 +401,11 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 		}
 
 		validateReq := validator.ObjectRequest{
-			Config:         req.Config,
-			ConfigValue:    object,
-			Path:           req.AttributePath,
-			PathExpression: req.AttributePathExpression,
+			ClientCapabilities: req.ClientCapabilities,
+			Config:             req.Config,
+			ConfigValue:        object,
+			Path:               req.AttributePath,
+			PathExpression:     req.AttributePathExpression,
 		}
 
 		for _, objectValidator := range objectWithValidators.ObjectValidators() {
@@ -432,6 +439,7 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 		nestedAttrReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
+			ClientCapabilities:      req.ClientCapabilities,
 			Config:                  req.Config,
 		}
 		nestedAttrResp := &ValidateAttributeResponse{}
@@ -445,6 +453,7 @@ func NestedBlockObjectValidate(ctx context.Context, o fwschema.NestedBlockObject
 		nestedBlockReq := ValidateAttributeRequest{
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
+			ClientCapabilities:      req.ClientCapabilities,
 			Config:                  req.Config,
 		}
 		nestedBlockResp := &ValidateAttributeResponse{}

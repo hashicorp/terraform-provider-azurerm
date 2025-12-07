@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -22,6 +24,8 @@ import (
 
 func resourceSpringCloudStorage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_storage` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudStorageCreateUpdate,
 		Read:   resourceSpringCloudStorageRead,
 		Update: resourceSpringCloudStorageCreateUpdate,
@@ -101,8 +105,8 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	storageResource := appplatform.StorageResource{
 		Properties: &appplatform.StorageAccount{
-			AccountName: utils.String(d.Get("storage_account_name").(string)),
-			AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+			AccountName: pointer.To(d.Get("storage_account_name").(string)),
+			AccountKey:  pointer.To(d.Get("storage_account_key").(string)),
 			StorageType: appplatform.StorageTypeStorageAccount,
 		},
 	}

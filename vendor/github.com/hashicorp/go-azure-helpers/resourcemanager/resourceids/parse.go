@@ -184,7 +184,7 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 
 		// and then remove rawSegment from `uri` so that any leftovers is the scope
 		// since if there's a scope there'll be more segments than we expect
-		uri = strings.TrimPrefix(uri, fmt.Sprintf("%s", rawSegment))
+		uri = strings.TrimPrefix(uri, rawSegment)
 		uri = strings.TrimPrefix(uri, "/")
 	}
 

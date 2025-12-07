@@ -9,8 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -23,6 +25,8 @@ import (
 
 func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_java_deployment` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudJavaDeploymentCreate,
 		Read:   resourceSpringCloudJavaDeploymentRead,
 		Update: resourceSpringCloudJavaDeploymentUpdate,
@@ -84,13 +88,13 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
 			Tier:     service.Sku.Tier,
-			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+			Capacity: pointer.To(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: appplatform.JarUploadedUserSourceInfo{
-				RuntimeVersion: utils.String(d.Get("runtime_version").(string)),
-				JvmOptions:     utils.String(d.Get("jvm_options").(string)),
-				RelativePath:   utils.String("<default>"),
+				RuntimeVersion: pointer.To(d.Get("runtime_version").(string)),
+				JvmOptions:     pointer.To(d.Get("jvm_options").(string)),
+				RelativePath:   pointer.To("<default>"),
 				Type:           appplatform.TypeBasicUserSourceInfoTypeJar,
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
@@ -133,12 +137,12 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("instance_count") {
-		existing.Sku.Capacity = utils.Int32(int32(d.Get("instance_count").(int)))
+		existing.Sku.Capacity = pointer.To(int32(d.Get("instance_count").(int)))
 	}
 
 	if d.HasChange("cpu") {
 		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
-			existing.Properties.DeploymentSettings.ResourceRequests.CPU = utils.String(strconv.Itoa(d.Get("cpu").(int)))
+			existing.Properties.DeploymentSettings.ResourceRequests.CPU = pointer.To(strconv.Itoa(d.Get("cpu").(int)))
 		}
 	}
 
@@ -148,14 +152,14 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("jvm_options") {
 		if source, ok := existing.Properties.Source.AsJarUploadedUserSourceInfo(); ok {
-			source.JvmOptions = utils.String(d.Get("jvm_options").(string))
+			source.JvmOptions = pointer.To(d.Get("jvm_options").(string))
 			existing.Properties.Source = source
 		}
 	}
 
 	if d.HasChange("memory_in_gb") {
 		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
-			existing.Properties.DeploymentSettings.ResourceRequests.Memory = utils.String(fmt.Sprintf("%dGi", d.Get("memory_in_gb").(int)))
+			existing.Properties.DeploymentSettings.ResourceRequests.Memory = pointer.To(fmt.Sprintf("%dGi", d.Get("memory_in_gb").(int)))
 		}
 	}
 
@@ -169,7 +173,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("runtime_version") {
 		if source, ok := existing.Properties.Source.AsJarUploadedUserSourceInfo(); ok {
-			source.RuntimeVersion = utils.String(d.Get("runtime_version").(string))
+			source.RuntimeVersion = pointer.To(d.Get("runtime_version").(string))
 			existing.Properties.Source = source
 		}
 	}
@@ -252,7 +256,7 @@ func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface
 	output := make(map[string]*string, len(envMap))
 
 	for k, v := range envMap {
-		output[k] = utils.String(v.(string))
+		output[k] = pointer.To(v.(string))
 	}
 
 	return output
@@ -287,8 +291,8 @@ func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatfo
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU:    utils.String(cpuResult),
-		Memory: utils.String(memResult),
+		CPU:    pointer.To(cpuResult),
+		Memory: pointer.To(memResult),
 	}
 
 	return &result

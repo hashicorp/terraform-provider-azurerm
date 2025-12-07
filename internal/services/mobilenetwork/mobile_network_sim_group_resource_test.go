@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MobileNetworkSimGroupResource struct{}
@@ -106,11 +106,11 @@ func (r MobileNetworkSimGroupResource) Exists(ctx context.Context, clients *clie
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MobileNetworkSimGroupResource) basic(data acceptance.TestData) string {
@@ -149,7 +149,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -190,7 +190,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) requiresImport(data acceptance.TestData) string {
@@ -219,7 +219,7 @@ provider "azurerm" {
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -272,7 +272,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     key = "value"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) update(data acceptance.TestData) string {
@@ -293,7 +293,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -340,7 +340,7 @@ resource "azurerm_mobile_network_sim_group" "test" {
     key = "updated"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r MobileNetworkSimGroupResource) template(data acceptance.TestData) string {

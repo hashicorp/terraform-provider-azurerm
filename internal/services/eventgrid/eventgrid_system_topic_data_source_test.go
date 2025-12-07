@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type EventGridSystemTopicDataSource struct{}
@@ -17,15 +18,31 @@ func TestAccEventGridSystemTopicDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicDataSource{}
 
+	if !features.FivePointOh() {
+		data.DataSourceTest(t, []acceptance.TestStep{
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+					check.That(data.ResourceName).Key("tags.Foo").HasValue("Bar"),
+					check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+					check.That(data.ResourceName).Key("topic_type").Exists(),
+					check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+				),
+			},
+		})
+		return
+	}
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Foo").HasValue("Bar"),
-				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("source_resource_id").Exists(),
 				check.That(data.ResourceName).Key("topic_type").Exists(),
-				check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("metric_resource_id").Exists(),
 			),
 		},
 	})

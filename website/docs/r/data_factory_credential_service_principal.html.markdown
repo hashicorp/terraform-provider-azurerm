@@ -80,7 +80,7 @@ resource "azurerm_data_factory_credential_service_principal" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Credential. Changing this forces a new resource to be created.
 
@@ -90,7 +90,7 @@ resource "azurerm_data_factory_credential_service_principal" "example" {
 
 * `service_principal_id` - (Required) The Client ID of the Service Principal.
 
-* `service_principal_key` - (Required) A `service_principal_key` block as defined below.
+* `service_principal_key` - (Optional) A `service_principal_key` block as defined below.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Credential.
 
@@ -116,11 +116,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Data Factory Credential.
-* `update` - (Defaults to 5 minutes) Used when updating the Data Factory Credential.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Credential.
+* `update` - (Defaults to 5 minutes) Used when updating the Data Factory Credential.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Data Factory Credential.
 
 ## Import
@@ -130,3 +130,9 @@ Data Factory Credentials can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_factory_credential_service_principal.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/example/credentials/credential1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01

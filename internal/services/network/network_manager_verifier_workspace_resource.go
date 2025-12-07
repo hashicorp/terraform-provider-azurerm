@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/verifierworkspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/verifierworkspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
@@ -58,7 +57,7 @@ func (ManagerVerifierWorkspaceResource) Arguments() map[string]*pluginsdk.Schema
 			),
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&ipampools.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&verifierworkspaces.NetworkManagerId{}),
 
 		"location": commonschema.Location(),
 
@@ -112,7 +111,7 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.Create(ctx, id, payload); err != nil {
+			if _, err := client.Create(ctx, id, payload, verifierworkspaces.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -143,7 +142,7 @@ func (r ManagerVerifierWorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			networkManagerId := ipampools.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID()
+			networkManagerId := verifierworkspaces.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID()
 			schema := ManagerVerifierWorkspaceResourceModel{
 				Name:             id.VerifierWorkspaceName,
 				NetworkManagerId: networkManagerId,
@@ -191,7 +190,7 @@ func (r ManagerVerifierWorkspaceResource) Update() sdk.ResourceFunc {
 				parameters.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err := client.Update(ctx, *id, parameters); err != nil {
+			if _, err := client.Update(ctx, *id, parameters, verifierworkspaces.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -210,7 +209,7 @@ func (r ManagerVerifierWorkspaceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, verifierworkspaces.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

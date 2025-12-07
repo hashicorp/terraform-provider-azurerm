@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `scopes` - (Optional) A list of scopes to which this component applies.
 
-~> **NOTE:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
+~> **Note:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
 
 * `secret` - (Optional) A `secret` block as detailed below.
 
@@ -83,7 +83,11 @@ A `secret` block supports the following:
 
 * `name` - (Required) The Secret name.
 
-* `value` - (Required) The value for this secret.
+* `value` - (Optional) The value for this secret.
+
+* `identity` - (Optional) The identity to use for accessing key vault reference. Possible values are the Resource ID of a User Assigned Managed Identity, or `System` to use the System Assigned Managed Identity.
+
+* `key_vault_secret_id` - (Optional) The Key Vault Secret ID.
 
 ## Attributes Reference
 
@@ -94,11 +98,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Dapr Component.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Dapr Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Dapr Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Dapr Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Dapr Component.
 
 ## Import
@@ -108,3 +112,9 @@ A Dapr Component for a Container App Environment can be imported using the `reso
 ```shell
 terraform import azurerm_container_app_environment_dapr_component.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/daprComponents/mydaprcomponent"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-07-01

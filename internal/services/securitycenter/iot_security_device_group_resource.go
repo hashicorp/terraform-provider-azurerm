@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -254,7 +255,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	if connectionFromIPNotAllowed := v["connection_from_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionFromIPNotAllowed) > 0 {
 		result = append(result, security.ConnectionFromIPNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(connectionFromIPNotAllowed),
-			IsEnabled:       utils.Bool(true),
+			IsEnabled:       pointer.To(true),
 		})
 	}
 
@@ -262,7 +263,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	if connectionToIPsNotAllowed := v["connection_to_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionToIPsNotAllowed) > 0 {
 		connectionToIPListNotAllowed = &security.ConnectionToIPNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(connectionToIPsNotAllowed),
-			IsEnabled:       utils.Bool(true),
+			IsEnabled:       pointer.To(true),
 		}
 	}
 	if connectionToIPListNotAllowed != nil {
@@ -273,7 +274,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	if LocalUsersNotAllowed := v["local_users_not_allowed"].(*pluginsdk.Set).List(); len(LocalUsersNotAllowed) > 0 {
 		localUserListNotAllowed = &security.LocalUserNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(LocalUsersNotAllowed),
-			IsEnabled:       utils.Bool(true),
+			IsEnabled:       pointer.To(true),
 		}
 	}
 	if localUserListNotAllowed != nil {
@@ -284,7 +285,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	if processesNotAllowed := v["processes_not_allowed"].(*pluginsdk.Set).List(); len(processesNotAllowed) > 0 {
 		processListNotAllowed = &security.ProcessNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(processesNotAllowed),
-			IsEnabled:       utils.Bool(true),
+			IsEnabled:       pointer.To(true),
 		}
 	}
 	if processListNotAllowed != nil {
@@ -318,115 +319,115 @@ func expandIotSecurityDeviceGroupTimeWindowRule(input []interface{}) (*[]securit
 		switch t {
 		case security.RuleTypeActiveConnectionsNotInAllowedRange:
 			result = append(result, security.ActiveConnectionsNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeAmqpC2DMessagesNotInAllowedRange:
 			result = append(result, security.AmqpC2DMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeMqttC2DMessagesNotInAllowedRange:
 			result = append(result, security.MqttC2DMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeHTTPC2DMessagesNotInAllowedRange:
 			result = append(result, security.HTTPC2DMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange:
 			result = append(result, security.AmqpC2DRejectedMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeMqttC2DRejectedMessagesNotInAllowedRange:
 			result = append(result, security.MqttC2DRejectedMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange:
 			result = append(result, security.HTTPC2DRejectedMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeAmqpD2CMessagesNotInAllowedRange:
 			result = append(result, security.AmqpD2CMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeMqttD2CMessagesNotInAllowedRange:
 			result = append(result, security.MqttD2CMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeHTTPD2CMessagesNotInAllowedRange:
 			result = append(result, security.HTTPD2CMessagesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeDirectMethodInvokesNotInAllowedRange:
 			result = append(result, security.DirectMethodInvokesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeFailedLocalLoginsNotInAllowedRange:
 			result = append(result, security.FailedLocalLoginsNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeFileUploadsNotInAllowedRange:
 			result = append(result, security.FileUploadsNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeQueuePurgesNotInAllowedRange:
 			result = append(result, security.QueuePurgesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeTwinUpdatesNotInAllowedRange:
 			result = append(result, security.TwinUpdatesNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		case security.RuleTypeUnauthorizedOperationsNotInAllowedRange:
 			result = append(result, security.UnauthorizedOperationsNotInAllowedRange{
-				TimeWindowSize: utils.String(duration),
-				MinThreshold:   utils.Int32(min),
-				MaxThreshold:   utils.Int32(max),
-				IsEnabled:      utils.Bool(true),
+				TimeWindowSize: pointer.To(duration),
+				MinThreshold:   pointer.To(min),
+				MaxThreshold:   pointer.To(max),
+				IsEnabled:      pointer.To(true),
 			})
 		}
 	}

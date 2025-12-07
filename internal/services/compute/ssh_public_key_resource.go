@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSshPublicKey() *pluginsdk.Resource {
@@ -90,7 +90,7 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	payload := sshpublickeys.SshPublicKeyResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -161,7 +161,7 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	payload := sshpublickeys.SshPublicKeyUpdateResource{}
 	if d.HasChange("public_key") {
 		payload.Properties = &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		}
 	}
 	if d.HasChange("tags") {

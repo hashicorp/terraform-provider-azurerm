@@ -10,7 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 )
 
 func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
@@ -31,7 +31,7 @@ func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors 
 	}
 
 	if len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 30 characers max", k))
+		return []string{}, append(errors, fmt.Errorf("%v must be 30 characters max", k))
 	}
 
 	return []string{}, []error{}

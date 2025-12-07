@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AlertProcessingRuleConditionModel struct {
@@ -457,18 +457,18 @@ func expandAlertProcessingRuleSchedule(input []AlertProcessingRuleScheduleModel)
 	var effectiveFrom, effectiveUntil *string
 
 	if v.EffectiveFrom != "" {
-		effectiveFrom = utils.String(v.EffectiveFrom)
+		effectiveFrom = pointer.To(v.EffectiveFrom)
 	}
 
 	if v.EffectiveUntil != "" {
-		effectiveUntil = utils.String(v.EffectiveUntil)
+		effectiveUntil = pointer.To(v.EffectiveUntil)
 	}
 
 	schedule := alertprocessingrules.Schedule{
 		EffectiveFrom:  effectiveFrom,
 		EffectiveUntil: effectiveUntil,
 		Recurrences:    expandAlertProcessingRuleScheduleRecurrences(v.Recurrence),
-		TimeZone:       utils.String(v.TimeZone),
+		TimeZone:       pointer.To(v.TimeZone),
 	}
 
 	return &schedule
@@ -485,10 +485,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Daily {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.DailyRecurrence{
@@ -500,10 +500,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Weekly {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.WeeklyRecurrence{
@@ -516,10 +516,10 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 	for _, item := range v.Monthly {
 		var startTime, endTime *string
 		if item.StartTime != "" {
-			startTime = utils.String(item.StartTime)
+			startTime = pointer.To(item.StartTime)
 		}
 		if item.EndTime != "" {
-			endTime = utils.String(item.EndTime)
+			endTime = pointer.To(item.EndTime)
 		}
 
 		recurrences = append(recurrences, alertprocessingrules.MonthlyRecurrence{

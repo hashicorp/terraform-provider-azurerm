@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -105,9 +106,9 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 	}
 
 	integrationRuntime := synapse.IntegrationRuntimeResource{
-		Name: utils.String(id.Name),
+		Name: pointer.To(id.Name),
 		Properties: synapse.SelfHostedIntegrationRuntime{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			Type:        synapse.TypeBasicIntegrationRuntimeTypeSelfHosted,
 		},
 	}

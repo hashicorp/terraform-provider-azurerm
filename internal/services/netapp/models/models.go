@@ -12,6 +12,8 @@ type NetAppAccountEncryption struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
@@ -19,6 +21,8 @@ type NetAppAccountEncryptionDataSourceModel struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppVolumeGroupSAPHanaVolume struct {
@@ -79,6 +83,7 @@ type NetAppVolumeGroupOracleVolume struct {
 	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
 	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
+	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
 	Zone                         string                         `tfschema:"zone"`
 	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`

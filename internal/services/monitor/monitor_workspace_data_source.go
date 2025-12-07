@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -101,11 +101,11 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var enablePublicNetWorkAccess bool
-			var location, queryEndpoint, defaultDataCollectionEndpointId, defaultDataCollectionRuleId string
+			var loc, queryEndpoint, defaultDataCollectionEndpointId, defaultDataCollectionRuleId string
 			var tag map[string]string
 
 			if model := resp.Model; model != nil {
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
@@ -129,7 +129,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			return metadata.Encode(&WorkspaceDataSourceModel{
-				Location:                        location,
+				Location:                        loc,
 				Name:                            id.AccountName,
 				PublicNetworkAccessEnabled:      enablePublicNetWorkAccess,
 				QueryEndpoint:                   queryEndpoint,

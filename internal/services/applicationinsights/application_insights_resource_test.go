@@ -208,6 +208,28 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsights_completeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "web"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdated(data, "web"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationInsights_withInternetQueryEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
@@ -391,6 +413,37 @@ resource "azurerm_application_insights" "test" {
   disable_ip_masking                    = true
   force_customer_storage_for_profiler   = true
   local_authentication_disabled         = true
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
+}
+
+func (AppInsightsResource) completeUpdated(data acceptance.TestData, applicationType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                                  = "acctestappinsights-%d"
+  location                              = azurerm_resource_group.test.location
+  resource_group_name                   = azurerm_resource_group.test.name
+  application_type                      = "%s"
+  retention_in_days                     = 60
+  sampling_percentage                   = 60
+  daily_data_cap_in_gb                  = 60
+  daily_data_cap_notifications_disabled = false
+  disable_ip_masking                    = false
+  force_customer_storage_for_profiler   = false
+  local_authentication_disabled         = false
 
   tags = {
     Hello = "World"

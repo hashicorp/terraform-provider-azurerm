@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -127,7 +128,7 @@ func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -142,7 +143,7 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 
 	vaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return utils.Bool(false), fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
+		return pointer.To(false), fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
 	}
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
@@ -150,19 +151,19 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId.ID(), name, *vaultBaseUrl, err)
 	}
 	if !ok {
-		return utils.Bool(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId.ID(), *vaultBaseUrl)
+		return pointer.To(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId.ID(), *vaultBaseUrl)
 	}
 
 	resp, err := dataPlaneClient.DeleteCertificateIssuer(ctx, *vaultBaseUrl, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (KeyVaultCertificateIssuerResource) basic(data acceptance.TestData) string {

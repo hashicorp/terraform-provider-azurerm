@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,7 +82,7 @@ func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Clie
 	iothub, err := client.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
@@ -98,11 +99,11 @@ func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Clie
 
 	for _, enrichment := range *enrichments {
 		if strings.EqualFold(*enrichment.Key, id.Name) {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (IotHubEnrichmentResource) basic(data acceptance.TestData) string {

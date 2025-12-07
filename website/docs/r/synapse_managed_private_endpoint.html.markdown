@@ -73,7 +73,7 @@ resource "azurerm_synapse_managed_private_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,13 +81,13 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Managed Private Endpoint. Changing this forces a new resource to be created.
 
--> **NOTE:** A Synapse firewall rule including local IP is needed for managing current resource.
+-> **Note:** A Synapse firewall rule including local IP is needed for managing current resource.
 
 * `target_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Synapse Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
 * `subresource_name` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
--> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
+-> **Note:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
 ## Attributes Reference
 
@@ -97,7 +97,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Managed Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Managed Private Endpoint.

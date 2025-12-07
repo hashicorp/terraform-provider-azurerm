@@ -347,8 +347,8 @@ func (r FunctionAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFun
 			return err
 		}
 
-		if helpers.PlanIsConsumption(sku) || helpers.PlanIsElastic(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
+		if helpers.PlanIsConsumption(sku) {
+			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption service plans")
 		}
 
 		return nil

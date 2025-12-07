@@ -37,7 +37,7 @@ resource "azurerm_api_management_backend" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
 
----
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below.
 
 * `credentials` - (Optional) A `credentials` block as documented below.
 
@@ -105,8 +105,8 @@ A `service_fabric_cluster` block supports the following:
 
 * `client_certificate_id` - (Optional) The client certificate resource id for the management endpoint.
 
-> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
->
+~> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
+
 * `management_endpoints` - (Required) A list of cluster management endpoints.
 
 * `max_partition_resolution_retries` - (Required) The maximum number of retries when attempting resolve the partition.
@@ -133,6 +133,44 @@ A `tls` block supports the following:
 
 ---
 
+A `circuit_breaker_rule` block supports the following:
+
+* `name` - (Required) The name of the circuit breaker rule.
+
+* `trip_duration` - (Required) Specifies the duration for which the circuit remains open before retrying, in ISO 8601 format.
+
+* `failure_condition` - (Required) A `failure_condition` block as defined below.
+
+* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests. Defaults to `false`.
+
+---
+
+A `failure_condition` block supports the following:
+
+* `interval_duration` - (Required) Specifies the time window over which failures are counted, in ISO 8601 format.
+
+* `count` - (Optional)  Specifies the number of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `10000`.
+
+* `percentage` - (Optional) Specifies the percentage of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `100`.
+
+~> **Note:** Exactly one of `percentage` or `count` must be specified.
+
+* `error_reasons` - (Optional) Specifies a list of error reasons to consider as failures.
+
+* `status_code_range` - (Optional) One or more `status_code_range` blocks as defined below.
+
+~> **Note:** At least one of `status_code_range`, and `error_reasons` must be set.
+
+---
+
+A `status_code_range` block supports the following:
+
+* `min` - (Required) Specifies the minimum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+
+* `max` - (Required) Specifies the maximum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -141,11 +179,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Backend.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Backend.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Backend.
 
 ## Import
@@ -155,3 +193,9 @@ API Management backends can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_backend.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/backends/backend1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2024-05-01

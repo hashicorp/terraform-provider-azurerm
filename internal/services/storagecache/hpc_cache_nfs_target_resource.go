@@ -18,11 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache_nfs_target` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheNFSTargetCreateOrUpdate,
 		Update: resourceHPCCacheNFSTargetCreateOrUpdate,
 		Read:   resourceHPCCacheNFSTargetRead,
@@ -133,7 +134,7 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,11 +168,11 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("verification_timer_in_seconds"); ok {
-		param.Properties.Nfs3.VerificationTimer = utils.Int64(int64(v.(int)))
+		param.Properties.Nfs3.VerificationTimer = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("write_back_timer_in_seconds"); ok {
-		param.Properties.Nfs3.WriteBackTimer = utils.Int64(int64(v.(int)))
+		param.Properties.Nfs3.WriteBackTimer = pointer.To(int64(v.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
@@ -184,7 +185,7 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -228,7 +229,7 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

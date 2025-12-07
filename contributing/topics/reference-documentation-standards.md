@@ -4,6 +4,121 @@ In an effort to keep the [provider documentation](https://registry.terraform.io/
 
 This page will grow over time, and suggestions are welcome!
 
+## Examples
+
+Each resource/data source must include an example, general guidelines for examples are as follows:
+
+- Examples MUST be functional, i.e. if a user copies the example and runs `terraform plan` no errors should be returned.
+- Generally the resource instance name should simply be `example`. E.g. `resource "azurerm_resource_group" "example"`.
+- All name arguments within the example configuration should be prefixed with `example-` (unless this is disallowed by the naming restrictions), avoid overly complex naming, and ensure any naming restrictions are followed. E.g. `name = example-server`.
+- Avoid multiple examples unless a specific configuration is particularly difficult to configure. If there are many complex examples to document, consider using the `examples` folder in the repository instead.
+- Examples don't need to include every argument, generally the same configuration as the basic acceptance test will suffice (including any resource dependencies, i.e. the configuration from the template).
+- Resource/Data Source examples should not define a `terraform` or `provider` block.
+
+## Arguments
+
+### Ordering
+
+Arguments in the documentation are expected to be ordered as follows:
+
+1. Any arguments that make up the resource's ID, with the last user specified segment (usually `name`) first. E.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`.
+2. The `location` field if present.
+3. Required arguments, sorted alphabetically.
+4. Optional arguments, sorted alphabetically.
+
+### Descriptions
+
+The following conventions apply to argument descriptions:
+
+- Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
+- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
+  - Arguments with a single allowed value: `` The only possible values is `value1`. ``
+  - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
+- If the argument has a default value, this must be documented using `` Defaults to `default1`. ``
+
+Examples:
+
+- `` * `name` - (Required) The name which should be used for this resource. ``
+- `` * `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. ``
+- `` * `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`. ``
+
+### Block Arguments
+
+Block arguments must have two entries in the documentation:
+
+1. The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``
+2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+
+Example:
+
+```
+## Arguments Reference
+
+`name` - (Required) The name which should be used for this resource.
+
+`block_argument` - (Optional) A `block_argument` as defined below.
+
+`some_other_argument` - (Optional) This argument does something magical.
+
+---
+
+A `block_argument` supports the following:
+
+* `nested_argument_1` - (Required) A nested argument that must be specified.
+
+* `nested_argument_2` - (Optional) A nested argument that may be specified.
+
+## Attributes References
+
+...
+
+```
+
+## Attributes
+
+### Ordering
+
+Attributes in the documentation are expected to be ordered as follows:
+
+1. the `id` attribute.
+2. The remaining attributes, sorted alphabetically
+
+### Descriptions
+
+Attribute descriptions should be concise, and must not include possible or default values.
+
+### Block Attributes
+
+Block attributes must have two entries in the documentation:
+
+1. The initial entry, e.g. `` * `block_attribute` - A `block_attribute` as defined below. ``
+2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+
+Example:
+
+```
+## Attributes Reference
+
+`id` - The ID of this resource.
+
+`block_attribute` - A `block_attribute` as defined below.
+
+`some_other_attribute` - This attribute returns something magical.
+
+---
+
+A `block_attribute` exports the following:
+
+* `nested_attribute_1` - A very whimsical attribute.
+
+* `nested_attribute_2` - A much more monotonous attribute.
+
+## Timeouts
+
+...
+
+```
+
 ## Notes
 
 Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.

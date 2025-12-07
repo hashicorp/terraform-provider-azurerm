@@ -252,10 +252,10 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			output.NginxDeploymentId = deployID.ID()
 
 			if prop := result.Model.Properties; prop != nil {
-				output.RootFile = pointer.ToString(prop.RootFile)
+				output.RootFile = pointer.From(prop.RootFile)
 
 				if prop.Package != nil && prop.Package.Data != nil {
-					output.PackageData = pointer.ToString(prop.Package.Data)
+					output.PackageData = pointer.From(prop.Package.Data)
 				}
 
 				if files := prop.Files; files != nil {
@@ -263,8 +263,8 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					for _, file := range *files {
 						if pointer.From(file.Content) != "" {
 							configs = append(configs, ConfigFile{
-								Content:     pointer.ToString(file.Content),
-								VirtualPath: pointer.ToString(file.VirtualPath),
+								Content:     pointer.From(file.Content),
+								VirtualPath: pointer.From(file.VirtualPath),
 							})
 						}
 					}
@@ -277,12 +277,12 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					configs := []ProtectedFile{}
 					for _, file := range *files {
 						config := ProtectedFile{
-							VirtualPath: pointer.ToString(file.VirtualPath),
-							ContentHash: pointer.ToString(file.ContentHash),
+							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
 						}
 						// GET returns protected files without content, so fill in from state
 						for _, protectedFile := range output.ProtectedFile {
-							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
+							if protectedFile.VirtualPath == pointer.From(file.VirtualPath) {
 								config.Content = protectedFile.Content
 								break
 							}

@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
@@ -95,7 +95,7 @@ func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, me
 
 	parameters := privatelinkscopedresources.ScopedResource{
 		Properties: &privatelinkscopedresources.ScopedResourceProperties{
-			LinkedResourceId: utils.String(d.Get("linked_resource_id").(string)),
+			LinkedResourceId: pointer.To(d.Get("linked_resource_id").(string)),
 		},
 	}
 

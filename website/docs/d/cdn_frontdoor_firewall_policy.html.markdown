@@ -19,7 +19,7 @@ data "azurerm_cdn_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `js_challenge_cookie_expiration_in_minutes` - The Front Door Firewall Policy JavaScript challenge cookie lifetime in minutes.
 
+* `captcha_cookie_expiration_in_minutes` - The Front Door Firewall Policy Captcha cookie lifetime in minutes.
+
 * `mode` - The Front Door Firewall Policy mode.
 
 * `redirect_url` - The redirect URL for the client.
@@ -47,6 +49,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.

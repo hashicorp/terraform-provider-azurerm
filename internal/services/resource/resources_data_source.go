@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -44,7 +44,7 @@ func dataSourceResources() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"required_tags": tags.Schema(),
+			"required_tags": commonschema.Tags(),
 
 			"resources": {
 				Type:     pluginsdk.TypeList,
@@ -68,7 +68,7 @@ func dataSourceResources() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"location": commonschema.LocationComputed(),
-						"tags":     tags.SchemaDataSource(),
+						"tags":     commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -77,7 +77,7 @@ func dataSourceResources() *pluginsdk.Resource {
 }
 
 func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.ResourcesClient
+	client := meta.(*clients.Client).Resource.LegacyResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -87,7 +87,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	requiredTags := d.Get("required_tags").(map[string]interface{})
 
 	if resourceGroupName == "" && resourceName == "" && resourceType == "" {
-		return fmt.Errorf("At least one of `name`, `resource_group_name` or `type` must be specified")
+		return errors.New("at least one of `name`, `resource_group_name` or `type` must be specified")
 	}
 
 	var filter string

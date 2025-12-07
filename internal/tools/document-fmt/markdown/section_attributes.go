@@ -1,0 +1,41 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package markdown
+
+import (
+	"regexp"
+	"strings"
+)
+
+type AttributesSection struct {
+	heading Heading
+	content []string
+}
+
+var _ SectionWithTemplate = &AttributesSection{}
+
+func (s *AttributesSection) Match(line string) bool {
+	return regexp.MustCompile(`#+(\s)*attribute.*`).MatchString(strings.ToLower(line))
+}
+
+func (s *AttributesSection) SetHeading(line string) {
+	s.heading = NewHeading(line)
+}
+
+func (s *AttributesSection) GetHeading() Heading {
+	return s.heading
+}
+
+func (s *AttributesSection) SetContent(content []string) {
+	s.content = content
+}
+
+func (s *AttributesSection) GetContent() []string {
+	return s.content
+}
+
+func (s *AttributesSection) Template() string {
+	// TODO implement me
+	panic("implement me")
+}

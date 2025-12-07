@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -239,8 +240,8 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	return &datafactory.AzureKeyVaultSecretReference{
 		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }
@@ -505,7 +506,25 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 
 	props := compression[0].(map[string]interface{})
 	return &datafactory.DatasetCompression{
-		Type:  props["type"].(string),
+		Type:  expandCompressionType(props["type"].(string)),
 		Level: props["level"].(string),
 	}
+}
+
+// API expects character case for some compression type to be lower, otherwise they won't take effect
+func expandCompressionType(inputType string) string {
+	compressionTypes := []string{
+		TypeBasicDatasetCompressionTypeBZip2,
+		TypeBasicDatasetCompressionTypeDeflate,
+		TypeBasicDatasetCompressionTypeGZip,
+		TypeBasicDatasetCompressionTypeTar,
+	}
+
+	for _, compcompressionType := range compressionTypes {
+		if strings.EqualFold(compcompressionType, inputType) {
+			return strings.ToLower(inputType)
+		}
+	}
+
+	return inputType
 }

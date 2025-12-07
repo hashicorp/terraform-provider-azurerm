@@ -12,13 +12,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -240,31 +239,6 @@ func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing
 			Config: r.updateTagWithUserAssignedDefaultIdentity(data, "Sandbox"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("There is no more available values for `minimal_tls_version` to test.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
-	r := CosmosDBAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMinimalTlsVersion(data, cosmosdb.MinimalTlsVersionTls),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicMinimalTlsVersion(data, cosmosdb.MinimalTlsVersionTlsOneOne),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls11"),
 			),
 		},
 		data.ImportStep(),
@@ -1313,13 +1287,6 @@ func TestAccCosmosDBAccount_mongoVersionUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basicMongoDBVersion36(data, cosmosdb.DefaultConsistencyLevelSession),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1515,37 +1482,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
-}
-
-func (CosmosDBAccountResource) basicMinimalTlsVersion(data acceptance.TestData, tls cosmosdb.MinimalTlsVersion) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
-  minimal_tls_version = "%s"
-
-  consistency_policy {
-    consistency_level = "Eventual"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(tls))
 }
 
 func (CosmosDBAccountResource) basicMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
@@ -2653,7 +2589,7 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency cosmosd
 	return acceptance.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("name").Exists(),
 		check.That(data.ResourceName).Key("resource_group_name").Exists(),
-		check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+		check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 		check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 		check.That(data.ResourceName).Key("offer_type").HasValue(string(cosmosdb.DatabaseAccountOfferTypeStandard)),
 		check.That(data.ResourceName).Key("consistency_policy.0.consistency_level").HasValue(string(consistency)),
@@ -2768,7 +2704,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "List",
@@ -2914,7 +2850,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "List",
@@ -3064,7 +3000,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "List",
@@ -3217,7 +3153,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "List",

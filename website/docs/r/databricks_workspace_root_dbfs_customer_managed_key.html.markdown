@@ -115,7 +115,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 * [Databricks Workspace with Root Databricks File System Customer Managed Keys in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs-cross-subscription)
 * [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Root Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -137,11 +137,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Root DBFS Customer Managed Key for this Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Root DBFS Customer Managed Key for this Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Root DBFS Customer Managed Key for this Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Root DBFS Customer Managed Key for this Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Root DBFS Customer Managed Key for this Databricks Workspace.
 
 ## Import
@@ -151,3 +151,9 @@ Databricks Workspace Root DBFS Customer Managed Key can be imported using the `r
 ```shell
 terraform import azurerm_databricks_workspace_root_dbfs_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks` - 2024-05-01

@@ -186,7 +186,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				config.Description = pointer.ToString(prop.Description)
+				config.Description = pointer.From(prop.Description)
 				config.RoleType = string(prop.RoleType)
 				config.RoleName = pointer.From(prop.RoleName)
 

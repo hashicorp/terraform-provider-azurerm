@@ -22,13 +22,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,20 +66,32 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			// Required
 			"admin_password": {
 				Type:             pluginsdk.TypeString,
-				Required:         true,
+				Optional:         true,
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     computeValidate.WindowsAdminPassword,
+				RequiredWith: []string{
+					"admin_username",
+				},
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
+				ValidateFunc: computeValidate.WindowsAdminPassword,
 			},
 
 			"admin_username": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				RequiredWith: []string{
+					"admin_password",
+				},
+				ExactlyOneOf: []string{
+					"admin_username",
+					"os_managed_disk_id",
+				},
 				ValidateFunc: computeValidate.WindowsAdminUsername,
 			},
 
@@ -95,21 +107,37 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"os_disk": virtualMachineOSDiskSchema(),
 
+			"os_managed_disk_id": {
+				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
+				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
+				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
+				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateManagedDiskID,
+				ExactlyOneOf: []string{
+					"os_managed_disk_id",
+					"source_image_id",
+					"source_image_reference",
+				},
+			},
+
 			"size": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Optional
 			"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
-			"additional_unattend_content": additionalUnattendContentSchema(),
+			"additional_unattend_content": additionalUnattendContentSchemaVM(),
 
 			"allow_extension_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 
 			"availability_set_id": {
@@ -133,6 +161,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"capacity_reservation_group_id": {
@@ -157,9 +188,21 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 
 				ValidateFunc: computeValidate.WindowsComputerNameFull,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
-			"custom_data": base64.OptionalSchema(true),
+			"custom_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
+			},
 
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
@@ -197,12 +240,14 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_updates": {
+			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true,
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
-				Default:  true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"encryption_at_host_enabled": {
@@ -259,28 +304,37 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"patch_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
 					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform),
 					string(virtualmachines.WindowsVMGuestPatchModeManual),
 				}, false),
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"patch_assessment_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(virtualmachines.WindowsPatchAssessmentModeImageDefault),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform),
 					string(virtualmachines.WindowsPatchAssessmentModeImageDefault),
 				}, false),
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"hotpatching_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"plan": planSchema(),
@@ -299,8 +353,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"provision_vm_agent": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: true,
 				ForceNew: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"proximity_placement_group_id": {
@@ -323,9 +380,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
 					string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingNever),
 				}, false),
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
-			"secret": windowsSecretSchema(),
+			"secret": windowsSecretSchemaVM(),
 
 			"secure_boot_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -347,12 +407,13 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageVersionID,
 				),
 				ExactlyOneOf: []string{
+					"os_managed_disk_id",
 					"source_image_id",
 					"source_image_reference",
 				},
 			},
 
-			"source_image_reference": sourceImageReferenceSchema(true),
+			"source_image_reference": sourceImageReferenceSchemaVM(),
 
 			"tags": commonschema.Tags(),
 
@@ -397,7 +458,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"winrm_listener": winRmListenerSchema(),
+			"winrm_listener": winRmListenerSchemaVM(),
 
 			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
@@ -442,6 +503,31 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
 		}
+
+		resource.Schema["enable_automatic_updates"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+			DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+				// Suppress diff if replacement property is used and the values are the same
+				oldVal := d.Get("enable_automatic_updates").(bool)
+				newVal := d.Get("automatic_updates_enabled").(bool)
+
+				return oldVal == newVal
+			},
+			DiffSuppressOnRefresh: true,
+			Deprecated:            "this property has been deprecated in favour of automatic_updates_enabled and will be removed in 5.0 of the provider.",
+			ConflictsWith: []string{
+				"automatic_updates_enabled",
+				"os_managed_disk_id",
+			},
+		}
+
+		resource.Schema["automatic_updates_enabled"].ConflictsWith = []string{
+			"enable_automatic_updates",
+			"os_managed_disk_id",
+		}
 	}
 
 	return resource
@@ -475,24 +561,13 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
-	adminPassword := d.Get("admin_password").(string)
-	adminUsername := d.Get("admin_username").(string)
-	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+	allowExtensionOperations := true
+	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
+		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
+	}
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
-
-	var computerName string
-	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
-		computerName = v.(string)
-	} else {
-		_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
-		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
-		}
-		computerName = id.VirtualMachineName
-	}
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 
 	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -503,7 +578,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	plan := expandPlan(planRaw)
 
 	priority := virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))
-	provisionVMAgent := d.Get("provision_vm_agent").(bool)
+
 	patchMode := d.Get("patch_mode").(string)
 	assessmentMode := d.Get("patch_assessment_mode").(string)
 	hotPatch := d.Get("hotpatching_enabled").(bool)
@@ -513,22 +588,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
-	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
-	if err != nil {
-		return fmt.Errorf("expanding `os_disk`: %+v", err)
-	}
-	securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+	managedDiskIdRaw := d.Get("os_managed_disk_id").(string)
+	// Note: The API fails if OsProfile is anything but nil with CreateOption = "Attach"
+	osDiskIsImported := managedDiskIdRaw != ""
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
-
-	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
-	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-
-	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
-	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
@@ -543,26 +608,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			HardwareProfile: &virtualmachines.HardwareProfile{
 				VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(size)),
 			},
-			OsProfile: &virtualmachines.OSProfile{
-				AdminPassword:            pointer.To(adminPassword),
-				AdminUsername:            pointer.To(adminUsername),
-				ComputerName:             pointer.To(computerName),
-				AllowExtensionOperations: pointer.To(allowExtensionOperations),
-				WindowsConfiguration: &virtualmachines.WindowsConfiguration{
-					ProvisionVMAgent:       pointer.To(provisionVMAgent),
-					EnableAutomaticUpdates: pointer.To(enableAutomaticUpdates),
-					WinRM:                  winRmListeners,
-				},
-				Secrets: secrets,
-			},
 			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
 			},
 			Priority: pointer.To(priority),
 			StorageProfile: &virtualmachines.StorageProfile{
-				ImageReference: sourceImageReference,
-				OsDisk:         osDisk,
-
 				// Data Disks are instead handled via the Association resource - as such we can send an empty value here
 				// but for Updates this'll need to be nil, else any associations will be overwritten
 				DataDisks: &[]virtualmachines.DataDisk{},
@@ -575,84 +625,157 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		Tags: tags.Expand(t),
 	}
+	osDiskRaw := d.Get("os_disk").([]interface{})
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
+	securityEncryptionType := ""
+	if !osDiskIsImported {
+		securityEncryptionType = osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+		var computerName string
+		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
+			computerName = v.(string)
+		} else {
+			_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
+			if len(errs) > 0 {
+				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
+			}
+			computerName = id.VirtualMachineName
+		}
+
+		provisionVMAgent := true
+		if p, ok := d.GetRawConfig().AsValueMap()["provision_vm_agent"]; ok && !p.IsNull() {
+			provisionVMAgent = d.Get("provision_vm_agent").(bool)
+		}
+
+		if !provisionVMAgent && allowExtensionOperations {
+			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		autoUpdatesEnabled := true
+
+		if !d.GetRawConfig().AsValueMap()["automatic_updates_enabled"].IsNull() {
+			autoUpdatesEnabled = d.Get("automatic_updates_enabled").(bool)
+		}
+
+		if !features.FivePointOh() {
+			// reconcile the 2 bools...
+			if !d.GetRawConfig().AsValueMap()["enable_automatic_updates"].IsNull() {
+				autoUpdatesEnabled = d.Get("enable_automatic_updates").(bool)
+			}
+		}
+
+		params.Properties.OsProfile = &virtualmachines.OSProfile{
+			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
+			ComputerName:             pointer.To(computerName),
+			AllowExtensionOperations: pointer.To(allowExtensionOperations),
+			WindowsConfiguration: &virtualmachines.WindowsConfiguration{
+				ProvisionVMAgent:       pointer.To(provisionVMAgent),
+				EnableAutomaticUpdates: pointer.To(autoUpdatesEnabled),
+				WinRM:                  expandWinRMListener(d.Get("winrm_listener").(*pluginsdk.Set).List()),
+			},
+			Secrets: secrets,
+		}
+
+		if len(additionalUnattendContentRaw) > 0 {
+			params.Properties.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+		}
+		sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+		sourceImageId := d.Get("source_image_id").(string)
+		if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+			params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		}
+
+		isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
+		// Validate VM Guest Patch Mode configuration
+		if patchMode == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		}
+
+		if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		if isHotpatchImage && patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
+		}
+
+		// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
+		// and if the image reference is using one of the following skus:
+		// 2022-datacenter-azure-edition-core, 2022-datacenter-azure-edition-core-smalldisk, 2022-datacenter-azure-edition-hotpatch, 2022-datacenter-azure-edition-hotpatch-smalldisk,
+		// 2025-datacenter-azure-edition, 2025-datacenter-azure-edition-smalldisk, 2025-datacenter-azure-edition-core, 2025-datacenter-azure-edition-core-smalldisk
+		if hotPatch {
+			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+				return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
+			}
+
+			if !provisionVMAgent {
+				return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
+			}
+
+			if !isHotpatchImage {
+				if sourceImageId != "" {
+					return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
+				}
+
+				return fmt.Errorf("%q is currently only supported on %q, %q, %q, %q, %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk", "2025-datacenter-azure-edition", "2025-datacenter-azure-edition-smalldisk", "2025-datacenter-azure-edition-core", "2025-datacenter-azure-edition-core-smalldisk")
+			}
+		}
+
+		params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
+			PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
+			EnableHotpatching: pointer.To(hotPatch),
+			AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
+		}
+
+		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
+			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+			}
+
+			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
+		}
+
+		if v, ok := d.GetOk("reboot_setting"); ok {
+			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
+				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+			}
+
+			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
+		}
+
+		if v, ok := d.GetOk("custom_data"); ok {
+			params.Properties.OsProfile.CustomData = pointer.To(v.(string))
+		}
+
+		if v, ok := d.GetOk("timezone"); ok {
+			params.Properties.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
+		}
+	} else {
+		diskId, err := commonids.ParseManagedDiskID(managedDiskIdRaw)
+		if err != nil {
+			return err
+		}
+
+		osDisk.ManagedDisk.Id = pointer.To(diskId.ID())
+		osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
+	}
+
+	params.Properties.StorageProfile.OsDisk = osDisk
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
 		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
-	}
-
-	if !provisionVMAgent && allowExtensionOperations {
-		return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
-	}
-
-	if len(additionalUnattendContentRaw) > 0 {
-		params.Properties.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
-	}
-
-	isHotpatchImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-
-	// Validate VM Guest Patch Mode configuration
-	if patchMode == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
-		return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
-	}
-
-	if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-		return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
-	}
-
-	if isHotpatchImage && patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-		return fmt.Errorf("%q must always be set to %q when %q points to a hotpatch enabled image", "patch_mode", "AutomaticByPlatform", "source_image_reference")
-	}
-
-	// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
-	// and if the image reference is using one of the following skus:
-	// 2022-datacenter-azure-edition-core, 2022-datacenter-azure-edition-core-smalldisk, 2022-datacenter-azure-edition-hotpatch, 2022-datacenter-azure-edition-hotpatch-smalldisk,
-	// 2025-datacenter-azure-edition, 2025-datacenter-azure-edition-smalldisk, 2025-datacenter-azure-edition-core, 2025-datacenter-azure-edition-core-smalldisk
-	if hotPatch {
-		if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
-		}
-
-		if !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "provisionVMAgent", "false")
-		}
-
-		if !isHotpatchImage {
-			if sourceImageId != "" {
-				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
-			}
-
-			return fmt.Errorf("%q is currently only supported on %q, %q, %q, %q, %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk", "2025-datacenter-azure-edition", "2025-datacenter-azure-edition-smalldisk", "2025-datacenter-azure-edition-core", "2025-datacenter-azure-edition-core-smalldisk")
-		}
-	}
-
-	params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
-		PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
-		EnableHotpatching: pointer.To(hotPatch),
-		AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
-	}
-
-	if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
-		if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
-		}
-
-		if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
-		}
-
-		params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
-	}
-
-	if v, ok := d.GetOk("reboot_setting"); ok {
-		if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
-		}
-
-		if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
-		}
-
-		params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -667,10 +790,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				Id: pointer.To(v.(string)),
 			},
 		}
-	}
-
-	if v, ok := d.GetOk("custom_data"); ok {
-		params.Properties.OsProfile.CustomData = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
@@ -799,10 +918,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			OsImageNotificationProfile:   osImageNotificationProfile,
 			TerminateNotificationProfile: terminateNotificationProfile,
 		}
-	}
-
-	if v, ok := d.GetOk("timezone"); ok {
-		params.Properties.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("user_data"); ok {
@@ -960,7 +1075,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 						return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 					}
 
-					d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
+					if !features.FivePointOh() {
+						d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
@@ -1018,10 +1136,19 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				if err != nil {
 					return fmt.Errorf("flattening `os_disk`: %+v", err)
 				}
+
 				if err := d.Set("os_disk", flattenedOSDisk); err != nil {
 					return fmt.Errorf("settings `os_disk`: %+v", err)
 				}
-
+				osManagedDiskId := ""
+				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
+					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					if err != nil {
+						return err
+					}
+					osManagedDiskId = osDiskId.ID()
+				}
+				d.Set("os_managed_disk_id", osManagedDiskId)
 				var storageImageId string
 				if profile.ImageReference != nil && profile.ImageReference.Id != nil {
 					storageImageId = *profile.ImageReference.Id
@@ -1411,6 +1538,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
+		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) != "" {
+			osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 		}
 
 		if update.Properties.StorageProfile == nil {

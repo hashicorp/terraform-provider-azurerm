@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
@@ -177,7 +177,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("stamp_id"); ok {
-		parameters.Properties.StampId = utils.String(v.(string))
+		parameters.Properties.StampId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -296,7 +296,7 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.Networ
 
 	result := dedicatedhsms.NetworkProfile{
 		Subnet: &dedicatedhsms.ApiEntityReference{
-			Id: utils.String(v["subnet_id"].(string)),
+			Id: pointer.To(v["subnet_id"].(string)),
 		},
 		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*pluginsdk.Set).List()),
 	}
@@ -310,7 +310,7 @@ func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *
 	for _, item := range input {
 		if item != nil {
 			results = append(results, dedicatedhsms.NetworkInterface{
-				PrivateIPAddress: utils.String(item.(string)),
+				PrivateIPAddress: pointer.To(item.(string)),
 			})
 		}
 	}

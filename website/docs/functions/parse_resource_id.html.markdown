@@ -8,13 +8,11 @@ description: |-
 
 # Function: parse_resource_id
 
-~> Provider-defined functions are supported in Terraform 1.8 and later, and are available from version 4.0 of the provider.
-
-~> **NOTE:** This function is also available during the opt-in beta for 4.0, available from v3.114.0. See the [beta opt-in guide](website/docs/guides/4.0-beta.html.markdown) for more information.
+~> **Note:** Provider-defined functions are supported in Terraform 1.8 and later, and are available from version 4.0 of the provider.
 
 Takes an Azure Resource ID and splits it into its component parts. 
 
-~> **NOTE:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result. 
+~> **Note:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result. 
 
 ## Example Usage
 

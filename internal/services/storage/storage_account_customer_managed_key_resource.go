@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,8 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_customer_managed_key -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -30,10 +32,11 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Delete: resourceStorageAccountCustomerManagedKeyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -166,7 +169,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			}
 		}
 		if !softDeleteEnabled || !purgeProtectionEnabled {
-			return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
+			return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", keyVaultID)
 		}
 
 		keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
@@ -187,7 +190,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyVersion = ""
 			keyVaultURI = keyId.BaseUri()
 		} else {
-			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", managedHSMKeyId)
 		}
 	}
 
@@ -199,33 +202,37 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			Encryption: &storageaccounts.Encryption{
 				Services: &storageaccounts.EncryptionServices{
 					Blob: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 					File: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 				},
 				Identity: &storageaccounts.EncryptionIdentity{
-					UserAssignedIdentity: utils.String(userAssignedIdentity),
+					UserAssignedIdentity: pointer.To(userAssignedIdentity),
 				},
 				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 				Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-					Keyname:     utils.String(keyName),
-					Keyversion:  utils.String(keyVersion),
-					Keyvaulturi: utils.String(keyVaultURI),
+					Keyname:     pointer.To(keyName),
+					Keyversion:  pointer.To(keyVersion),
+					Keyvaulturi: pointer.To(keyVaultURI),
 				},
 			},
 		},
 	}
 
 	if federatedIdentityClientID != "" {
-		payload.Properties.Encryption.Identity.FederatedIdentityClientId = utils.String(federatedIdentityClientID)
+		payload.Properties.Encryption.Identity.FederatedIdentityClientId = pointer.To(federatedIdentityClientID)
 	}
 	if _, err = storageClient.Update(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+		return err
+	}
+
 	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
@@ -296,7 +303,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return nil
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
 func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -331,10 +338,10 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 			Encryption: &storageaccounts.Encryption{
 				Services: &storageaccounts.EncryptionServices{
 					Blob: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 					File: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 				},
 				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointStorage),

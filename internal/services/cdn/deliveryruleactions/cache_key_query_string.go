@@ -4,12 +4,12 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func CacheKeyQueryString() *pluginsdk.Resource {
@@ -43,17 +43,17 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheKeyQueryString,
 			Parameters: &cdn.CacheKeyQueryStringActionParameters{
-				OdataType:           utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
+				OdataType:           pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
 				QueryStringBehavior: cdn.QueryStringBehavior(item["behavior"].(string)),
 			},
 		}
 
 		if parameters := item["parameters"].(string); parameters == "" {
 			if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.QueryStringBehaviorInclude || behavior == cdn.QueryStringBehaviorExclude {
-				return nil, fmt.Errorf("Parameters can not be empty if the behaviour is either Include or Exclude.")
+				return nil, errors.New("parameters can not be empty if the behaviour is either Include or Exclude")
 			}
 		} else {
-			cacheKeyQueryStringAction.Parameters.QueryParameters = utils.String(parameters)
+			cacheKeyQueryStringAction.Parameters.QueryParameters = pointer.To(parameters)
 		}
 
 		output = append(output, cacheKeyQueryStringAction)
@@ -65,7 +65,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleCacheKeyQueryStringAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule cache key query string action!")
+		return nil, errors.New("expected a delivery rule cache key query string action")
 	}
 
 	behaviour := ""

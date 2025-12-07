@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubDPSCertificateResource struct{}
@@ -94,12 +94,12 @@ func (t IotHubDPSCertificateResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
+	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
 	if err != nil {
 		return nil, fmt.Errorf("reading IotHuB DPS Certificate (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (IotHubDPSCertificateResource) basic(data acceptance.TestData) string {

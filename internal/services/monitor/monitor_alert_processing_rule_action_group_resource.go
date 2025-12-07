@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AlertProcessingRuleActionGroupModel struct {
@@ -91,8 +91,8 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 						},
 					},
 					Conditions:  expandAlertProcessingRuleConditions(model.Condition),
-					Description: utils.String(model.Description),
-					Enabled:     utils.Bool(model.Enabled),
+					Description: pointer.To(model.Description),
+					Enabled:     pointer.To(model.Enabled),
 					Schedule:    expandAlertProcessingRuleSchedule(model.Schedule),
 					Scopes:      model.Scopes,
 				},
@@ -151,11 +151,11 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				model.Properties.Description = utils.String(resourceModel.Description)
+				model.Properties.Description = pointer.To(resourceModel.Description)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				model.Properties.Enabled = utils.Bool(resourceModel.Enabled)
+				model.Properties.Enabled = pointer.To(resourceModel.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("schedule") {

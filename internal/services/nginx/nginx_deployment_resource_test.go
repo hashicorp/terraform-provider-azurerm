@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DeploymentResource struct{}
@@ -29,7 +29,7 @@ func (a DeploymentResource) Exists(ctx context.Context, client *clients.Client, 
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Deployment %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccNginxDeployment_basic(t *testing.T) {
@@ -520,6 +520,36 @@ resource "azurerm_nginx_deployment" "test" {
   email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) basicNginxAppProtect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  web_application_firewall {
+    activation_state_enabled = true
+  }
+
+  capacity = 20
+
+  email = "test@test.com"
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a DeploymentResource) template(data acceptance.TestData) string {

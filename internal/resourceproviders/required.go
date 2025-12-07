@@ -179,7 +179,6 @@ func Legacy() ResourceProviders {
 		"Microsoft.Management":              {},
 		"Microsoft.Maps":                    {},
 		"Microsoft.MarketplaceOrdering":     {},
-		"Microsoft.Media":                   {},
 		"Microsoft.MixedReality":            {},
 		"Microsoft.Network":                 {},
 		"Microsoft.NotificationHubs":        {},

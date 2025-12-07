@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -19,7 +20,6 @@ import (
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoDatabase() *pluginsdk.Resource {
@@ -108,7 +108,7 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	databaseProperties := expandKustoDatabaseProperties(d)
 
 	readWriteDatabase := databases.ReadWriteDatabase{
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: databaseProperties,
 	}
 
@@ -188,11 +188,11 @@ func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *databases.ReadWri
 	databaseProperties := &databases.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {
-		databaseProperties.SoftDeletePeriod = utils.String(softDeletePeriod.(string))
+		databaseProperties.SoftDeletePeriod = pointer.To(softDeletePeriod.(string))
 	}
 
 	if hotCachePeriod, ok := d.GetOk("hot_cache_period"); ok {
-		databaseProperties.HotCachePeriod = utils.String(hotCachePeriod.(string))
+		databaseProperties.HotCachePeriod = pointer.To(hotCachePeriod.(string))
 	}
 
 	return databaseProperties

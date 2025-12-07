@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,13 +79,13 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_update(t *testing.T) {
 }
 
 func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(state.ID)
+	id, err := managedprivateendpointmodels.ParseManagedPrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Dashboard.ManagedPrivateEndpointsClient
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.ManagedPrivateEndpointsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -166,6 +166,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "sub.example.com"
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -188,6 +190,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "sub.my-domain.com"
 }
 `, template, data.RandomIntOfLength(8))
 }

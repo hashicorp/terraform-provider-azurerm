@@ -9,9 +9,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"errors"
 	"hash"
+
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type macData struct {
@@ -26,12 +30,103 @@ type digestInfo struct {
 	Digest    []byte
 }
 
+// PBMAC1 parameters structure from RFC 8018
+// When using PBMAC1, the MAC parameters are derived from the algorithm's Parameters field
+// and the macData.MacSalt and macData.Iterations fields are ignored.
+type pbmac1Params struct {
+	Kdf    pkix.AlgorithmIdentifier
+	MacAlg pkix.AlgorithmIdentifier
+}
+
 var (
 	oidSHA1   = asn1.ObjectIdentifier([]int{1, 3, 14, 3, 2, 26})
 	oidSHA256 = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 2, 1})
+	oidSHA512 = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 2, 3})
+	oidPBMAC1 = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 5, 14})
 )
 
+// doPBMAC1 handles PBMAC1 MAC computation using parameters from Algorithm.Parameters
+// PBMAC1 (RFC 8018) uses PBKDF2 for key derivation and supports various HMAC algorithms.
+// Unlike traditional PKCS#12 MAC algorithms, PBMAC1 gets all its parameters from
+// the Algorithm.Parameters field, ignoring macData.MacSalt and macData.Iterations.
+func doPBMAC1(algorithm pkix.AlgorithmIdentifier, message, password []byte) ([]byte, error) {
+	var params pbmac1Params
+	if err := unmarshal(algorithm.Parameters.FullBytes, &params); err != nil {
+		return nil, err
+	}
+
+	// Only PBKDF2 is supported as KDF
+	if !params.Kdf.Algorithm.Equal(oidPBKDF2) {
+		return nil, NotImplementedError("PBMAC1 KDF algorithm " + params.Kdf.Algorithm.String() + " is not supported")
+	}
+
+	var kdfParams pbkdf2Params
+	if err := unmarshal(params.Kdf.Parameters.FullBytes, &kdfParams); err != nil {
+		return nil, err
+	}
+
+	if kdfParams.Salt.Tag != asn1.TagOctetString {
+		return nil, NotImplementedError("only octet string salts are supported for PBMAC1/PBKDF2")
+	}
+
+	// Determine PRF function for PBKDF2
+	var prf func() hash.Hash
+	switch {
+	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA256):
+		prf = sha256.New
+	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA512):
+		prf = sha512.New
+	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA1):
+		prf = sha1.New
+	case kdfParams.Prf.Algorithm == nil:
+		// Algorithm not specified; defaults to SHA1 according to ASN1 definition
+		prf = sha1.New
+	default:
+		return nil, NotImplementedError("PBMAC1 PRF " + kdfParams.Prf.Algorithm.String() + " is not supported")
+	}
+
+	// Determine MAC algorithm
+	var hFn func() hash.Hash
+	switch {
+	case params.MacAlg.Algorithm.Equal(oidHmacWithSHA1):
+		hFn = sha1.New
+	case params.MacAlg.Algorithm.Equal(oidHmacWithSHA256):
+		hFn = sha256.New
+	case params.MacAlg.Algorithm.Equal(oidHmacWithSHA512):
+		hFn = sha512.New
+	default:
+		return nil, NotImplementedError("PBMAC1 MAC algorithm " + params.MacAlg.Algorithm.String() + " is not supported")
+	}
+
+	// KeyLength is mandatory in RFC 9579
+	if kdfParams.KeyLength <= 0 {
+		return nil, errors.New("pkcs12: PBMAC1 requires explicit KeyLength parameter in PBKDF2 parameters")
+	}
+	keyLen := kdfParams.KeyLength
+
+	// Derive key using PBKDF2
+	key := pbkdf2.Key(password, kdfParams.Salt.Bytes, kdfParams.Iterations, keyLen, prf)
+
+	// Compute HMAC
+	mac := hmac.New(hFn, key)
+	mac.Write(message)
+	return mac.Sum(nil), nil
+}
+
 func doMac(macData *macData, message, password []byte) ([]byte, error) {
+	// Handle PBMAC1 separately - it uses its own parameters structure from Algorithm.Parameters
+	// and ignores macData.MacSalt and macData.Iterations fields
+	if macData.Mac.Algorithm.Algorithm.Equal(oidPBMAC1) {
+		// PBMAC1 expects UTF-8 passwords (for compatibility; see Erratum 7974), but
+		// PKCS#12 passwords are BMP strings, so we convert the BMP string back to UTF-8
+		originalPassword, err := decodeBMPString(password)
+		if err != nil {
+			return nil, err
+		}
+		utf8Password := []byte(originalPassword)
+		return doPBMAC1(macData.Mac.Algorithm, message, utf8Password)
+	}
+
 	var hFn func() hash.Hash
 	var key []byte
 	switch {
@@ -41,8 +136,11 @@ func doMac(macData *macData, message, password []byte) ([]byte, error) {
 	case macData.Mac.Algorithm.Algorithm.Equal(oidSHA256):
 		hFn = sha256.New
 		key = pbkdf(sha256Sum, 32, 64, macData.MacSalt, password, macData.Iterations, 3, 32)
+	case macData.Mac.Algorithm.Algorithm.Equal(oidSHA512):
+		hFn = sha512.New
+		key = pbkdf(sha512Sum, 64, 128, macData.MacSalt, password, macData.Iterations, 3, 64)
 	default:
-		return nil, NotImplementedError("unknown digest algorithm: " + macData.Mac.Algorithm.Algorithm.String())
+		return nil, NotImplementedError("MAC digest algorithm not supported: " + macData.Mac.Algorithm.Algorithm.String())
 	}
 
 	mac := hmac.New(hFn, key)

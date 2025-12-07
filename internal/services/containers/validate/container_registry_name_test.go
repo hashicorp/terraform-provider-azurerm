@@ -53,6 +53,10 @@ func TestAccContainerRegistryName_validation(t *testing.T) {
 		},
 		{
 			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd3324120",
+			ErrCount: 0,
+		},
+		{
+			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd33241201",
 			ErrCount: 1,
 		},
 	}

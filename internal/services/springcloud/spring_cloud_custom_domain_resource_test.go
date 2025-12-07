@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudCustomDomainResource struct{}
@@ -124,7 +124,7 @@ func (r SpringCloudCustomDomainResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("reading Spring Cloud Custom Domain %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (r SpringCloudCustomDomainResource) basic(data acceptance.TestData) string {

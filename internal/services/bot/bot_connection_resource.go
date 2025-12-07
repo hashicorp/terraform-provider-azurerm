@@ -220,13 +220,13 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
-			ServiceProviderDisplayName: utils.String(d.Get("service_provider_name").(string)),
-			ClientID:                   utils.String(d.Get("client_id").(string)),
-			ClientSecret:               utils.String(d.Get("client_secret").(string)),
-			Scopes:                     utils.String(d.Get("scopes").(string)),
+			ServiceProviderDisplayName: pointer.To(d.Get("service_provider_name").(string)),
+			ClientID:                   pointer.To(d.Get("client_id").(string)),
+			ClientSecret:               pointer.To(d.Get("client_secret").(string)),
+			Scopes:                     pointer.To(d.Get("scopes").(string)),
 		},
 		Kind:     botservice.KindBot,
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -265,8 +265,8 @@ func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.C
 
 	for k, v := range input {
 		output = append(output, botservice.ConnectionSettingParameter{
-			Key:   utils.String(k),
-			Value: utils.String(v.(string)),
+			Key:   pointer.To(k),
+			Value: pointer.To(v.(string)),
 		})
 	}
 	return &output

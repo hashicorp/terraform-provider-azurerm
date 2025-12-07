@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsQueryPackModel struct {
@@ -175,7 +175,7 @@ func (r LogAnalyticsQueryPackResource) Read() sdk.ResourceFunc {
 			state := LogAnalyticsQueryPackModel{
 				Name:              id.QueryPackName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.NormalizeNilable(utils.String(model.Location)),
+				Location:          location.NormalizeNilable(pointer.To(model.Location)),
 			}
 
 			if model.Tags != nil {

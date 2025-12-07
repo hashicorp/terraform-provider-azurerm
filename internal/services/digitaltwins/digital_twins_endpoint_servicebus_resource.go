@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDigitalTwinsEndpointServiceBus() *pluginsdk.Resource {
@@ -111,9 +110,9 @@ func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceDat
 	payload := endpoints.DigitalTwinsEndpointResource{
 		Properties: &endpoints.ServiceBus{
 			AuthenticationType:        pointer.To(endpoints.AuthenticationTypeKeyBased),
-			PrimaryConnectionString:   utils.String(d.Get("servicebus_primary_connection_string").(string)),
-			SecondaryConnectionString: utils.String(d.Get("servicebus_secondary_connection_string").(string)),
-			DeadLetterSecret:          utils.String(d.Get("dead_letter_storage_secret").(string)),
+			PrimaryConnectionString:   pointer.To(d.Get("servicebus_primary_connection_string").(string)),
+			SecondaryConnectionString: pointer.To(d.Get("servicebus_secondary_connection_string").(string)),
+			DeadLetterSecret:          pointer.To(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 

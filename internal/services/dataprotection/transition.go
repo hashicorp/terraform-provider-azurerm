@@ -3,7 +3,7 @@
 
 package dataprotection
 
-import "github.com/hashicorp/terraform-provider-azurerm/utils"
+import "github.com/hashicorp/go-azure-helpers/lang/pointer"
 
 func expandTags(input map[string]interface{}) *map[string]string {
 	output := make(map[string]string)
@@ -18,7 +18,7 @@ func flattenTags(input *map[string]string) map[string]*string {
 
 	if input != nil {
 		for k, v := range *input {
-			output[k] = utils.String(v)
+			output[k] = pointer.To(v)
 		}
 	}
 

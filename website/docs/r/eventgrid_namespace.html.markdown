@@ -30,7 +30,7 @@ resource "azurerm_eventgrid_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,11 +46,11 @@ The following arguments are supported:
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
-* `public_network_access` - (Optional) Whether or not public network access is allowed for this server. Defaults to `Enabled`.
+* `public_network_access` - (Optional) Whether or not public network access is allowed for this server. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `sku` - (Optional) Defines which tier to use. The only possible value is `Standard`. Defaults to `Standard`.
 
-* `topic_spaces_configuration` - (Optional) A `topic_spaces_configuration` block as defined below.
+* `topic_spaces_configuration` - (Optional) A `topic_spaces_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -62,7 +62,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Grid Namespace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
 ---
 
@@ -84,9 +84,9 @@ A `topic_spaces_configuration` block supports the following:
 
 * `route_topic_id` - (Optional) Specifies the Event Grid topic resource ID to route messages to.
 
-* `dynamic_routing_enrichment` - One or more `dynamic_routing_enrichment` blocks as defined below.
+* `dynamic_routing_enrichment` - (Optional) One or more `dynamic_routing_enrichment` blocks as defined below.
 
-* `static_routing_enrichment` - One or more `static_routing_enrichment` blocks as defined below.
+* `static_routing_enrichment` - (Optional) One or more `static_routing_enrichment` blocks as defined below.
 
 ---
 
@@ -115,11 +115,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Namespace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Namespace.
 
 ## Import
@@ -129,3 +129,9 @@ EventGrid Namespace's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventgrid_namespace.namespace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/namespaces/namespace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventGrid` - 2023-12-15-preview

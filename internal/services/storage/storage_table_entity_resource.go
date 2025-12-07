@@ -227,6 +227,10 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	result, err := client.Get(ctx, id.TableName, input)
 	if err != nil {
+		if response.WasNotFound(result.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 

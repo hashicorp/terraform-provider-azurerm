@@ -8,9 +8,11 @@ description: |-
 
 # azurerm_spring_cloud_elastic_application_performance_monitoring
 
--> **NOTE:** This resource is only applicable for Spring Cloud Service enterprise tier
+-> **Note:** This resource is only applicable for Spring Cloud Service enterprise tier
 
 Manages a Spring Cloud Application Performance Monitoring resource for Elastic.
+
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_elastic_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 
@@ -65,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application Performance Monitoring resource for Elastic.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application Performance Monitoring resource for Elastic.
@@ -79,3 +81,9 @@ Spring Cloud Application Performance Monitoring resource for Elastic can be impo
 ```shell
 terraform import azurerm_spring_cloud_elastic_application_performance_monitoring.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AppPlatform/spring/service1/apms/apm1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppPlatform` - 2024-01-01-preview

@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseAssignment() *pluginsdk.Resource {
@@ -82,7 +82,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := registrationassignments.NewScopedRegistrationAssignmentID(d.Get("scope").(string), lighthouseAssignmentName)
 	options := registrationassignments.GetOperationOptions{
-		ExpandRegistrationDefinition: utils.Bool(false),
+		ExpandRegistrationDefinition: pointer.To(false),
 	}
 	existing, err := client.Get(ctx, id, options)
 	if err != nil {
@@ -120,7 +120,7 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	options := registrationassignments.GetOperationOptions{
-		ExpandRegistrationDefinition: utils.Bool(false),
+		ExpandRegistrationDefinition: pointer.To(false),
 	}
 	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
@@ -177,7 +177,7 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *registrationassignments.RegistrationAssignmentsClient, id registrationassignments.ScopedRegistrationAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		options := registrationassignments.GetOperationOptions{
-			ExpandRegistrationDefinition: utils.Bool(true),
+			ExpandRegistrationDefinition: pointer.To(true),
 		}
 		resp, err := client.Get(ctx, id, options)
 		if err != nil {

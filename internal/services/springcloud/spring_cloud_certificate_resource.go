@@ -9,9 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -26,6 +28,8 @@ import (
 
 func resourceSpringCloudCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_certificate` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudCertificateCreate,
 		Read:   resourceSpringCloudCertificateRead,
 		Delete: resourceSpringCloudCertificateDelete,
@@ -121,14 +125,14 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:          utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
+			VaultURI:          pointer.To(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
 			KeyVaultCertName:  &keyVaultCertificateId.Name,
-			ExcludePrivateKey: utils.Bool(d.Get("exclude_private_key").(bool)),
+			ExcludePrivateKey: pointer.To(d.Get("exclude_private_key").(bool)),
 		}
 	}
 	if value, ok := d.GetOk("certificate_content"); ok {
 		cert.Properties = &appplatform.ContentCertificateProperties{
-			Content: utils.String(value.(string)),
+			Content: pointer.To(value.(string)),
 		}
 	}
 

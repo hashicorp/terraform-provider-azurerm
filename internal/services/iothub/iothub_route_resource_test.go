@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubRouteResource struct{}
@@ -89,12 +89,12 @@ func (t IotHubRouteResource) Exists(ctx context.Context, clients *clients.Client
 	if routes := resp.Properties.Routing.Routes; routes != nil {
 		for _, route := range *routes {
 			if route.Name != nil {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubRouteResource) requiresImport(data acceptance.TestData) string {

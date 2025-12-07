@@ -55,7 +55,7 @@ The following arguments are supported:
 
 -> **Note:** The `retention_duration_in_days` is the number of days for which deleted data is retained before being permanently deleted. Retention period till 14 days are free of cost, however, retention beyond 14 days may incur additional charges. The `retention_duration_in_days` is required when the `soft_delete` is set to `On`.
 
-* `immutability` - (Optional) The state of immutability for this Backup Vault. Possible values are `Disabled`, `Locked`, and `Unlocked`. Defaults to `Disabled`. Changing this from `Locked` to anything else forces a new Backup Vault to be created.
+* `immutability` - (Optional) The state of immutability for this Backup Vault. Possible values are `Disabled`, `Locked`, and `Unlocked`. Defaults to `Disabled`.
 
 * `soft_delete` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off`, and `On`. Defaults to `On`.
 
@@ -67,7 +67,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Backup Vault.
 
 ## Attributes Reference
 
@@ -85,11 +87,11 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Backup Vault.
 
--> You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity[0].tenant_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity[0].tenant_id}`
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault.
@@ -103,3 +105,9 @@ Backup Vaults can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_protection_backup_vault.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2024-04-01

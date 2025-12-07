@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestWebApplicationFirewallPolicyV0ToV1(t *testing.T) {
@@ -28,21 +28,21 @@ func TestWebApplicationFirewallPolicyV0ToV1(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/policy1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
 		},
 		{
 			name: "old id - mixed case",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/policy1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"),
 		},
 	}
 	for _, test := range testData {

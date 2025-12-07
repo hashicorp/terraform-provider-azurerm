@@ -61,13 +61,13 @@ resource "azurerm_dev_test_linux_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Dev Test Machine. Changing this forces a new resource to be created.
 
--> **NOTE:** The validation requirements for the Name change based on the `os_type` used in this Virtual Machine. For a Linux VM the name must be between 1-62 characters, and for a Windows VM the name must be between 1-15 characters. It must begin and end with a letter or number, and cannot be all numbers.
+-> **Note:** The validation requirements for the Name change based on the `os_type` used in this Virtual Machine. For a Linux VM the name must be between 1-62 characters, and for a Windows VM the name must be between 1-15 characters. It must begin and end with a letter or number, and cannot be all numbers.
 
 * `lab_name` - (Required) Specifies the name of the Dev Test Lab in which the Virtual Machine should be created. Changing this forces a new resource to be created.
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `inbound_nat_rule` - (Optional) One or more `inbound_nat_rule` blocks as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** If any `inbound_nat_rule` blocks are specified then `disallow_public_ip_address` must be set to `true`.
+-> **Note:** If any `inbound_nat_rule` blocks are specified then `disallow_public_ip_address` must be set to `true`.
 
 * `notes` - (Optional) Any notes about the Virtual Machine.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `ssh_key` - (Optional) The SSH Key associated with the `username` used to login to this Virtual Machine. Changing this forces a new resource to be created.
 
--> **NOTE:** One or either `password` or `ssh_key` must be specified.
+-> **Note:** One or either `password` or `ssh_key` must be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -147,11 +147,11 @@ A `inbound_nat_rule` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Linux Virtual Machine.
-* `update` - (Defaults to 30 minutes) Used when updating the DevTest Linux Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Linux Virtual Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Linux Virtual Machine.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Linux Virtual Machine.
 
 ## Import
@@ -161,3 +161,9 @@ Dev Test Linux Virtual Machines can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dev_test_linux_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualMachines/machine1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab` - 2018-09-15

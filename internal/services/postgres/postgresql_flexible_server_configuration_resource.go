@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,7 +50,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: configurations.ValidateFlexibleServerID,
+				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 
 			"value": {
@@ -70,7 +70,7 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for Azure Postgresql Flexible Server configuration creation.")
 
-	serverId, err := configurations.ParseFlexibleServerID(d.Get("server_id").(string))
+	serverId, err := servers.ParseFlexibleServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
@@ -101,11 +101,8 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
 				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-
-					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
-						return fmt.Errorf("restarting server %s: %+v", id, err)
+					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, *serverId); err != nil {
+						return fmt.Errorf("restarting server %s: %+v", serverId, err)
 					}
 				}
 			}
@@ -126,6 +123,14 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// if the server has already been deleted, we need also mark it as gone
+	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
+		log.Printf("[WARN] server %s was not found, removing from state", serverID)
+		d.SetId("")
+		return nil
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -159,6 +164,12 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
+	// if the server has already been deleted, we don't need to do anything
+	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
+		return nil
+	}
+
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
@@ -189,10 +200,7 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
 				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-
-					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, serverID); err != nil {
 						return fmt.Errorf("restarting server %s: %+v", id, err)
 					}
 				}

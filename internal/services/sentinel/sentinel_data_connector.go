@@ -91,7 +91,7 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindThreatIntelligence
 	}
 	if expectKind != kind {
-		return fmt.Errorf("Sentinel Data Connector has mismatched kind, expected: %q, got %q", expectKind, kind)
+		return fmt.Errorf("'Sentinel Data Connector' has mismatched kind, expected: %q, got %q", expectKind, kind)
 	}
 	return nil
 }

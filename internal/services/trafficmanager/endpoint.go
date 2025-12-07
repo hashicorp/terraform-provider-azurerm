@@ -4,8 +4,8 @@
 package trafficmanager
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandEndpointCustomHeaderConfig(input []interface{}) *[]endpoints.EndpointPropertiesCustomHeadersInlined {
@@ -14,8 +14,8 @@ func expandEndpointCustomHeaderConfig(input []interface{}) *[]endpoints.Endpoint
 	for _, header := range input {
 		headerBlock := header.(map[string]interface{})
 		output = append(output, endpoints.EndpointPropertiesCustomHeadersInlined{
-			Name:  utils.String(headerBlock["name"].(string)),
-			Value: utils.String(headerBlock["value"].(string)),
+			Name:  pointer.To(headerBlock["name"].(string)),
+			Value: pointer.To(headerBlock["value"].(string)),
 		})
 	}
 
@@ -52,13 +52,13 @@ func expandEndpointSubnetConfig(input []interface{}) *[]endpoints.EndpointProper
 		subnetBlock := subnet.(map[string]interface{})
 		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
 			output = append(output, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Last:  utils.String(subnetBlock["last"].(string)),
+				First: pointer.To(subnetBlock["first"].(string)),
+				Last:  pointer.To(subnetBlock["last"].(string)),
 			})
 		} else {
 			output = append(output, endpoints.EndpointPropertiesSubnetsInlined{
-				First: utils.String(subnetBlock["first"].(string)),
-				Scope: utils.Int64(int64(subnetBlock["scope"].(int))),
+				First: pointer.To(subnetBlock["first"].(string)),
+				Scope: pointer.To(int64(subnetBlock["scope"].(int))),
 			})
 		}
 	}

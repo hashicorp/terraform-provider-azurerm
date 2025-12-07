@@ -38,6 +38,35 @@ func TestAccMsSqlDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_maxSizeGB(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maxSizeGB(data, 0.1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.maxSizeGB(data, 0.5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.maxSizeGB(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -73,6 +102,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	r := MsSqlDatabaseResource{}
 
 	maintenance_configuration_name := "SQL_Default"
+
 	switch data.Locations.Primary {
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
@@ -411,6 +441,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+
 	r := MsSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1109,7 +1140,10 @@ resource "azurerm_mssql_database" "import" {
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	configName := "SQL_Default"
+
 	switch data.Locations.Primary {
+	case "eastus": // Added due to subscription quota policies...
+		configName = "SQL_EastUS_DB_2"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -2176,7 +2210,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "vault%[2]d"
+  name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   enabled_for_disk_encryption = true
@@ -2373,4 +2407,17 @@ resource "azurerm_mssql_database" "test" {
 
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) maxSizeGB(data acceptance.TestData, maxSizeGb float64) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name        = "acctest-db-%[2]d"
+  server_id   = azurerm_mssql_server.test.id
+  sku_name    = "Basic"
+  max_size_gb = %[3]f
+}
+`, r.template(data), data.RandomInteger, maxSizeGb)
 }

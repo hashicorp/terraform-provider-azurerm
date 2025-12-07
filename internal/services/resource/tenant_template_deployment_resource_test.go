@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TenantTemplateDeploymentResource struct{}
@@ -50,12 +50,12 @@ func (t TenantTemplateDeploymentResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.GetAtTenantScope(ctx, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Tenant Template Deployment (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (TenantTemplateDeploymentResource) emptyConfig(data acceptance.TestData) string {

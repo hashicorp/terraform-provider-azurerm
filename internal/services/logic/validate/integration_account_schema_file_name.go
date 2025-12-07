@@ -19,7 +19,7 @@ func IntegrationAccountSchemaFileName() pluginsdk.SchemaValidateFunc {
 		}
 
 		if !strings.HasSuffix(v, ".xsd") {
-			errors = append(errors, fmt.Errorf("%q ends with `.xsd`.", k))
+			errors = append(errors, fmt.Errorf("%q ends with `.xsd`", k))
 			return
 		}
 

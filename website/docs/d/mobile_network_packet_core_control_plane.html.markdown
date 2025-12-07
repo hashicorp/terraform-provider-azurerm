@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Packet Core Control Plane.
 ---
 
-# azurerm_mobile_network_packet_core_control_plane
+# Data Source: azurerm_mobile_network_packet_core_control_plane
 
 Get information about a Mobile Network Packet Core Control Plane.
 
@@ -105,6 +105,12 @@ A `platform` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Packet Core Control Plane.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

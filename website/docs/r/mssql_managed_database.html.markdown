@@ -10,7 +10,7 @@ description: |-
 
 Manages an Azure SQL Azure Managed Database for a SQL Managed Instance.
 
-!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+!> **Note:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ## Example Usage
 
@@ -60,7 +60,7 @@ resource "azurerm_mssql_managed_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,6 +84,7 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`. Defaults to `PT0S`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`. Defaults to `PT0S`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutable_backups_enabled` - (Optional) Specifies if the backups are immutable. Defaults to `false`.
 
 ---
 
@@ -101,10 +102,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
 * `create` - (Defaults to 30 minutes) Used when creating the Mssql Managed Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
 * `update` - (Defaults to 30 minutes) Used when updating the Mssql Managed Database.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Mssql Managed Database.
 
@@ -115,3 +116,9 @@ SQL Managed Databases can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_managed_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/managedInstances/myserver/databases/mydatabase
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,6 +42,11 @@ func dataSourceMarketplaceAgreement() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"accepted": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
 			},
 
 			"license_text_link": {
@@ -82,6 +88,7 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 		if props := model.Properties; props != nil {
 			d.Set("license_text_link", props.LicenseTextLink)
 			d.Set("privacy_policy_link", props.PrivacyPolicyLink)
+			d.Set("accepted", pointer.From(props.Accepted))
 		}
 	}
 	return nil

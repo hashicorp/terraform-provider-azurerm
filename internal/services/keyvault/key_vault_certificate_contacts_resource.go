@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -268,9 +269,9 @@ func expandKeyVaultCertificateContactsContact(input []Contact) *[]keyvault.Conta
 
 	for _, item := range input {
 		results = append(results, keyvault.Contact{
-			EmailAddress: utils.String(item.Email),
-			Name:         utils.String(item.Name),
-			Phone:        utils.String(item.Phone),
+			EmailAddress: pointer.To(item.Email),
+			Name:         pointer.To(item.Name),
+			Phone:        pointer.To(item.Phone),
 		})
 	}
 

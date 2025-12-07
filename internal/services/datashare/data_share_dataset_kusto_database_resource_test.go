@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataShareDataSetKustoDatabaseResource struct{}
@@ -63,7 +63,7 @@ func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clien
 
 	if model := resp.Model; model != nil {
 		if _, ok := model.(dataset.KustoDatabaseDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 

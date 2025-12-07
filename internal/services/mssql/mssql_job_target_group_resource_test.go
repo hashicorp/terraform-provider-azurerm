@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobTargetGroupResourceTest struct{}
+type MsSqlJobTargetGroupResource struct{}
 
 func TestAccMsSqlJobTargetGroupTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMsSqlJobTargetGroupTest_basic(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccMsSqlJobTargetGroupTest_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccMsSqlJobTargetGroupTest_update(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccMsSqlJobTargetGroupTest_complete(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_withDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccMsSqlJobTargetGroupTest_withDatabase(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_withElasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,36 @@ func TestAccMsSqlJobTargetGroupTest_withElasticPool(t *testing.T) {
 	})
 }
 
-func (MsSqlJobTargetGroupResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccMsSqlJobTargetGroupTest_withoutJobCredential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
+	r := MsSqlJobTargetGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withoutJobCredential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (MsSqlJobTargetGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobtargetgroups.ParseTargetGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +158,7 @@ func (MsSqlJobTargetGroupResourceTest) Exists(ctx context.Context, client *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlJobTargetGroupResourceTest) basic(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +169,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) requiresImport(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -151,7 +180,7 @@ resource "azurerm_mssql_job_target_group" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlJobTargetGroupResourceTest) complete(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +197,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) withDatabase(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) withDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -191,7 +220,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) withElasticPool(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) withElasticPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +257,23 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlJobTargetGroupResourceTest) template(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) withoutJobCredential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_job_target_group" "test" {
+  name         = "acctest-target-group-%[2]d"
+  job_agent_id = azurerm_mssql_job_agent.test.id
+
+  job_target {
+    membership_type = "Include"
+    server_name     = azurerm_mssql_server.test.name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (MsSqlJobTargetGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -239,6 +284,12 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_mssql_server" "test" {
   name                         = "acctest-server-%[1]d"
   location                     = azurerm_resource_group.test.location
@@ -246,6 +297,27 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+
+  azuread_administrator {
+    login_username = "aadAdmin"
+    object_id      = azurerm_user_assigned_identity.test.client_id
+  }
+
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_mssql_firewall_rule" "test" {
+  name             = "acctest-fw-rule-%[1]d"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
 resource "azurerm_mssql_database" "test" {
@@ -259,6 +331,13 @@ resource "azurerm_mssql_job_agent" "test" {
   name        = "acctest-job-agent-%[1]d"
   location    = azurerm_resource_group.test.location
   database_id = azurerm_mssql_database.test.id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
 }
 
 resource "azurerm_mssql_job_credential" "test" {

@@ -17,8 +17,9 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
-	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
+	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
+	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -93,9 +94,10 @@ import (
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
+	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
@@ -118,6 +120,7 @@ import (
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
+	qumulo "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -230,8 +233,9 @@ type Client struct {
 	ManagedApplication                *managedapplication.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
+	ManagedIdentity                   *managedidentity.Client
+	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
-	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
 	MobileNetwork                     *mobilenetwork.Client
 	MongoCluster                      *mongocluster.Client
@@ -254,6 +258,7 @@ type Client struct {
 	PrivateDns                        *privatedns.Client
 	PrivateDnsResolver                *dnsresolver.Client
 	Purview                           *purview.Client
+	Qumulo                            *qumulo.Client
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
@@ -267,10 +272,11 @@ type Client struct {
 	ServiceConnector                  *serviceConnector.Client
 	ServiceFabric                     *serviceFabric.Client
 	ServiceFabricManaged              *serviceFabricManaged.Client
-	ServiceNetworking                 *servicenetworking_2023_11_01.Client
+	ServiceNetworking                 *servicenetworking_2025_01_01.Client
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
-	StorageCache                      *storagecache_2023_05_01.Client
+	StorageCache                      *storagecache_2024_07_01.Client
+	StorageCache_2023_05_01           *storagecache_2023_05_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
@@ -514,11 +520,14 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
 	}
+	if client.ManagedIdentity, err = managedidentity.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedIdentity: %+v", err)
+	}
+	if client.ManagedRedis, err = managedredis.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Redis: %+v", err)
+	}
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
-	}
-	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
 	}
 	if client.Monitor, err = monitor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Monitor: %+v", err)
@@ -589,6 +598,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
 	}
+	if client.Qumulo, err = qumulo.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Qumulo: %+v", err)
+	}
 	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
 	}
@@ -636,6 +648,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
+	}
+	if client.StorageCache_2023_05_01, err = storageCache.NewClient_2023_05_01(o); err != nil {
+		return fmt.Errorf("building clients for Storage Cache 2023-05-01: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)

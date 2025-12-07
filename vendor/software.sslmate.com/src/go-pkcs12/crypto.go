@@ -12,6 +12,7 @@ import (
 	"crypto/des"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
@@ -30,6 +31,7 @@ var (
 	oidPBKDF2                        = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 5, 12})
 	oidHmacWithSHA1                  = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 2, 7})
 	oidHmacWithSHA256                = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 2, 9})
+	oidHmacWithSHA512                = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 2, 11})
 	oidAES128CBC                     = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 1, 2})
 	oidAES192CBC                     = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 1, 22})
 	oidAES256CBC                     = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 1, 42})
@@ -114,7 +116,7 @@ func pbeCipherFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.B
 		utf8Password := []byte(originalPassword)
 		return pbes2CipherFor(algorithm, utf8Password)
 	default:
-		return nil, nil, NotImplementedError("algorithm " + algorithm.Algorithm.String() + " is not supported")
+		return nil, nil, NotImplementedError("pbe algorithm " + algorithm.Algorithm.String() + " is not supported")
 	}
 
 	var params pbeParams
@@ -209,7 +211,7 @@ func pbes2CipherFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher
 	}
 
 	if !params.Kdf.Algorithm.Equal(oidPBKDF2) {
-		return nil, nil, NotImplementedError("kdf algorithm " + params.Kdf.Algorithm.String() + " is not supported")
+		return nil, nil, NotImplementedError("pbes2 kdf algorithm " + params.Kdf.Algorithm.String() + " is not supported")
 	}
 
 	var kdfParams pbkdf2Params
@@ -217,16 +219,19 @@ func pbes2CipherFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher
 		return nil, nil, err
 	}
 	if kdfParams.Salt.Tag != asn1.TagOctetString {
-		return nil, nil, errors.New("pkcs12: only octet string salts are supported for pbkdf2")
+		return nil, nil, NotImplementedError("only octet string salts are supported for pbes2/pbkdf2")
 	}
 
 	var prf func() hash.Hash
 	switch {
 	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA256):
 		prf = sha256.New
+	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA512):
+		prf = sha512.New
 	case kdfParams.Prf.Algorithm.Equal(oidHmacWithSHA1):
 		prf = sha1.New
-	case kdfParams.Prf.Algorithm.Equal(asn1.ObjectIdentifier([]int{})):
+	case kdfParams.Prf.Algorithm == nil:
+		// Algorithm not specified; defaults to SHA1 according to ASN1 definition
 		prf = sha1.New
 	default:
 		return nil, nil, NotImplementedError("pbes2 prf " + kdfParams.Prf.Algorithm.String() + " is not supported")

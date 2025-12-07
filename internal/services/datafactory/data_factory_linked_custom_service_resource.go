@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -319,8 +320,8 @@ func expandDataFactoryLinkedServiceIntegrationRuntimeV2(input []interface{}) *da
 
 	v := input[0].(map[string]interface{})
 	return &datafactory.IntegrationRuntimeReference{
-		ReferenceName: utils.String(v["name"].(string)),
-		Type:          utils.String("IntegrationRuntimeReference"),
+		ReferenceName: pointer.To(v["name"].(string)),
+		Type:          pointer.To("IntegrationRuntimeReference"),
 		Parameters:    v["parameters"].(map[string]interface{}),
 	}
 }

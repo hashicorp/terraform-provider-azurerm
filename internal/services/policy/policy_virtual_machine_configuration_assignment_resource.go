@@ -14,13 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
@@ -38,7 +37,7 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(id)
+			_, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(id)
 			return err
 		}),
 
@@ -135,7 +134,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 		return err
 	}
 
-	id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
+	id := guestconfigurationassignments.NewVirtualMachineProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -150,8 +149,8 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	}
 	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
 	assignment := guestconfigurationassignments.GuestConfigurationAssignment{
-		Name:     utils.String(id.GuestConfigurationAssignmentName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     *pointer.To(id.GuestConfigurationAssignmentName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfigurationassignments.GuestConfigurationAssignmentProperties{
 			GuestConfiguration: guestConfiguration,
 		},
@@ -184,7 +183,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(d.Id())
+	id, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,7 +219,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentDelete(d *pluginsdk.Reso
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(d.Id())
+	id, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,8 +238,8 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	v := input[0].(map[string]interface{})
 
 	result := guestconfigurationassignments.GuestConfigurationNavigation{
-		Name:                   utils.String(name),
-		Version:                utils.String(v["version"].(string)),
+		Name:                   pointer.To(name),
+		Version:                pointer.To(v["version"].(string)),
 		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 
@@ -249,11 +248,11 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	}
 
 	if v, ok := v["content_hash"]; ok {
-		result.ContentHash = utils.String(v.(string))
+		result.ContentHash = pointer.To(v.(string))
 	}
 
 	if v, ok := v["content_uri"]; ok {
-		result.ContentUri = utils.String(v.(string))
+		result.ContentUri = pointer.To(v.(string))
 	}
 
 	return &result
@@ -264,8 +263,8 @@ func expandGuestConfigurationAssignmentConfigurationParameters(input []interface
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, guestconfigurationassignments.ConfigurationParameter{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  pointer.To(v["name"].(string)),
+			Value: pointer.To(v["value"].(string)),
 		})
 	}
 	return &results

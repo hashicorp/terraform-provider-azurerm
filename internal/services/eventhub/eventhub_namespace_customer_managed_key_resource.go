@@ -9,10 +9,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +21,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
@@ -170,7 +170,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
-	namespace.Properties.Encryption.RequireInfrastructureEncryption = utils.Bool(d.Get("infrastructure_encryption_enabled").(bool))
+	namespace.Properties.Encryption.RequireInfrastructureEncryption = pointer.To(d.Get("infrastructure_encryption_enabled").(bool))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", *id, err)
@@ -258,9 +258,9 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 		}
 
 		results = append(results, namespaces.KeyVaultProperties{
-			KeyName:     utils.String(keyId.Name),
-			KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-			KeyVersion:  utils.String(keyId.Version),
+			KeyName:     pointer.To(keyId.Name),
+			KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+			KeyVersion:  pointer.To(keyId.Version),
 		})
 	}
 

@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -615,7 +615,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var dataCollectionEndpointId, description, immutableId, kind, location string
+			var dataCollectionEndpointId, description, immutableId, kind, loc string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -624,7 +624,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionRuleKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 
 				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -659,7 +659,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				Destinations:             destinations,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
-				Location:                 location,
+				Location:                 loc,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})
