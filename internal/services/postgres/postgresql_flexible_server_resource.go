@@ -1558,7 +1558,7 @@ func flattenFlexibleServerCluster(cluster *servers.Cluster) []interface{} {
 	}
 
 	item := map[string]interface{}{
-		"size": pointer.From(cluster.ClusterSize),
+		"size":                  pointer.From(cluster.ClusterSize),
 		"default_database_name": pointer.From(cluster.DefaultDatabaseName),
 	}
 
