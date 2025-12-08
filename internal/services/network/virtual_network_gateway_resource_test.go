@@ -322,6 +322,7 @@ func TestAccVirtualNetworkGateway_expressRouteErGwScale(t *testing.T) {
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
