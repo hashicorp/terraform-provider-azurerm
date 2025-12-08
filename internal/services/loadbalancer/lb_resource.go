@@ -386,7 +386,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := loadbalancers.ParseLoadBalancerID(d.Id())
@@ -401,7 +401,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if resp.Model == nil {
-		return fmt.Errorf("%s model was nil", *id)
+		return fmt.Errorf("updating %s: model was nil", *id)
 	}
 
 	model := *resp.Model
