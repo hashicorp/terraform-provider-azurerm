@@ -245,7 +245,7 @@ Example:
 When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
 
 ```go
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 ```
 
