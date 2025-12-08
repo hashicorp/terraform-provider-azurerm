@@ -8,6 +8,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_storage_blob_inventory_policy` - fix setting Resource Identity data [GH-31313]
 
 ## 4.55.0 (December 04, 2025)
 
