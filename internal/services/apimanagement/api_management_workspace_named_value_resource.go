@@ -38,18 +38,18 @@ func (r ApiManagementWorkspaceNamedValueResource) IDValidationFunc() pluginsdk.S
 }
 
 type ApiManagementWorkspaceNamedValueModel struct {
-	Name                     string     `tfschema:"name"`
 	ApiManagementWorkspaceId string     `tfschema:"api_management_workspace_id"`
 	DisplayName              string     `tfschema:"display_name"`
+	Name                     string     `tfschema:"name"`
 	Secret                   bool       `tfschema:"secret"`
+	Tags                     []string   `tfschema:"tags"`
 	Value                    string     `tfschema:"value"`
 	ValueFromKeyVault        []KeyVault `tfschema:"value_from_key_vault"`
-	Tags                     []string   `tfschema:"tags"`
 }
 
 type KeyVault struct {
-	SecretId         string `tfschema:"secret_id"`
 	IdentityClientId string `tfschema:"identity_client_id"`
+	SecretId         string `tfschema:"secret_id"`
 }
 
 func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*pluginsdk.Schema {
@@ -223,6 +223,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Read() sdk.ResourceFunc {
 				if props := respModel.Properties; props != nil {
 					model.DisplayName = props.DisplayName
 					model.Secret = pointer.From(props.Secret)
+					model.Tags = pointer.From(props.Tags)
 					if model.Secret {
 						// `value` is not retrievable when `secret` is `true`, so we use the config value
 						model.Value = config.Value
@@ -230,7 +231,6 @@ func (r ApiManagementWorkspaceNamedValueResource) Read() sdk.ResourceFunc {
 						model.Value = pointer.From(props.Value)
 					}
 					model.ValueFromKeyVault = flattenApiManagementWorkspaceNamedValueKeyVault(props.KeyVault)
-					model.Tags = pointer.From(props.Tags)
 				}
 			}
 
