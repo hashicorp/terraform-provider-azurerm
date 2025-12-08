@@ -1766,7 +1766,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 
   cluster {
-    size               = %d
+    size                  = %d
     default_database_name = "testdb"
   }
 }
