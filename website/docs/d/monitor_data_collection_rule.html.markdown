@@ -48,7 +48,7 @@ output "rule_id" {
 
 * `identity` - An `identity` block as defined below.
 
-* `kind` - The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`, `WorkspaceTransforms` and `Direct` . A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 * `stream_declaration` - A `stream_declaration` block as defined below.
  

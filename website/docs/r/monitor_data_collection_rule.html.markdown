@@ -209,6 +209,63 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 }
 ```
 
+### Example Usage with Kind "Direct"
+
+```hcl
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "acctest-law-%[2]d"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
+  name         = "MyCustomStream_CL"
+  workspace_id = azurerm_log_analytics_workspace.example.id
+  column {
+    name = "TimeGenerated"
+    type = "dateTime"
+  }
+  column {
+    name = "RawData"
+    type = "string"
+  }
+}
+
+resource "azurerm_monitor_data_collection_rule" "example" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  kind                = "Direct"
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.example.id
+      name                  = "example-destination-log"
+    }
+  }
+  data_flow {
+    streams      = ["Custom-MyCustomStream_CL"]
+    destinations = ["example-destination-log"]
+    output_stream = "Custom-MyCustomStream_CL"
+  }
+  stream_declaration {
+    stream_name = "Custom-MyCustomStream_CL"
+    column {
+      name = "TimeGenerated"
+      type = "datetime"
+    }
+    column {
+      name = "RawData"
+      type = "string"
+    }
+  }
+  depends_on = [
+    azurerm_log_analytics_workspace_table_custom_log.example,
+  ]
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -225,7 +282,7 @@ The following arguments are supported:
 
 ---
 
-* `data_collection_endpoint_id` - (Optional) The resource ID of the Data Collection Endpoint that this rule can be used with.
+* `data_collection_endpoint_id` - (Optional) The resource ID of the Data Collection Endpoint that this rule can be used with. Cannot be set when `kind` is `Direct`.
 
 * `data_sources` - (Optional) A `data_sources` block as defined below. This property is optional and can be omitted if the rule is meant to be used via direct calls to the provisioned endpoint.
 
@@ -233,7 +290,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms` and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 ~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 

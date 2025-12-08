@@ -80,6 +80,21 @@ func TestAccMonitorDataCollectionRule_kindWorkspaceTransforms(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindDirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -316,6 +331,62 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MonitorDataCollectionRuleResource) kindDirect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
+  name         = "MyCustomStream_CL"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  column {
+    name = "TimeGenerated"
+    type = "dateTime"
+  }
+  column {
+    name = "RawData"
+    type = "string"
+  }
+}
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "Direct"
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination-log"
+    }
+  }
+  data_flow {
+    streams      = ["Custom-MyCustomStream_CL"]
+    destinations = ["test-destination-log"]
+    output_stream = "Custom-MyCustomStream_CL"
+  }
+  stream_declaration {
+    stream_name = "Custom-MyCustomStream_CL"
+    column {
+      name = "TimeGenerated"
+      type = "datetime"
+    }
+    column {
+      name = "RawData"
+      type = "string"
+    }
+  }
+  depends_on = [
+    azurerm_log_analytics_workspace_table_custom_log.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MonitorDataCollectionRuleResource) systemAssigned(data acceptance.TestData) string {
