@@ -37,6 +37,7 @@ type DataCollectionRule struct {
 	DataSources              []DataSource           `tfschema:"data_sources"`
 	Description              string                 `tfschema:"description"`
 	Destinations             []Destination          `tfschema:"destinations"`
+	Endpoints                []Endpoints            `tfschema:"endpoints"`
 	ImmutableId              string                 `tfschema:"immutable_id"`
 	Kind                     string                 `tfschema:"kind"`
 	Name                     string                 `tfschema:"name"`
@@ -198,6 +199,11 @@ type StreamDeclaration struct {
 type StreamDeclarationColumn struct {
 	Name string `tfschema:"name"`
 	Type string `tfschema:"type"`
+}
+
+type Endpoints struct {
+	LogsIngestion    string `tfschema:"logs_ingestion"`
+	MetricsIngestion string `tfschema:"metrics_ingestion"`
 }
 
 type DataCollectionRuleResource struct{}
@@ -909,6 +915,22 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r DataCollectionRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"endpoints": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"logs_ingestion": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"metrics_ingestion": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 		"immutable_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -1015,6 +1037,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
+			var endpoints []Endpoints
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
@@ -1037,6 +1060,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
+					endpoints = flattenDataCollectionRuleEndpoints(prop.Endpoints)
 					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
@@ -1050,6 +1074,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				DataSources:              dataSources,
 				Description:              description,
 				Destinations:             destinations,
+				Endpoints:                endpoints,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
@@ -2044,6 +2069,17 @@ func flattenDataCollectionRuleDestinations(input *datacollectionrules.Destinatio
 		StorageBlob:         flattenDataCollectionRuleDestinationStorageBlob(input.StorageAccounts),
 		StorageBlobDirect:   flattenDataCollectionRuleDestinationStorageBlob(input.StorageBlobsDirect),
 		StorageTableDirect:  flattenDataCollectionRuleDestinationStorageTableDirect(input.StorageTablesDirect),
+	}}
+}
+
+func flattenDataCollectionRuleEndpoints(input *datacollectionrules.EndpointsSpec) []Endpoints {
+	if input == nil {
+		return make([]Endpoints, 0)
+	}
+
+	return []Endpoints{{
+		LogsIngestion:    flattenStringPtr(input.LogsIngestion),
+		MetricsIngestion: flattenStringPtr(input.MetricsIngestion),
 	}}
 }
 

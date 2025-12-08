@@ -46,6 +46,8 @@ output "rule_id" {
 
 * `description` - The description of the Data Collection Rule.
 
+* `endpoints` - An `endpoints` block as defined below.
+
 * `identity` - An `identity` block as defined below.
 
 * `kind` - The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`, `WorkspaceTransforms` and `Direct` . A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
@@ -141,6 +143,14 @@ An `event_hub_data_source` block exports the following:
 * `stream` - The stream to collect from Event Hub. Possible value should be a custom stream name.
 
 * `consumer_group` - The Event Hub consumer group name.
+
+---
+
+An `endpoints` block exports the following:
+
+* `logs_ingestion` - The endpoint used for ingesting logs.
+
+* `metrics_ingestion` - The endpoint used for ingesting metrics.
 
 ---
 

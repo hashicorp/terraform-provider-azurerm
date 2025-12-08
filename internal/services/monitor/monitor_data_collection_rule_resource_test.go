@@ -89,6 +89,8 @@ func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
 			Config: r.kindDirect(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoints.#").HasValue("1"),
+				check.That(data.ResourceName).Key("endpoints.0.logs_ingestion").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
