@@ -238,12 +238,13 @@ func expandSiteContainerVolumeMounts(input []SiteContainerVolumeMount) *[]webapp
 	return &mounts
 }
 
-func FlattenSiteContainers(input []webapps.SiteContainer) []SiteContainer {
+func FlattenSiteContainers(input []webapps.SiteContainer) ([]SiteContainer, map[string]struct{}) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := make([]SiteContainer, 0, len(input))
+	missingSecrets := make(map[string]struct{})
 	for _, container := range input {
 		props := container.Properties
 		if props == nil {
@@ -264,7 +265,12 @@ func FlattenSiteContainers(input []webapps.SiteContainer) []SiteContainer {
 			StartUpCommand:              pointer.From(props.StartUpCommand),
 			UserManagedIdentityClientID: pointer.From(props.UserManagedIdentityClientId),
 			Username:                    pointer.From(props.UserName),
-			PasswordSecret:              pointer.From(props.PasswordSecret),
+		}
+
+		if props.PasswordSecret != nil {
+			flattened.PasswordSecret = pointer.From(props.PasswordSecret)
+		} else if flattened.Name != "" {
+			missingSecrets[flattened.Name] = struct{}{}
 		}
 
 		if props.EnvironmentVariables != nil {
@@ -282,7 +288,7 @@ func FlattenSiteContainers(input []webapps.SiteContainer) []SiteContainer {
 		return result[i].Name < result[j].Name
 	})
 
-	return result
+	return result, missingSecrets
 }
 
 func flattenSiteContainerEnvVars(input []webapps.EnvironmentVariable) []SiteContainerEnvironmentVariable {

@@ -546,6 +546,18 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			var existingState LinuxWebAppModel
+			if err := metadata.Decode(&existingState); err != nil {
+				return err
+			}
+			existingSecrets := make(map[string]string, len(existingState.SiteContainers))
+			for _, container := range existingState.SiteContainers {
+				if container.Name == "" || container.PasswordSecret == "" {
+					continue
+				}
+				existingSecrets[container.Name] = container.PasswordSecret
+			}
+
 			webApp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(webApp.HttpResponse) {
@@ -610,6 +622,19 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("listing Site Containers for Linux %s: %+v", id, err)
 			}
+			flattenedSiteContainers, missingSecrets := helpers.FlattenSiteContainers(siteContainers.Items)
+			for i := range flattenedSiteContainers {
+				name := flattenedSiteContainers[i].Name
+				if name == "" {
+					continue
+				}
+				if _, missing := missingSecrets[name]; !missing {
+					continue
+				}
+				if secret, ok := existingSecrets[name]; ok {
+					flattenedSiteContainers[i].PasswordSecret = secret
+				}
+			}
 
 			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 			if err != nil {
@@ -643,7 +668,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					StickySettings:    helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 					ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
-					SiteContainers:    helpers.FlattenSiteContainers(siteContainers.Items),
+					SiteContainers:    flattenedSiteContainers,
 					SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
 					Tags:              pointer.From(model.Tags),
 				}

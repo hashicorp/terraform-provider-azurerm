@@ -41,54 +41,6 @@ resource "azurerm_linux_web_app" "example" {
 
 ```
 
-### Site Container Example
-
-```hcl
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_service_plan" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  os_type             = "Linux"
-  sku_name            = "P1v2"
-}
-
-resource "azurerm_linux_web_app" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_service_plan.example.location
-  service_plan_id     = azurerm_service_plan.example.id
-
-  site_config {}
-
-  site_container {
-    name        = "app"
-    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "80"
-    is_main     = true
-
-    environment_variable {
-      name  = "LOG_LEVEL"
-      value = "debug"
-    }
-  }
-
-  site_container {
-    name        = "sidecar"
-    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-    target_port = "8080"
-  }
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:

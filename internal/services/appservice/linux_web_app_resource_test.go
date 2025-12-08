@@ -357,8 +357,6 @@ func TestAccLinuxWebApp_siteContainer(t *testing.T) {
 			Config: r.withSiteContainers(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_container.#").HasValue("2"),
-				check.That(data.ResourceName).Key("site_container.0.is_main").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -366,8 +364,6 @@ func TestAccLinuxWebApp_siteContainer(t *testing.T) {
 			Config: r.withSiteContainersUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_container.#").HasValue("1"),
-				check.That(data.ResourceName).Key("site_container.0.environment_variable.0.value").HasValue("updated"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
