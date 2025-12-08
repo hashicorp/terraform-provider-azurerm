@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"time"
 
@@ -59,7 +60,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 			if skuName == string(natgateways.NatGatewaySkuNameStandardVTwo) {
 				zonesRaw := d.Get("zones").(*schema.Set).List()
 				if len(zonesRaw) == 0 {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using StandardV2 SKU")
+					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
 				}
 
 				zones := make([]string, 0, len(zonesRaw))
@@ -69,9 +70,8 @@ func resourceNatGateway() *pluginsdk.Resource {
 
 				sort.Strings(zones)
 
-				requiredZones := []string{"1", "2", "3"}
-				if len(zones) != 3 || zones[0] != "1" || zones[1] != "2" || zones[2] != "3" {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU, got %v", requiredZones)
+				if !slices.Equal(zones, []string{"1", "2", "3"}) {
+					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
 				}
 			}
 
