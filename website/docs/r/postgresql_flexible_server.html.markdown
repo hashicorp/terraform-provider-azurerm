@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica`, `ReviveDropped` and `Update`.
 
+* `cluster` - (Optional) A `cluster` block as defined below.
+
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the PostgreSQL Flexible Server.
@@ -160,6 +162,8 @@ The following arguments are supported:
 -> **Note:** Downgrading `version` isn't supported and will force a new PostgreSQL Flexible Server to be created.
 
 -> **Note:** In-place version updates are irreversible and may cause downtime for the PostgreSQL Flexible Server, determined by the size of the instance.
+
+-> **Note:** Major version upgrades are not supported when `cluster` is specified.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
@@ -234,6 +238,18 @@ A `high_availability` block supports the following:
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability[0].standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
 -> **Note:** The Availability Zones available depend on the Azure Region that the PostgreSQL Flexible Server is being deployed into - see [the Azure Availability Zones documentation](https://azure.microsoft.com/global-infrastructure/geographies/#geographies) for more information on which Availability Zones are available in each Azure Region.
+
+---
+
+A `cluster` block supports the following:
+
+* `size` - (Required) The number of nodes in the cluster. Possible values are between `1` and `30`.
+
+-> **Note:** Cluster support is only available for PostgreSQL version 17 and above. Additionally, clusters are not supported when `create_mode` is set to anything other than `Default`.
+
+-> **Note:** The cluster `size` can only be increased, not decreased. Attempting to reduce the cluster size will result in an error.
+
+* `default_database_name` - (Optional) The default database name to be created. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ---
 

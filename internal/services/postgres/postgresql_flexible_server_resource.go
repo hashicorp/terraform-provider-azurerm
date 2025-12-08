@@ -5,6 +5,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -358,6 +359,28 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
+			"cluster": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"size": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+							// Confirmed with PG service team that the max size is 30
+							ValidateFunc: validation.IntBetween(1, 30),
+						},
+						"default_database_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -464,6 +487,43 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
 				diff.ForceNew("identity.0.type")
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// only pg 17+ support cluster, and cluster does not support major version upgrade
+			if _, ok := diff.GetOk("cluster"); !ok {
+				return nil
+			}
+
+			// can't downgrade cluster size
+			oldCluster, newCluster := diff.GetChange("cluster")
+			oldClusterObj := oldCluster.([]interface{})
+			newClusterObj := newCluster.([]interface{})
+			if len(oldClusterObj) > 0 && len(newClusterObj) > 0 {
+				// below type assertions are safe since schema ensure the types
+				oldClusterSize := oldClusterObj[0].(map[string]interface{})["size"].(int)
+				newClusterSize := newClusterObj[0].(map[string]interface{})["size"].(int)
+				if newClusterSize < oldClusterSize {
+					return errors.New("`cluster.size` cannot be decreased")
+				}
+			}
+
+			create_mode := servers.CreateMode(diff.Get("create_mode").(string))
+			if string(create_mode) != "" && create_mode != servers.CreateModeDefault {
+				return errors.New("`cluster` is only supported when `create_mode` is Default")
+			}
+
+			versionOld, versionNew := diff.GetChange("version")
+			// version should be set since cluster only support pg17+
+			version, _ := strconv.ParseInt(versionNew.(string), 10, 32)
+			if version < 17 {
+				return errors.New("`cluster` is only supported for PostgreSQL major version 17 or above")
+			}
+
+			// major version upgrade is not allowed when cluster is enabled
+			if versionOld.(string) != "" && versionOld.(string) != versionNew.(string) {
+				return errors.New("`cluster` does not support major version upgrade")
 			}
 
 			return nil
@@ -607,6 +667,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
+			Cluster:          expandFlexibleServerCluster(d.Get("cluster").([]interface{})),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -783,6 +844,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
+			}
+
+			if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
+				return fmt.Errorf("setting `cluster`: %+v", err)
 			}
 
 			if props.AuthConfig != nil {
@@ -1001,6 +1066,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("create_mode") {
 		createMode := servers.CreateModeForPatch(d.Get("create_mode").(string))
 		parameters.Properties.CreateMode = &createMode
+	}
+
+	if d.HasChange("cluster") {
+		parameters.Properties.Cluster = expandFlexibleServerCluster(d.Get("cluster").([]interface{}))
 	}
 
 	if d.HasChange("version") {
@@ -1462,4 +1531,36 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	}
 
 	return []interface{}{item}, nil
+}
+
+func expandFlexibleServerCluster(input []interface{}) *servers.Cluster {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	cluster := servers.Cluster{}
+
+	if size := v["size"].(int); size != 0 {
+		cluster.ClusterSize = pointer.To(int64(size))
+	}
+
+	if databaseName := v["default_database_name"].(string); databaseName != "" {
+		cluster.DefaultDatabaseName = pointer.To(databaseName)
+	}
+
+	return &cluster
+}
+
+func flattenFlexibleServerCluster(cluster *servers.Cluster) []interface{} {
+	if cluster == nil {
+		return []interface{}{}
+	}
+
+	item := map[string]interface{}{
+		"size": pointer.From(cluster.ClusterSize),
+		"default_database_name": pointer.From(cluster.DefaultDatabaseName),
+	}
+
+	return []interface{}{item}
 }
