@@ -2191,14 +2191,6 @@ func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// Validate that data_collection_endpoint_id is not set when kind is "Direct"
-			kind := metadata.ResourceDiff.Get("kind").(string)
-			dataCollectionEndpointId := metadata.ResourceDiff.Get("data_collection_endpoint_id").(string)
-
-			if kind == "Direct" && dataCollectionEndpointId != "" {
-				return fmt.Errorf("`data_collection_endpoint_id` cannot be set when `kind` is 'Direct'")
-			}
-
 			return nil
 		},
 	}

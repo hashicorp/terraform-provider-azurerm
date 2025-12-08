@@ -282,7 +282,7 @@ The following arguments are supported:
 
 ---
 
-* `data_collection_endpoint_id` - (Optional) The resource ID of the Data Collection Endpoint that this rule can be used with. Cannot be set when `kind` is `Direct`.
+* `data_collection_endpoint_id` - (Optional) The resource ID of the Data Collection Endpoint that this rule can be used with.
 
 * `data_sources` - (Optional) A `data_sources` block as defined below. This property is optional and can be omitted if the rule is meant to be used via direct calls to the provisioned endpoint.
 
@@ -290,7 +290,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms` and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms` and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources, a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed. And a rule of kind `Direct` must use a `data_collection_endpoint_id` if you're sending data to a Log Analytics workspace configured for private link.
 
 ~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
