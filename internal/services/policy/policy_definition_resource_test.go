@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -193,12 +194,12 @@ func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Cl
 	}
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.DefinitionProperties != nil), nil
+	return pointer.To(resp.DefinitionProperties != nil), nil
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {

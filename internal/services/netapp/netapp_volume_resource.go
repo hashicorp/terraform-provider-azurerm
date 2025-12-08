@@ -547,7 +547,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				currentLocation := d.Get("location").(string)
 
 				// Check if this is cross-zone replication (same region)
-				if strings.EqualFold(azure.NormalizeLocation(remoteVolumeLocation), azure.NormalizeLocation(currentLocation)) {
+				if strings.EqualFold(location.Normalize(remoteVolumeLocation), location.Normalize(currentLocation)) {
 					// Cross-zone replication: both source and destination must have zones assigned
 					zone := d.Get("zone").(string)
 					if zone == "" {
@@ -619,7 +619,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	zones := &[]string{}
 	if v, ok := d.GetOk("zone"); ok {
@@ -1060,7 +1060,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("pool_name", id.CapacityPoolName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""
 		if model.Zones != nil {

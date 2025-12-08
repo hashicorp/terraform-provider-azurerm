@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FirewallNetworkRuleCollectionResource struct{}
@@ -357,10 +357,10 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 		}
 
 		if *rule.Name == id.NetworkRuleCollectionName {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r FirewallNetworkRuleCollectionResource) checkFirewallNetworkRuleCollectionDoesNotExist(collectionName string) acceptance.ClientCheckFunc {
@@ -404,11 +404,11 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	read, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
-		return utils.Bool(false), err
+		return pointer.To(false), err
 	}
 
 	if read.Model == nil || read.Model.Properties == nil || read.Model.Properties.NetworkRuleCollections == nil {
-		return utils.Bool(false), fmt.Errorf("one of model/properties/networkRuleCollections was nil for %s", firewallId)
+		return pointer.To(false), fmt.Errorf("one of model/properties/networkRuleCollections was nil for %s", firewallId)
 	}
 
 	rules := make([]azurefirewalls.AzureFirewallNetworkRuleCollection, 0)
@@ -421,10 +421,10 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 	read.Model.Properties.NetworkRuleCollections = &rules
 
 	if err = clients.Network.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model); err != nil {
-		return utils.Bool(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
+		return pointer.To(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (FirewallNetworkRuleCollectionResource) basic(data acceptance.TestData) string {

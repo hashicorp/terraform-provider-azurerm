@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputIoTHub() *pluginsdk.Resource {
@@ -133,15 +133,15 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			Datasource: &inputs.IoTHubStreamInputDataSource{
 				Properties: &inputs.IoTHubStreamInputDataSourceProperties{
-					ConsumerGroupName:      utils.String(consumerGroupName),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					Endpoint:               utils.String(endpoint),
-					IotHubNamespace:        utils.String(iotHubNamespace),
+					ConsumerGroupName:      pointer.To(consumerGroupName),
+					SharedAccessPolicyKey:  pointer.To(sharedAccessPolicyKey),
+					SharedAccessPolicyName: pointer.To(sharedAccessPolicyName),
+					Endpoint:               pointer.To(endpoint),
+					IotHubNamespace:        pointer.To(iotHubNamespace),
 				},
 			},
 			Serialization: serialization,

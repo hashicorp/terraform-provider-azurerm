@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerStaticMemberResource struct{}
 
-func testAccNetworkManagerStaticMember_basic(t *testing.T) {
+func TestAccNetworkManagerStaticMember_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
 	r := ManagerStaticMemberResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,10 +33,24 @@ func testAccNetworkManagerStaticMember_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerStaticMember_requiresImport(t *testing.T) {
+func TestAccNetworkManagerStaticMember_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
 	r := ManagerStaticMemberResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkManagerStaticMember_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_static_member", "test")
+	r := ManagerStaticMemberResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -57,11 +71,11 @@ func (r ManagerStaticMemberResource) Exists(ctx context.Context, clients *client
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerStaticMemberResource) template(data acceptance.TestData) string {
@@ -85,7 +99,7 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
+  scope_accesses = ["Routing"]
 }
 
 resource "azurerm_network_manager_network_group" "test" {
@@ -113,6 +127,31 @@ resource "azurerm_network_manager_static_member" "test" {
   target_virtual_network_id = azurerm_virtual_network.test.id
 }
 `, template, data.RandomInteger)
+}
+
+func (r ManagerStaticMemberResource) subnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_manager_network_group" "subnet" {
+  name               = "acctest-nmng-subnet-%[2]d"
+  network_manager_id = azurerm_network_manager.test.id
+  member_type        = "Subnet"
+}
+
+resource "azurerm_network_manager_static_member" "test" {
+  name                      = "acctest-nmsm-%[2]d"
+  network_group_id          = azurerm_network_manager_network_group.subnet.id
+  target_virtual_network_id = azurerm_subnet.test.id
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerStaticMemberResource) requiresImport(data acceptance.TestData) string {

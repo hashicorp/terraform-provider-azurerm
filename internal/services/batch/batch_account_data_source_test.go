@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -23,7 +23,7 @@ func TestAccBatchAccountDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 			),
 		},
@@ -38,7 +38,7 @@ func TestAccBatchAccountDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
@@ -58,7 +58,7 @@ func TestAccBatchAccountDataSource_userSubscription(t *testing.T) {
 		{
 			Config: r.userSubscription(data, tenantID, subscriptionID),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("UserSubscription"),
 				check.That(data.ResourceName).Key("key_vault_reference.#").HasValue("1"),
 			),
@@ -76,7 +76,7 @@ func TestAccBatchAccountDataSource_cmkVersionedKey(t *testing.T) {
 		{
 			Config: r.cmkVersionedKeyData(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
 		},
@@ -93,7 +93,7 @@ func TestAccBatchAccountDataSource_cmkVersionlessKey(t *testing.T) {
 		{
 			Config: r.cmkVersionlessKeyData(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
 		},

@@ -241,14 +241,14 @@ resource "azurerm_oracle_autonomous_database" "test" {
   location                         = "%[3]s"
   compute_model                    = "ECPU"
   compute_count                    = 3
-  license_model                    = "BringYourOwnLicense"
+  license_model                    = "LicenseIncluded"
   backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
-  admin_password                   = "TestPass#2024#"
+  admin_password                   = "TestPass$2024$"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
@@ -382,7 +382,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
-  admin_password                   = "TestPass#2024#"
+  admin_password                   = "TestPass$2024$"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"

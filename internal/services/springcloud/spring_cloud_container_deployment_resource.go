@@ -208,16 +208,16 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
 			Tier:     service.Sku.Tier,
-			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
+			Capacity: pointer.To(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: appplatform.CustomContainerUserSourceInfo{
 				CustomContainer: &appplatform.CustomContainer{
-					Server:            utils.String(d.Get("server").(string)),
-					ContainerImage:    utils.String(d.Get("image").(string)),
+					Server:            pointer.To(d.Get("server").(string)),
+					ContainerImage:    pointer.To(d.Get("image").(string)),
 					Command:           utils.ExpandStringSlice(d.Get("commands").([]interface{})),
 					Args:              utils.ExpandStringSlice(d.Get("arguments").([]interface{})),
-					LanguageFramework: utils.String(d.Get("language_framework").(string)),
+					LanguageFramework: pointer.To(d.Get("language_framework").(string)),
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
@@ -335,8 +335,8 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU:    utils.String(cpuResult),
-		Memory: utils.String(memResult),
+		CPU:    pointer.To(cpuResult),
+		Memory: pointer.To(memResult),
 	}
 
 	return &result

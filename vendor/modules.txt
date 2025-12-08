@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251114.1193342
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251202.1181053
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -721,6 +721,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/users
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/advancedthreatprotectionsettings
@@ -1017,14 +1018,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupsautomaticandondemand
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules
@@ -1264,7 +1264,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20251114.1193342
+# github.com/hashicorp/go-azure-sdk/sdk v0.20251202.1181053
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest

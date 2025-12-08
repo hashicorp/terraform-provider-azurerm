@@ -11,12 +11,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -104,7 +104,7 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 			if model.EncryptedData != "" {
 				params := keyvault.KeyOperationsParameters{
 					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     utils.String(model.EncryptedData),
+					Value:     pointer.To(model.EncryptedData),
 				}
 				result, err := client.Decrypt(ctx, keyVaultKeyId.KeyVaultBaseUrl, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
 				if err != nil {
@@ -122,7 +122,7 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 			} else {
 				params := keyvault.KeyOperationsParameters{
 					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     utils.String(model.PlainTextValue),
+					Value:     pointer.To(model.PlainTextValue),
 				}
 				result, err := client.Encrypt(ctx, keyVaultKeyId.KeyVaultBaseUrl, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
 				if err != nil {

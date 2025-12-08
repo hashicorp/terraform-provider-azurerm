@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -70,9 +71,9 @@ func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDel
 		requestURICondition := cdn.DeliveryRuleRequestURICondition{
 			Name: cdn.NameRequestURI,
 			Parameters: &cdn.RequestURIMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestUriConditionParameters"),
+				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestUriConditionParameters"),
 				Operator:        cdn.RequestURIOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
