@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -275,7 +276,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 
 			d.Set("custom_subdomain_name", pointer.From(props.CustomSubDomainName))
 
-			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
+			customerManagedKey, err := flattenCognitiveAccountDataSourceCustomerManagedKey(props.Encryption)
 			if err != nil {
 				return err
 			}
@@ -295,7 +296,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `network_acls` for %s: %+v", id, err)
 			}
 
-			networkInjection, err := flattenCognitiveAccountNetworkInjection(props.NetworkInjections)
+			networkInjection, err := flattenCognitiveAccountDataSourceNetworkInjection(props.NetworkInjections)
 			if err != nil {
 				return err
 			}
@@ -308,7 +309,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
 
-			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
+			if err := d.Set("storage", flattenCognitiveAccountDataSourceStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storage` for %s: %+v", id, err)
 			}
 
@@ -372,4 +373,73 @@ func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccoun
 		"ip_rules":              ipRules,
 		"virtual_network_rules": virtualNetworkRules,
 	}}
+}
+
+func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityClientId string
+	if props := input.KeyVaultProperties; props != nil {
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.IdentityClientId != nil {
+			identityClientId = *props.IdentityClientId
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":   keyId,
+			"identity_client_id": identityClientId,
+		},
+	}, nil
+}
+
+func flattenCognitiveAccountDataSourceStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		value := make(map[string]interface{})
+		if v.ResourceId != nil {
+			value["storage_account_id"] = *v.ResourceId
+		}
+		if v.IdentityClientId != nil {
+			value["identity_client_id"] = *v.IdentityClientId
+		}
+		results = append(results, value)
+	}
+	return results
+}
+
+func flattenCognitiveAccountDataSourceNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var subnetId string
+		if v.SubnetArmId != nil {
+			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
+			if err != nil {
+				return nil, err
+			}
+			subnetId = subnet.ID()
+		}
+
+		results = append(results, map[string]interface{}{
+			"scenario":  v.Scenario,
+			"subnet_id": subnetId,
+		})
+	}
+
+	return results, nil
 }
