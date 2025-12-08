@@ -898,7 +898,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%[1]d"
-  location = "eastus"
+  location = "eastus2"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -1767,7 +1767,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
   cluster {
     size               = %d
-    ault_database_name = "testdb"
+    default_database_name = "testdb"
   }
 }
 `, r.template(data), data.RandomInteger, clusterSize)
