@@ -22,9 +22,9 @@ import (
 
 type BackupPolicyDataLakeStorageModel struct {
 	Name                         string                                            `tfschema:"name"`
-	VaultId                      string                                            `tfschema:"vault_id"`
 	BackupRepeatingTimeIntervals []string                                          `tfschema:"backup_repeating_time_intervals"`
 	DefaultRetentionRule         []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
+	VaultId                      string                                            `tfschema:"vault_id"`
 	RetentionRules               []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
 	TimeZone                     string                                            `tfschema:"time_zone"`
 }
@@ -81,8 +81,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			),
 		},
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(backuppolicies.BackupVaultId{})),
-
 		"backup_repeating_time_intervals": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -130,6 +128,8 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 				},
 			},
 		},
+
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(backuppolicies.BackupVaultId{})),
 
 		"retention_rule": {
 			Type:     pluginsdk.TypeList,
