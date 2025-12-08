@@ -113,22 +113,22 @@ func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.Sch
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
-			return
+			return warns, errs
 		}
 
 		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
-			return
+			return warns, errs
 		}
 
 		// validate the scope is a connected cluster id
 		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
-			return
+			return warns, errs
 		}
 
-		return
+		return warns, errs
 	}
 }
 

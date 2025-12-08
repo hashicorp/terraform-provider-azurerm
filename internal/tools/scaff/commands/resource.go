@@ -127,7 +127,7 @@ func (d *resourceData) parseArgs(args []string) (errs []error) {
 	argSet.StringVar(&d.SDKName, "sdk_name", "", "(Optional) the name of the SDK used to manage the new resource. If omitted, the first slug of the id_type value will be used.")
 	if err := argSet.Parse(args); err != nil {
 		errs = append(errs, err)
-		return
+		return errs
 	}
 
 	switch {

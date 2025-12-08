@@ -12,10 +12,10 @@ func TemplateSpecVersionName(input interface{}, key string) (warnings []string, 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 	if !regexp.MustCompile(`^[\w\.\-\(\)]{1,64}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must only contain alpha-numeric characters, parenthesis, underscores, dashes and periods and be between 1 and 64 characters in length", key))
 	}
-	return
+	return warnings, errors
 }

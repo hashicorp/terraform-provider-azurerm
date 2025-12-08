@@ -17,28 +17,28 @@ func FlexibleServerDatabaseName(i interface{}, k string) (warnings []string, err
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if len(v) < minLength {
 		errors = append(errors, fmt.Errorf("length should equal to or greater than %d, got %q", minLength, v))
-		return
+		return warnings, errors
 	}
 
 	if len(v) > maxLength {
 		errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", maxLength, v))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[a-zA-Z-_]`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must begin with a letter got %v", k, v))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9-_]+$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must only contains numbers, characters and `-`, `_`, got %v", k, v))
-		return
+		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }

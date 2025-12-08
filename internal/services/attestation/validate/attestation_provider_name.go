@@ -18,5 +18,5 @@ func AttestationProviderName(i interface{}, k string) (warning []string, errors 
 		errors = append(errors, fmt.Errorf("%s must be between 3 and 24 characters in length and use numbers and lower-case letters only", k))
 	}
 
-	return
+	return warning, errors
 }

@@ -604,7 +604,7 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 
 func flattenFirewallPolicyExplicitProxy(input *firewallpolicies.ExplicitProxy) (result []interface{}) {
 	if input == nil {
-		return
+		return result
 	}
 	output := map[string]interface{}{
 		"enabled":         input.EnableExplicitProxy,

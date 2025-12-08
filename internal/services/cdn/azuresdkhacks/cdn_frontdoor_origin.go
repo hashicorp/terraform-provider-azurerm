@@ -28,16 +28,16 @@ func (c *CdnFrontDoorOriginWorkaroundClient) Update(ctx context.Context, resourc
 	req, err := c.UpdatePreparer(ctx, resourceGroupName, profileName, originGroupName, originName, originUpdateProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Update", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	result, err = c.sdkClient.UpdateSender(req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Update", result.Response(), "Failure sending request")
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 // UpdatePreparer prepares the Update request.

@@ -15,14 +15,14 @@ func IntegrationAccountAssemblyVersion() pluginsdk.SchemaValidateFunc {
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
+			return warnings, errors
 		}
 
 		if !regexp.MustCompile(`^([0-9]+.[0-9]+.[0-9]+.[0-9]+)$|^([0-9]+.[0-9]+)$`).MatchString(v) {
 			errors = append(errors, fmt.Errorf("%q must be in the format `major.minor.build.revision` in which `build` and `revision` components are optional", k))
-			return
+			return warnings, errors
 		}
 
-		return
+		return warnings, errors
 	}
 }

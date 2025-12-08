@@ -46,7 +46,7 @@ func AppSettings(input interface{}, key string) (warnings []string, errors []err
 		}
 	} else {
 		errors = append(errors, fmt.Errorf("expected %s to be a map of strings", key))
-		return
+		return warnings, errors
 	}
-	return
+	return warnings, errors
 }

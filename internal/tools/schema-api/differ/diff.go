@@ -86,7 +86,7 @@ func compareNodeResource(base providerjson.SchemaJSON, current providerjson.Sche
 		}
 	}
 
-	return
+	return errs
 }
 
 func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
@@ -104,7 +104,7 @@ func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.Sc
 		}
 	}
 
-	return
+	return errs
 }
 
 func nodeIsBlock(input providerjson.SchemaJSON) bool {

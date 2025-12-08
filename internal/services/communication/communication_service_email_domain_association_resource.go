@@ -328,13 +328,13 @@ func (EmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidat
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
+			return warnings, errors
 		}
 
 		if _, err := commonids.ParseCompositeResourceID(v, &communicationservices.CommunicationServiceId{}, &domains.DomainId{}); err != nil {
 			errors = append(errors, err)
 		}
 
-		return
+		return warnings, errors
 	}
 }

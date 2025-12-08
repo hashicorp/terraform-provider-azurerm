@@ -13,12 +13,12 @@ func NamespaceName(i interface{}, k string) (warnings []string, errors []error) 
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if matched := regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$").MatchString(v); !matched {
 		errors = append(errors, fmt.Errorf("%q can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long", k))
-		return
+		return warnings, errors
 	}
 
 	// The name cannot end with "-", "-sb" or "-mgmt".
@@ -27,7 +27,7 @@ func NamespaceName(i interface{}, k string) (warnings []string, errors []error) 
 	for _, illegalSuffix := range illegalSuffixes {
 		if strings.HasSuffix(v, illegalSuffix) {
 			errors = append(errors, fmt.Errorf("%q cannot end with a hyphen, -sb, or -mgmt", k))
-			return
+			return warnings, errors
 		}
 	}
 

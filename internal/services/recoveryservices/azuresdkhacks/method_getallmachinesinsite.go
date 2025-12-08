@@ -41,7 +41,7 @@ func (c MachinesClient) GetAllVMWareMachinesInSite(ctx context.Context, id vmwar
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
+		return result, err
 	}
 
 	return wrapExecutePaged(ctx, req)
@@ -54,13 +54,13 @@ func wrapExecutePaged(ctx context.Context, req *client.Request) (result vmwarema
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
+		return result, err
 	}
 
 	var values Values
 
 	if err = resp.Unmarshal(&values); err != nil {
-		return
+		return result, err
 	}
 	result.Model = values.Values
 
@@ -80,5 +80,5 @@ func wrapExecutePaged(ctx context.Context, req *client.Request) (result vmwarema
 		}
 	}
 
-	return
+	return result, err
 }

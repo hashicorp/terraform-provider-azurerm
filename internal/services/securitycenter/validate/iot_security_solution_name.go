@@ -12,7 +12,7 @@ func IotSecuritySolutionName(input interface{}, key string) (warnings []string, 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	// The name attribute rules are :
@@ -22,5 +22,5 @@ func IotSecuritySolutionName(input interface{}, key string) (warnings []string, 
 		errors = append(errors, fmt.Errorf("%s can only contain letter, digit, '-', '.' or '_'", v))
 	}
 
-	return
+	return warnings, errors
 }

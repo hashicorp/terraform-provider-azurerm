@@ -12,7 +12,7 @@ func BackupPolicyPostgreSQLFlexibleServerName(i interface{}, k string) (warnings
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile("^[-a-zA-Z0-9]{3,150}$").MatchString(v) {

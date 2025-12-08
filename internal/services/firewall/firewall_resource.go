@@ -695,7 +695,7 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 			servers = append(servers, val)
 		}
 	}
-	return
+	return enabled, servers
 }
 
 func expandFirewallPrivateIpRange(input []interface{}) map[string]string {

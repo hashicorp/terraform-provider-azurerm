@@ -107,7 +107,7 @@ var _ Checker = (*timeoutDiff)(nil)
 func diffTimeout(r *schema.Resource, md *model.ResourceDoc) (res []Checker) {
 	to := r.Schema.Timeouts
 	if to == nil {
-		return
+		return res
 	}
 	var items []TimeoutDiffItem
 	if md.Timeouts == nil {

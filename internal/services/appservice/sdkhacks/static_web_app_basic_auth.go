@@ -35,11 +35,11 @@ func (c StaticSitesClient) CreateOrUpdateBasicAuth(ctx context.Context, id stati
 
 	req, err := c.client.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
+		return result, err
 	}
 
 	if err = req.Marshal(input); err != nil {
-		return
+		return result, err
 	}
 
 	var resp *client.Response
@@ -49,14 +49,14 @@ func (c StaticSitesClient) CreateOrUpdateBasicAuth(ctx context.Context, id stati
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
+		return result, err
 	}
 
 	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (c StaticSitesClient) GetBasicAuth(ctx context.Context, id staticsites.StaticSiteId) (result staticsites.GetBasicAuthOperationResponse, err error) {
@@ -71,7 +71,7 @@ func (c StaticSitesClient) GetBasicAuth(ctx context.Context, id staticsites.Stat
 
 	req, err := c.client.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
+		return result, err
 	}
 
 	var resp *client.Response
@@ -81,12 +81,12 @@ func (c StaticSitesClient) GetBasicAuth(ctx context.Context, id staticsites.Stat
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
+		return result, err
 	}
 
 	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }

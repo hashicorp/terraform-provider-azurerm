@@ -14,13 +14,13 @@ func IsGatewaySubnet(i interface{}, k string) (warnings []string, errors []error
 	value, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	id, err := commonids.ParseSubnetIDInsensitively(value)
 	if err != nil {
 		errors = append(errors, err)
-		return
+		return warnings, errors
 	}
 
 	if !strings.EqualFold(id.SubnetName, "GatewaySubnet") {

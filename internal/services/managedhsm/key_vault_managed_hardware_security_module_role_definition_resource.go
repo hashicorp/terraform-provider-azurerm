@@ -104,7 +104,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 								for _, v := range keyvault.PossibleDataActionValues() {
 									res = append(res, string(v))
 								}
-								return
+								return res
 							}(), false),
 						},
 						Set: pluginsdk.HashString,
@@ -119,7 +119,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 								for _, v := range keyvault.PossibleDataActionValues() {
 									res = append(res, string(v))
 								}
-								return
+								return res
 							}(), false),
 						},
 						Set: pluginsdk.HashString,

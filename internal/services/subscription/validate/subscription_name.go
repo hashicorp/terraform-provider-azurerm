@@ -13,7 +13,7 @@ func SubscriptionName(i interface{}, k string) (warnings []string, errs []error)
 	v, ok := i.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errs
 	}
 
 	if len(v) > 64 || v == "" {
@@ -24,5 +24,5 @@ func SubscriptionName(i interface{}, k string) (warnings []string, errs []error)
 		errs = append(errs, errors.New("subscription Name cannot contain the characters `<`, `>`, `;`, or `|`"))
 	}
 
-	return
+	return warnings, errs
 }

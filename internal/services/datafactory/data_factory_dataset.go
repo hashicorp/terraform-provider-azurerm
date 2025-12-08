@@ -23,5 +23,5 @@ func flattenDataFactoryExpressionResultType(obj interface{}) (result string, isD
 			result = value.(string)
 		}
 	}
-	return
+	return result, isDynamic
 }

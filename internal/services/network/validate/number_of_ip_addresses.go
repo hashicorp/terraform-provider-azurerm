@@ -12,13 +12,13 @@ func NumberOfIpAddresses(input interface{}, key string) (warnings []string, erro
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string containing a positive integer", key))
-		return
+		return warnings, errors
 	}
 
 	n, ok := new(big.Int).SetString(v, 10)
 	if !ok || n.Sign() <= 0 || n.BitLen() > 128 {
 		errors = append(errors, fmt.Errorf("expected %q to be a positive integer", key))
-		return
+		return warnings, errors
 	}
 
 	// Check if n & (n - 1) == 0
@@ -27,5 +27,5 @@ func NumberOfIpAddresses(input interface{}, key string) (warnings []string, erro
 		errors = append(errors, fmt.Errorf("expected %q to be a power of 2", key))
 	}
 
-	return
+	return warnings, errors
 }

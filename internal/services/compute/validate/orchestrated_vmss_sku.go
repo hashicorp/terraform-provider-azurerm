@@ -16,7 +16,7 @@ func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warni
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	skuParts := strings.Split(v, "_")
@@ -25,5 +25,5 @@ func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warni
 		errors = append(errors, fmt.Errorf("%q is not formatted properly, got %q", key, v))
 	}
 
-	return
+	return warnings, errors
 }

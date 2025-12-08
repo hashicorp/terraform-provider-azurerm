@@ -426,7 +426,7 @@ func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) 
 		}
 	}
 
-	return
+	return actionIncident, actionPlaybook, actionIncidentTask
 }
 
 func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.AutomationRuleAction, error) {

@@ -472,7 +472,7 @@ func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheN
 
 func flattenStorageCacheNetworkSettings(settings *caches.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
 	if settings == nil {
-		return
+		return mtu, ntpServer, dnsSetting
 	}
 
 	mtu = int(pointer.From(settings.Mtu))
@@ -486,7 +486,7 @@ func flattenStorageCacheNetworkSettings(settings *caches.CacheNetworkSettings) (
 			},
 		}
 	}
-	return
+	return mtu, ntpServer, dnsSetting
 }
 
 func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *caches.CacheDirectorySettings {

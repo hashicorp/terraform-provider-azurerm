@@ -13,7 +13,7 @@ func WorkspaceName(i interface{}, k string) (warnings []string, errors []error) 
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	// The name attribute rules are :
@@ -24,11 +24,11 @@ func WorkspaceName(i interface{}, k string) (warnings []string, errors []error) 
 
 	if !regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must start and end with a letter or number, can contain only lowercase letters, numbers or hyphens, and be between 1 and 50 characters long", k))
-		return
+		return warnings, errors
 	}
 	if strings.Contains(v, "-ondemand") {
 		errors = append(errors, fmt.Errorf("%s must not contain the string '-ondemand'", k))
-		return
+		return warnings, errors
 	}
 	return warnings, errors
 }

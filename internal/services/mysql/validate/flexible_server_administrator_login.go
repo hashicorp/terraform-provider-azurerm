@@ -12,28 +12,28 @@ func FlexibleServerAdministratorLogin(i interface{}, k string) (warnings []strin
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if len(v) < 1 {
 		errors = append(errors, fmt.Errorf("length should equal to or greater than %d, got %q", 1, v))
-		return
+		return warnings, errors
 	}
 
 	if len(v) > 32 {
 		errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 32, v))
-		return
+		return warnings, errors
 	}
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_]*$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must only contains characters, numbers or '_', got %v", k, v))
-		return
+		return warnings, errors
 	}
 
 	if v == "azure_superuser" || v == "admin" || v == "administrator" || v == "root" || v == "guest" || v == "public" {
 		errors = append(errors, fmt.Errorf("%q cannot be `azure_superuser`, `admin`, `administrator`, `root`, `guest` or `public`", k))
-		return
+		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }

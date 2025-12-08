@@ -41,5 +41,5 @@ func StatusCodeRange(i interface{}, k string) (warnings []string, errors []error
 		}
 	}
 
-	return
+	return warnings, errors
 }

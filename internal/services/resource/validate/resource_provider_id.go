@@ -14,12 +14,12 @@ func ResourceProviderID(i interface{}, k string) (warnings []string, errors []er
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.ResourceProviderID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

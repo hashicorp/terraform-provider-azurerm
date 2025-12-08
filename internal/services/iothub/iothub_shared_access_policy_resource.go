@@ -136,7 +136,7 @@ func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.Res
 		err = multierror.Append(err, errors.New("if `registry_write` is set to true, `registry_read` must also be set to true"))
 	}
 
-	return
+	return err
 }
 
 func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

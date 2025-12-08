@@ -23,13 +23,13 @@ func windowsComputerName(i interface{}, k string, maxLength int, allowDashSuffix
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
-		return
+		return warnings, errors
 	}
 
 	// The value must not be empty.
 	if strings.TrimSpace(v) == "" {
 		errors = append(errors, fmt.Errorf("%q must not be empty", k))
-		return
+		return warnings, errors
 	}
 
 	if len(v) > maxLength {

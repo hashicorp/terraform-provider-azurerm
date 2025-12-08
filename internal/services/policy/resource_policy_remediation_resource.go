@@ -292,7 +292,7 @@ func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.Re
 	if v := d.Get("resource_count").(int); v != 0 {
 		prop.ResourceCount = pointer.To(int64(v))
 	}
-	return
+	return prop
 }
 
 // setRemediationProperties sets the properties of the remediation, useful when add new properties to the model

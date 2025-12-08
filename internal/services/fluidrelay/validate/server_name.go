@@ -14,11 +14,11 @@ func FluidRelayServerName(input interface{}, key string) (warnings []string, err
 	v, ok := input.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errs
 	}
 	// Name should contain only alphanumeric characters and hyphens, up to 50 characters long.
 	if !serverNameReg.MatchString(v) {
 		errs = append(errs, fmt.Errorf("%s should contain only alphanumeric characters and hyphens, up to 50 characters long", key))
 	}
-	return
+	return warnings, errs
 }

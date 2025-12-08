@@ -387,5 +387,5 @@ func (r ArcKubernetesClusterResource) getCredentials(t *testing.T) (credential, 
 		t.Fatalf("failed to generate key: %+v", err)
 	}
 
-	return
+	return credential, privateKey, publicKey
 }

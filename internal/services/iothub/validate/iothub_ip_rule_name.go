@@ -15,5 +15,5 @@ func IoTHubIpRuleName(v interface{}, k string) (warnings []string, errors []erro
 		errors = append(errors, fmt.Errorf("`ip_rule_name` can only be alphanumeric string up to 128 characters long. Only the ASCII 7-bit alphanumeric characters plus the following special characters are accepted: - : . + %% _ # * ? ! ( ) , = @ ; '"))
 	}
 
-	return
+	return warnings, errors
 }

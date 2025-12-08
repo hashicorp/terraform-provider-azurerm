@@ -37,7 +37,7 @@ func paloAltoNameValidation(input interface{}, k string) (warnings []string, err
 	value, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))
-		return
+		return warnings, errors
 	}
 
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`).Match([]byte(value)); !matched {
@@ -49,5 +49,5 @@ func paloAltoNameValidation(input interface{}, k string) (warnings []string, err
 		errors = append(errors, fmt.Errorf("%q cannot start or end with a `-`", k))
 	}
 
-	return
+	return warnings, errors
 }

@@ -25,7 +25,7 @@ func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	ip := net.ParseIP(v)
@@ -48,11 +48,11 @@ func validatePortNumber(i interface{}, k string, allowZero bool) (warnings []str
 	v, ok := i.(int)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
-		return
+		return warnings, errors
 	}
 
 	if allowZero && v == 0 {
-		return
+		return warnings, errors
 	}
 
 	if v < 1 || 65535 < v {

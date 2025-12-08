@@ -37,7 +37,7 @@ func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
+			return warnings, errors
 		}
 
 		if !regexp.MustCompile(`^([[:alnum:]][-._[:alnum:]]{0,78}[_[:alnum:]])$`).MatchString(v) {

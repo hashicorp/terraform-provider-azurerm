@@ -680,7 +680,7 @@ func expandActionDetail(input ActionModel) (output replicationrecoveryplans.Reco
 			FabricLocation: replicationrecoveryplans.RecoveryPlanActionLocation(input.FabricLocation),
 		}
 	}
-	return
+	return output
 }
 
 func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []string {

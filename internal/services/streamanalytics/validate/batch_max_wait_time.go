@@ -12,7 +12,7 @@ func BatchMaxWaitTime(input interface{}, key string) (warnings []string, errors 
 	value, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", key))
-		return
+		return warnings, errors
 	}
 
 	if value == "" {

@@ -12,7 +12,7 @@ func StorageTargetName(i interface{}, k string) (warnings []string, errors []err
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 	p := regexp.MustCompile(`^[-0-9a-zA-Z_]{1,31}$`)
 	if !p.MatchString(v) {

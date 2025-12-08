@@ -12,13 +12,13 @@ func RedisEnterpriseDatabaseName(i interface{}, k string) (warnings []string, er
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("%q expected type of to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if v != "default" {
 		errors = append(errors, fmt.Errorf("%q is currently limited to 'default' only, got %v", k, v))
-		return
+		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }

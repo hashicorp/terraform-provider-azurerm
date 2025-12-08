@@ -12,7 +12,7 @@ func FirewallRuleName(i interface{}, k string) (warnings []string, errors []erro
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	// The name attribute rules are :
@@ -22,7 +22,7 @@ func FirewallRuleName(i interface{}, k string) (warnings []string, errors []erro
 
 	if !regexp.MustCompile(`^[^<>*%&:\\/?]{0,127}[^.<>*%&:\\/?]$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can't contain '<,>,*,%%,&,:,\\,/,?', can't end with '.', and must be between 1 and 128 characters long", k))
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

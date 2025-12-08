@@ -46,23 +46,23 @@ func (client ThreatIntelligenceIndicatorClient) Get(ctx context.Context, resourc
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Get", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Get", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Get", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) GetPreparer(ctx context.Context, resourceGroupName string, workspaceName string, name string) (*http.Request, error) {
@@ -97,7 +97,7 @@ func (client ThreatIntelligenceIndicatorClient) GetResponder(resp *http.Response
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Context, resourceGroupName string, workspaceName string, threatIntelligenceProperties ThreatIntelligenceIndicatorModel) (result ThreatIntelligenceInformationModel, err error) {
@@ -128,23 +128,23 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Cont
 	req, err := client.CreateIndicatorPreparer(ctx, resourceGroupName, workspaceName, threatIntelligenceProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := client.CreateIndicatorSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result, err = client.CreateIndicatorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 // CreateIndicatorPreparer prepares the CreateIndicator request.
@@ -181,7 +181,7 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicatorResponder(resp *h
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Context, resourceGroupName string, workspaceName string, threatIntelligenceFilteringCriteria securityinsight.ThreatIntelligenceFilteringCriteria) (result ThreatIntelligenceInformationListPage, err error) {
@@ -213,27 +213,27 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 	req, err := client.QueryIndicatorsPreparer(ctx, resourceGroupName, workspaceName, threatIntelligenceFilteringCriteria)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := client.QueryIndicatorsSender(req)
 	if err != nil {
 		result.tiil.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result.tiil, err = client.QueryIndicatorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 	if result.tiil.hasNextLink() && result.tiil.IsEmpty() {
 		err = result.NextWithContext(ctx)
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) queryIndicatorsNextResults(ctx context.Context, lastResults ThreatIntelligenceInformationList) (result ThreatIntelligenceInformationList, err error) {
@@ -242,7 +242,7 @@ func (client ThreatIntelligenceIndicatorClient) queryIndicatorsNextResults(ctx c
 		return result, autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "queryIndicatorsNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
-		return
+		return result, err
 	}
 	resp, err := client.QueryIndicatorsSender(req)
 	if err != nil {
@@ -253,7 +253,7 @@ func (client ThreatIntelligenceIndicatorClient) queryIndicatorsNextResults(ctx c
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "queryIndicatorsNextResults", resp, "Failure responding to next results request")
 	}
-	return
+	return result, err
 }
 
 func (tiil ThreatIntelligenceInformationList) threatIntelligenceInformationListPreparer(ctx context.Context) (*http.Request, error) {
@@ -303,7 +303,7 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicatorsResponder(resp *h
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, name string, threatIntelligenceProperties ThreatIntelligenceIndicatorModel) (result ThreatIntelligenceInformationModel, err error) {
@@ -334,23 +334,23 @@ func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, reso
 	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, name, threatIntelligenceProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Create", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := client.CreateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Create", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Create", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 func (client ThreatIntelligenceIndicatorClient) CreatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, name string, threatIntelligenceProperties ThreatIntelligenceIndicatorModel) (*http.Request, error) {
@@ -387,5 +387,5 @@ func (client ThreatIntelligenceIndicatorClient) CreateResponder(resp *http.Respo
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }

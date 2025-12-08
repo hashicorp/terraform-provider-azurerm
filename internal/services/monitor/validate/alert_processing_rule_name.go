@@ -18,5 +18,5 @@ func AlertProcessingRuleName(i interface{}, k string) (warning []string, errors 
 		errors = append(errors, fmt.Errorf("%s should begin with a letter or number, contain only letters, numbers, underscores and hyphens", k))
 	}
 
-	return
+	return warning, errors
 }

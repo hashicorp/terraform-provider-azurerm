@@ -784,7 +784,7 @@ func validateAdminUsernameWindows(input interface{}, key string) (warnings []str
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	// **Disallowed values:**
@@ -812,14 +812,14 @@ func validateAdminUsernameWindows(input interface{}, key string) (warnings []str
 		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }
 
 func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	// **Disallowed values:**
@@ -845,7 +845,7 @@ func validateAdminUsernameLinux(input interface{}, key string) (warnings []strin
 		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }
 
 func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {

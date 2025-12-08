@@ -7,13 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -36,28 +39,148 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"local_auth_enabled": {
+			"custom_question_answering_search_service_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"custom_subdomain_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"identity_client_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"dynamic_throttling_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"sku_name": {
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"metrics_advisor_aad_client_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"qna_runtime_endpoint": {
+			"metrics_advisor_aad_tenant_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"endpoint": {
+			"metrics_advisor_super_user_name": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"metrics_advisor_website_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"network_acls": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ip_rules": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"virtual_network_rules": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"subnet_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"ignore_missing_vnet_service_endpoint": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"bypass": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"network_injection": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scenario": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"outbound_network_access_restricted": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -67,13 +190,49 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"project_management_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"qna_runtime_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"storage": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"storage_account_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"identity_client_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"tags": commonschema.Tags(),
 		},
@@ -83,7 +242,7 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -100,32 +259,69 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("kind", model.Kind)
+
 		if sku := model.Sku; sku != nil {
 			d.Set("sku_name", sku.Name)
 		}
 
 		if props := model.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
-				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+				d.Set("custom_question_answering_search_service_id", pointer.From(apiProps.QnaAzureSearchEndpointId))
+				d.Set("metrics_advisor_aad_client_id", pointer.From(apiProps.AadClientId))
+				d.Set("metrics_advisor_aad_tenant_id", pointer.From(apiProps.AadTenantId))
+				d.Set("metrics_advisor_super_user_name", pointer.From(apiProps.SuperUser))
+				d.Set("metrics_advisor_website_name", pointer.From(apiProps.WebsiteName))
+				d.Set("qna_runtime_endpoint", pointer.From(apiProps.QnaRuntimeEndpoint))
 			}
-			d.Set("endpoint", props.Endpoint)
 
-			localAuthEnabled := true
-			if props.DisableLocalAuth != nil {
-				localAuthEnabled = !*props.DisableLocalAuth
+			d.Set("custom_subdomain_name", pointer.From(props.CustomSubDomainName))
+
+			customerManagedKey, err := flattenCognitiveAccountDataSourceCustomerManagedKey(props.Encryption)
+			if err != nil {
+				return err
 			}
+
+			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
+
+			d.Set("endpoint", pointer.From(props.Endpoint))
+			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
+			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+
+			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
+
+			if err := d.Set("network_acls", flattenCognitiveAccountDataSourceNetworkAcls(props.NetworkAcls)); err != nil {
+				return fmt.Errorf("setting `network_acls` for %s: %+v", id, err)
+			}
+
+			networkInjection, err := flattenCognitiveAccountDataSourceNetworkInjection(props.NetworkInjections)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("network_injection", networkInjection); err != nil {
+				return fmt.Errorf("setting `network_injection`: %+v", err)
+			}
+
+			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
+			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
+
+			if err := d.Set("storage", flattenCognitiveAccountDataSourceStorage(props.UserOwnedStorage)); err != nil {
+				return fmt.Errorf("setting `storage` for %s: %+v", id, err)
+			}
 
 			if localAuthEnabled {
 				keys, err := client.AccountsListKeys(ctx, id)
 				if err != nil {
-					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
 					return fmt.Errorf("listing the Keys for %s: %+v", id, err)
 				}
 
 				if model := keys.Model; model != nil {
-					d.Set("primary_access_key", model.Key1)
-					d.Set("secondary_access_key", model.Key2)
+					d.Set("primary_access_key", pointer.From(model.Key1))
+					d.Set("secondary_access_key", pointer.From(model.Key2))
 				}
 			}
 		}
@@ -141,4 +337,109 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
+}
+
+func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ipRules := make([]interface{}, 0)
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
+			ipRules = append(ipRules, v.Value)
+		}
+	}
+
+	virtualNetworkRules := make([]interface{}, 0)
+	if input.VirtualNetworkRules != nil {
+		for _, v := range *input.VirtualNetworkRules {
+			id := v.Id
+			subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
+			if err == nil {
+				id = subnetId.ID()
+			}
+
+			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
+				"subnet_id":                            id,
+				"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
+			})
+		}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"bypass":                input.Bypass,
+		"default_action":        input.DefaultAction,
+		"ip_rules":              ipRules,
+		"virtual_network_rules": virtualNetworkRules,
+	}}
+}
+
+func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityClientId string
+	if props := input.KeyVaultProperties; props != nil {
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.IdentityClientId != nil {
+			identityClientId = *props.IdentityClientId
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":   keyId,
+			"identity_client_id": identityClientId,
+		},
+	}, nil
+}
+
+func flattenCognitiveAccountDataSourceStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		value := make(map[string]interface{})
+		if v.ResourceId != nil {
+			value["storage_account_id"] = *v.ResourceId
+		}
+		if v.IdentityClientId != nil {
+			value["identity_client_id"] = *v.IdentityClientId
+		}
+		results = append(results, value)
+	}
+	return results
+}
+
+func flattenCognitiveAccountDataSourceNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var subnetId string
+		if v.SubnetArmId != nil {
+			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
+			if err != nil {
+				return nil, err
+			}
+			subnetId = subnet.ID()
+		}
+
+		results = append(results, map[string]interface{}{
+			"scenario":  v.Scenario,
+			"subnet_id": subnetId,
+		})
+	}
+
+	return results, nil
 }

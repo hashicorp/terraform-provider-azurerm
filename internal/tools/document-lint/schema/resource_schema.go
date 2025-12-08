@@ -19,7 +19,7 @@ func FileForResource(funcs ...interface{}) (file string) {
 			return file
 		}
 	}
-	return
+	return file
 }
 
 type Resource struct {

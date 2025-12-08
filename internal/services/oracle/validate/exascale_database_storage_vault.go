@@ -21,5 +21,5 @@ func ExascaleDatabaseStorageVaultName(i interface{}, k string) (warnings []strin
 		errors = append(errors, fmt.Errorf("%s must begin with a letter or underscore (_), contain only letters, numbers, underscores (_) and cannot contain any consecutive hyphens (--)", k))
 	}
 
-	return
+	return warnings, errors
 }

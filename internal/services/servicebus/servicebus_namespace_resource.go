@@ -706,7 +706,7 @@ func servicebusTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ 
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
-	return
+	return err
 }
 
 func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId, input []interface{}) error {

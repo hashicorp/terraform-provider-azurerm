@@ -36,7 +36,7 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := ParseAzureResourceID(v); err != nil {

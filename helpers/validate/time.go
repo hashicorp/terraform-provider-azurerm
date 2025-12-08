@@ -17,7 +17,7 @@ func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := period.Parse(v); err != nil {
@@ -56,7 +56,7 @@ func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := iso8601.Parse(v, time.UTC); err != nil {
@@ -70,12 +70,12 @@ func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if !strings.HasPrefix(v, "R/") {
 		errors = append(errors, fmt.Errorf("%s must start with 'R/'", k))
-		return
+		return warnings, errors
 	}
 
 	partsWithoutPrefix := strings.TrimPrefix(v, "R/")
@@ -83,7 +83,7 @@ func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []
 	pIndex := strings.Index(partsWithoutPrefix, "/P")
 	if pIndex == -1 {
 		errors = append(errors, fmt.Errorf("%s must end with duration", k))
-		return
+		return warnings, errors
 	}
 
 	dateTime := partsWithoutPrefix[:pIndex]
@@ -91,12 +91,12 @@ func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []
 
 	if _, err := iso8601.Parse(dateTime, time.UTC); err != nil {
 		errors = append(errors, fmt.Errorf("%q has the invalid ISO8601 date format %q: %+v", k, i, err))
-		return
+		return warnings, errors
 	}
 
 	if _, err := period.Parse(duration); err != nil {
 		errors = append(errors, err)
-		return
+		return warnings, errors
 	}
 
 	return warnings, errors

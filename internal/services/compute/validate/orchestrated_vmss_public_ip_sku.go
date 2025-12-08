@@ -13,7 +13,7 @@ func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	publicIpSkus := []string{
@@ -25,10 +25,10 @@ func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string
 
 	for _, sku := range publicIpSkus {
 		if v == sku {
-			return
+			return warnings, errors
 		}
 	}
 
 	errors = append(errors, fmt.Errorf("%q is not valid, expected to be one of %+v, got %q", key, publicIpSkus, v))
-	return
+	return warnings, errors
 }

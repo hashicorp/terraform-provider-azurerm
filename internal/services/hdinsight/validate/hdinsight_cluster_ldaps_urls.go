@@ -12,19 +12,19 @@ func HDInsightClusterLdapsUrls(i interface{}, k string) (warnings []string, erro
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	ldapsUrl, err := url.Parse(v)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q: %q", k, v))
-		return
+		return warnings, errors
 	}
 
 	if ldapsUrl.Scheme != "ldaps" {
 		errors = append(errors, fmt.Errorf(`%s should start with "ldaps://"`, k))
-		return
+		return warnings, errors
 	}
 
-	return
+	return warnings, errors
 }

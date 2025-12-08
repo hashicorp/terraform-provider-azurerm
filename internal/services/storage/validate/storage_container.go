@@ -35,7 +35,7 @@ func StorageContainerDataPlaneID(input interface{}, key string) (warnings []stri
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	if client.StorageDomainSuffix == nil {
@@ -46,5 +46,5 @@ func StorageContainerDataPlaneID(input interface{}, key string) (warnings []stri
 		errors = append(errors, err)
 	}
 
-	return
+	return warnings, errors
 }

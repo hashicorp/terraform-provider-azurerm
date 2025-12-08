@@ -36,7 +36,7 @@ func crossCheckProperty(r *schema.Resource, md *model.ResourceDoc) (res []Checke
 	}
 	// if there is just one miss in doc and on miss in code, maybe a misspelling
 	res = mergeMisspelling(res)
-	return
+	return res
 }
 
 var diffDocSkip = map[string][]string{

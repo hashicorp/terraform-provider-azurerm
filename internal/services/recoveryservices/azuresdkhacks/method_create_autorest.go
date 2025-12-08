@@ -22,22 +22,22 @@ func (c VaultCertificatesClient) Create(ctx context.Context, id vaultcertificate
 	req, err := c.preparerForCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vaultcertificates.VaultCertificatesClient", "Create", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vaultcertificates.VaultCertificatesClient", "Create", result.HttpResponse, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result, err = c.responderForCreate(result.HttpResponse)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "vaultcertificates.VaultCertificatesClient", "Create", result.HttpResponse, "Failure responding to request")
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 // preparerForCreate prepares the Create request.
@@ -66,5 +66,5 @@ func (c VaultCertificatesClient) responderForCreate(resp *http.Response) (result
 		autorest.ByClosing())
 	result.HttpResponse = resp
 
-	return
+	return result, err
 }

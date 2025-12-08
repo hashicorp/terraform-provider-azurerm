@@ -45,27 +45,27 @@ func (client SecurityMLAnalyticsSettingsClient) List(ctx context.Context, resour
 	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.SecurityMLAnalyticsSettingsClient", "List", nil, "Failure preparing request")
-		return
+		return result, err
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.smasl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.SecurityMLAnalyticsSettingsClient", "List", resp, "Failure sending request")
-		return
+		return result, err
 	}
 
 	result.smasl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.SecurityMLAnalyticsSettingsClient", "List", resp, "Failure responding to request")
-		return
+		return result, err
 	}
 	if result.smasl.hasNextLink() && result.smasl.IsEmpty() {
 		err = result.NextWithContext(ctx)
-		return
+		return result, err
 	}
 
-	return
+	return result, err
 }
 
 // ListPreparer prepares the List request.
@@ -104,7 +104,7 @@ func (client SecurityMLAnalyticsSettingsClient) ListResponder(resp *http.Respons
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
+	return result, err
 }
 
 // listNextResults retrieves the next set of results, if any.
@@ -114,7 +114,7 @@ func (client SecurityMLAnalyticsSettingsClient) listNextResults(ctx context.Cont
 		return result, autorest.NewErrorWithError(err, "securityinsight.SecurityMLAnalyticsSettingsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
-		return
+		return result, err
 	}
 	resp, err := client.ListSender(req)
 	if err != nil {
@@ -125,11 +125,11 @@ func (client SecurityMLAnalyticsSettingsClient) listNextResults(ctx context.Cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.SecurityMLAnalyticsSettingsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
-	return
+	return result, err
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client SecurityMLAnalyticsSettingsClient) ListComplete(ctx context.Context, resourceGroupName string, workspaceName string) (result SecurityMLAnalyticsSettingsListIterator, err error) {
 	result.page, err = client.List(ctx, resourceGroupName, workspaceName)
-	return
+	return result, err
 }
