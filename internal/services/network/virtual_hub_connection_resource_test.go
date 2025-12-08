@@ -567,7 +567,7 @@ func (r VirtualHubConnectionResource) withoutPropagatedRouteTable(data acceptanc
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
@@ -587,7 +587,7 @@ func (r VirtualHubConnectionResource) withoutVnetStaticRoute(data acceptance.Tes
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
@@ -605,7 +605,7 @@ func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
