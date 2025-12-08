@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
 
--> **Note:** When `StandardV2` is enabled, service API will also enable all availability zones. See [MS learn documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info. The user has to explicitly set this property in the Terraform configuration or handle it using `ignore_changes`.
+-> **Note:** `StandardV2` SKU requires `zones` to be set to `[1,2,3]`, see [MS learn documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 

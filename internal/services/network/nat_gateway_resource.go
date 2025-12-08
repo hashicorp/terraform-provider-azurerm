@@ -4,8 +4,10 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -50,6 +52,31 @@ func resourceNatGateway() *pluginsdk.Resource {
 		},
 
 		Schema: resourceNatGatewaySchema(),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			skuName := d.Get("sku_name").(string)
+
+			if skuName == string(natgateways.NatGatewaySkuNameStandardVTwo) {
+				zonesRaw := d.Get("zones").(*schema.Set).List()
+				if len(zonesRaw) == 0 {
+					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using StandardV2 SKU")
+				}
+
+				zones := make([]string, 0, len(zonesRaw))
+				for _, z := range zonesRaw {
+					zones = append(zones, z.(string))
+				}
+
+				sort.Strings(zones)
+
+				requiredZones := []string{"1", "2", "3"}
+				if len(zones) != 3 || zones[0] != "1" || zones[1] != "2" || zones[2] != "3" {
+					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU, got %v", requiredZones)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
