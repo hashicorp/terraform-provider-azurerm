@@ -41,6 +41,54 @@ resource "azurerm_linux_web_app" "example" {
 
 ```
 
+### Site Container Example
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_service_plan" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  os_type             = "Linux"
+  sku_name            = "P1v2"
+}
+
+resource "azurerm_linux_web_app" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_service_plan.example.location
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "80"
+    is_main     = true
+
+    environment_variable {
+      name  = "LOG_LEVEL"
+      value = "debug"
+    }
+  }
+
+  site_container {
+    name        = "sidecar"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "8080"
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -90,6 +138,10 @@ The following arguments are supported:
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
 
 * `logs` - (Optional) A `logs` block as defined below.
+
+* `site_container` - (Optional) One or more `site_container` blocks as defined below.
+
+~> **Note:** `site_container` blocks cannot be used when `site_config.0.application_stack` is configured.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
@@ -189,6 +241,50 @@ An `application_stack` block supports the following:
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
+
+---
+
+A `site_container` block supports the following:
+
+* `name` - (Required) The unique name for this container definition.
+
+* `image` - (Required) The fully qualified container image (including tag) that should run inside the Web App.
+
+* `is_main` - (Optional) Should this container serve the primary site traffic? Exactly one container must set this to `true` when `site_container` blocks are configured. Defaults to `false`.
+
+* `target_port` - (Required) The port exposed by the container image that should receive traffic.
+
+* `auth_type` - (Optional) The authentication strategy used to pull the image. Possible values include `Anonymous`, `ManagedIdentity`, and `Basic`. Defaults to `Anonymous`.
+
+* `startup_command` - (Optional) The command that should be executed when the container starts.
+
+* `user_managed_identity_client_id` - (Optional) The Client ID of the user-assigned managed identity that should be used when `auth_type` is set to `ManagedIdentity`.
+
+* `username` - (Optional) The username to use when `auth_type` is set to `Basic`.
+
+* `password_secret` - (Optional) The password to use when `auth_type` is set to `Basic`.
+
+* `environment_variable` - (Optional) One or more `environment_variable` blocks as defined below.
+
+* `volume_mount` - (Optional) One or more `volume_mount` blocks as defined below.
+
+-> **Note:** Azure does not return values supplied to `password_secret`, so Terraform cannot detect drift for this property.
+
+An `environment_variable` block supports the following:
+
+* `name` - (Required) The name of the environment variable.
+
+* `value` - (Required) The value assigned to the environment variable.
+
+An `volume_mount` block supports the following:
+
+* `container_mount_path` - (Required) The absolute path inside the container where the volume is mounted.
+
+* `data` - (Optional) The opaque data supplied to Azure for the mount. The contents depend on the selected storage option.
+
+* `read_only` - (Optional) Should the mounted volume be read only? Defaults to `false`.
+
+* `volume_sub_path` - (Required) The path inside the Web App volume that should be exposed to the container.
 
 ---
 

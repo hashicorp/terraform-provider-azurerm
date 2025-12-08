@@ -348,6 +348,44 @@ func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_siteContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSiteContainers(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_container.#").HasValue("2"),
+				check.That(data.ResourceName).Key("site_container.0.is_main").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withSiteContainersUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_container.0.environment_variable.0.value").HasValue("updated"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_siteContainerWithApplicationStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.siteContainerWithApplicationStack(data),
+			ExpectError: regexp.MustCompile("`site_container` cannot be used when `site_config.0.application_stack` is specified"),
+		},
+	})
+}
+
 func TestAccLinuxWebApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -2671,6 +2709,104 @@ resource "azurerm_linux_web_app" "test" {
       }
     }
   }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) withSiteContainers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+	name                = "acctestWA-%d"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	service_plan_id     = azurerm_service_plan.test.id
+
+	site_config {}
+
+	site_container {
+		name        = "app"
+		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+		target_port = "80"
+		is_main     = true
+
+		environment_variable {
+			name  = "EXAMPLE"
+			value = "initial"
+		}
+	}
+
+	site_container {
+		name        = "sidecar"
+		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+		target_port = "8080"
+	}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) withSiteContainersUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+	name                = "acctestWA-%d"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	service_plan_id     = azurerm_service_plan.test.id
+
+	site_config {}
+
+	site_container {
+		name        = "app"
+		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+		target_port = "8080"
+		is_main     = true
+
+		environment_variable {
+			name  = "EXAMPLE"
+			value = "updated"
+		}
+	}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) siteContainerWithApplicationStack(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+	name                = "acctestWA-%d"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	service_plan_id     = azurerm_service_plan.test.id
+
+	site_config {
+		application_stack {
+			python_version = "3.9"
+		}
+	}
+
+	site_container {
+		name        = "app"
+		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+		target_port = "80"
+		is_main     = true
+	}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
