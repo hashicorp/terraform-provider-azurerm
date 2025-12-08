@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+  "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,7 +37,7 @@ func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	r := VirtualHubBgpConnectionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualWan(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,6 +50,11 @@ func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+      ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 		{
@@ -55,6 +62,11 @@ func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+      ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 	})
@@ -238,7 +250,7 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet2%[2]d"
-  address_space       = ["10.5.0.0/16"]
+  address_space       = ["10.6.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -253,7 +265,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes     = ["10.5.1.0/24"]
+  address_prefixes     = ["10.6.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test2" {
@@ -279,7 +291,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
   name                          = "acctest-VHub-BgpConnection-%[2]d"
   virtual_hub_id                = azurerm_virtual_hub.test2.id
   peer_asn                      = 65514
-  peer_ip                       = "10.5.0.1"
+  peer_ip                       = "10.6.0.1"
   virtual_network_connection_id = azurerm_virtual_hub_connection.test2.id
 }
 `, r.virtualWanTemplate(data), data.RandomInteger)

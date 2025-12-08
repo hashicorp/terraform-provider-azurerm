@@ -219,16 +219,16 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   scale_unit                  = 1
 
   connection_configuration {
-    name = "second"
+    name = "first"
     vpn_client_address_pool {
-      address_prefixes = ["172.100.128.0/25"]
+      address_prefixes = ["172.100.0.0/25"]
     }
   }
 
   connection_configuration {
-    name = "first"
+    name = "second"
     vpn_client_address_pool {
-      address_prefixes = ["172.100.0.0/25"]
+      address_prefixes = ["172.100.128.0/25"]
     }
   }
 }
