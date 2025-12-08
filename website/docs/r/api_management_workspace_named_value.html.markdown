@@ -45,11 +45,11 @@ resource "azurerm_api_management_workspace_named_value" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name of the API Management Workspace Named Value. Changing this forces a new resource to be created.
+
 * `api_management_workspace_id` - (Required) The ID of the API Management Workspace. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) The display name of this API Management Workspace Named Value.
-
-* `name` - (Required) The name of the API Management Workspace Named Value. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) Specifies whether the API Management Workspace Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
@@ -69,9 +69,9 @@ The following arguments are supported:
 
 A `value_from_key_vault` block supports the following:
 
-* `identity_client_id` - (Optional) The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.
-
 * `secret_id` - (Required) The resource ID of the Key Vault Secret.
+
+* `identity_client_id` - (Optional) The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.
 
 ## Attributes Reference
 
