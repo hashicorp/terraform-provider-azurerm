@@ -79,6 +79,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*plugin
 			Default:  false,
 		},
 
+		// NOTE: this is not the common `tags` attribute used by most Azure resources, this field accepts a list of strings rather than a map of key-value pairs
 		"tags": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

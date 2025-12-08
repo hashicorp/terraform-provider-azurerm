@@ -38,6 +38,7 @@ resource "azurerm_api_management_workspace_named_value" "example" {
   api_management_workspace_id = azurerm_api_management_workspace.example.id
   display_name                = "ExampleProperty"
   value                       = "Example Value"
+  tags                        = ["tag1", "tag2", "tag3"]
 }
 ```
 
