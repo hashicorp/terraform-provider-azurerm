@@ -57,17 +57,17 @@ var Registration = map[string]Rule{
 // RulesRequiringPackageLoad contains rule IDs that need package loading and API analysis
 // These rules require expensive package loading and SSA analysis
 var RulesRequiringPackageLoad = map[string]bool{
-	"S001": true, // API Section validation needs API data from loaded packages
+	S001{}.ID(): true, // API Section validation needs API data from loaded packages
 }
 
 // RulesRequiringPackageLoad contains rule IDs that need normalize markdowns
 var RulesRequiringNormalizingMd = map[string]bool{
-	"S006": true,
-	"S007": true,
-	"S008": true,
-	"S009": true,
-	"S010": true,
-	"S011": true,
+	S006{}.ID(): true,
+	S007{}.ID(): true,
+	S008{}.ID(): true,
+	S009{}.ID(): true,
+	S010{}.ID(): true,
+	S011{}.ID(): true,
 }
 
 func ShouldLoadPackages(ruleIDs []string) bool {
