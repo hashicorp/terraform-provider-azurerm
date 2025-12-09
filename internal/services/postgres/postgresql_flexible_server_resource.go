@@ -368,8 +368,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"size": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
-							// Confirmed with PG service team that the max size is 30
-							ValidateFunc: validation.IntBetween(1, 30),
+							// Confirmed with service team: the max size will be 32 whilst current is 20
+							ValidateFunc: validation.IntBetween(1, 32),
 						},
 						"default_database_name": {
 							Type:         pluginsdk.TypeString,

@@ -243,7 +243,9 @@ A `high_availability` block supports the following:
 
 A `cluster` block supports the following:
 
-* `size` - (Required) The number of nodes in the cluster. Possible values are between `1` and `30`.
+* `size` - (Required) The number of nodes in the cluster. Must be at least `1` and no greater than `32`.
+
+-> **Note:** The maximum supported cluster size is currently 20 nodes. Support for up to 32 nodes will be available in the near future.
 
 -> **Note:** Cluster support is only available for PostgreSQL version 17 and above. Additionally, clusters are not supported when `create_mode` is set to anything other than `Default`.
 
