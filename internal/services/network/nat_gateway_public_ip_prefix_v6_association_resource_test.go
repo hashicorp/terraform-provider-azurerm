@@ -57,7 +57,7 @@ func (t NatGatewayPublicIpPrefixV6AssociationResource) Exists(ctx context.Contex
 
 	resp, err := clients.Network.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id.First, err)
 	}
 
 	found := false
