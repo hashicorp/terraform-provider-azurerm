@@ -2749,7 +2749,7 @@ resource "azurerm_linux_web_app" "test" {
 func (r LinuxWebAppResource) withSiteContainersUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 %s
@@ -2780,7 +2780,7 @@ resource "azurerm_linux_web_app" "test" {
 func (r LinuxWebAppResource) siteContainerWithApplicationStack(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 %s
