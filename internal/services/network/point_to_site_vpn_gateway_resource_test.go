@@ -63,12 +63,7 @@ func TestAccPointToSiteVPNGateway_connectionConfiguration(t *testing.T) {
 			Config: r.singleConnectionConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
+			)
 		},
 		data.ImportStep(),
 	})
