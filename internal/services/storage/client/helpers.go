@@ -94,7 +94,9 @@ func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	}
 
 	// force-cache this
+	cacheAccountsLock.Lock()
 	storageAccountsCache[ad.StorageAccountId.StorageAccountName] = *ad
+	cacheAccountsLock.Unlock()
 
 	return ad.accountKey, nil
 }
