@@ -516,7 +516,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			if destinationAuthType := destination["storage_authentication"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
 				authType := eventhubs.CaptureIdentityType(destinationAuthType.(string))
 				captureDescription.Destination.Identity = &eventhubs.CaptureIdentity{
-					Type: &authType,
+					Type: pointer.To(authType),
 				}
 			}
 
@@ -603,7 +603,7 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 
 			if storageIdentity := destination.Identity; storageIdentity != nil {
 				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
-					authType := string(*storageAuthType)
+					authType := string(pointer.From(storageAuthType))
 					destinationOutput["storage_authentication"] = authType
 				}
 				if storageAuthId := storageIdentity.UserAssignedIdentity; storageAuthId != nil {
