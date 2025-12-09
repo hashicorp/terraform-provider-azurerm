@@ -45,24 +45,32 @@ import (
 )
 
 var (
-	apimBackendProtocolSsl3                  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
-	apimBackendProtocolTls10                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
-	apimBackendProtocolTls11                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
-	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
-	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
-	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
-	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
-	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
-	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
-	apimTlsEcdheRsaWithAes256CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
-	apimTlsEcdheRsaWithAes128CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
-	apimTlsRsaWithAes128GcmSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
-	apimTlsRsaWithAes256CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
-	apimTlsRsaWithAes256GcmSha384Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384"
-	apimTlsRsaWithAes128CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
-	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
-	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
+	apimBackendProtocolSsl3                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
+	apimBackendProtocolTls10                    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
+	apimBackendProtocolTls11                    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
+	apimBackendProtocolTls12                    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls12"
+	apimBackendProtocolTls13                    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls13"
+	apimFrontendProtocolSsl3                    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
+	apimFrontendProtocolTls10                   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
+	apimFrontendProtocolTls11                   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
+	apimFrontendProtocolTls12                   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls12"
+	apimFrontendProtocolTls13                   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls13"
+	apimTripleDesCiphers                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimHttp2Protocol                           = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+	apimTlsEcdheEcdsaWithAes256CbcShaCiphers    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheEcdsaWithAes128CbcShaCiphers    = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
+	apimTlsEcdheEcdsaWithAes256CbcSha384Ciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"
+	apimTlsEcdheEcdsaWithAes128CbcSha256Ciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+	apimTlsEcdheRsaWithAes256CbcShaCiphers      = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheRsaWithAes128CbcShaCiphers      = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+	apimTlsEcdheRsaWithAes256CbcSha384Ciphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
+	apimTlsEcdheRsaWithAes128CbcSha256Ciphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+	apimTlsRsaWithAes128GcmSha256Ciphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
+	apimTlsRsaWithAes256CbcSha256Ciphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+	apimTlsRsaWithAes256GcmSha384Ciphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384"
+	apimTlsRsaWithAes128CbcSha256Ciphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
+	apimTlsRsaWithAes256CbcShaCiphers           = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsRsaWithAes128CbcShaCiphers           = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
 )
 
 func resourceApiManagementService() *pluginsdk.Resource {
@@ -324,12 +332,26 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+
 					"backend_tls10_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
+
 					"backend_tls11_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"backend_tls12_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"backend_tls13_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -353,9 +375,34 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Default:  false,
 					},
 
-					"triple_des_ciphers_enabled": {
+					"frontend_tls12_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
+					},
+
+					"frontend_tls13_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 
 					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
@@ -363,50 +410,70 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+
+					"tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
+
 					"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+
+					"tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+
+					"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
+
 					"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
+
+					"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
+
+					"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
 					"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+
+					"tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
+					},
+
+					"triple_des_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
 					},
 				},
 			},
@@ -1822,14 +1889,22 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 	backendProtocolSsl3 := false
 	backendProtocolTls10 := false
 	backendProtocolTls11 := false
+	backendProtocolTls12 := false
+	backendProtocolTls13 := false
 	frontendProtocolSsl3 := false
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
+	frontendProtocolTls12 := false
+	frontendProtocolTls13 := false
 	tripleDesCiphers := false
 	tlsEcdheEcdsaWithAes256CbcShaCiphers := false
 	tlsEcdheEcdsaWithAes128CbcShaCiphers := false
+	tlsEcdheEcdsaWithAes256CbcSha384Ciphers := false
+	tlsEcdheEcdsaWithAes128CbcSha256Ciphers := false
 	tlsEcdheRsaWithAes256CbcShaCiphers := false
 	tlsEcdheRsaWithAes128CbcShaCiphers := false
+	tlsEcdheRsaWithAes256CbcSha384Ciphers := false
+	tlsEcdheRsaWithAes128CbcSha256Ciphers := false
 	tlsRsaWithAes128GcmSha256Ciphers := false
 	tlsRsaWithAes256GcmSha384Ciphers := false
 	tlsRsaWithAes256CbcSha256Ciphers := false
@@ -1842,9 +1917,13 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		backendProtocolSsl3 = v["backend_ssl30_enabled"].(bool)
 		backendProtocolTls10 = v["backend_tls10_enabled"].(bool)
 		backendProtocolTls11 = v["backend_tls11_enabled"].(bool)
+		backendProtocolTls12 = v["backend_tls12_enabled"].(bool)
+		backendProtocolTls13 = v["backend_tls13_enabled"].(bool)
 		frontendProtocolSsl3 = v["frontend_ssl30_enabled"].(bool)
 		frontendProtocolTls10 = v["frontend_tls10_enabled"].(bool)
 		frontendProtocolTls11 = v["frontend_tls11_enabled"].(bool)
+		frontendProtocolTls12 = v["frontend_tls12_enabled"].(bool)
+		frontendProtocolTls13 = v["frontend_tls13_enabled"].(bool)
 
 		if !features.FivePointOh() {
 			if val, ok := d.GetOk("security.0.enable_backend_ssl30"); ok {
@@ -1873,8 +1952,12 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 
 		tlsEcdheEcdsaWithAes256CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
 		tlsEcdheEcdsaWithAes128CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheEcdsaWithAes256CbcSha384Ciphers = v["tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled"].(bool)
+		tlsEcdheEcdsaWithAes128CbcSha256Ciphers = v["tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
 		tlsEcdheRsaWithAes256CbcShaCiphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
 		tlsEcdheRsaWithAes128CbcShaCiphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes256CbcSha384Ciphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes128CbcSha256Ciphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes128GcmSha256Ciphers = v["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes256GcmSha384Ciphers = v["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"].(bool)
 		tlsRsaWithAes256CbcSha256Ciphers = v["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"].(bool)
@@ -1901,12 +1984,28 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
+		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcSha384Ciphers {
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcSha256Ciphers {
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
 		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
 			return nil, errors.New("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
 			return nil, errors.New("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes256CbcSha384Ciphers {
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes128CbcSha256Ciphers {
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
@@ -1934,8 +2033,12 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		apimBackendProtocolSsl3:   strconv.FormatBool(backendProtocolSsl3),
 		apimBackendProtocolTls10:  strconv.FormatBool(backendProtocolTls10),
 		apimBackendProtocolTls11:  strconv.FormatBool(backendProtocolTls11),
+		apimBackendProtocolTls12:  strconv.FormatBool(backendProtocolTls12),
+		apimBackendProtocolTls13:  strconv.FormatBool(backendProtocolTls13),
 		apimFrontendProtocolTls10: strconv.FormatBool(frontendProtocolTls10),
 		apimFrontendProtocolTls11: strconv.FormatBool(frontendProtocolTls11),
+		apimFrontendProtocolTls12: strconv.FormatBool(frontendProtocolTls12),
+		apimFrontendProtocolTls13: strconv.FormatBool(frontendProtocolTls13),
 	}
 
 	if !skuIsConsumption {
@@ -1943,8 +2046,12 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		customProperties[apimTripleDesCiphers] = strconv.FormatBool(tripleDesCiphers)
 		customProperties[apimTlsEcdheEcdsaWithAes256CbcShaCiphers] = strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers)
 		customProperties[apimTlsEcdheEcdsaWithAes128CbcShaCiphers] = strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers)
+		customProperties[apimTlsEcdheEcdsaWithAes256CbcSha384Ciphers] = strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcSha384Ciphers)
+		customProperties[apimTlsEcdheEcdsaWithAes128CbcSha256Ciphers] = strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcSha256Ciphers)
 		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers)
 		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers)
+		customProperties[apimTlsEcdheRsaWithAes256CbcSha384Ciphers] = strconv.FormatBool(tlsEcdheRsaWithAes256CbcSha384Ciphers)
+		customProperties[apimTlsEcdheRsaWithAes128CbcSha256Ciphers] = strconv.FormatBool(tlsEcdheRsaWithAes128CbcSha256Ciphers)
 		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers)
 		customProperties[apimTlsRsaWithAes256GcmSha384Ciphers] = strconv.FormatBool(tlsRsaWithAes256GcmSha384Ciphers)
 		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers)
@@ -1986,8 +2093,12 @@ func flattenApiManagementSecurityCustomProperties(input map[string]string, skuIs
 	output["backend_ssl30_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
 	output["backend_tls10_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
 	output["backend_tls11_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
+	output["backend_tls12_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls12)
+	output["backend_tls13_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls13)
 	output["frontend_tls10_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["frontend_tls11_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+	output["frontend_tls12_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls12)
+	output["frontend_tls13_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls13)
 
 	if !features.FivePointOh() {
 		output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
@@ -2007,8 +2118,12 @@ func flattenApiManagementSecurityCustomProperties(input map[string]string, skuIs
 		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
+		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcSha384Ciphers)
+		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcSha256Ciphers)
 		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcSha384Ciphers)
+		output["tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcSha256Ciphers)
 		output["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256GcmSha384Ciphers)
 		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
