@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,19 +30,9 @@ type NatGatewayPublicIpV6AssociationModel struct {
 
 func (r NatGatewayPublicIpV6AssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"nat_gateway_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: natgateways.ValidateNatGatewayID,
-		},
+		"nat_gateway_id": commonschema.ResourceIDReferenceRequiredForceNew(&natgateways.NatGatewayId{}),
 
-		"public_ip_address_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidatePublicIPAddressID,
-		},
+		"public_ip_address_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.PublicIPAddressId{}),
 	}
 }
 
@@ -84,9 +75,9 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 			natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(natGateway.HttpResponse) {
-					return fmt.Errorf("%s was not found", natGatewayId)
+					return fmt.Errorf("%s was not found", *natGatewayId)
 				}
-				return fmt.Errorf("retrieving %s: %+v", natGatewayId, err)
+				return fmt.Errorf("retrieving %s: %+v", *natGatewayId, err)
 			}
 
 			id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
@@ -117,7 +108,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
-				return fmt.Errorf("updating %s: %+v", natGatewayId, err)
+				return fmt.Errorf("updating %s: %+v", *natGatewayId, err)
 			}
 
 			metadata.SetID(id)
@@ -196,9 +187,9 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 			natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(natGateway.HttpResponse) {
-					return fmt.Errorf("%s was not found", id.First)
+					return fmt.Errorf("%s was not found", *id.First)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id.First, err)
+				return fmt.Errorf("retrieving %s: %+v", *id.First, err)
 			}
 
 			if model := natGateway.Model; model != nil {
@@ -221,7 +212,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
-				return fmt.Errorf("removing association between %s and %s: %+v", id.First, id.Second, err)
+				return fmt.Errorf("removing association between %s and %s: %+v", *id.First, *id.Second, err)
 			}
 
 			return nil
