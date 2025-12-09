@@ -222,7 +222,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"gateway_public_ip_prefix_size": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      31,
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(28, 31),
 		},
 
