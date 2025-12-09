@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationRunbookResource struct{}
@@ -158,7 +158,7 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.RunbookName, id.ResourceGroupName)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AutomationRunbookResource) PS72(data acceptance.TestData) string {

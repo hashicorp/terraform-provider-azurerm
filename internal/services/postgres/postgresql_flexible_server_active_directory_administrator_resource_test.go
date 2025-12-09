@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgresqlFlexibleServerAdministratorResource struct{}
@@ -64,7 +64,7 @@ func TestAccPostgresqlFlexibleServerAdministrator_disappears(t *testing.T) {
 }
 
 func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := administrators.ParseAdministratorID(state.ID)
+	id, err := administratorsmicrosoftentra.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +74,11 @@ func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Contex
 		return nil, fmt.Errorf("reading Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := administrators.ParseAdministratorID(state.ID)
+	id, err := administratorsmicrosoftentra.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (PostgresqlFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {

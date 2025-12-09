@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routefilters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -114,7 +113,7 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for Route Filter create.")
 
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
@@ -142,6 +141,9 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteFilterRead(d, meta)
 }
@@ -253,7 +255,7 @@ func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilt
 		data := configRaw.(map[string]interface{})
 
 		rule := routefilters.RouteFilterRule{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routefilters.RouteFilterRulePropertiesFormat{
 				Access:              routefilters.Access(data["access"].(string)),
 				RouteFilterRuleType: routefilters.RouteFilterRuleType(data["rule_type"].(string)),

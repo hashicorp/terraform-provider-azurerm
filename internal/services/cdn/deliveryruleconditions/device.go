@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -54,9 +55,9 @@ func ExpandArmCdnEndpointConditionDevice(input []interface{}) []cdn.BasicDeliver
 		output = append(output, cdn.DeliveryRuleIsDeviceCondition{
 			Name: cdn.NameHTTPVersion,
 			Parameters: &cdn.IsDeviceMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleIsDeviceConditionParameters"),
-				Operator:        utils.String(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleIsDeviceConditionParameters"),
+				Operator:        pointer.To(item["operator"].(string)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})

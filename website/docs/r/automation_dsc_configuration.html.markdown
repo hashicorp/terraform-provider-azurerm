@@ -34,7 +34,7 @@ resource "azurerm_automation_dsc_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,4 +81,4 @@ terraform import azurerm_automation_dsc_configuration.configuration1 /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation` - 2023-11-01
+* `Microsoft.Automation` - 2024-10-23

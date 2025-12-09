@@ -269,18 +269,17 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		FrontendPort:        int64(d.Get("frontend_port").(int)),
 		BackendPort:         pointer.To(int64(d.Get("backend_port").(int))),
 		EnableFloatingIP:    pointer.To(d.Get("floating_ip_enabled").(bool)),
+		EnableTcpReset:      pointer.To(d.Get("tcp_reset_enabled").(bool)),
 		DisableOutboundSnat: pointer.To(d.Get("disable_outbound_snat").(bool)),
-	}
-	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
+			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
 		}
-		if v, ok := d.GetOk("enable_tcp_reset"); ok {
-			properties.EnableTcpReset = pointer.To(v.(bool))
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
+			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
 		}
 	}
 

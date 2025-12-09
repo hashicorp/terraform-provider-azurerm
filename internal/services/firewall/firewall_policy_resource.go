@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -87,7 +87,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
 			ExplicitProxy:        expandFirewallPolicyExplicitProxy(d.Get("explicit_proxy").([]interface{})),
 		},
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -101,7 +101,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if id, ok := d.GetOk("base_policy_id"); ok {
-		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: utils.String(id.(string))}
+		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: pointer.To(id.(string))}
 	}
 
 	if v, ok := d.GetOk("sku"); ok {
@@ -112,7 +112,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("sql_redirect_allowed"); ok {
 		props.Properties.Sql = &firewallpolicies.FirewallPolicySQL{
-			AllowSqlRedirect: utils.Bool(v.(bool)),
+			AllowSqlRedirect: pointer.To(v.(bool)),
 		}
 	}
 
@@ -140,6 +140,9 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceFirewallPolicyRead(d, meta)
 }
@@ -363,8 +366,8 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *firewallpolicie
 
 	return &firewallpolicies.FirewallPolicyTransportSecurity{
 		CertificateAuthority: &firewallpolicies.FirewallPolicyCertificateAuthority{
-			KeyVaultSecretId: utils.String(raw["key_vault_secret_id"].(string)),
-			Name:             utils.String(raw["name"].(string)),
+			KeyVaultSecretId: pointer.To(raw["key_vault_secret_id"].(string)),
+			Name:             pointer.To(raw["name"].(string)),
 		},
 	}
 }
@@ -376,8 +379,8 @@ func expandFirewallPolicyInsights(input []interface{}) *firewallpolicies.Firewal
 
 	raw := input[0].(map[string]interface{})
 	output := &firewallpolicies.FirewallPolicyInsights{
-		IsEnabled:             utils.Bool(raw["enabled"].(bool)),
-		RetentionDays:         utils.Int64(int64(raw["retention_in_days"].(int))),
+		IsEnabled:             pointer.To(raw["enabled"].(bool)),
+		RetentionDays:         pointer.To(int64(raw["retention_in_days"].(int))),
 		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
 	}
 
@@ -395,15 +398,15 @@ func expandFirewallPolicyExplicitProxy(input []interface{}) *firewallpolicies.Ex
 	}
 
 	output := &firewallpolicies.ExplicitProxy{
-		EnableExplicitProxy: utils.Bool(raw["enabled"].(bool)),
-		HTTPPort:            utils.Int64(int64(raw["http_port"].(int))),
-		HTTPSPort:           utils.Int64(int64(raw["https_port"].(int))),
-		PacFilePort:         utils.Int64(int64(raw["pac_file_port"].(int))),
-		PacFile:             utils.String(raw["pac_file"].(string)),
+		EnableExplicitProxy: pointer.To(raw["enabled"].(bool)),
+		HTTPPort:            pointer.To(int64(raw["http_port"].(int))),
+		HTTPSPort:           pointer.To(int64(raw["https_port"].(int))),
+		PacFilePort:         pointer.To(int64(raw["pac_file_port"].(int))),
+		PacFile:             pointer.To(raw["pac_file"].(string)),
 	}
 
 	if val, ok := raw["enable_pac_file"]; ok {
-		output.EnablePacFile = utils.Bool(val.(bool))
+		output.EnablePacFile = pointer.To(val.(bool))
 	}
 
 	return output
@@ -420,9 +423,9 @@ func expandFirewallPolicyLogAnalyticsResources(defaultWorkspaceId string, worksp
 	for _, workspace := range workspaces {
 		workspace := workspace.(map[string]interface{})
 		workspaceList = append(workspaceList, firewallpolicies.FirewallPolicyLogAnalyticsWorkspace{
-			Region: utils.String(location.Normalize(workspace["firewall_location"].(string))),
+			Region: pointer.To(location.Normalize(workspace["firewall_location"].(string))),
 			WorkspaceId: &firewallpolicies.SubResource{
-				Id: utils.String(workspace["id"].(string)),
+				Id: pointer.To(workspace["id"].(string)),
 			},
 		})
 	}

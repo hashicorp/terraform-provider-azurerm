@@ -30,7 +30,7 @@ resource "azurerm_maps_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ A `cors` block supports the following:
 
 A `data_store` block supports the following:
 
-* `storage_account_id` - (Required) The ID of the Storage Account that should be linked to this Azure Maps Account.
+* `storage_account_id` - (Optional) The ID of the Storage Account that should be linked to this Azure Maps Account.
 
 * `unique_name` - (Required) The name given to the linked Storage Account.
 

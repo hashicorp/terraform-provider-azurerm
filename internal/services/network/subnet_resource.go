@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -360,7 +360,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
+		Name:       pointer.To(id.SubnetName),
 		Properties: &properties,
 	}
 
@@ -394,6 +394,10 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceSubnetRead(d, meta)
 }
 
@@ -440,7 +444,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = nil
 		case 1:
 			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
-			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
+			props.AddressPrefix = pointer.To(addressPrefixesRaw[0].(string))
 			props.AddressPrefixes = nil
 		default:
 			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
@@ -509,7 +513,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
+		Name:       pointer.To(id.SubnetName),
 		Properties: &props,
 	}
 

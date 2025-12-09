@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerNetworkGroupResource struct{}
 
-func testAccNetworkManagerNetworkGroup_basic(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,10 +33,10 @@ func testAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,10 +47,10 @@ func testAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_complete(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -61,10 +61,10 @@ func testAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerNetworkGroup_update(t *testing.T) {
+func TestAccNetworkManagerNetworkGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
 	r := ManagerNetworkGroupResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -74,6 +74,20 @@ func testAccNetworkManagerNetworkGroup_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -92,11 +106,11 @@ func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *client
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerNetworkGroupResource) template(data acceptance.TestData) string {
@@ -117,7 +131,7 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
+  scope_accesses = ["Routing"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -151,6 +165,7 @@ func (r ManagerNetworkGroupResource) complete(data acceptance.TestData) string {
 resource "azurerm_network_manager_network_group" "test" {
   name               = "acctest-nmng-%d"
   network_manager_id = azurerm_network_manager.test.id
+  member_type        = "Subnet"
   description        = "test complete"
 }
 `, template, data.RandomInteger)
@@ -163,6 +178,7 @@ func (r ManagerNetworkGroupResource) update(data acceptance.TestData) string {
 resource "azurerm_network_manager_network_group" "test" {
   name               = "acctest-nmng-%d"
   network_manager_id = azurerm_network_manager.test.id
+  member_type        = "VirtualNetwork"
   description        = "test update"
 }
 `, template, data.RandomInteger)

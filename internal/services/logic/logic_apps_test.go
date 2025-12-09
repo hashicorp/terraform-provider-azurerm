@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func actionExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -55,11 +55,11 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 	}
 
 	if resp.Model == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	if resp.Model.Properties == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	if resp.Model.Properties.Definition == nil {
@@ -78,5 +78,5 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 		}
 	}
 
-	return utils.Bool(exists), nil
+	return pointer.To(exists), nil
 }

@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreDataLakeGen2 struct{}
@@ -116,12 +116,12 @@ func (r MachineLearningDataStoreDataLakeGen2) Exists(ctx context.Context, client
 	resp, err := dataStoreClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Data Store %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Basic(data acceptance.TestData) string {
@@ -131,7 +131,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Basic(data acceptance.
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -150,7 +150,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2Spn(data acceptance.Te
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 resource "azuread_application" "test" {
@@ -162,7 +162,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
@@ -183,7 +183,7 @@ func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2CrossSubStorageAccount
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -222,7 +222,7 @@ resource "azurerm_storage_account" "testalt" {
 resource "azurerm_storage_container" "testalt" {
   provider              = azurerm-alt
   name                  = "acctestcontaineralt%[5]d"
-  storage_account_name  = azurerm_storage_account.testalt.name
+  storage_account_id    = azurerm_storage_account.testalt.id
   container_access_type = "private"
 }
 
@@ -298,7 +298,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -317,5 +317,5 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

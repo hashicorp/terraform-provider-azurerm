@@ -23,7 +23,7 @@ resource "azurerm_security_center_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

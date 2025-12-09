@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SearchServiceResource struct{}
@@ -584,6 +584,10 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config:      r.apiAccessControlBoth(data, false, "http401WithBearerChallenge"),
+			ExpectError: regexp.MustCompile("cannot be defined"),
+		},
+		{
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -626,7 +630,7 @@ func (r SearchServiceResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("%s was not found: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SearchServiceResource) template(data acceptance.TestData) string {

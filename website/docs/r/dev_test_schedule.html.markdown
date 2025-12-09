@@ -48,7 +48,7 @@ resource "azurerm_dev_test_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

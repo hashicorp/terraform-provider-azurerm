@@ -43,7 +43,7 @@ resource "azurerm_container_registry_webhook" "webhook" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,4 +94,4 @@ terraform import azurerm_container_registry_webhook.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-04-01

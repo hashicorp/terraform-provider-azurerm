@@ -69,7 +69,7 @@ resource "azurerm_backup_protected_file_share" "share1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

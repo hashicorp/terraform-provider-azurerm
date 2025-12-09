@@ -4,11 +4,11 @@
 package devtestlabs
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
@@ -57,7 +57,7 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 
 		rule := virtualmachines.InboundNatRule{
 			TransportProtocol: &protocol,
-			BackendPort:       utils.Int64(int64(backendPort)),
+			BackendPort:       pointer.To(int64(backendPort)),
 		}
 
 		rules = append(rules, rule)
@@ -78,11 +78,11 @@ func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, os
 	version := v["version"].(string)
 
 	return &virtualmachines.GalleryImageReference{
-		Offer:     utils.String(offer),
-		OsType:    utils.String(osType),
-		Publisher: utils.String(publisher),
-		Sku:       utils.String(sku),
-		Version:   utils.String(version),
+		Offer:     pointer.To(offer),
+		OsType:    pointer.To(osType),
+		Publisher: pointer.To(publisher),
+		Sku:       pointer.To(sku),
+		Version:   pointer.To(version),
 	}
 }
 

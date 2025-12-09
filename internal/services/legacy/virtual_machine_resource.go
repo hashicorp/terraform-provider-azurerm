@@ -23,8 +23,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -1635,7 +1635,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if v, ok := config["write_accelerator_enabled"].(bool); ok {
-			data_disk.WriteAcceleratorEnabled = utils.Bool(v)
+			data_disk.WriteAcceleratorEnabled = pointer.To(v)
 		}
 
 		data_disks = append(data_disks, data_disk)
@@ -1652,7 +1652,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *v
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
 		diagnostic := &virtualmachines.BootDiagnostics{
-			Enabled:    utils.Bool(bootDiagnostic["enabled"].(bool)),
+			Enabled:    pointer.To(bootDiagnostic["enabled"].(bool)),
 			StorageUri: pointer.To(bootDiagnostic["storage_uri"].(string)),
 		}
 
@@ -1672,7 +1672,7 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData
 
 	additionalCapability := additionalCapabilities[0].(map[string]interface{})
 	capability := &virtualmachines.AdditionalCapabilities{
-		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+		UltraSSDEnabled: pointer.To(additionalCapability["ultra_ssd_enabled"].(bool)),
 	}
 
 	return capability
@@ -1802,7 +1802,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	}
 
 	if v, ok := config["write_accelerator_enabled"].(bool); ok {
-		osDisk.WriteAcceleratorEnabled = utils.Bool(v)
+		osDisk.WriteAcceleratorEnabled = pointer.To(v)
 	}
 
 	return osDisk, nil

@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerResource struct{}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one (connectivity or securityAdmin) network manager per subscription at once
+	// Azure only being happy about provisioning one securityAdmin network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
@@ -31,13 +31,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManager_update,
 			"requiresImport": testAccNetworkManager_requiresImport,
 			"dataSource":     testAccNetworkManagerDataSource_complete,
-		},
-		"NetworkGroup": {
-			"basic":          testAccNetworkManagerNetworkGroup_basic,
-			"complete":       testAccNetworkManagerNetworkGroup_complete,
-			"update":         testAccNetworkManagerNetworkGroup_update,
-			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
-			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
@@ -56,10 +49,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerScopeConnection_complete,
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
-		},
-		"StaticMember": {
-			"basic":          testAccNetworkManagerStaticMember_basic,
-			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
 		},
 		"ConnectivityConfiguration": {
 			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
@@ -133,6 +122,20 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
 			"update":         testAccNetworkManagerRoutingRuleCollection_update,
 			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
+		},
+		"SubnetIPAMPool": {
+			"ipAddressPool":              testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+		},
+		"VNETIPANPool": {
+			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
 		},
 	}
 
@@ -231,12 +234,12 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	resp, err := clients.Network.NetworkManagers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerResource) basic(data acceptance.TestData) string {

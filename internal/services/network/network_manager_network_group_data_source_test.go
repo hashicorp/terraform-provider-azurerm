@@ -13,14 +13,15 @@ import (
 
 type ManagerNetworkGroupDataSource struct{}
 
-func testAccNetworkManagerNetworkGroupDataSource_complete(t *testing.T) {
+func TestAccNetworkManagerNetworkGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_manager_network_group", "test")
 	d := ManagerNetworkGroupDataSource{}
-	data.DataSourceTestInSequence(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("test complete"),
+				check.That(data.ResourceName).Key("member_type").HasValue("Subnet"),
 			),
 		},
 	})

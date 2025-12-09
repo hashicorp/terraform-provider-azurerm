@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -386,7 +387,7 @@ func createOrUpdateConsumptionBudget(ctx context.Context, client *budgets.Budget
 	// 'Cost' is the only valid Budget type today according to the API spec.
 
 	parameters := budgets.Budget{
-		Name: utils.String(id.BudgetName),
+		Name: pointer.To(id.BudgetName),
 		Properties: &budgets.BudgetProperties{
 			Amount:        metadata.ResourceData.Get("amount").(float64),
 			Category:      budgets.CategoryTypeCost,
@@ -398,7 +399,7 @@ func createOrUpdateConsumptionBudget(ctx context.Context, client *budgets.Budget
 	}
 
 	if v, ok := metadata.ResourceData.GetOk("etag"); ok {
-		parameters.ETag = utils.String(v.(string))
+		parameters.ETag = pointer.To(v.(string))
 	}
 
 	_, err = client.CreateOrUpdate(ctx, id, parameters)
@@ -432,7 +433,7 @@ func expandConsumptionBudgetTimePeriod(i []interface{}) (*budgets.BudgetTimePeri
 				return nil, fmt.Errorf("end_date '%s' was not in the correct format: %+v", endDateInput, err)
 			}
 
-			timePeriod.EndDate = utils.String(input["end_date"].(string))
+			timePeriod.EndDate = pointer.To(input["end_date"].(string))
 		}
 	}
 

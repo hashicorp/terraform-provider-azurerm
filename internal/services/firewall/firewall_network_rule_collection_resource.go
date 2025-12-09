@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -178,12 +178,12 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	}
 	priority := d.Get("priority").(int)
 	newRuleCollection := azurefirewalls.AzureFirewallNetworkRuleCollection{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNetworkRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
 				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
 			},
-			Priority: utils.Int64(int64(priority)),
+			Priority: pointer.To(int64(priority)),
 			Rules:    networkRules,
 		},
 	}
@@ -436,8 +436,8 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 		}
 
 		ruleToAdd := azurefirewalls.AzureFirewallNetworkRule{
-			Name:                 utils.String(name),
-			Description:          utils.String(description),
+			Name:                 pointer.To(name),
+			Description:          pointer.To(description),
 			SourceAddresses:      &sourceAddresses,
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,

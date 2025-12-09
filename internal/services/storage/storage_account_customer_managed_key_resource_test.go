@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageAccountCustomerManagedKeyResource struct{}
@@ -210,7 +210,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
@@ -220,7 +220,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		if props := model.Properties; props != nil {
 			if encryption := props.Encryption; encryption != nil {
 				if encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 
 				return nil, fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
@@ -228,7 +228,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r StorageAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {

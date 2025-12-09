@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageObjectReplicationResource struct{}
@@ -163,7 +163,7 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 	dstResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Dst)
 	if err != nil {
 		if response.WasNotFound(dstResp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
@@ -171,12 +171,12 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 	srcResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Src)
 	if err != nil {
 		if response.WasNotFound(srcResp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageObjectReplicationResource) template(data acceptance.TestData) string {

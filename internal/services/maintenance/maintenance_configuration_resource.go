@@ -279,12 +279,12 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
 			Visibility:          &visibility,
-			Namespace:           utils.String("Microsoft.Maintenance"),
+			Namespace:           pointer.To("Microsoft.Maintenance"),
 			MaintenanceWindow:   window,
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
@@ -439,11 +439,11 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfi
 	timeZone := v["time_zone"].(string)
 	recurEvery := v["recur_every"].(string)
 	window := maintenanceconfigurations.MaintenanceWindow{
-		StartDateTime:      utils.String(startDateTime),
-		ExpirationDateTime: utils.String(expirationDateTime),
-		Duration:           utils.String(duration),
-		TimeZone:           utils.String(timeZone),
-		RecurEvery:         utils.String(recurEvery),
+		StartDateTime:      pointer.To(startDateTime),
+		ExpirationDateTime: pointer.To(expirationDateTime),
+		Duration:           pointer.To(duration),
+		TimeZone:           pointer.To(timeZone),
+		RecurEvery:         pointer.To(recurEvery),
 	}
 	return &window
 }

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,6 +47,10 @@ func (r ManagerNetworkGroupDataSource) Arguments() map[string]*pluginsdk.Schema 
 func (r ManagerNetworkGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"description": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"member_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -91,6 +95,7 @@ func (r ManagerNetworkGroupDataSource) Read() sdk.ResourceFunc {
 				Name:             id.NetworkGroupName,
 				NetworkManagerId: networkgroups.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				Description:      pointer.From(properties.Description),
+				MemberType:       pointer.FromEnum(properties.MemberType),
 			}
 
 			metadata.SetID(id)

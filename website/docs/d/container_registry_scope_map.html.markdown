@@ -25,7 +25,7 @@ output "actions" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Container Registry token.
 * `container_registry_name` - The Name of the Container Registry where the token exists.
@@ -49,4 +49,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-04-01

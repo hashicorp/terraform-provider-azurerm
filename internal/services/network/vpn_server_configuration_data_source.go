@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -324,9 +324,9 @@ func (d VPNServerConfigurationDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				m.Location = pointer.ToString(model.Location)
+				m.Location = pointer.From(model.Location)
 				if tags := model.Tags; tags != nil {
-					m.Tags = pointer.ToMapOfStringStrings(tags)
+					m.Tags = pointer.From(tags)
 				}
 
 				if props := resp.Model.Properties; props != nil {
@@ -354,9 +354,9 @@ func dataSourceFlattenVpnServerConfigurationAADAuthentication(input *virtualwans
 
 	return []AzureActiveDirectoryAuthenticationModel{
 		{
-			Audience: pointer.ToString(input.AadAudience),
-			Issuer:   pointer.ToString(input.AadIssuer),
-			Tenant:   pointer.ToString(input.AadTenant),
+			Audience: pointer.From(input.AadAudience),
+			Issuer:   pointer.From(input.AadIssuer),
+			Tenant:   pointer.From(input.AadTenant),
 		},
 	}
 }
@@ -373,8 +373,8 @@ func dataSourceFlattenVpnServerConfigurationClientRootCertificates(input *[]virt
 			continue
 		}
 		output = append(output, ClientRootCertificateModel{
-			Name:           pointer.ToString(v.Name),
-			PublicCertData: pointer.ToString(v.PublicCertData),
+			Name:           pointer.From(v.Name),
+			PublicCertData: pointer.From(v.PublicCertData),
 		})
 	}
 
@@ -393,8 +393,8 @@ func dataSourceFlattenVpnServerConfigurationClientRevokedCertificates(input *[]v
 		}
 
 		output = append(output, ClientRevokedCertificateModel{
-			Name:       pointer.ToString(v.Name),
-			Thumbprint: pointer.ToString(v.Thumbprint),
+			Name:       pointer.From(v.Name),
+			Thumbprint: pointer.From(v.Thumbprint),
 		})
 	}
 	return output
@@ -433,8 +433,8 @@ func dataSourceFlattenVpnServerConfigurationRadius(input *virtualwans.VpnServerC
 				continue
 			}
 			clientRootCertificates = append(clientRootCertificates, RadiusClientRootCertificateModel{
-				Name:       pointer.ToString(v.Name),
-				Thumbprint: pointer.ToString(v.Thumbprint),
+				Name:       pointer.From(v.Name),
+				Thumbprint: pointer.From(v.Thumbprint),
 			})
 		}
 	}
@@ -447,8 +447,8 @@ func dataSourceFlattenVpnServerConfigurationRadius(input *virtualwans.VpnServerC
 			}
 
 			serverRootCertificates = append(serverRootCertificates, ClientRootCertificateModel{
-				Name:           pointer.ToString(v.Name),
-				PublicCertData: pointer.ToString(v.PublicCertData),
+				Name:           pointer.From(v.Name),
+				PublicCertData: pointer.From(v.PublicCertData),
 			})
 		}
 	}
@@ -458,8 +458,8 @@ func dataSourceFlattenVpnServerConfigurationRadius(input *virtualwans.VpnServerC
 		for _, v := range *input.RadiusServers {
 			servers = append(servers, ServerModel{
 				Address: v.RadiusServerAddress,
-				Secret:  pointer.ToString(v.RadiusServerSecret),
-				Score:   pointer.ToInt64(v.RadiusServerScore),
+				Secret:  pointer.From(v.RadiusServerSecret),
+				Score:   pointer.From(v.RadiusServerScore),
 			})
 		}
 	}

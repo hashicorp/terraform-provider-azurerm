@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
@@ -293,15 +292,15 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 		Properties: &applications.ApplicationProperties{
 			ComputeProfile: &applications.ComputeProfile{
 				Roles: &[]applications.Role{{
-					Name: utils.String("edgenode"),
+					Name: pointer.To("edgenode"),
 					HardwareProfile: &applications.HardwareProfile{
-						VMSize: utils.String(input["vm_size"].(string)),
+						VMSize: pointer.To(input["vm_size"].(string)),
 					},
 					TargetInstanceCount: pointer.To(int64(input["target_instance_count"].(int))),
 				}},
 			},
 			InstallScriptActions: installScriptActions,
-			ApplicationType:      utils.String("CustomApplication"),
+			ApplicationType:      pointer.To("CustomApplication"),
 		},
 	}
 
