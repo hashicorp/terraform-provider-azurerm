@@ -75,4 +75,4 @@ terraform import azurerm_healthbot.example /subscriptions/00000000-0000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthBot` - 2022-08-08
+* `Microsoft.HealthBot` - 2025-05-25
