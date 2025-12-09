@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmPolicyDefinition() *pluginsdk.Resource {
@@ -54,17 +55,17 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 						return d.ForceNew("parameters")
 					}
 
-					oldParameters, err := expandParameterDefinitionsValueFromStringTrack1(oldParametersString)
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					newParameters, err := expandParameterDefinitionsValueFromStringTrack1(newParametersString)
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(newParameters) < len(oldParameters) {
+					if len(*newParameters) < len(*oldParameters) {
 						return d.ForceNew("parameters")
 					}
 				}
@@ -76,51 +77,63 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Policy.DefinitionsClient
+	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	policyType := d.Get("policy_type").(string)
-	mode := d.Get("mode").(string)
-	displayName := d.Get("display_name").(string)
-	description := d.Get("description").(string)
 
+	var id any
 	managementGroupName := ""
 	if v, ok := d.GetOk("management_group_id"); ok {
-		id, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		managementGroupId, err := mgmtGrpParse.ManagementGroupID(v.(string))
 		if err != nil {
 			return err
 		}
-		managementGroupName = id.Name
+		managementGroupName = managementGroupId.Name
+		id = policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, name)
+	} else {
+		id = policydefinitions.NewProviderPolicyDefinitionID(subscriptionId, name)
 	}
 
 	if d.IsNewResource() {
-		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+		resp, _, err := getPolicyDefinitionByID(ctx, client, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(resp) {
 				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+		if !response.WasNotFound(resp) {
+			var idString string
+			switch typedId := id.(type) {
+			case policydefinitions.ProviderPolicyDefinitionId:
+				idString = typedId.ID()
+			case policydefinitions.Providers2PolicyDefinitionId:
+				idString = typedId.ID()
+			}
+			return tf.ImportAsExistsError("azurerm_policy_definition", idString)
 		}
 	}
 
-	properties := policy.DefinitionProperties{
-		PolicyType:  policy.Type(policyType),
-		Mode:        pointer.To(mode),
-		DisplayName: pointer.To(displayName),
-		Description: pointer.To(description),
+	parameters := policydefinitions.PolicyDefinition{
+		Properties: &policydefinitions.PolicyDefinitionProperties{
+			DisplayName: pointer.To(d.Get("display_name").(string)),
+			Description: pointer.To(d.Get("description").(string)),
+			PolicyType:  pointer.To(policydefinitions.PolicyType(d.Get("policy_type").(string))),
+			Mode:        pointer.To(d.Get("mode").(string)),
+		},
 	}
+	props := parameters.Properties
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
 		policyRule, err := pluginsdk.ExpandJsonFromString(policyRuleString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `policy_rule`: %+v", err)
 		}
-		properties.PolicyRule = &policyRule
+		var iPolicyRule interface{} = policyRule
+		props.PolicyRule = &iPolicyRule
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
@@ -128,32 +141,29 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
-		properties.Metadata = &metaData
+		var iMetadata interface{} = metaData
+		props.Metadata = &iMetadata
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandParameterDefinitionsValueFromStringTrack1(parametersString)
+		params, err := expandParameterDefinitionsValueForPolicyDefinition(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
-		properties.Parameters = parameters
+		props.Parameters = params
 	}
 
-	definition := policy.Definition{
-		Name:                 pointer.To(name),
-		DefinitionProperties: &properties,
-	}
-
-	var err error
-
-	if managementGroupName == "" {
-		_, err = client.CreateOrUpdate(ctx, name, definition)
-	} else {
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupName)
-	}
-
-	if err != nil {
-		return fmt.Errorf("creating/updating Policy Definition %q: %+v", name, err)
+	switch typedId := id.(type) {
+	case policydefinitions.ProviderPolicyDefinitionId:
+		if _, err := client.CreateOrUpdate(ctx, typedId, parameters); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", typedId, err)
+		}
+	case policydefinitions.Providers2PolicyDefinitionId:
+		if _, err := client.CreateOrUpdateAtManagementGroup(ctx, typedId, parameters); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", typedId, err)
+		}
+	default:
+		return fmt.Errorf("unsupported ID type: %T", id)
 	}
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
@@ -161,95 +171,100 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
+		Refresh:                   policyDefinitionRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		ContinuousTargetOccurence: 10,
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
+	if !d.IsNewResource() {
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+	var idString string
+	switch typedId := id.(type) {
+	case policydefinitions.ProviderPolicyDefinitionId:
+		idString = typedId.ID()
+	case policydefinitions.Providers2PolicyDefinitionId:
+		idString = typedId.ID()
+	}
+
+	resourceId, err := parse.PolicyDefinitionID(idString)
 	if err != nil {
 		return err
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q", name)
-	}
-
-	id, err := parse.PolicyDefinitionID(*resp.ID)
-	if err != nil {
-		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", *resp.ID, err)
-	}
-	d.SetId(id.Id)
+	d.SetId(resourceId.Id)
 
 	return resourceArmPolicyDefinitionRead(d, meta)
 }
 
 func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Policy.DefinitionsClient
+	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PolicyDefinitionID(d.Id())
+	oldId, err := parse.PolicyDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
+	var id any
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
+		id = policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, oldId.Name)
+	default:
+		id = policydefinitions.NewProviderPolicyDefinitionID(meta.(*clients.Client).Account.SubscriptionId, oldId.Name)
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
+	resp, model, err := getPolicyDefinitionByID(ctx, client, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
+		if response.WasNotFound(resp) {
+			log.Printf("[INFO] policy definition was not found - removing from state")
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Policy Definition %+v", err)
+		return fmt.Errorf("reading policy definition: %+v", err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", oldId.Name)
 
-	d.Set("management_group_id", managementGroupName)
+	d.Set("management_group_id", "")
 	if managementGroupName != "" {
 		d.Set("management_group_id", managementGroupId.ID())
 	}
 
-	if props := resp.DefinitionProperties; props != nil {
-		d.Set("policy_type", props.PolicyType)
-		d.Set("mode", props.Mode)
-		d.Set("display_name", props.DisplayName)
-		d.Set("description", props.Description)
+	if model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("policy_type", string(pointer.From(props.PolicyType)))
+			d.Set("mode", props.Mode)
+			d.Set("display_name", props.DisplayName)
+			d.Set("description", props.Description)
 
-		if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
-			d.Set("policy_rule", policyRuleStr)
-			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
-			d.Set("role_definition_ids", roleIDs)
-		}
+			if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
+				d.Set("policy_rule", policyRuleStr)
+				roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+				d.Set("role_definition_ids", roleIDs)
+			}
 
-		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
-			d.Set("metadata", metadataStr)
-		}
+			if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
+				d.Set("metadata", metadataStr)
+			}
 
-		if parametersStr, err := flattenParameterDefinitionsValueToStringTrack1(props.Parameters); err == nil {
-			d.Set("parameters", parametersStr)
-		} else {
-			return fmt.Errorf("flattening policy definition parameters %+v", err)
+			if parametersStr, err := flattenParameterDefinitionsValueToStringForPolicyDefinition(props.Parameters); err == nil {
+				d.Set("parameters", parametersStr)
+			} else {
+				return fmt.Errorf("flattening policy definition parameters: %+v", err)
+			}
 		}
 	}
 
@@ -257,48 +272,54 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Policy.DefinitionsClient
+	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PolicyDefinitionID(d.Id())
+	oldId, err := parse.PolicyDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupName = scopeId.ManagementGroupName
-	}
-
-	var resp autorest.Response
-	if managementGroupName == "" {
-		resp, err = client.Delete(ctx, id.Name)
-	} else {
-		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupName)
-	}
-
-	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
+		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, oldId.Name)
+		if _, err := client.DeleteAtManagementGroup(ctx, id); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
-
-		return fmt.Errorf("deleting Policy Definition %q: %+v", id.Name, err)
+	default:
+		id := policydefinitions.NewProviderPolicyDefinitionID(meta.(*clients.Client).Account.SubscriptionId, oldId.Name)
+		if _, err := client.Delete(ctx, id); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id any) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
+		resp, result, err := getPolicyDefinitionByID(ctx, client, id)
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
+			return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("issuing read request in policyDefinitionRefreshFunc for %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+		return result, strconv.Itoa(resp.StatusCode), nil
 	}
+}
+
+func getPolicyDefinition(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id policydefinitions.ProviderPolicyDefinitionId) (*http.Response, *policydefinitions.PolicyDefinition, error) {
+	builtinId := policydefinitions.NewPolicyDefinitionID(id.PolicyDefinitionName)
+	builtInResp, err := client.GetBuiltIn(ctx, builtinId)
+	if err != nil && !response.WasNotFound(builtInResp.HttpResponse) {
+		return builtInResp.HttpResponse, nil, err
+	}
+	if !response.WasNotFound(builtInResp.HttpResponse) {
+		return builtInResp.HttpResponse, builtInResp.Model, nil
+	}
+
+	resp, err := client.Get(ctx, id)
+	return resp.HttpResponse, resp.Model, err
 }
 
 func flattenJSON(stringMap interface{}) string {
@@ -329,10 +350,10 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(policy.TypeBuiltIn),
-				string(policy.TypeCustom),
-				string(policy.TypeNotSpecified),
-				string(policy.TypeStatic),
+				string(policydefinitions.PolicyTypeBuiltIn),
+				string(policydefinitions.PolicyTypeCustom),
+				string(policydefinitions.PolicyTypeNotSpecified),
+				string(policydefinitions.PolicyTypeStatic),
 			}, false),
 		},
 

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PolicyDefinitionResource struct{}
@@ -177,29 +175,33 @@ func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
 }
 
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	definitionsClient := client.Policy.DefinitionsClient
-	id, err := parse.PolicyDefinitionID(state.ID)
+	definitionsClient := client.Policy.PolicyDefinitionsClient
+	subscriptionId := client.Account.SubscriptionId
+
+	resourceId, err := parse.PolicyDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp policy.Definition
-	switch scope := id.PolicyScopeId.(type) {
-	case parse.ScopeAtSubscription:
-		resp, err = definitionsClient.Get(ctx, id.Name)
-	case parse.ScopeAtManagementGroup:
-		resp, err = definitionsClient.GetAtManagementGroup(ctx, id.Name, scope.ManagementGroupName)
-	default:
-		return nil, fmt.Errorf("unexpected scope type: %+v", scope)
+	if scopeId, ok := resourceId.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, resourceId.Name)
+		resp, err := definitionsClient.GetAtManagementGroup(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		return pointer.To(resp.Model != nil), nil
 	}
+
+	id := policydefinitions.NewProviderPolicyDefinitionID(subscriptionId, resourceId.Name)
+	resp, err := definitionsClient.Get(ctx, id)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
 
-	return pointer.To(resp.DefinitionProperties != nil), nil
+	return utils.Bool(resp.DefinitionProperties != nil), nil
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {
