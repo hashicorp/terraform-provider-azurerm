@@ -2762,17 +2762,17 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {}
 
-	site_container {
-		name        = "app"
-		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-		target_port = "8080"
-		is_main     = true
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "8080"
+    is_main     = true
 
-		environment_variable {
-			name  = "EXAMPLE"
-			value = "updated"
-		}
-	}
+    environment_variable {
+      name  = "EXAMPLE"
+      value = "updated"
+    }
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -2786,23 +2786,23 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app" "test" {
-	name                = "acctestWA-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	service_plan_id     = azurerm_service_plan.test.id
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-	site_config {
-		application_stack {
-			python_version = "3.9"
-		}
-	}
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
 
-	site_container {
-		name        = "app"
-		image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-		target_port = "80"
-		is_main     = true
-	}
+  site_container {
+    name        = "app"
+    image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+    target_port = "80"
+    is_main     = true
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
