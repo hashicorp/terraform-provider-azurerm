@@ -36,7 +36,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies The Azure Region where the resource exists. Changing this force a new resource to be created.
 
-* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are `C0`, `F0` and `S1`.
+* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are `C0`, `C1`, `F0`, `PES` and `S1`.
+
+~> **Note:** Downgrading to `F0` forces a new resource to be created.
 
 ---
 

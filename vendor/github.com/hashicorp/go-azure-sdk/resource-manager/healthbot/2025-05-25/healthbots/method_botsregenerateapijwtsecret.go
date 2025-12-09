@@ -19,7 +19,7 @@ type BotsRegenerateApiJwtSecretOperationResponse struct {
 }
 
 // BotsRegenerateApiJwtSecret ...
-func (c HealthbotsClient) BotsRegenerateApiJwtSecret(ctx context.Context, id HealthBotId) (result BotsRegenerateApiJwtSecretOperationResponse, err error) {
+func (c HealthBotsClient) BotsRegenerateApiJwtSecret(ctx context.Context, id HealthBotId) (result BotsRegenerateApiJwtSecretOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

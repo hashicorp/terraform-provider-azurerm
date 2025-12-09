@@ -37,7 +37,7 @@ func (p *BotsListCustomPager) NextPageLink() *odata.Link {
 }
 
 // BotsList ...
-func (c HealthbotsClient) BotsList(ctx context.Context, id commonids.SubscriptionId) (result BotsListOperationResponse, err error) {
+func (c HealthBotsClient) BotsList(ctx context.Context, id commonids.SubscriptionId) (result BotsListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,12 +76,12 @@ func (c HealthbotsClient) BotsList(ctx context.Context, id commonids.Subscriptio
 }
 
 // BotsListComplete retrieves all the results into a single object
-func (c HealthbotsClient) BotsListComplete(ctx context.Context, id commonids.SubscriptionId) (BotsListCompleteResult, error) {
+func (c HealthBotsClient) BotsListComplete(ctx context.Context, id commonids.SubscriptionId) (BotsListCompleteResult, error) {
 	return c.BotsListCompleteMatchingPredicate(ctx, id, HealthBotOperationPredicate{})
 }
 
 // BotsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c HealthbotsClient) BotsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate HealthBotOperationPredicate) (result BotsListCompleteResult, err error) {
+func (c HealthBotsClient) BotsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate HealthBotOperationPredicate) (result BotsListCompleteResult, err error) {
 	items := make([]HealthBot, 0)
 
 	resp, err := c.BotsList(ctx, id)

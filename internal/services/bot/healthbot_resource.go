@@ -4,6 +4,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
@@ -65,27 +66,38 @@ func resourceHealthbotService() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: func(_ context.Context, diff *pluginsdk.ResourceDiff, _ any) error {
+			if diff.HasChange("sku_name") {
+				// Downgrading to `F0` isn't possible, and the API returns an uninformative error
+				if _, newSKU := diff.GetChange("sku_name"); newSKU == string(healthbots.SkuNameFZero) {
+					if err := diff.ForceNew("sku_name"); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
 func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
+	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := healthbots.NewHealthBotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.BotsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.BotsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_healthbot", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_healthbot", id.ID())
 	}
 
 	payload := healthbots.HealthBot{
@@ -106,7 +118,7 @@ func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
+	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -144,7 +156,7 @@ func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
+	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -171,7 +183,7 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHealthbotServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
+	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

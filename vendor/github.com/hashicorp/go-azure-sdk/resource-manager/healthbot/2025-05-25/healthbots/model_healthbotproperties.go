@@ -4,6 +4,7 @@ package healthbots
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HealthBotProperties struct {
+	AccessControlMethod     *string             `json:"accessControlMethod,omitempty"`
 	BotManagementPortalLink *string             `json:"botManagementPortalLink,omitempty"`
 	KeyVaultProperties      *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
 	ProvisioningState       *string             `json:"provisioningState,omitempty"`

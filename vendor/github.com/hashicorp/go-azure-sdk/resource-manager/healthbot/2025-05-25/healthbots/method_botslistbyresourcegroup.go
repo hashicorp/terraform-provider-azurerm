@@ -37,7 +37,7 @@ func (p *BotsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
 }
 
 // BotsListByResourceGroup ...
-func (c HealthbotsClient) BotsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result BotsListByResourceGroupOperationResponse, err error) {
+func (c HealthBotsClient) BotsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result BotsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,12 +76,12 @@ func (c HealthbotsClient) BotsListByResourceGroup(ctx context.Context, id common
 }
 
 // BotsListByResourceGroupComplete retrieves all the results into a single object
-func (c HealthbotsClient) BotsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (BotsListByResourceGroupCompleteResult, error) {
+func (c HealthBotsClient) BotsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (BotsListByResourceGroupCompleteResult, error) {
 	return c.BotsListByResourceGroupCompleteMatchingPredicate(ctx, id, HealthBotOperationPredicate{})
 }
 
 // BotsListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c HealthbotsClient) BotsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate HealthBotOperationPredicate) (result BotsListByResourceGroupCompleteResult, err error) {
+func (c HealthBotsClient) BotsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate HealthBotOperationPredicate) (result BotsListByResourceGroupCompleteResult, err error) {
 	items := make([]HealthBot, 0)
 
 	resp, err := c.BotsListByResourceGroup(ctx, id)
