@@ -1,6 +1,7 @@
 ## 4.56.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_virtual_network_gateway` - add support for the `ErGwScale` SKU [GH-31082]
 `azurerm_cognitive_account` - add support for the `kind` property to rollback or upgrade from `OpenAI` to `AIServices` [GH-31063]
 `azurerm_network_manager_network_group` - add support for the `member_type` property [GH-30672
 `azurerm_network_manager_static_member` - add support for using a subnet as the target resource [GH-30672]
