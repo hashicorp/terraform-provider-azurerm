@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots` Documentation
 
-The `healthbots` SDK allows for interaction with Azure Resource Manager `healthbot` (API Version `2022-08-08`).
+The `healthbots` SDK allows for interaction with Azure Resource Manager `healthbot` (API Version `2025-05-25`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,19 +9,19 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots"
 ```
 
 
 ### Client Initialization
 
 ```go
-client := healthbots.NewHealthbotsClientWithBaseURI("https://management.azure.com")
+client := healthbots.NewHealthBotsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsCreate`
+### Example Usage: `HealthBotsClient.BotsCreate`
 
 ```go
 ctx := context.TODO()
@@ -38,7 +38,7 @@ if err := client.BotsCreateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsDelete`
+### Example Usage: `HealthBotsClient.BotsDelete`
 
 ```go
 ctx := context.TODO()
@@ -50,7 +50,7 @@ if err := client.BotsDeleteThenPoll(ctx, id); err != nil {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsGet`
+### Example Usage: `HealthBotsClient.BotsGet`
 
 ```go
 ctx := context.TODO()
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsList`
+### Example Usage: `HealthBotsClient.BotsList`
 
 ```go
 ctx := context.TODO()
@@ -83,7 +83,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsListByResourceGroup`
+### Example Usage: `HealthBotsClient.BotsListByResourceGroup`
 
 ```go
 ctx := context.TODO()
@@ -100,7 +100,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsListSecrets`
+### Example Usage: `HealthBotsClient.BotsListSecrets`
 
 ```go
 ctx := context.TODO()
@@ -116,7 +116,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsRegenerateApiJwtSecret`
+### Example Usage: `HealthBotsClient.BotsRegenerateApiJwtSecret`
 
 ```go
 ctx := context.TODO()
@@ -132,7 +132,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `HealthbotsClient.BotsUpdate`
+### Example Usage: `HealthBotsClient.BotsUpdate`
 
 ```go
 ctx := context.TODO()

@@ -22,7 +22,7 @@ type BotsUpdateOperationResponse struct {
 }
 
 // BotsUpdate ...
-func (c HealthbotsClient) BotsUpdate(ctx context.Context, id HealthBotId, input HealthBotUpdateParameters) (result BotsUpdateOperationResponse, err error) {
+func (c HealthBotsClient) BotsUpdate(ctx context.Context, id HealthBotId, input HealthBotUpdateParameters) (result BotsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c HealthbotsClient) BotsUpdate(ctx context.Context, id HealthBotId, input 
 }
 
 // BotsUpdateThenPoll performs BotsUpdate then polls until it's completed
-func (c HealthbotsClient) BotsUpdateThenPoll(ctx context.Context, id HealthBotId, input HealthBotUpdateParameters) error {
+func (c HealthBotsClient) BotsUpdateThenPoll(ctx context.Context, id HealthBotId, input HealthBotUpdateParameters) error {
 	result, err := c.BotsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BotsUpdate: %+v", err)
