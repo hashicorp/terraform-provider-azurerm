@@ -481,10 +481,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/manage
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines
 github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource
 github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share

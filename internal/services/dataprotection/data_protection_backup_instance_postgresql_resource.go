@@ -13,8 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,7 +42,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backupinstances.ParseBackupInstanceID(id)
+			_, err := backupinstanceresources.ParseBackupInstanceID(id)
 			return err
 		}),
 
@@ -58,7 +59,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: backupinstances.ValidateBackupVaultID,
+				ValidateFunc: backupvaults.ValidateBackupVaultID,
 			},
 
 			"database_id": {
@@ -95,12 +96,12 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
+	vaultId, _ := backupvaults.ParseBackupVaultID(d.Get("vault_id").(string))
 
-	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
+	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
@@ -116,9 +117,9 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	serverId := servers.NewServerID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.ServerName)
 	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 
-	parameters := backupinstances.BackupInstanceResource{
-		Properties: &backupinstances.BackupInstance{
-			DataSourceInfo: backupinstances.Datasource{
+	parameters := backupinstanceresources.BackupInstanceResource{
+		Properties: &backupinstanceresources.BackupInstance{
+			DataSourceInfo: backupinstanceresources.Datasource{
 				DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/servers/databases"),
 				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       databaseId.ID(),
@@ -127,7 +128,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 				ResourceType:     pointer.To("Microsoft.DBforPostgreSQL/servers/databases"),
 				ResourceUri:      pointer.To(""),
 			},
-			DataSourceSetInfo: &backupinstances.DatasourceSet{
+			DataSourceSetInfo: &backupinstanceresources.DatasourceSet{
 				DatasourceType:   pointer.To("Microsoft.DBForPostgreSQL/servers"),
 				ObjectType:       pointer.To("DatasourceSet"),
 				ResourceID:       serverId.ID(),
@@ -137,22 +138,22 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 				ResourceUri:      pointer.To(""),
 			},
 			FriendlyName: pointer.To(id.BackupInstanceName),
-			PolicyInfo: backupinstances.PolicyInfo{
+			PolicyInfo: backupinstanceresources.PolicyInfo{
 				PolicyId: policyId.ID(),
 			},
 		},
 	}
 
 	if v, ok := d.GetOk("database_credential_key_vault_secret_id"); ok {
-		parameters.Properties.DatasourceAuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
-			SecretStoreResource: &backupinstances.SecretStoreResource{
+		parameters.Properties.DatasourceAuthCredentials = backupinstanceresources.SecretStoreBasedAuthCredentials{
+			SecretStoreResource: &backupinstanceresources.SecretStoreResource{
 				Uri:             pointer.To(v.(string)),
-				SecretStoreType: backupinstances.SecretStoreTypeAzureKeyVault,
+				SecretStoreType: backupinstanceresources.SecretStoreTypeAzureKeyVault,
 			},
 		}
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions())
+	err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -162,8 +163,8 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(backupinstances.StatusConfiguringProtection), "UpdatingProtection"},
-		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
+		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection), "UpdatingProtection"},
+		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -182,12 +183,12 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
@@ -196,7 +197,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 
@@ -208,7 +209,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 
 			if props.DatasourceAuthCredentials != nil {
-				credential := props.DatasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials)
+				credential := props.DatasourceAuthCredentials.(backupinstanceresources.SecretStoreBasedAuthCredentials)
 				if credential.SecretStoreResource != nil {
 					d.Set("database_credential_key_vault_secret_id", credential.SecretStoreResource.Uri)
 				}
@@ -225,12 +226,12 @@ func resourceDataProtectionBackupInstancePostgreSQLDelete(d *schema.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+	err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
@@ -238,9 +239,9 @@ func resourceDataProtectionBackupInstancePostgreSQLDelete(d *schema.ResourceData
 	return nil
 }
 
-func policyProtectionStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+func policyProtectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
+		res, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 		}

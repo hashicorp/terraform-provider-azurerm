@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
@@ -49,7 +49,7 @@ func (v *DataProtectionBackupInstanceProtectAction) Schema(_ context.Context, _ 
 				MarkdownDescription: "The ID of the backup instance on which to perform the action.",
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
-						Func: backupinstances.ValidateBackupInstanceID,
+						Func: backupinstanceresources.ValidateBackupInstanceID,
 					},
 				},
 			},
@@ -88,7 +88,7 @@ func (v *DataProtectionBackupInstanceProtectAction) Invoke(ctx context.Context, 
 		return
 	}
 
-	id, err := backupinstances.ParseBackupInstanceID(model.BackupInstanceId.ValueString())
+	id, err := backupinstanceresources.ParseBackupInstanceID(model.BackupInstanceId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(response, "parsing id", err)
 		return
@@ -102,25 +102,25 @@ func (v *DataProtectionBackupInstanceProtectAction) Invoke(ctx context.Context, 
 
 	switch protectAction {
 	case StopProtection:
-		if err := client.StopProtectionThenPoll(ctx, *id, backupinstances.StopProtectionRequest{}, backupinstances.DefaultStopProtectionOperationOptions()); err != nil {
+		if err := client.BackupInstancesStopProtectionThenPoll(ctx, *id, backupinstanceresources.StopProtectionRequest{}, backupinstanceresources.DefaultBackupInstancesStopProtectionOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping protection %s: %+v", id, err))
 			return
 		}
 
 	case ResumeProtection:
-		if err := client.ResumeProtectionThenPoll(ctx, *id); err != nil {
+		if err := client.BackupInstancesResumeProtectionThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming protection %s: %+v", id, err))
 			return
 		}
 
 	case SuspendBackups:
-		if err := client.SuspendBackupsThenPoll(ctx, *id, backupinstances.SuspendBackupRequest{}, backupinstances.DefaultSuspendBackupsOperationOptions()); err != nil {
+		if err := client.BackupInstancesSuspendBackupsThenPoll(ctx, *id, backupinstanceresources.SuspendBackupRequest{}, backupinstanceresources.DefaultBackupInstancesSuspendBackupsOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("suspending backups %s: %+v", id, err))
 			return
 		}
 
 	case ResumeBackups:
-		if err := client.ResumeBackupsThenPoll(ctx, *id); err != nil {
+		if err := client.BackupInstancesResumeBackupsThenPoll(ctx, *id); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("resuming backups %s: %+v", id, err))
 			return
 		}
