@@ -1,6 +1,7 @@
 ## 4.56.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_lb` fix `ignore_changes` behaviour in updatable properties [GH-31318]
 * dependencies: `healthbot` - update to API version `2025-05-25` [GH-31328]
 * `azurerm_healthbot` - add support for the `C1` and `PES` SKUs [GH-31328]
 * dependencies: `terraform-plugin-testing` - update to `v1.14.0`  [GH-31334]
