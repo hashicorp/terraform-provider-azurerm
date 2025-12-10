@@ -33,10 +33,10 @@ import (
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerCreateUpdate,
+	r := &pluginsdk.Resource{
+		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
-		Update: resourceArmLoadBalancerCreateUpdate,
+		Update: resourceArmLoadBalancerUpdate,
 		Delete: resourceArmLoadBalancerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -51,7 +51,167 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmLoadBalancerSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"location": commonschema.Location(),
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(loadbalancers.LoadBalancerSkuNameBasic),
+					string(loadbalancers.LoadBalancerSkuNameStandard),
+					string(loadbalancers.LoadBalancerSkuNameGateway),
+				}, false),
+			},
+
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(loadbalancers.LoadBalancerSkuTierRegional),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(loadbalancers.LoadBalancerSkuTierRegional),
+					string(loadbalancers.LoadBalancerSkuTierGlobal),
+				}, false),
+			},
+
+			"frontend_ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
+
+						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// Not using O+C here causes drift
+							Computed: true,
+							ValidateFunc: validation.Any(
+								validation.IsIPAddress,
+								validation.StringIsEmpty,
+							),
+						},
+
+						"private_ip_address_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// Not using O+C here causes drift
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(loadbalancers.IPVersionIPvFour),
+								string(loadbalancers.IPVersionIPvSix),
+							}, false),
+						},
+
+						"public_ip_address_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
+						},
+
+						"public_ip_prefix_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
+						},
+
+						"private_ip_address_allocation": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(loadbalancers.IPAllocationMethodDynamic),
+								string(loadbalancers.IPAllocationMethodStatic),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
+						},
+
+						"load_balancer_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"inbound_nat_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"outbound_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"zones": commonschema.ZonesMultipleOptional(),
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"private_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"private_ip_addresses": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"tags": commonschema.Tags(),
+		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
@@ -83,30 +243,47 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["subnet_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		}
+		r.Schema["public_ip_address_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
+			ValidateFunc: commonids.ValidatePublicIPAddressID,
+		}
+	}
+
+	return r
 }
 
-func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
 	id := loadbalancers.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	plbId := loadbalancers.ProviderLoadBalancerId(id)
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.
+	existing, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(id), loadbalancers.GetOperationOptions{})
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_lb", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_lb", id.ID())
 	}
 
 	if strings.EqualFold(d.Get("sku_tier").(string), string(loadbalancers.LoadBalancerSkuTierGlobal)) {
@@ -135,9 +312,9 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		Properties:       pointer.To(properties),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, plbId, loadBalancer)
+	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(id), loadBalancer)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -155,8 +332,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
-	resp, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
+	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.
+	resp, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(*id), loadbalancers.GetOperationOptions{})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -207,6 +384,44 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
+func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := loadbalancers.ParseLoadBalancerID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// Casting because of a bug in provider ID generation due to a data issue that needs investigation.
+	resp, err := client.Get(ctx, loadbalancers.ProviderLoadBalancerId(*id), loadbalancers.GetOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if resp.Model == nil {
+		return fmt.Errorf("updating %s: model was nil", *id)
+	}
+
+	model := *resp.Model
+
+	if d.HasChange("frontend_ip_configuration") {
+		model.Properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceArmLoadBalancerRead(d, meta)
+}
+
 func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -228,7 +443,12 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) *[]loadbalancers.FrontendIPConfiguration {
-	configs := d.Get("frontend_ip_configuration").([]interface{})
+	configsRaw, ok := d.GetOk("frontend_ip_configuration")
+	if !ok {
+		return nil
+	}
+
+	configs := configsRaw.([]interface{})
 	frontEndConfigs := make([]loadbalancers.FrontendIPConfiguration, 0, len(configs))
 
 	for _, configRaw := range configs {
@@ -384,189 +604,6 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		result = append(result, out)
 	}
 	return result
-}
-
-func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-
-		"location": commonschema.Location(),
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
-		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(loadbalancers.LoadBalancerSkuNameBasic),
-				string(loadbalancers.LoadBalancerSkuNameStandard),
-				string(loadbalancers.LoadBalancerSkuNameGateway),
-			}, false),
-		},
-
-		"sku_tier": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(loadbalancers.LoadBalancerSkuTierRegional),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(loadbalancers.LoadBalancerSkuTierRegional),
-				string(loadbalancers.LoadBalancerSkuTierGlobal),
-			}, false),
-		},
-
-		"frontend_ip_configuration": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: commonids.ValidateSubnetID,
-					},
-
-					"private_ip_address": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// Not using O+C here causes drift
-						Computed: true,
-						ValidateFunc: validation.Any(
-							validation.IsIPAddress,
-							validation.StringIsEmpty,
-						),
-					},
-
-					"private_ip_address_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// Not using O+C here causes drift
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(loadbalancers.IPVersionIPvFour),
-							string(loadbalancers.IPVersionIPvSix),
-						}, false),
-					},
-
-					"public_ip_address_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: commonids.ValidatePublicIPAddressID,
-					},
-
-					"public_ip_prefix_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
-					},
-
-					"private_ip_address_allocation": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(loadbalancers.IPAllocationMethodDynamic),
-							string(loadbalancers.IPAllocationMethodStatic),
-						}, true),
-						DiffSuppressFunc: suppress.CaseDifference,
-					},
-
-					"gateway_load_balancer_frontend_ip_configuration_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
-					},
-
-					"load_balancer_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						Set: pluginsdk.HashString,
-					},
-
-					"inbound_nat_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						Set: pluginsdk.HashString,
-					},
-
-					"outbound_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						Set: pluginsdk.HashString,
-					},
-
-					"zones": commonschema.ZonesMultipleOptional(),
-
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"private_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"private_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"tags": commonschema.Tags(),
-	}
-
-	if !features.FivePointOh() {
-		schema["subnet_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		}
-		schema["public_ip_address_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidatePublicIPAddressID,
-		}
-	}
-
-	return schema
 }
 
 func expandEdgeZone(input string) *edgezones.Model {
