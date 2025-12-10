@@ -20,17 +20,17 @@ type DatabaseVersionsDataSource struct{}
 type DatabaseVersionsModel struct {
 	Location                            string                     `tfschema:"location"`
 	DatabaseSystemShape                 string                     `tfschema:"database_system_shape"`
-	DatabaseSoftwareImageSupportEnabled *bool                      `tfschema:"database_software_image_support_enabled"`
+	DatabaseSoftwareImageSupportEnabled bool                       `tfschema:"database_software_image_support_enabled"`
 	ShapeFamily                         string                     `tfschema:"shape_family"`
 	StorageManagement                   string                     `tfschema:"storage_management"`
-	UpgradeSupportEnabled               *bool                      `tfschema:"upgrade_support_enabled"`
+	UpgradeSupportEnabled               bool                       `tfschema:"upgrade_support_enabled"`
 	Versions                            []DatabaseVersionItemModel `tfschema:"versions"`
 }
 
 type DatabaseVersionItemModel struct {
 	Name                         string `tfschema:"name"`
 	LatestForMajorVersionEnabled bool   `tfschema:"latest_for_major_version_enabled"`
-	SupportsPdbEnabled           bool   `tfschema:"supports_pdb_enabled"`
+	PluggableDatabaseSupported   bool   `tfschema:"pluggable_database_supported"`
 	Version                      string `tfschema:"version"`
 }
 
@@ -84,7 +84,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
-					"supports_pdb_enabled": {
+					"pluggable_database_supported": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -126,8 +126,8 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 
 			options := dbversions.DefaultListByLocationOperationOptions()
 
-			options.IsDatabaseSoftwareImageSupported = state.DatabaseSoftwareImageSupportEnabled
-			options.IsUpgradeSupported = state.UpgradeSupportEnabled
+			options.IsDatabaseSoftwareImageSupported = pointer.To(state.DatabaseSoftwareImageSupportEnabled)
+			options.IsUpgradeSupported = pointer.To(state.UpgradeSupportEnabled)
 
 			if state.DatabaseSystemShape != "" {
 				options.DbSystemShape = pointer.ToEnum[dbversions.BaseDbSystemShapes](state.DatabaseSystemShape)
@@ -156,7 +156,7 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 							Name:                         pointer.From(element.Name),
 							Version:                      props.Version,
 							LatestForMajorVersionEnabled: pointer.From(props.IsLatestForMajorVersion),
-							SupportsPdbEnabled:           pointer.From(props.SupportsPdb),
+							PluggableDatabaseSupported:   pointer.From(props.SupportsPdb),
 						}
 						state.Versions = append(state.Versions, item)
 					}

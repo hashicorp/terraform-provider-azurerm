@@ -19,7 +19,7 @@ func TestDbVersionsDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.0.version").Exists(),
-				check.That(data.ResourceName).Key("versions.0.supports_pdb_enabled").Exists(),
+				check.That(data.ResourceName).Key("versions.0.pluggable_database_supported").Exists(),
 			),
 		},
 	})
@@ -36,7 +36,7 @@ func TestDbVersionsDataSource_complete(t *testing.T) {
 			Config: r.complete(data, testShape),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.0.version").Exists(),
-				check.That(data.ResourceName).Key("versions.0.supports_pdb_enabled").Exists(),
+				check.That(data.ResourceName).Key("versions.0.pluggable_database_supported").Exists(),
 			),
 		},
 	})
@@ -53,7 +53,7 @@ func TestDbVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
 			Config: r.shapeFamilyFilter(data, testFamily),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.0.version").Exists(),
-				check.That(data.ResourceName).Key("versions.0.supports_pdb_enabled").Exists(),
+				check.That(data.ResourceName).Key("versions.0.pluggable_database_supported").Exists(),
 			),
 		},
 	})

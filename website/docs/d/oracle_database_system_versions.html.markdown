@@ -30,17 +30,15 @@ The following arguments are supported:
 
 ---
 
-* `database_software_image_support_enabled` - (Optional) If true, filters the results to the set of Oracle Database versions that are supported for the database software images.
+* `database_software_image_support_enabled` - (Optional) Whether to filter the results to the set of Oracle Database versions that are supported for the database software images.
 
-* `database_system_id` - (Optional) The DB system AzureId. If provided, filters the results to the set of database versions which are supported for the DB system.
+* `database_system_shape` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape. Possible values are `VM.Standard.x86`.
 
-* `database_system_shape` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape. e.g., VM.Standard.x86.
+* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family. Possible values are  `EXADATA`, `EXADB_XS`, `SINGLENODE`, `VIRTUALMACHINE` 
 
-* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family.
+* `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. Possible values are `LVM`.
 
-* `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. Valid values are ASM and LVM.
-
-* `upgrade_support_enabled` - (Optional) If true, filters the results to the set of database versions which are supported for Upgrade.
+* `upgrade_support_enabled` - (Optional) Whether to filter the results to the set of database versions which are supported for Upgrade.
 
 ## Attributes Reference
 
@@ -54,11 +52,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `versions` block exports the following:
 
+* `name` - The name of Oracle Database version. 
+
 * `latest_for_major_version_enabled` - Indicates if this version of the Oracle Database software is the latest version for a release.
 
-* `name` - The name of Oracle Database version.
-
-* `supports_pdb_enabled` - Indicates if this version of the Oracle Database software supports pluggable databases.
+* `pluggable_database_supported` - Indicates if this version of the Oracle Database software supports pluggable databases.
 
 * `version` - A valid Oracle Database version.
 
