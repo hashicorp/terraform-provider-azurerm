@@ -32,12 +32,12 @@ func TestAccStorageAccount_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQuery(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 			{
 				Query:             true,
 				Config:            r.basicQueryByResourceGroup(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 		},
 	})
