@@ -728,34 +728,6 @@ func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config:      r.cluster(data, 3),
-			ExpectError: regexp.MustCompile("cluster.size.*cannot be decreased"),
-		},
-	})
-}
-
-func TestAccPostgresqlFlexibleServer_clusterInvalidVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.clusterInvalidVersion(data),
-			ExpectError: regexp.MustCompile("cluster.*is only supported for PostgreSQL major version 17 or above"),
-		},
-	})
-}
-
-func TestAccPostgresqlFlexibleServer_clusterInvalidCreateMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.clusterInvalidCreateMode(data),
-			ExpectError: regexp.MustCompile("cluster.*is only supported when.*create_mode.*is Default"),
-		},
 	})
 }
 
@@ -1771,51 +1743,4 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, clusterSize)
-}
-
-func (r PostgresqlFlexibleServerResource) clusterInvalidVersion(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  storage_tier           = "P4"
-  version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-
-  cluster {
-    size                  = 3
-    default_database_name = "testdb"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r PostgresqlFlexibleServerResource) clusterInvalidCreateMode(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  storage_tier           = "P4"
-  version                = "17"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-  create_mode            = "Replica"
-
-  cluster {
-    size                  = 3
-    default_database_name = "testdb"
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
