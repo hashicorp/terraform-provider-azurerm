@@ -192,7 +192,7 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				Tags:       tags.Expand(cert.Tags),
 			}
 
-			if cert.CertificateBlob != "" && cert.CertificatePassword != "" {
+			if cert.CertificateBlob != "" {
 				model.Properties.Password = pointer.To(cert.CertificatePassword)
 				model.Properties.Value = pointer.To(cert.CertificateBlob)
 			} else if len(cert.CertificateKeyVault) > 0 {
