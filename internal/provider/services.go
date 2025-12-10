@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confluent"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps"
@@ -158,6 +159,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		confluent.Registration{},
 		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
@@ -261,6 +263,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			cognitive.Registration{},
 			compute.Registration{},
 			confidentialledger.Registration{},
+			confluent.Registration{},
 			connections.Registration{},
 			consumption.Registration{},
 			containers.Registration{},
