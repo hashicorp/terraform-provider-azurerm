@@ -891,7 +891,7 @@ func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.
 		return fmt.Sprintf("SKU scaling cannot be validated due to an error whilst retrieving the list: %+v. The deployment might fail, check resource documentation for more information", err), nil
 	}
 	if skusForScaling.Model.Skus == nil {
-		return fmt.Sprintf("SKU scaling cannot be validated due to Azure returning no information. The deployment might fail"), nil
+		return fmt.Sprint("SKU scaling cannot be validated due to Azure returning no information. The deployment might fail"), nil
 	}
 
 	validSku := false
