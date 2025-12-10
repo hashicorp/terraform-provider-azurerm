@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -521,8 +521,8 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Import
 		certificate := expandKeyVaultCertificate(v)
 		importParameters := keyvault.CertificateImportParameters{
-			Base64EncodedCertificate: utils.String(certificate.CertificateData),
-			Password:                 utils.String(certificate.CertificatePassword),
+			Base64EncodedCertificate: pointer.To(certificate.CertificateData),
+			Password:                 pointer.To(certificate.CertificatePassword),
 			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
@@ -619,8 +619,8 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			// Import new version of certificate
 			certificate := expandKeyVaultCertificate(v)
 			importParameters := keyvault.CertificateImportParameters{
-				Base64EncodedCertificate: utils.String(certificate.CertificateData),
-				Password:                 utils.String(certificate.CertificatePassword),
+				Base64EncodedCertificate: pointer.To(certificate.CertificateData),
+				Password:                 pointer.To(certificate.CertificatePassword),
 			}
 			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseUrl, id.Name, importParameters)
 			if err != nil {
@@ -946,11 +946,11 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 	}
 
 	issuerParams := &keyvault.IssuerParameters{
-		Name: utils.String(issuerName),
+		Name: pointer.To(issuer["name"].(string)),
 	}
 
 	if certificateType != "" {
-		issuerParams.CertificateType = utils.String(certificateType)
+		issuerParams.CertificateType = pointer.To(certificateType.(string))
 	}
 
 	policy.IssuerParameters = issuerParams
@@ -985,10 +985,10 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 
 	policy.KeyProperties = &keyvault.KeyProperties{
 		Curve:      keyvault.JSONWebKeyCurveName(curve),
-		Exportable: utils.Bool(props["exportable"].(bool)),
-		KeySize:    utils.Int32(int32(keySize)),
+		Exportable: pointer.To(props["exportable"].(bool)),
+		KeySize:    pointer.To(int32(keySize)),
 		KeyType:    keyvault.JSONWebKeyType(keyType),
-		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
+		ReuseKey:   pointer.To(props["reuse_key"].(bool)),
 	}
 
 	policy.LifetimeActions = expandKeyVaultCertificatePolicyLifetimeAction(policyRaw["lifetime_action"])
@@ -996,7 +996,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 	secrets := policyRaw["secret_properties"].([]interface{})
 	secret := secrets[0].(map[string]interface{})
 	policy.SecretProperties = &keyvault.SecretProperties{
-		ContentType: utils.String(secret["content_type"].(string)),
+		ContentType: pointer.To(secret["content_type"].(string)),
 	}
 
 	certificateProperties := policyRaw["x509_certificate_properties"].([]interface{})
@@ -1037,8 +1037,8 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		}
 
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
-			Subject:                 utils.String(cert["subject"].(string)),
+			ValidityInMonths:        pointer.To(int32(cert["validity_in_months"].(int))),
+			Subject:                 pointer.To(cert["subject"].(string)),
 			KeyUsage:                &keyUsage,
 			Ekus:                    extendedKeyUsage,
 			SubjectAlternativeNames: subjectAlternativeNames,
@@ -1074,12 +1074,12 @@ func expandKeyVaultCertificatePolicyLifetimeAction(actions interface{}) *[]keyva
 
 				d := trigger["days_before_expiry"].(int)
 				if d > 0 {
-					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
+					lifetimeAction.Trigger.DaysBeforeExpiry = pointer.To(int32(d))
 				}
 
 				p := trigger["lifetime_percentage"].(int)
 				if p > 0 {
-					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+					lifetimeAction.Trigger.LifetimePercentage = pointer.To(int32(p))
 				}
 			}
 		}

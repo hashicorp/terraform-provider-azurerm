@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -18,7 +18,6 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
@@ -643,7 +642,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
 					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
-					Suspend:        utils.Bool(!model.ContinuousReconciliationEnabled),
+					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
 
@@ -753,7 +752,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
-				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+				properties.Properties.Suspend = pointer.To(!model.ContinuousReconciliationEnabled)
 			}
 
 			if properties.Properties.ConfigurationProtectedSettings == nil {
@@ -928,7 +927,7 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 		}
 
 		if input.Path != "" {
-			output.Path = utils.String(input.Path)
+			output.Path = pointer.To(input.Path)
 		}
 
 		outputList[input.Name] = output
@@ -1016,7 +1015,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 
 	input := &inputList[0]
 	output := fluxconfiguration.BucketDefinition{
-		Insecure:              utils.Bool(!input.TlsEnabled),
+		Insecure:              pointer.To(!input.TlsEnabled),
 		SyncIntervalInSeconds: &input.SyncIntervalInSeconds,
 		TimeoutInSeconds:      &input.TimeoutInSeconds,
 	}

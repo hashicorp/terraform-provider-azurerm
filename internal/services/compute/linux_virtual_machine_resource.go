@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
@@ -837,7 +836,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		params.Properties.BillingProfile = &virtualmachines.BillingProfile{
-			MaxPrice: utils.Float(v),
+			MaxPrice: pointer.To(v),
 		}
 	}
 
@@ -1324,7 +1323,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 		maxBidPrice := d.Get("max_bid_price").(float64)
 		update.Properties.BillingProfile = &virtualmachines.BillingProfile{
-			MaxPrice: utils.Float(maxBidPrice),
+			MaxPrice: pointer.To(maxBidPrice),
 		}
 	}
 
@@ -1696,7 +1695,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 		update := disks.DiskUpdate{
 			Properties: &disks.DiskUpdateProperties{
-				DiskSizeGB: utils.Int64(int64(newSize)),
+				DiskSizeGB: pointer.To(int64(newSize)),
 			},
 		}
 

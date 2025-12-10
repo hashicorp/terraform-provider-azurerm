@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type networkInterfaceUpdateInformation struct {
@@ -93,21 +93,21 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 	applicationSecurityGroups := make([]networkinterfaces.ApplicationSecurityGroup, 0)
 	for _, id := range info.applicationSecurityGroupIDs {
 		applicationSecurityGroups = append(applicationSecurityGroups, networkinterfaces.ApplicationSecurityGroup{
-			Id: utils.String(id),
+			Id: pointer.To(id),
 		})
 	}
 
 	applicationGatewayBackendAddressPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
 	for _, id := range info.applicationGatewayBackendAddressPoolIDs {
 		applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, networkinterfaces.ApplicationGatewayBackendAddressPool{
-			Id: utils.String(id),
+			Id: pointer.To(id),
 		})
 	}
 
 	loadBalancerInboundNatRules := make([]networkinterfaces.InboundNatRule, 0)
 	for _, id := range info.loadBalancerInboundNatRuleIDs {
 		loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, networkinterfaces.InboundNatRule{
-			Id: utils.String(id),
+			Id: pointer.To(id),
 		})
 	}
 
@@ -120,7 +120,7 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 		for id, name := range info.loadBalancerBackendAddressPoolIDs {
 			if config.Name != nil && *config.Name == name {
 				loadBalancerBackendAddressPools = append(loadBalancerBackendAddressPools, networkinterfaces.BackendAddressPool{
-					Id: utils.String(id),
+					Id: pointer.To(id),
 				})
 			}
 

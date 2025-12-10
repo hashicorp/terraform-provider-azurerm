@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -129,11 +130,11 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 
 	t := d.Get("tags").(map[string]interface{})
 	parameters := keyvault.SasDefinitionCreateParameters{
-		TemplateURI:    utils.String(d.Get("sas_template_uri").(string)),
+		TemplateURI:    pointer.To(d.Get("sas_template_uri").(string)),
 		SasType:        keyvault.SasTokenType(d.Get("sas_type").(string)),
-		ValidityPeriod: utils.String(d.Get("validity_period").(string)),
+		ValidityPeriod: pointer.To(d.Get("validity_period").(string)),
 		SasDefinitionAttributes: &keyvault.SasDefinitionAttributes{
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}
