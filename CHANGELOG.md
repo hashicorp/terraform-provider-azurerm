@@ -14,6 +14,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_container_app_environment_certificate` - fix an issue that prevented creating the resource with an empty value for `certificate_password` [GH-31335]
 * `azurerm_storage_blob_inventory_policy` - fix setting Resource Identity data [GH-31313]
 
 ## 4.55.0 (December 04, 2025)
