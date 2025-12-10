@@ -1,6 +1,7 @@
 ## 4.56.0 (Unreleased)
 
 ENHANCEMENTS:
+* `dependencies` - update `terraform-plugin-testing` to `v1.14.0`  [GH-31334]
 * `azurerm_virtual_network_gateway` - add support for the `ErGwScale` SKU [GH-31082]
 `azurerm_cognitive_account` - add support for the `kind` property to rollback or upgrade from `OpenAI` to `AIServices` [GH-31063]
 `azurerm_network_manager_network_group` - add support for the `member_type` property [GH-30672
