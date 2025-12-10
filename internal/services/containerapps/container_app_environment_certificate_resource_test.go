@@ -34,6 +34,21 @@ func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironmentCertificate_basicEmptyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
+	r := ContainerAppEnvironmentCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEmptyPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate_blob_base64", "certificate_password"),
+	})
+}
+
 func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
 	r := ContainerAppEnvironmentCertificateResource{}
@@ -115,6 +130,23 @@ resource "azurerm_container_app_environment_certificate" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   certificate_blob_base64      = filebase64("testdata/testacc.pfx")
   certificate_password         = "TestAcc"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentCertificateResource) basicEmptyPassword(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment_certificate" "test" {
+  name                         = "acctest-cacert%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  certificate_blob_base64      = filebase64("testdata/testacc_nopassword.pfx")
+  certificate_password         = ""
 }
 `, r.template(data), data.RandomInteger)
 }
