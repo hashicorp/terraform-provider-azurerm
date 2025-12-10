@@ -14,15 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 )
 
-var _ QueryResultCheck = expectIdentity{}
+var _ QueryResultCheck = expectNoIdentity{}
 
-type expectIdentity struct {
+type expectNoIdentity struct {
 	listResourceAddress string
 	check               map[string]knownvalue.Check
 }
 
 // CheckQuery implements the query check logic.
-func (e expectIdentity) CheckQuery(_ context.Context, req CheckQueryRequest, resp *CheckQueryResponse) {
+func (e expectNoIdentity) CheckQuery(_ context.Context, req CheckQueryRequest, resp *CheckQueryResponse) {
 	for _, res := range req.Query {
 		var errCollection []error
 
@@ -66,39 +66,23 @@ func (e expectIdentity) CheckQuery(_ context.Context, req CheckQueryRequest, res
 		}
 
 		if errCollection == nil {
-			return
+			errs := []error{fmt.Errorf("an unexpected identity matching the given attributes was found")}
+			// wrap errors for each check
+			for attr, check := range e.check {
+				errs = append(errs, fmt.Errorf("attribute %q: %s", attr, check))
+			}
+			errs = append(errs, fmt.Errorf("address: %s\n", e.listResourceAddress))
+			resp.Error = errors.Join(errs...)
 		}
 	}
-
-	var errCollection []error
-	errCollection = append(errCollection, fmt.Errorf("an identity with the following attributes was not found"))
-
-	var keys []string
-
-	for k := range e.check {
-		keys = append(keys, k)
-	}
-
-	sort.SliceStable(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
-
-	// wrap errors for each check
-	for _, attr := range keys {
-		check := e.check[attr]
-		errCollection = append(errCollection, fmt.Errorf("attribute %q: %s", attr, check))
-	}
-
-	errCollection = append(errCollection, fmt.Errorf("address: %s\n", e.listResourceAddress))
-	resp.Error = errors.Join(errCollection...)
 }
 
-// ExpectIdentity returns a query check that asserts that the identity at the given resource matches a known object, where each
+// ExpectNoIdentity returns a query check that asserts that the identity at the given resource does not match a known object, where each
 // map key represents an identity attribute name. The identity in query must exactly match the given object.
 //
 // This query check can only be used with managed resources that support resource identity and query. Query is only supported in Terraform v1.14+
-func ExpectIdentity(resourceAddress string, identity map[string]knownvalue.Check) QueryResultCheck {
-	return expectIdentity{
+func ExpectNoIdentity(resourceAddress string, identity map[string]knownvalue.Check) QueryResultCheck {
+	return expectNoIdentity{
 		listResourceAddress: resourceAddress,
 		check:               identity,
 	}
