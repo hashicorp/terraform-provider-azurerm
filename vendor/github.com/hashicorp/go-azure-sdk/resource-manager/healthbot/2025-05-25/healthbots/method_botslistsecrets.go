@@ -2,6 +2,7 @@ package healthbots
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -11,21 +12,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type BotsGetOperationResponse struct {
+type BotsListSecretsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *HealthBot
+	Model        *HealthBotKeysResponse
 }
 
-// BotsGet ...
-func (c HealthbotsClient) BotsGet(ctx context.Context, id HealthBotId) (result BotsGetOperationResponse, err error) {
+// BotsListSecrets ...
+func (c HealthBotsClient) BotsListSecrets(ctx context.Context, id HealthBotId) (result BotsListSecretsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       id.ID(),
+		HttpMethod: http.MethodPost,
+		Path:       fmt.Sprintf("%s/listSecrets", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -43,7 +44,7 @@ func (c HealthbotsClient) BotsGet(ctx context.Context, id HealthBotId) (result B
 		return
 	}
 
-	var model HealthBot
+	var model HealthBotKeysResponse
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

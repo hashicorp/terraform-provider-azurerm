@@ -12,15 +12,19 @@ import (
 type SkuName string
 
 const (
+	SkuNameCOne  SkuName = "C1"
 	SkuNameCZero SkuName = "C0"
 	SkuNameFZero SkuName = "F0"
+	SkuNamePES   SkuName = "PES"
 	SkuNameSOne  SkuName = "S1"
 )
 
 func PossibleValuesForSkuName() []string {
 	return []string{
+		string(SkuNameCOne),
 		string(SkuNameCZero),
 		string(SkuNameFZero),
+		string(SkuNamePES),
 		string(SkuNameSOne),
 	}
 }
@@ -40,9 +44,11 @@ func (s *SkuName) UnmarshalJSON(bytes []byte) error {
 
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
-		"c0": SkuNameCZero,
-		"f0": SkuNameFZero,
-		"s1": SkuNameSOne,
+		"c1":  SkuNameCOne,
+		"c0":  SkuNameCZero,
+		"f0":  SkuNameFZero,
+		"pes": SkuNamePES,
+		"s1":  SkuNameSOne,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

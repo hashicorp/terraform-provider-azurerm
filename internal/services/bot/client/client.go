@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	emailchannel_2022_09_15 "github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
-	healthbot_2022_08_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08"
+	healthbot_2025_05_25 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
@@ -18,7 +18,7 @@ type Client struct {
 	ConnectionClient   *botservice.BotConnectionClient
 	ChannelClient      *botservice.ChannelsClient
 	EmailChannelClient *emailchannel_2022_09_15.ChannelClient
-	HealthBotClient    *healthbot_2022_08_08.Client
+	HealthBotClient    *healthbot_2025_05_25.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -37,7 +37,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(emailChannelClient.Client, o.Authorizers.ResourceManager)
 
-	healthBotsClient, err := healthbot_2022_08_08.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	healthBotsClient, err := healthbot_2025_05_25.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

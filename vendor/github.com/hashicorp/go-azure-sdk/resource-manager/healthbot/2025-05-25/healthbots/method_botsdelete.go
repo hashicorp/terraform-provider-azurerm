@@ -21,7 +21,7 @@ type BotsDeleteOperationResponse struct {
 }
 
 // BotsDelete ...
-func (c HealthbotsClient) BotsDelete(ctx context.Context, id HealthBotId) (result BotsDeleteOperationResponse, err error) {
+func (c HealthBotsClient) BotsDelete(ctx context.Context, id HealthBotId) (result BotsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -57,7 +57,7 @@ func (c HealthbotsClient) BotsDelete(ctx context.Context, id HealthBotId) (resul
 }
 
 // BotsDeleteThenPoll performs BotsDelete then polls until it's completed
-func (c HealthbotsClient) BotsDeleteThenPoll(ctx context.Context, id HealthBotId) error {
+func (c HealthBotsClient) BotsDeleteThenPoll(ctx context.Context, id HealthBotId) error {
 	result, err := c.BotsDelete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing BotsDelete: %+v", err)

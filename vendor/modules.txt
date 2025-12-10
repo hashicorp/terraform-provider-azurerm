@@ -616,8 +616,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/regions
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/scriptactions
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/scriptexecutionhistory
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/virtualmachines
-github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08
-github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots
+github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25
+github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource
