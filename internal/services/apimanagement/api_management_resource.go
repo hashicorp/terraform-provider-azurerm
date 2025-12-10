@@ -1972,6 +1972,14 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 			return nil, errors.New("`frontend_ssl30_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
+		if skuIsConsumption && backendProtocolTls12 {
+			return nil, errors.New("`backend_tls12_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && frontendProtocolTls12 {
+			return nil, errors.New("`frontend_tls12_enabled` is not supported for Sku Tier `Consumption`")
+		}
+
 		if skuIsConsumption && tripleDesCiphers {
 			return nil, errors.New("`enable_triple_des_ciphers` is not supported for Sku Tier `Consumption`")
 		}
@@ -2033,15 +2041,15 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		apimBackendProtocolSsl3:   strconv.FormatBool(backendProtocolSsl3),
 		apimBackendProtocolTls10:  strconv.FormatBool(backendProtocolTls10),
 		apimBackendProtocolTls11:  strconv.FormatBool(backendProtocolTls11),
-		apimBackendProtocolTls12:  strconv.FormatBool(backendProtocolTls12),
 		apimBackendProtocolTls13:  strconv.FormatBool(backendProtocolTls13),
 		apimFrontendProtocolTls10: strconv.FormatBool(frontendProtocolTls10),
 		apimFrontendProtocolTls11: strconv.FormatBool(frontendProtocolTls11),
-		apimFrontendProtocolTls12: strconv.FormatBool(frontendProtocolTls12),
 		apimFrontendProtocolTls13: strconv.FormatBool(frontendProtocolTls13),
 	}
 
 	if !skuIsConsumption {
+		customProperties[apimBackendProtocolTls12] = strconv.FormatBool(backendProtocolTls12)
+		customProperties[apimFrontendProtocolTls12] = strconv.FormatBool(frontendProtocolTls12)
 		customProperties[apimFrontendProtocolSsl3] = strconv.FormatBool(frontendProtocolSsl3)
 		customProperties[apimTripleDesCiphers] = strconv.FormatBool(tripleDesCiphers)
 		customProperties[apimTlsEcdheEcdsaWithAes256CbcShaCiphers] = strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers)

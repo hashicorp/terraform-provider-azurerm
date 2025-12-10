@@ -1719,22 +1719,30 @@ resource "azurerm_api_management" "test" {
   }
 
   security {
-    backend_tls11_enabled                               = true
-    backend_ssl30_enabled                               = true
-    backend_tls10_enabled                               = true
-    frontend_ssl30_enabled                              = true
-    frontend_tls10_enabled                              = true
-    frontend_tls11_enabled                              = true
-    tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled = true
-    tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled = true
-    tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled   = true
-    tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled   = true
-    tls_rsa_with_aes128_cbc_sha256_ciphers_enabled      = true
-    tls_rsa_with_aes128_cbc_sha_ciphers_enabled         = true
-    tls_rsa_with_aes128_gcm_sha256_ciphers_enabled      = true
-    tls_rsa_with_aes256_cbc_sha256_ciphers_enabled      = true
-    tls_rsa_with_aes256_cbc_sha_ciphers_enabled         = true
-    triple_des_ciphers_enabled                          = true
+    backend_tls11_enabled                                  = true
+    backend_ssl30_enabled                                  = true
+    backend_tls10_enabled                                  = true
+    backend_tls12_enabled                                  = true
+    backend_tls13_enabled                                  = true
+    frontend_ssl30_enabled                                 = true
+    frontend_tls10_enabled                                 = true
+    frontend_tls11_enabled                                 = true
+    frontend_tls12_enabled                                 = true
+    frontend_tls13_enabled                                 = true
+    tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled    = true
+    tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled    = true
+    tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled = true
+    tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled = true
+    tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled      = true
+    tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled      = true
+    tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled   = true
+    tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled   = true
+    tls_rsa_with_aes128_cbc_sha256_ciphers_enabled         = true
+    tls_rsa_with_aes128_cbc_sha_ciphers_enabled            = true
+    tls_rsa_with_aes128_gcm_sha256_ciphers_enabled         = true
+    tls_rsa_with_aes256_cbc_sha256_ciphers_enabled         = true
+    tls_rsa_with_aes256_cbc_sha_ciphers_enabled            = true
+    triple_des_ciphers_enabled                             = true
   }
 
   hostname_configuration {
