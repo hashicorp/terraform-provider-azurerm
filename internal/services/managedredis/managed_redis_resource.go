@@ -696,8 +696,11 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 					clusterClient := metadata.Client.ManagedRedis.Client
-					if err := isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName); err != nil {
-						return err
+					warning, err := isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName)
+					if err != nil {
+						metadata.ResourceDiff.ForceNew("sku_name")
+					} else if warning != "" {
+						metadata.Logger.Warnf(warning)
 					}
 				}
 			}
@@ -882,13 +885,13 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	return ""
 }
 
-func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) error {
+func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) (warning string, err error) {
 	skusForScaling, err := clusterClient.ListSkusForScaling(ctx, *clusterId)
 	if err != nil {
-		return fmt.Errorf("retrieving skus for scaling: %+v", err)
+		return fmt.Sprintf("SKU scaling cannot be validated due to an error whilst retrieving the list: %+v. The deployment might fail, check resource documentation for more information", err), nil
 	}
 	if skusForScaling.Model.Skus == nil {
-		return fmt.Errorf("no valid scaling SKUs returned by Azure for current cluster state")
+		return fmt.Sprintf("SKU scaling cannot be validated due to Azure returning no information. The deployment might fail"), nil
 	}
 
 	validSku := false
@@ -899,7 +902,7 @@ func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.
 		}
 	}
 	if !validSku {
-		return fmt.Errorf("%s is not valid for scaling from the current SKU and resource configuration", targetSkuName)
+		return "", fmt.Errorf("%s is not valid for scaling from the current SKU and resource configuration", targetSkuName)
 	}
-	return nil
+	return "", nil
 }
