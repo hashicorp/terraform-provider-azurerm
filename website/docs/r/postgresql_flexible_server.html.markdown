@@ -247,7 +247,7 @@ A `cluster` block supports the following:
 
 -> **Note:** The maximum supported cluster size is currently 20 nodes. Support for up to 32 nodes will be available in the near future.
 
--> **Note:** Cluster support is only available for PostgreSQL version 17 and above. Additionally, clusters are not supported when `create_mode` is set to anything other than `Default`.
+-> **Note:** Cluster support is only available for PostgreSQL version 17 and above, and is not supported when `create_mode` is set to anything other than `Default`.
 
 -> **Note:** The cluster `size` can only be increased, not decreased. Attempting to reduce the cluster size will result in an error.
 

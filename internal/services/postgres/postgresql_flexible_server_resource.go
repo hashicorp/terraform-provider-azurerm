@@ -505,7 +505,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				oldClusterSize := oldClusterObj[0].(map[string]interface{})["size"].(int)
 				newClusterSize := newClusterObj[0].(map[string]interface{})["size"].(int)
 				if newClusterSize < oldClusterSize {
-					return errors.New("`cluster.size` cannot be decreased")
+					diff.ForceNew("cluster.0.size")
 				}
 			}
 
@@ -523,7 +523,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			// major version upgrade is not allowed when cluster is enabled
 			if versionOld.(string) != "" && versionOld.(string) != versionNew.(string) {
-				return errors.New("`cluster` does not support major version upgrade")
+				return errors.New("major version upgrade not supported when `cluster` is set")
 			}
 
 			return nil
