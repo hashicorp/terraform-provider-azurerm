@@ -30,9 +30,9 @@ func TestAccVirtualNetwork_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicList_query(data), // TODO - Testing not currently functional
-				ConfigQueryChecks: []querycheck.QueryCheck{
+				Query:  true,
+				Config: r.basicList_query(data), // TODO - Testing not currently functional
+				QueryResultChecks: []querycheck.QueryResultCheck{
 					// querycheck.ExpectIdentityValue("azurerm_virtual_network.test1", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					// querycheck.ExpectIdentityValue("azurerm_virtual_network.test1", tfjsonpath.New("name"), knownvalue.StringExact(fmt.Sprintf("acctestvnet1%d", data.RandomInteger))),
 					// querycheck.ExpectIdentityValue("azurerm_virtual_network.test1", tfjsonpath.New("resource_group_name"), knownvalue.StringExact(fmt.Sprintf("acctestRG-%d", data.RandomInteger))),
