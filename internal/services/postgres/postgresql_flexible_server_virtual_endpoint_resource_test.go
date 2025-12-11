@@ -269,24 +269,24 @@ provider "azurerm" {
   features {}
 }
 
-###### EAST RG ######
+###### Primary RG ######
 
-resource "azurerm_resource_group" "east" {
-  name     = "acctest%[1]d-east"
+resource "azurerm_resource_group" "primary" {
+  name     = "acctest%[1]d-primary"
   location = "%[3]s"
 }
 
-resource "azurerm_virtual_network" "east" {
-  name                = "acctest%[1]d-east-vn"
-  location            = azurerm_resource_group.east.location
-  resource_group_name = azurerm_resource_group.east.name
+resource "azurerm_virtual_network" "primary" {
+  name                = "acctest%[1]d-primary-vn"
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_network_security_group" "east" {
-  name                = "acctest%[1]d-east-nsg"
-  location            = azurerm_resource_group.east.location
-  resource_group_name = azurerm_resource_group.east.name
+resource "azurerm_network_security_group" "primary" {
+  name                = "acctest%[1]d-primary-nsg"
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
 
   security_rule {
     name                       = "allow_all"
@@ -301,10 +301,10 @@ resource "azurerm_network_security_group" "east" {
   }
 }
 
-resource "azurerm_subnet" "east" {
-  name                 = "acctest%[1]d-east-sn"
-  resource_group_name  = azurerm_resource_group.east.name
-  virtual_network_name = azurerm_virtual_network.east.name
+resource "azurerm_subnet" "primary" {
+  name                 = "acctest%[1]d-primary-sn"
+  resource_group_name  = azurerm_resource_group.primary.name
+  virtual_network_name = azurerm_virtual_network.primary.name
   address_prefixes     = ["10.0.1.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 
@@ -319,50 +319,50 @@ resource "azurerm_subnet" "east" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "east" {
-  subnet_id                 = azurerm_subnet.east.id
-  network_security_group_id = azurerm_network_security_group.east.id
+resource "azurerm_subnet_network_security_group_association" "primary" {
+  subnet_id                 = azurerm_subnet.primary.id
+  network_security_group_id = azurerm_network_security_group.primary.id
 }
 
-resource "azurerm_private_dns_zone" "east" {
+resource "azurerm_private_dns_zone" "primary" {
   name                = "acctest%[1]d-pdz.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.east.name
+  resource_group_name = azurerm_resource_group.primary.name
 
-  depends_on = [azurerm_subnet_network_security_group_association.east]
+  depends_on = [azurerm_subnet_network_security_group_association.primary]
 }
 
-resource "azurerm_virtual_network_peering" "east" {
-  name                         = "east-to-west"
-  resource_group_name          = azurerm_resource_group.east.name
-  virtual_network_name         = azurerm_virtual_network.east.name
-  remote_virtual_network_id    = azurerm_virtual_network.west.id
+resource "azurerm_virtual_network_peering" "primary" {
+  name                         = "primary-to-secondary"
+  resource_group_name          = azurerm_resource_group.primary.name
+  virtual_network_name         = azurerm_virtual_network.primary.name
+  remote_virtual_network_id    = azurerm_virtual_network.secondary.id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "east" {
-  name                  = "acctest%[1]d-east-pdzvnetlink.com"
-  private_dns_zone_name = azurerm_private_dns_zone.east.name
-  virtual_network_id    = azurerm_virtual_network.east.id
-  resource_group_name   = azurerm_resource_group.east.name
+resource "azurerm_private_dns_zone_virtual_network_link" "primary" {
+  name                  = "acctest%[1]d-primary-pdzvnetlink.com"
+  private_dns_zone_name = azurerm_private_dns_zone.primary.name
+  virtual_network_id    = azurerm_virtual_network.primary.id
+  resource_group_name   = azurerm_resource_group.primary.name
 
-  depends_on = [azurerm_virtual_network_peering.east]
+  depends_on = [azurerm_virtual_network_peering.primary]
 }
 
-resource "azurerm_postgresql_flexible_server" "east" {
-  name                          = "acctest%[1]d-east-pg"
-  resource_group_name           = azurerm_resource_group.east.name
-  location                      = azurerm_resource_group.east.location
+resource "azurerm_postgresql_flexible_server" "primary" {
+  name                          = "acctest%[1]d-primary-pg"
+  resource_group_name           = azurerm_resource_group.primary.name
+  location                      = azurerm_resource_group.primary.location
   version                       = "13"
   public_network_access_enabled = false
   administrator_login           = "adminTerraform"
   administrator_password        = "maLTq5SnDBrWfyban7Wz"
   sku_name                      = "GP_Standard_D2s_v3"
 
-  delegated_subnet_id = azurerm_subnet.east.id
-  private_dns_zone_id = azurerm_private_dns_zone.east.id
+  delegated_subnet_id = azurerm_subnet.primary.id
+  private_dns_zone_id = azurerm_private_dns_zone.primary.id
 
-  depends_on = [azurerm_private_dns_zone_virtual_network_link.east]
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.primary]
 
   lifecycle {
     ignore_changes = [zone]
@@ -375,29 +375,29 @@ resource "azurerm_postgresql_flexible_server" "east" {
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   name              = "acctest%[1]d-endpoint"
-  source_server_id  = azurerm_postgresql_flexible_server.east.id
-  replica_server_id = azurerm_postgresql_flexible_server.west.id
+  source_server_id  = azurerm_postgresql_flexible_server.primary.id
+  replica_server_id = azurerm_postgresql_flexible_server.secondary.id
   type              = "ReadWrite"
 }
 
-###### WEST RG ######
+###### Secondary RG ######
 
-resource "azurerm_resource_group" "west" {
-  name     = "acctest%[1]d-west"
+resource "azurerm_resource_group" "secondary" {
+  name     = "acctest%[1]d-secondary"
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "west" {
-  name                = "acctest%[1]d-west-vn"
-  location            = azurerm_resource_group.west.location
-  resource_group_name = azurerm_resource_group.west.name
+resource "azurerm_virtual_network" "secondary" {
+  name                = "acctest%[1]d-secondary-vn"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   address_space       = ["11.0.0.0/16"]
 }
 
-resource "azurerm_network_security_group" "west" {
-  name                = "acctest%[1]d-west-nsg"
-  location            = azurerm_resource_group.west.location
-  resource_group_name = azurerm_resource_group.west.name
+resource "azurerm_network_security_group" "secondary" {
+  name                = "acctest%[1]d-secondary-nsg"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
 
   security_rule {
     name                       = "allow_all"
@@ -412,10 +412,10 @@ resource "azurerm_network_security_group" "west" {
   }
 }
 
-resource "azurerm_subnet" "west" {
-  name                 = "acctest%[1]d-west-sn"
-  resource_group_name  = azurerm_resource_group.west.name
-  virtual_network_name = azurerm_virtual_network.west.name
+resource "azurerm_subnet" "secondary" {
+  name                 = "acctest%[1]d-secondary-sn"
+  resource_group_name  = azurerm_resource_group.secondary.name
+  virtual_network_name = azurerm_virtual_network.secondary.name
   address_prefixes     = ["11.0.1.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 
@@ -430,50 +430,50 @@ resource "azurerm_subnet" "west" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "west" {
-  subnet_id                 = azurerm_subnet.west.id
-  network_security_group_id = azurerm_network_security_group.west.id
+resource "azurerm_subnet_network_security_group_association" "secondary" {
+  subnet_id                 = azurerm_subnet.secondary.id
+  network_security_group_id = azurerm_network_security_group.secondary.id
 }
 
-resource "azurerm_private_dns_zone" "west" {
+resource "azurerm_private_dns_zone" "secondary" {
   name                = "acctest%[1]d-pdz.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.west.name
+  resource_group_name = azurerm_resource_group.secondary.name
 
-  depends_on = [azurerm_subnet_network_security_group_association.west]
+  depends_on = [azurerm_subnet_network_security_group_association.secondary]
 }
 
-resource "azurerm_virtual_network_peering" "west" {
-  name                         = "acctest-pfs%[1]d-west-to-east"
-  resource_group_name          = azurerm_resource_group.west.name
-  virtual_network_name         = azurerm_virtual_network.west.name
-  remote_virtual_network_id    = azurerm_virtual_network.east.id
+resource "azurerm_virtual_network_peering" "secondary" {
+  name                         = "acctest-pfs%[1]d-secondary-to-primary"
+  resource_group_name          = azurerm_resource_group.secondary.name
+  virtual_network_name         = azurerm_virtual_network.secondary.name
+  remote_virtual_network_id    = azurerm_virtual_network.primary.id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "west" {
-  name                  = "acctest%[1]d-west-pdzvnetlink.com"
-  private_dns_zone_name = azurerm_private_dns_zone.west.name
-  virtual_network_id    = azurerm_virtual_network.west.id
-  resource_group_name   = azurerm_resource_group.west.name
+resource "azurerm_private_dns_zone_virtual_network_link" "secondary" {
+  name                  = "acctest%[1]d-secondary-pdzvnetlink.com"
+  private_dns_zone_name = azurerm_private_dns_zone.secondary.name
+  virtual_network_id    = azurerm_virtual_network.secondary.id
+  resource_group_name   = azurerm_resource_group.secondary.name
 
-  depends_on = [azurerm_virtual_network_peering.west]
+  depends_on = [azurerm_virtual_network_peering.secondary]
 }
 
-resource "azurerm_postgresql_flexible_server" "west" {
-  name                          = "acctest%[1]d-west-pg"
-  resource_group_name           = azurerm_resource_group.west.name
-  location                      = azurerm_resource_group.west.location
+resource "azurerm_postgresql_flexible_server" "secondary" {
+  name                          = "acctest%[1]d-secondary-pg"
+  resource_group_name           = azurerm_resource_group.secondary.name
+  location                      = azurerm_resource_group.secondary.location
   create_mode                   = "Replica"
-  source_server_id              = azurerm_postgresql_flexible_server.east.id
-  version                       = azurerm_postgresql_flexible_server.east.version
-  public_network_access_enabled = azurerm_postgresql_flexible_server.east.public_network_access_enabled
-  sku_name                      = azurerm_postgresql_flexible_server.east.sku_name
+  source_server_id              = azurerm_postgresql_flexible_server.primary.id
+  version                       = azurerm_postgresql_flexible_server.primary.version
+  public_network_access_enabled = azurerm_postgresql_flexible_server.primary.public_network_access_enabled
+  sku_name                      = azurerm_postgresql_flexible_server.primary.sku_name
 
-  delegated_subnet_id = azurerm_subnet.west.id
-  private_dns_zone_id = azurerm_private_dns_zone.west.id
+  delegated_subnet_id = azurerm_subnet.secondary.id
+  private_dns_zone_id = azurerm_private_dns_zone.secondary.id
 
-  depends_on = [azurerm_private_dns_zone_virtual_network_link.west]
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.secondary]
 
   lifecycle {
     ignore_changes = [zone]
