@@ -121,8 +121,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Required: true,
 									},
 									"certificate_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
 										ValidateFunc: validation.StringInSlice(validDigiCertCertificateTypes, false),
 									},
 								},
@@ -950,7 +950,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 	}
 
 	if certificateType != "" {
-		issuerParams.CertificateType = pointer.To(certificateType.(string))
+		issuerParams.CertificateType = pointer.To(certificateType)
 	}
 
 	policy.IssuerParameters = issuerParams
