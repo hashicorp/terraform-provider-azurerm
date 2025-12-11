@@ -96,7 +96,7 @@ The following arguments are supported:
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
-* `gateway_public_ip_prefix_size` - (Optional) The size of the public IP prefix for the node pool when `mode` is set to `Gateway`. Valid values are between `28` and `31`. Defaults to `31`.
+* `gateway_public_ip_prefix_size` - (Optional) The size of the public IP prefix for the node pool. Valid values are between `28` and `31`.
 
 -> **Note:** `gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`.
 
