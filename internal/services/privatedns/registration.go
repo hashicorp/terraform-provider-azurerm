@@ -34,8 +34,7 @@ func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
 	return []sdk.FrameworkWrappedResource{}
 }
 
-var _ sdk.FrameworkServiceRegistration = Registration{}
-
+// var _ sdk.FrameworkServiceRegistration = Registration{}
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/dns"
 }

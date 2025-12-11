@@ -18,24 +18,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-type VirtualMachinePowerAction struct {
-	sdk.ActionMetadata
+type VirtualMachinePowerAction struct{}
+
+func (v VirtualMachinePowerAction) ModelObject() any {
+	return &VirtualMachinePowerActionModel{}
 }
 
-var _ sdk.Action = &VirtualMachinePowerAction{}
-
-func newVirtualMachinePowerAction() action.Action {
-	return &VirtualMachinePowerAction{}
+func (v VirtualMachinePowerAction) Timeout() time.Duration {
+	return 30 * time.Minute
 }
+
+var _ sdk.WrappedAction = VirtualMachinePowerAction{}
 
 type VirtualMachinePowerActionModel struct {
+	sdk.BaseActionModel
+
 	VirtualMachineId types.String `tfsdk:"virtual_machine_id"`
 	Action           types.String `tfsdk:"power_action"`
-	Timeout          types.String `tfsdk:"timeout"`
 }
 
-func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
-	response.Schema = schema.Schema{
+func (v VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"virtual_machine_id": schema.StringAttribute{
 				Required:            true,
@@ -61,80 +64,60 @@ func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaReq
 				},
 			},
 
-			"timeout": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Timeout duration for the action to complete. Defaults to `30m`.",
-				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.",
-			},
+			//"timeout": schema.StringAttribute{
+			//	Optional:            true,
+			//	Description:         "Timeout duration for the action to complete. Defaults to `30m`.",
+			//	MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.",
+			//},
 		},
 	}
 }
 
-func (v *VirtualMachinePowerAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
-	response.TypeName = "azurerm_virtual_machine_power"
+func (v VirtualMachinePowerAction) Metadata(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+	resp.TypeName = "azurerm_virtual_machine_power"
 }
 
-func (v *VirtualMachinePowerAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
-	client := v.Client.Compute.VirtualMachinesClient
+func (v VirtualMachinePowerAction) Invoke(ctx context.Context, _ action.InvokeRequest, resp *action.InvokeResponse, config any, metadata sdk.ActionMetadata) {
+	client := metadata.Client.Compute.VirtualMachinesClient
 
-	model := VirtualMachinePowerActionModel{}
-
-	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
-	if response.Diagnostics.HasError() {
+	model := sdk.AssertActionModelType[VirtualMachinePowerActionModel](config, resp)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctxTimeout := 30 * time.Minute
-	if t := model.Timeout; !t.IsNull() {
-		duration, err := time.ParseDuration(t.ValueString())
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(response, "parsing `timeout`", err)
-			return
-		}
-
-		ctxTimeout = duration
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, ctxTimeout)
-	defer cancel()
-
 	id, err := virtualmachines.ParseVirtualMachineID(model.VirtualMachineId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(response, "parsing id", err)
+		sdk.SetResponseErrorDiagnostic(resp, "parsing id", err)
 		return
 	}
 
 	powerAction := model.Action.ValueString()
 
-	response.SendProgress(action.InvokeProgressEvent{
+	resp.SendProgress(action.InvokeProgressEvent{
 		Message: fmt.Sprintf("invoking %s on %s", powerAction, id.VirtualMachineName),
 	})
 
 	switch powerAction {
 	case "restart":
 		if err := client.RestartThenPoll(ctx, *id); err != nil {
-			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("restarting %s: %+v", id, err))
+			sdk.SetResponseErrorDiagnostic(resp, "running action", fmt.Sprintf("restarting %s: %+v", id, err))
 			return
 		}
 
 	case "power_on":
 		if err := client.StartThenPoll(ctx, *id); err != nil {
-			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("starting %s: %+v", id, err))
+			sdk.SetResponseErrorDiagnostic(resp, "running action", fmt.Sprintf("starting %s: %+v", id, err))
 			return
 		}
 
 	case "power_off":
 		if err := client.PowerOffThenPoll(ctx, *id, virtualmachines.DefaultPowerOffOperationOptions()); err != nil {
-			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping %s: %+v", id, err))
+			sdk.SetResponseErrorDiagnostic(resp, "running action", fmt.Sprintf("stopping %s: %+v", id, err))
 			return
 		}
 	}
 
-	response.SendProgress(action.InvokeProgressEvent{
+	resp.SendProgress(action.InvokeProgressEvent{
 		Message: fmt.Sprintf("action %s on %s completed", powerAction, id.VirtualMachineName),
 	})
-}
-
-func (v *VirtualMachinePowerAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
-	v.Defaults(ctx, request, response)
 }

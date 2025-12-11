@@ -20,8 +20,7 @@ type MsSqlExecuteJobAction struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &MsSqlExecuteJobAction{}
-
+// var _ sdk.Action = &MsSqlExecuteJobAction{}
 func newMssqlJobExecuteAction() action.Action {
 	return &MsSqlExecuteJobAction{}
 }

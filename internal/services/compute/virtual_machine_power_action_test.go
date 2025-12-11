@@ -95,14 +95,9 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-data "azurerm_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d" // sidestep cyclic reference issue
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 action "azurerm_virtual_machine_power" "test" {
   config {
-    virtual_machine_id = data.azurerm_virtual_machine.test.id
+    virtual_machine_id = azurerm_linux_virtual_machine.test.id
     power_action       = "restart"
   }
 }
@@ -139,29 +134,12 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    triggerme = %[3]s
+    triggerme = "%[3]s"
   }
-
-  lifecycle {
-    action_trigger {
-      events  = [before_update]
-      actions = [action.azurerm_virtual_machine_power.power_off]
-    }
-
-    action_trigger {
-      events  = [after_update]
-      actions = [action.azurerm_virtual_machine_power.power_on]
-    }
-  }
-}
-
-data "azurerm_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "terraform_data" "trigger" {
-  input = azurerm_linux_virtual_machine.test.tags
+  input = azurerm_windows_virtual_machine.test.tags
   lifecycle {
     action_trigger {
       events  = [before_update]
@@ -173,7 +151,6 @@ resource "terraform_data" "trigger" {
     }
   }
 }
-
 
 action "azurerm_virtual_machine_power" "power_off" {
   config {

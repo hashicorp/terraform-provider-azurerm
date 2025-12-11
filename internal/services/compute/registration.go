@@ -4,7 +4,6 @@
 package compute
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,9 +106,9 @@ func (r Registration) Resources() []sdk.Resource {
 	}
 }
 
-func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{
-		newVirtualMachinePowerAction,
+func (r Registration) Actions() []sdk.WrappedAction {
+	return []sdk.WrappedAction{
+		VirtualMachinePowerAction{},
 	}
 }
 

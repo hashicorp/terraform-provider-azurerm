@@ -37,7 +37,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 var (
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-	_ sdk.FrameworkServiceRegistration               = Registration{}
+	//_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {

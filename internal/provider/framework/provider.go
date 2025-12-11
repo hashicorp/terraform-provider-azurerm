@@ -547,7 +547,16 @@ func (p *azureRmFrameworkProvider) Actions(_ context.Context) []func() action.Ac
 	var output []func() action.Action
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.Actions()...)
+		for _, a := range service.Actions() {
+			fwa := sdk.ActionWrapper{
+				WrappedAction:  a,
+				ActionMetadata: sdk.ActionMetadata{},
+			}
+
+			output = append(output, fwa.Action())
+		}
+
+		// output = append(output, service.Actions()...)
 	}
 
 	return output

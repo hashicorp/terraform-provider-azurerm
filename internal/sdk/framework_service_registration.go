@@ -4,12 +4,11 @@
 package sdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 )
 
 type FrameworkServiceRegistration interface {
-	Actions() []func() action.Action
+	Actions() []WrappedAction
 
 	FrameworkResources() []FrameworkWrappedResource
 

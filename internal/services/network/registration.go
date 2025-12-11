@@ -16,7 +16,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-	_ sdk.FrameworkServiceRegistration               = Registration{}
+	//_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 // Name is the name of this Service

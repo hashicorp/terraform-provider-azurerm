@@ -19,8 +19,7 @@ type ManagedRedisFlushDatabasesAction struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &ManagedRedisFlushDatabasesAction{}
-
+// var _ sdk.Action = &ManagedRedisFlushDatabasesAction{}
 func newManagedRedisFlushDatabasesAction() action.Action {
 	return &ManagedRedisFlushDatabasesAction{}
 }

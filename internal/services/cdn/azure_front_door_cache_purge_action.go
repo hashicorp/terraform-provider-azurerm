@@ -29,8 +29,7 @@ type FrontDoorCachePurgeActionModel struct {
 	Timeout          types.String                          `tfsdk:"timeout"`
 }
 
-var _ sdk.Action = &FrontDoorCachePurgeAction{}
-
+// var _ sdk.Action = &FrontDoorCachePurgeAction{}
 func newCDNFrontDoorCachePurgeAction() action.Action {
 	return &FrontDoorCachePurgeAction{}
 }

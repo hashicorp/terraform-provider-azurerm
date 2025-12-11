@@ -13,7 +13,7 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
+	//_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )

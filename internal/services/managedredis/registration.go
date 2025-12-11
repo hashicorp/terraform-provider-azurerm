@@ -9,10 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-var (
-	_ sdk.FrameworkServiceRegistration             = Registration{}
-	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-)
+//_ sdk.FrameworkServiceRegistration             = Registration{}
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 type Registration struct{}
 

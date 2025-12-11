@@ -29,8 +29,7 @@ type DataProtectionBackupInstanceProtectAction struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &DataProtectionBackupInstanceProtectAction{}
-
+// var _ sdk.Action = &DataProtectionBackupInstanceProtectAction{}
 func newDataProtectionBackupInstanceProtectAction() action.Action {
 	return &DataProtectionBackupInstanceProtectAction{}
 }

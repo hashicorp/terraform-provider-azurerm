@@ -346,15 +346,15 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
-		cdn.Registration{},
+		// cdn.Registration{},
 		compute.Registration{},
-		dataprotection.Registration{},
-		keyvault.Registration{},
-		managedredis.Registration{},
-		mssql.Registration{},
-		network.Registration{},
-		privatedns.Registration{},
-		storage.Registration{},
+		// dataprotection.Registration{},
+		// keyvault.Registration{},
+		// managedredis.Registration{},
+		// mssql.Registration{},
+		// network.Registration{},
+		// privatedns.Registration{},
+		// storage.Registration{},
 	}
 
 	return services

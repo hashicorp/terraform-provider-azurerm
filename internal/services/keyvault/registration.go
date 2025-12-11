@@ -15,7 +15,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-	_ sdk.FrameworkServiceRegistration               = Registration{}
+	//_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
