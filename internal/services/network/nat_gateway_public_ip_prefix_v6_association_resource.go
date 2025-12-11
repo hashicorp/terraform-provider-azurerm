@@ -87,8 +87,8 @@ func (r NATGatewayPublicIpPrefixV6AssociationResource) Create() sdk.ResourceFunc
 				if props := model.Properties; props != nil {
 					publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
 
-					if publicIPPrefixesV6 := props.PublicIPPrefixesV6; publicIPPrefixesV6 != nil {
-						for _, existingPublicIPPrefix := range *publicIPPrefixesV6 {
+					if v := props.PublicIPPrefixesV6; v != nil {
+						for _, existingPublicIPPrefix := range *v {
 							if existingPublicIPPrefix.Id == nil {
 								continue
 							}
@@ -198,8 +198,8 @@ func (NATGatewayPublicIpPrefixV6AssociationResource) Delete() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
 
-					if publicIPPrefixesV6 := props.PublicIPPrefixesV6; publicIPPrefixesV6 != nil {
-						for _, publicIPPrefix := range *publicIPPrefixesV6 {
+					if v := props.PublicIPPrefixesV6; v != nil {
+						for _, publicIPPrefix := range *v {
 							if publicIPPrefix.Id == nil {
 								continue
 							}

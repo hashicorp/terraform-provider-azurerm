@@ -49,6 +49,20 @@ func TestAccNatGatewayPublicIpPrefixV6Association_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccNatGatewayPublicIpPrefixV6Association_multipleAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_prefix_v6_association", "test")
+	r := NatGatewayPublicIpPrefixV6AssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleAssociations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NatGatewayPublicIpPrefixV6AssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{})
 	if err != nil {
@@ -113,6 +127,43 @@ resource "azurerm_nat_gateway_public_ip_prefix_v6_association" "import" {
   public_ip_prefix_id = azurerm_nat_gateway_public_ip_prefix_v6_association.test.public_ip_prefix_id
 }
 `, r.basic(data))
+}
+
+func (r NatGatewayPublicIpPrefixV6AssociationResource) multipleAssociations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+  zones               = ["1", "2", "3"]
+}
+
+resource "azurerm_nat_gateway_public_ip_prefix_v6_association" "test" {
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+}
+
+resource "azurerm_public_ip_prefix" "test2" {
+  name                = "acctest-pipPrefix2V6-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  prefix_length       = 127
+  sku                 = "StandardV2"
+}
+
+resource "azurerm_nat_gateway_public_ip_prefix_v6_association" "test2" {
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test2.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (NatGatewayPublicIpPrefixV6AssociationResource) template(data acceptance.TestData) string {
