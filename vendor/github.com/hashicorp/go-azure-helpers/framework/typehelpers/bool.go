@@ -34,6 +34,5 @@ func (w WrappedBoolDefault) MarkdownDescription(_ context.Context) string {
 }
 
 func (w WrappedBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, response *defaults.BoolResponse) {
-	d := basetypes.NewBoolValue(w.Value)
-	response.PlanValue = d
+	response.PlanValue = basetypes.NewBoolValue(w.Value)
 }

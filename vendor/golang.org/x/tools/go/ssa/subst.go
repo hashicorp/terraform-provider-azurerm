@@ -59,7 +59,7 @@ type subster struct {
 // Returns a subster that replaces tparams[i] with targs[i]. Uses ctxt as a cache.
 // targs should not contain any types in tparams.
 // fn is the generic function for which we are substituting.
-func makeSubster(ctxt *types.Context, fn *types.Func, tparams *types.TypeParamList, targs []types.Type, debug bool) *subster {
+func makeSubster(ctxt *types.Context, fn *types.Func, tparams *types.TypeParamList, targs []types.Type) *subster {
 	assert(tparams.Len() == len(targs), "makeSubster argument count must match")
 
 	subst := &subster{
@@ -352,8 +352,7 @@ func (subst *subster) alias(t *types.Alias) types.Type {
 
 		// Copy and substitute type params.
 		var newTParams []*types.TypeParam
-		for i := 0; i < tparams.Len(); i++ {
-			cur := tparams.At(i)
+		for cur := range tparams.TypeParams() {
 			cobj := cur.Obj()
 			cname := types.NewTypeName(cobj.Pos(), cobj.Pkg(), cobj.Name(), nil)
 			ntp := types.NewTypeParam(cname, nil)
@@ -488,8 +487,7 @@ func (subst *subster) named(t *types.Named) types.Type {
 		obj := types.NewTypeName(tname.Pos(), tname.Pkg(), tname.Name(), nil)
 		fresh := types.NewNamed(obj, nil, nil)
 		var newTParams []*types.TypeParam
-		for i := 0; i < tparams.Len(); i++ {
-			cur := tparams.At(i)
+		for cur := range tparams.TypeParams() {
 			cobj := cur.Obj()
 			cname := types.NewTypeName(cobj.Pos(), cobj.Pkg(), cobj.Name(), nil)
 			ntp := types.NewTypeParam(cname, nil)

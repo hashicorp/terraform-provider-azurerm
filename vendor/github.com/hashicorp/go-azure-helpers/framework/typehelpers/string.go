@@ -77,6 +77,5 @@ func (w WrappedStringDefault) MarkdownDescription(_ context.Context) string {
 }
 
 func (w WrappedStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, response *defaults.StringResponse) {
-	d := basetypes.NewStringValue(w.Value)
-	response.PlanValue = d
+	response.PlanValue = basetypes.NewStringValue(w.Value)
 }
