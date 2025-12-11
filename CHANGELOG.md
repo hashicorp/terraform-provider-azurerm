@@ -10,10 +10,14 @@ ENHANCEMENTS:
 * `azurerm_network_manager_network_group` - add support for the `member_type` property [GH-30672
 * `azurerm_network_manager_static_member` - add support for using a subnet as the target resource [GH-30672]
 * Data Source: `azurerm_cognitive_account` - add support for new attributes [GH-30778]
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - the `key_vault_key_id` property now supports keys from Managed HSM Vaults [GH-31336]
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` the `key_vault_key_id` property now supports versionless keys [GH-31336]
 
 FEATURES:
 
 BUG FIXES:
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - fix a panic that occurred when the customer managed key was removed from the workspace outside of Terraform [GH-31336]
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - fix the timeout for the delete operation [GH-31336]
 * `azurerm_container_app_environment_certificate` - fix an issue that prevented creating the resource with an empty value for `certificate_password` [GH-31335]
 * `azurerm_storage_blob_inventory_policy` - fix setting Resource Identity data [GH-31313]
 
