@@ -120,6 +120,10 @@ type SingleNestedAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.Object
+
+	// WriteOnly indicates whether this attribute can accept ephemeral values
+	// or not. If WriteOnly is true, either Optional or Required must also be true.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -224,9 +228,9 @@ func (a SingleNestedAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns the WriteOnly field value.
 func (a SingleNestedAttribute) IsWriteOnly() bool {
-	return false
+	return a.WriteOnly
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant

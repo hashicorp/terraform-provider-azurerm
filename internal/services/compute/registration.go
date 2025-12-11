@@ -74,13 +74,13 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_machine_data_disk_attachment":   resourceVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":              resourceVirtualMachineExtension(),
 		"azurerm_orchestrated_virtual_machine_scale_set": resourceOrchestratedVirtualMachineScaleSet(),
-		"azurerm_linux_virtual_machine":                  resourceLinuxVirtualMachine(),
-		"azurerm_linux_virtual_machine_scale_set":        resourceLinuxVirtualMachineScaleSet(),
-		"azurerm_virtual_machine_scale_set_extension":    resourceVirtualMachineScaleSetExtension(),
-		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
-		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
-		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
-		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
+		// "azurerm_linux_virtual_machine":                  resourceLinuxVirtualMachine(),
+		"azurerm_linux_virtual_machine_scale_set":     resourceLinuxVirtualMachineScaleSet(),
+		"azurerm_virtual_machine_scale_set_extension": resourceVirtualMachineScaleSetExtension(),
+		"azurerm_windows_virtual_machine":             resourceWindowsVirtualMachine(),
+		"azurerm_windows_virtual_machine_scale_set":   resourceWindowsVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":                      resourceSshPublicKey(),
+		"azurerm_managed_disk_sas_token":              resourceManagedDiskSasToken(),
 	}
 
 	return resources
@@ -114,7 +114,9 @@ func (r Registration) Actions() []func() action.Action {
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
-	return []sdk.FrameworkWrappedResource{}
+	return []sdk.FrameworkWrappedResource{
+		&linuxVirtualMachineResource{},
+	}
 }
 
 func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {

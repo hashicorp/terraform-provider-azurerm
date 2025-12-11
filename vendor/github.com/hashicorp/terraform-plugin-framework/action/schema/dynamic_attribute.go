@@ -105,6 +105,10 @@ type DynamicAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.Dynamic
+
+	// WriteOnly indicates whether this attribute can accept ephemeral values
+	// or not. If WriteOnly is true, either Optional or Required must also be true.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -167,9 +171,9 @@ func (a DynamicAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns the WriteOnly field value.
 func (a DynamicAttribute) IsWriteOnly() bool {
-	return false
+	return a.WriteOnly
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant

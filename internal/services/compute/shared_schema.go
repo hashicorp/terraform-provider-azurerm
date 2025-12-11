@@ -342,35 +342,6 @@ func linuxSecretSchema() *pluginsdk.Schema {
 	return s
 }
 
-func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
-	output := make([]virtualmachines.VaultSecretGroup, 0)
-
-	for _, raw := range input {
-		v := raw.(map[string]interface{})
-
-		keyVaultId := v["key_vault_id"].(string)
-		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
-		certificates := make([]virtualmachines.VaultCertificate, 0)
-		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
-
-			url := certificateV["url"].(string)
-			certificates = append(certificates, virtualmachines.VaultCertificate{
-				CertificateURL: pointer.To(url),
-			})
-		}
-
-		output = append(output, virtualmachines.VaultSecretGroup{
-			SourceVault: &virtualmachines.SubResource{
-				Id: pointer.To(keyVaultId),
-			},
-			VaultCertificates: &certificates,
-		})
-	}
-
-	return &output
-}
-
 func expandLinuxSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.VaultSecretGroup {
 	output := make([]virtualmachinescalesets.VaultSecretGroup, 0)
 
@@ -398,42 +369,6 @@ func expandLinuxSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.Vaul
 	}
 
 	return &output
-}
-
-func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, v := range *input {
-		keyVaultId := ""
-		if v.SourceVault != nil && v.SourceVault.Id != nil {
-			keyVaultId = *v.SourceVault.Id
-		}
-
-		certificates := make([]interface{}, 0)
-
-		if v.VaultCertificates != nil {
-			for _, c := range *v.VaultCertificates {
-				if c.CertificateURL == nil {
-					continue
-				}
-
-				certificates = append(certificates, map[string]interface{}{
-					"url": *c.CertificateURL,
-				})
-			}
-		}
-
-		output = append(output, map[string]interface{}{
-			"key_vault_id": keyVaultId,
-			"certificate":  certificates,
-		})
-	}
-
-	return output
 }
 
 func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) []interface{} {

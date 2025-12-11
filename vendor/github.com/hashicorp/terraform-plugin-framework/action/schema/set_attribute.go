@@ -185,7 +185,7 @@ func (a SetAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns false as write-only attributes are not supported for sets and set-based data.
 func (a SetAttribute) IsWriteOnly() bool {
 	return false
 }

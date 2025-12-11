@@ -71,19 +71,19 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
-	model := r.FrameworkWrappedResource.ModelObject()
+	plan := r.FrameworkWrappedResource.ModelObject()
 
-	r.ResourceMetadata.DecodeCreate(ctx, request, response, model)
+	r.ResourceMetadata.DecodeCreate(ctx, request, response, plan)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	r.FrameworkWrappedResource.Create(ctx, request, response, r.ResourceMetadata, model)
+	r.FrameworkWrappedResource.Create(ctx, request, response, r.ResourceMetadata, plan)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	r.ResourceMetadata.EncodeCreate(ctx, response, model)
+	r.ResourceMetadata.EncodeCreate(ctx, response, plan)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -221,8 +221,15 @@ func (r *FrameworkResourceWrapper) ConfigValidators(ctx context.Context) []resou
 }
 
 func (r *FrameworkResourceWrapper) ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse) {
-	if f, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok {
-		f.ModifyPlan(ctx, request, response, r.ResourceMetadata)
+	if f, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok && !request.Plan.Raw.IsNull() {
+		plan := r.FrameworkWrappedResource.ModelObject()
+		config := r.FrameworkWrappedResource.ModelObject()
+		r.ResourceMetadata.DecodeModifyPlan(ctx, request, response, plan, config)
+		if response.Diagnostics.HasError() {
+			return
+		}
+
+		f.ModifyPlan(ctx, request, response, r.ResourceMetadata, plan, config)
 	}
 }
 
@@ -239,6 +246,34 @@ func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, resp
 		parsed, err := parser.Parse(idVal, true)
 		if err != nil {
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
+		}
+
+		segments := id.Segments()
+		numSegments := len(segments)
+		for idx, segment := range segments {
+			if segmentTypeSupported(segment.Type) {
+				name := segmentName(segment, idType, numSegments, idx)
+
+				field, ok := parsed.Parsed[segment.Name]
+				if !ok {
+					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
+					return
+				}
+
+				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
+			}
+		}
+	}
+}
+
+func SetIdentityOnCreate(ctx context.Context, r FrameworkWrappedResource, idVal string, response *resource.CreateResponse) {
+	response.State.SetAttribute(ctx, path.Root("id"), basetypes.NewStringValue(idVal))
+	if id, idType := r.Identity(); id != nil {
+		parser := resourceids.NewParserFromResourceIdType(id)
+		parsed, err := parser.Parse(idVal, true)
+		if err != nil {
+			response.Diagnostics.AddError(fmt.Sprintf("parsing resource ID to set Identity: %s"), err.Error())
+			return
 		}
 
 		segments := id.Segments()

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -37,7 +37,7 @@ func InitContext(ctx context.Context) context.Context {
 func InitTestContext(ctx context.Context, t testing.T) context.Context {
 	helperlogging.SetOutput(t)
 
-	ctx = tfsdklog.RegisterTestSink(ctx, t)
+	ctx = tfsdklog.ContextWithTestLogging(ctx, t.Name())
 	ctx = tfsdklog.NewRootSDKLogger(ctx, tfsdklog.WithLevelFromEnv(EnvTfLogSdk))
 	ctx = tfsdklog.NewSubsystem(ctx, SubsystemHelperResource,
 		// All calls are through the HelperResource* helper functions

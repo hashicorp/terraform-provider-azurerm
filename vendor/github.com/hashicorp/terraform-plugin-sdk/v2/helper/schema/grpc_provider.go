@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -1565,11 +1565,12 @@ func (s *GRPCProviderServer) ApplyResourceChange(ctx context.Context, req *tfpro
 				op = "Update"
 			}
 
-			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
-				"Missing Resource Identity After %s: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource %s. "+
-					"This is always a problem with the provider and should be reported to the provider developer", op, strings.ToLower(op),
-			))
-
+			if !diags.HasError() {
+				resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
+					"Missing Resource Identity After %s: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource %s. "+
+						"This is always a problem with the provider and should be reported to the provider developer", op, strings.ToLower(op),
+				))
+			}
 			return resp, nil
 		}
 

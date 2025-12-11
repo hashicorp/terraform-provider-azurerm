@@ -146,6 +146,17 @@ func (r *ResourceMetadata) DecodeUpdate(ctx context.Context, req resource.Update
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 }
 
+// DecodeModifyPlan reads a plan and state from a resource.UpdateRequest into pointers to the resource models and sets
+// resource.UpdateResponse diags on error.
+func (r *ResourceMetadata) DecodeModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, plan any, config any) {
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
+}
+
 // EncodeUpdate writes the model populated in the Update method to state.
 func (r *ResourceMetadata) EncodeUpdate(ctx context.Context, resp *resource.UpdateResponse, state any) {
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -323,7 +334,7 @@ type FrameworkWrappedResourceWithConfigValidators interface {
 type FrameworkWrappedResourceWithPlanModifier interface {
 	FrameworkWrappedResource
 
-	ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse, metadata ResourceMetadata)
+	ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse, metadata ResourceMetadata, decodedPlan any, decodedConfig any)
 }
 
 type FrameworkWrappedResourceWithList interface {

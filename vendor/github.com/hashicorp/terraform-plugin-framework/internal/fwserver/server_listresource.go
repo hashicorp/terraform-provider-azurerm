@@ -100,7 +100,6 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		}
 	}
 
-	// TODO verdict is still out on how to handle diagnostics that pertain to the List call as a whole and not individual list results
 	diagsStream := &list.ListResultsStream{}
 
 	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
@@ -191,12 +190,12 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 		return ListResult(result)
 	}
 
-	if result.Identity == nil || result.Identity.Raw.IsNull() {
+	if result.Identity == nil || result.Identity.Raw.IsFullyNull() {
 		return ListResultError(
 			"Incomplete List Result",
 			"When listing resources, an implementation issue was found. "+
 				"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
-				"The \"Identity\" field is nil.\n\n",
+				"The \"Identity\" field is nil or the values are nil.\n\n",
 		)
 	}
 
