@@ -553,6 +553,21 @@ func TestAccIotHub_cosmosDBRouteUpdate(t *testing.T) {
 	})
 }
 
+func TestAccIotHub_dataResidencyEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataResidencyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t IotHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotHubID(state.ID)
 	if err != nil {
@@ -2307,4 +2322,29 @@ resource "azurerm_iothub_route" "test" {
   depends_on     = [azurerm_iothub_endpoint_cosmosdb_account.test]
 }
 `, data.RandomInteger, tagsBlock)
+}
+
+func (IotHubResource) dataResidencyEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  data_residency_enabled = true
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
