@@ -748,14 +748,14 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 
 			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil && basicAuthFTPResp.Model != nil {
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil || basicAuthFTPResp.Model == nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
 				basicAuthFTP = csmProps.Allow
 			}
 
 			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil && basicAuthWebDeployResp.Model != nil {
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil || basicAuthWebDeployResp.Model == nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
 				basicAuthWebDeploy = csmProps.Allow
