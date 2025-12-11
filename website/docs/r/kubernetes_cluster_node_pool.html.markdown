@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `mode` - (Optional) Should this Node Pool be used for System, User or Gateway resources? Possible values are `System`, `User` and `Gateway`. Defaults to `User`.
+* `mode` - (Optional) Specifies the mode of the Node Pool. Possible values are `System`, `User` and `Gateway`.
 
 -> **Note:** `Gateway` mode creates a node pool configured to host static egress gateways. For more information about this feature, see [the Azure documentation](https://learn.microsoft.com/rest/api/aks/agent-pools/create-or-update?view=rest-aks-2025-07-01&tabs=HTTP#agentpoolgatewayprofile).
 
