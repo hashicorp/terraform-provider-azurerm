@@ -196,8 +196,8 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					publicIpAddressesV6 := make([]natgateways.SubResource, 0)
 
-					if publicIPAddresses := props.PublicIPAddressesV6; publicIPAddresses != nil {
-						for _, publicIPAddress := range *publicIPAddresses {
+					if v := props.PublicIPAddressesV6; v != nil {
+						for _, publicIPAddress := range *v {
 							if publicIPAddress.Id == nil {
 								continue
 							}
