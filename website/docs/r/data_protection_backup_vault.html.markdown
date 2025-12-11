@@ -61,6 +61,8 @@ The following arguments are supported:
 
 -> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
 
+* `encryption_settings` - (Optional) The An `encryption_settings` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 
 ---
@@ -70,6 +72,16 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Backup Vault.
+
+---
+
+An `encryption_settings` block supports the following:
+
+* `identity_id` - (Optional) Specifies the User Assigned Managed Identity ID which has access permissions to the Key Vault.
+
+* `infrastructure_encryption_enabled` - (Optional) Whether to enable (infrastructure encryption)[https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal].
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to Encrypt the data in this Backup Vault.
 
 ## Attributes Reference
 
