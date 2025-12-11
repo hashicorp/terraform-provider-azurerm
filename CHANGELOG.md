@@ -1,3 +1,26 @@
+## 4.56.0 (December 11, 2025)
+
+ENHANCEMENTS:
+
+* dependencies: `healthbot` - update to API version `2025-05-25` ([#31328](https://github.com/hashicorp/terraform-provider-azurerm/issues/31328))
+* dependencies: `terraform-plugin-testing` - update to `v1.14.0`  ([#31334](https://github.com/hashicorp/terraform-provider-azurerm/issues/31334))
+* Data Source: `azurerm_cognitive_account` - add support for new attributes ([#30778](https://github.com/hashicorp/terraform-provider-azurerm/issues/30778))
+* `azurerm_cognitive_account` - add support for the `kind` property to rollback or upgrade from `OpenAI` to `AIServices` ([#31063](https://github.com/hashicorp/terraform-provider-azurerm/issues/31063))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - the `key_vault_key_id` property now supports keys from Managed HSM Vaults ([#31336](https://github.com/hashicorp/terraform-provider-azurerm/issues/31336))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - the `key_vault_key_id` property now supports versionless keys ([#31336](https://github.com/hashicorp/terraform-provider-azurerm/issues/31336))
+* `azurerm_healthbot` - add support for the `C1` and `PES` SKUs ([#31328](https://github.com/hashicorp/terraform-provider-azurerm/issues/31328))
+* `azurerm_lb` fix `ignore_changes` behaviour in updatable properties ([#31318](https://github.com/hashicorp/terraform-provider-azurerm/issues/31318))
+* `azurerm_network_manager_network_group` - add support for the `member_type` property [GH-30672
+* `azurerm_network_manager_static_member` - add support for using a subnet as the target resource ([#30672](https://github.com/hashicorp/terraform-provider-azurerm/issues/30672))
+* `azurerm_virtual_network_gateway` - add support for the `ErGwScale` SKU ([#31082](https://github.com/hashicorp/terraform-provider-azurerm/issues/31082))
+
+BUG FIXES:
+
+* `azurerm_container_app_environment_certificate` - fix an issue that prevented creating the resource with an empty value for `certificate_password` ([#31335](https://github.com/hashicorp/terraform-provider-azurerm/issues/31335))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - fix a panic that occurred when the customer managed key was removed from the workspace outside of Terraform ([#31336](https://github.com/hashicorp/terraform-provider-azurerm/issues/31336))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - fix the timeout for the delete operation ([#31336](https://github.com/hashicorp/terraform-provider-azurerm/issues/31336))
+* `azurerm_storage_blob_inventory_policy` - fix setting Resource Identity data ([#31313](https://github.com/hashicorp/terraform-provider-azurerm/issues/31313))
+
 ## 4.55.0 (December 04, 2025)
 
 FEATURES:
