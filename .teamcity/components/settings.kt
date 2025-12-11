@@ -165,7 +165,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         "policy" to testConfiguration(useAltSubscription = true),
 
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "westeurope", false)),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "westeurope", true)),
 
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
