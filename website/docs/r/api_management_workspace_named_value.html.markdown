@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of this API Management Workspace Named Value.
 
-* `secret` - (Optional) Specifies whether the API Management Workspace Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
+* `secret` - (Optional) Specifies whether the API Management Workspace Named Value is secret. Defaults to `false`.
 
 ~> **Note:** Setting the field `secret` to `true` does not make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
@@ -72,7 +72,7 @@ A `value_from_key_vault` block supports the following:
 
 * `secret_id` - (Required) The resource ID of the Key Vault Secret.
 
-* `identity_client_id` - (Optional) The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.
+* `identity_client_id` - (Optional) The client ID of the User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used if not specified.
 
 ## Attributes Reference
 
