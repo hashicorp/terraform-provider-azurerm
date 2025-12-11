@@ -6,6 +6,7 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,6 +21,10 @@ import (
 type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +39,10 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +57,10 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

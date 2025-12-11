@@ -40,6 +40,8 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_data_protection_backup_instance_postgresql` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := backupinstances.ParseBackupInstanceID(id)
 			return err
