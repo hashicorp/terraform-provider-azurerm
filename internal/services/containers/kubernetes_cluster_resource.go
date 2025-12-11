@@ -1653,21 +1653,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"node_provisioning_profile": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				// NOTE: O+C The API returns default values here even if not set in the request
-				Computed: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Default:      managedclusters.NodeProvisioningModeManual,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
 							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
 						"default_node_pools": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Default:      managedclusters.NodeProvisioningDefaultNodePoolsNone,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
 							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
@@ -1688,6 +1688,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["node_provisioning_profile"].Required = false
+		// NOTE: O+C The API returns default values here even if not set in the request
+		resource.Schema["node_provisioning_profile"].Optional = true
+		resource.Schema["node_provisioning_profile"].Computed = true
+
 		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
