@@ -138,8 +138,8 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_basicAltSubscription(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// `key_vault_key_id` is always set into state based on config, so it will be missing during imports
-		data.ImportStep("key_vault_key_id"),
+		// `key_vault_id` is always set into state based on config, so it will be missing during imports
+		data.ImportStep("key_vault_id"),
 	})
 }
 
