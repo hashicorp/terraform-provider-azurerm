@@ -48,6 +48,20 @@ func TestAccNatGatewayPublicIpV6Association_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccNatGatewayPublicIpV6Association_multipleAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_v6_association", "test")
+	r := NatGatewayPublicIpV6AssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleAssociations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NatGatewayPublicIpV6AssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
@@ -112,6 +126,43 @@ resource "azurerm_nat_gateway_public_ip_v6_association" "import" {
   public_ip_address_id = azurerm_nat_gateway_public_ip_v6_association.test.public_ip_address_id
 }
 `, r.basic(data))
+}
+
+func (r NatGatewayPublicIpV6AssociationResource) multipleAssociations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+  zones               = ["1", "2", "3"]
+}
+
+resource "azurerm_nat_gateway_public_ip_v6_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest-PIP2v6-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "StandardV2"
+  ip_version          = "IPv6"
+}
+
+resource "azurerm_nat_gateway_public_ip_v6_association" "test2" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test2.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (NatGatewayPublicIpV6AssociationResource) template(data acceptance.TestData) string {

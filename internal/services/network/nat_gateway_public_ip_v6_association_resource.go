@@ -69,8 +69,8 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
-			defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+			locks.ByID(natGatewayId.ID())
+			defer locks.UnlockByID(natGatewayId.ID())
 
 			natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 			if err != nil {
@@ -86,8 +86,8 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					publicIpAddressesV6 := make([]natgateways.SubResource, 0)
 
-					if publicIPAddressesV6 := props.PublicIPAddressesV6; publicIPAddressesV6 != nil {
-						for _, existingPublicIPAddress := range *publicIPAddressesV6 {
+					if v := props.PublicIPAddressesV6; v != nil {
+						for _, existingPublicIPAddress := range *v {
 							if existingPublicIPAddress.Id == nil {
 								continue
 							}
@@ -181,8 +181,8 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			locks.ByName(id.First.NatGatewayName, natGatewayResourceName)
-			defer locks.UnlockByName(id.First.NatGatewayName, natGatewayResourceName)
+			locks.ByID(id.First.ID())
+			defer locks.UnlockByID(id.First.ID())
 
 			natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 			if err != nil {
