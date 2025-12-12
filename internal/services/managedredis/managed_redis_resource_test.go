@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis_test
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +25,20 @@ func TestAccManagedRedis_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_withDefaultDb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDefaultDb(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -154,6 +168,84 @@ func TestAccManagedRedis_hasToUseEnterpriseClusteringWithRediSearch(t *testing.T
 	})
 }
 
+func TestAccManagedRedis_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_dbPersistence(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDefaultDb(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dbPersistenceRDB(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dbPersistenceAOF(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDefaultDb(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_dbPersistenceCannotEnableBothRDBAndAOF(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.dbPersistenceCannotEnableBothRDBAndAOF(),
+			ExpectError: regexp.MustCompile(`Conflicting configuration arguments`),
+		},
+	})
+}
+
+func TestAccManagedRedis_dbPersistenceConflictsWithGeoReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.dbPersistenceConflictsWithGeoReplication(),
+			ExpectError: regexp.MustCompile(`Conflicting configuration arguments`),
+		},
+	})
+}
+
 func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -187,6 +279,29 @@ resource "azurerm_managed_redis" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (r ManagedRedisResource) withDefaultDb(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {}
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r ManagedRedisResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -197,6 +312,8 @@ resource "azurerm_managed_redis" "import" {
 
   location = azurerm_managed_redis.test.location
   sku_name = azurerm_managed_redis.test.sku_name
+
+  default_database {}
 }
 `, r.basic(data))
 }
@@ -533,4 +650,117 @@ resource "azurerm_managed_redis" "test" {
   }
 }
 `
+}
+
+func (r ManagedRedisResource) publicNetworkAccess(data acceptance.TestData, enabled string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location              = "%[2]s"
+  sku_name              = "Balanced_B0"
+  public_network_access = "%[3]s"
+}
+`, data.RandomInteger, data.Locations.Primary, enabled)
+}
+
+func (r ManagedRedisResource) dbPersistenceRDB(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    persistence_redis_database_backup_frequency = "12h"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisResource) dbPersistenceAOF(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    persistence_append_only_file_backup_frequency = "1s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisResource) dbPersistenceCannotEnableBothRDBAndAOF() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis" "test" {
+  name     = "acctest-invalid"
+  location = "eastus"
+
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B0"
+
+  default_database {
+    persistence_redis_database_backup_frequency   = "1h"
+    persistence_append_only_file_backup_frequency = "1s"
+  }
+}
+  `
+}
+
+func (r ManagedRedisResource) dbPersistenceConflictsWithGeoReplication() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis" "test" {
+  name     = "acctest-invalid"
+  location = "eastus"
+
+  resource_group_name = "my-rg"
+  sku_name            = "Balanced_B0"
+
+  default_database {
+    geo_replication_group_name                  = "acctest-amr"
+    persistence_redis_database_backup_frequency = "1h"
+  }
+}`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -362,7 +362,7 @@ func TestAccApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.routingRedirect_httpListenerError(data),
-			ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
+			ExpectError: regexp.MustCompile("conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 		},
 	})
 }
@@ -1328,7 +1328,7 @@ func TestAccApplicationGateway_basicSku(t *testing.T) {
 	})
 }
 
-func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := applicationgateways.ParseApplicationGatewayID(state.ID)
 	if err != nil {
 		return nil, err
@@ -3763,10 +3763,6 @@ resource "azurerm_application_gateway" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
   backend_http_settings {
     name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
@@ -4467,13 +4463,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                                = local.http_setting_name
-    cookie_based_affinity               = "Disabled"
-    host_name                           = "%s"
-    port                                = 80
-    protocol                            = "Http"
-    request_timeout                     = 1
-    pick_host_name_from_backend_address = %t
+    name                                 = local.http_setting_name
+    cookie_based_affinity                = "Disabled"
+    dedicated_backend_connection_enabled = true
+    host_name                            = "%s"
+    port                                 = 80
+    protocol                             = "Http"
+    request_timeout                      = 1
+    pick_host_name_from_backend_address  = %t
   }
 
   http_listener {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
@@ -171,7 +170,7 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	eventHubDataConnectionProperties := expandKustoEventHubDataConnectionProperties(d)
 
@@ -222,8 +221,8 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 
 	if resp.Model != nil {
 		if dataConnection, ok := resp.Model.(dataconnections.EventHubDataConnection); ok {
-			if location := dataConnection.Location; location != nil {
-				d.Set("location", azure.NormalizeLocation(*location))
+			if loc := dataConnection.Location; loc != nil {
+				d.Set("location", location.Normalize(*loc))
 			}
 
 			if props := dataConnection.Properties; props != nil {
@@ -289,11 +288,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		eventHubConnectionProperties.TableName = utils.String(tableName.(string))
+		eventHubConnectionProperties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		eventHubConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+		eventHubConnectionProperties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
@@ -315,7 +314,7 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if identityId, ok := d.GetOk("identity_id"); ok {
-		eventHubConnectionProperties.ManagedIdentityResourceId = utils.String(identityId.(string))
+		eventHubConnectionProperties.ManagedIdentityResourceId = pointer.To(identityId.(string))
 	}
 
 	return eventHubConnectionProperties
