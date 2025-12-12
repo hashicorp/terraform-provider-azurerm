@@ -26,12 +26,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
+		AutomationRuntimeEnvironmentResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
+		PowerShell72ModuleResource{},
+		Python3PackageResource{},
 		SourceControlResource{},
 		WatcherResource{},
-		Python3PackageResource{},
-		PowerShell72ModuleResource{},
 	}
 
 	if !features.FivePointOh() {
