@@ -47,6 +47,7 @@ import (
 	communication "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	compute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 	confidentialledger "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
+	confluent "github.com/hashicorp/terraform-provider-azurerm/internal/services/confluent/client"
 	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	containerapps "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
@@ -185,6 +186,7 @@ type Client struct {
 	Communication                     *communication.Client
 	Compute                           *compute.Client
 	ConfidentialLedger                *confidentialledger.Client
+	Confluent                         *confluent.Client
 	Connections                       *connections.Client
 	Consumption                       *consumption.Client
 	ContainerApps                     *containerapps.Client
@@ -377,6 +379,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
+	}
+	if client.Confluent, err = confluent.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Confluent: %+v", err)
 	}
 	if client.Connections, err = connections.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Connections: %+v", err)
