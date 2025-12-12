@@ -143,6 +143,12 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Default:      string(dataconnections.DatabaseRoutingSingle),
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
+
+			"retrieval_start_date": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
 		},
 	}
 }
@@ -230,6 +236,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
+				d.Set("retrieval_start_date", props.RetrievalStartDate)
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("compression", string(pointer.From(props.Compression)))
@@ -293,6 +300,10 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
 		eventHubConnectionProperties.MappingRuleName = pointer.To(mappingRuleName.(string))
+	}
+
+	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {
+		eventHubConnectionProperties.RetrievalStartDate = utils.String(retrievalStartDate.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
