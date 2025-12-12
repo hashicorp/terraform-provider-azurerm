@@ -19,12 +19,12 @@ import (
 
 type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_basicFourPointOh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicFourPointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -33,26 +33,68 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_basicFivePointOh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
+func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImportFourPointOh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basicFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImportFourPointOh),
+	})
+}
+
+func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImportFivePointOh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicFivePointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImportFivePointOh),
+	})
+}
+
+func TestAccDataProtectionBackupPolicyPostgreSQL_completeFourPointOh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupPolicyPostgreSQL_completeFivePointOh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
+	r := DataProtectionBackupPolicyPostgreSQLResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -97,7 +139,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) basicFourPointOh(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -113,8 +155,30 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r DataProtectionBackupPolicyPostgreSQLResource) basicFivePointOh(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "test" {
+  name                = "acctest-dbp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  vault_name          = azurerm_data_protection_backup_vault.test.name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImportFourPointOh(data acceptance.TestData) string {
+	config := r.basicFourPointOh(data)
 	return fmt.Sprintf(`
 %s
 
@@ -129,7 +193,30 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImportFivePointOh(data acceptance.TestData) string {
+	config := r.basicFivePointOh(data)
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "import" {
+  name                = azurerm_data_protection_backup_policy_postgresql.test.name
+  resource_group_name = azurerm_data_protection_backup_policy_postgresql.test.resource_group_name
+  vault_name          = azurerm_data_protection_backup_policy_postgresql.test.vault_name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
+}
+`, config)
+}
+
+func (r DataProtectionBackupPolicyPostgreSQLResource) completeFourPointOh(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -171,6 +258,65 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    }
+  }
+
+  lifecycle {
+    ignore_changes = ["default_retention_rule", "retention_rule"]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupPolicyPostgreSQLResource) completeFivePointOh(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "test" {
+  name                            = "acctest-dbp-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vault_name                      = azurerm_data_protection_backup_vault.test.name
+  backup_repeating_time_intervals = ["R/2023-12-31T10:00:00+05:30/P1W"]
+
+  retention_rule {
+    name     = "Weekly"
+    priority = 30
+    life_cycle {
+      duration        = "P12W"
+      data_store_type = "VaultStore"
+      target_copy {
+        option_json = jsonencode({
+          objectType = "CopyOnExpiryOption"
+        })
+        data_store_type = "ArchiveStore"
+      }
+    }
+    life_cycle {
+      duration        = "P27W"
+      data_store_type = "ArchiveStore"
+    }
+    criteria {
+      weeks_of_month         = ["First", "Last"]
+      days_of_week           = ["Tuesday"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    }
+  }
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P12M"
+      data_store_type = "VaultStore"
+      target_copy {
+        option_json = jsonencode({
+          objectType = "CopyOnExpiryOption"
+        })
+        data_store_type = "ArchiveStore"
+      }
+    }
+    life_cycle {
+      duration        = "P27M"
+      data_store_type = "ArchiveStore"
     }
   }
 }
