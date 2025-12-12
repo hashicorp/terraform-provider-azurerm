@@ -211,7 +211,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.P2SVpnGatewayProperties{
 			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference_internet_enabled").(bool)),
-			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{})),
+			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}), d),
 			VpnServerConfiguration: &virtualwans.SubResource{
 				Id: pointer.To(d.Get("vpn_server_configuration_id").(string)),
 			},
@@ -260,7 +260,7 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("connection_configuration") {
-		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}))
+		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}), d)
 	}
 
 	if d.HasChange("scale_unit") {
@@ -368,10 +368,10 @@ func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]virtualwans.P2SConnectionConfiguration {
+func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}, d *pluginsdk.ResourceData) *[]virtualwans.P2SConnectionConfiguration {
 	configurations := make([]virtualwans.P2SConnectionConfiguration, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		raw := v.(map[string]interface{})
 
 		addressPrefixes := make([]string, 0)
@@ -394,9 +394,12 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 					AddressPrefixes: &addressPrefixes,
 				},
 				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
-				EnableInternetSecurity: pointer.To(raw["internet_security_enabled"].(bool)),
 			},
 		})
+
+		if enableInternetSecurity, ok := d.GetOk(fmt.Sprintf("connection_configuration.%d.internet_security_enabled", i)); ok {
+			configurations[len(configurations)-1].Properties.EnableInternetSecurity = pointer.To(enableInternetSecurity.(bool))
+		}
 	}
 
 	return &configurations
