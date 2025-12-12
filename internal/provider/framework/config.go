@@ -406,8 +406,20 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if !feature[0].ExpandWithoutDowntime.IsNull() && !feature[0].ExpandWithoutDowntime.IsUnknown() {
 				f.ManagedDisk.ExpandWithoutDowntime = feature[0].ExpandWithoutDowntime.ValueBool()
 			}
+
+			f.ManagedDisk.StopVMBeforeDetaching = false
+			if !feature[0].StopVMBeforeDetaching.IsNull() && !feature[0].StopVMBeforeDetaching.IsUnknown() {
+				f.ManagedDisk.StopVMBeforeDetaching = feature[0].StopVMBeforeDetaching.ValueBool()
+			}
+
+			f.ManagedDisk.SkipAttachmentDestroy = false
+			if !feature[0].SkipAttachmentDestroy.IsNull() && !feature[0].SkipAttachmentDestroy.IsUnknown() {
+				f.ManagedDisk.SkipAttachmentDestroy = feature[0].SkipAttachmentDestroy.ValueBool()
+			}
 		} else {
 			f.ManagedDisk.ExpandWithoutDowntime = true
+			f.ManagedDisk.StopVMBeforeDetaching = false
+			f.ManagedDisk.SkipAttachmentDestroy = false
 		}
 
 		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
