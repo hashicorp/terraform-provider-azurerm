@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines"
@@ -22,6 +23,7 @@ type Client struct {
 	Credentials               *credentials.CredentialsClient
 	DataFlowClient            *dataflows.DataFlowsClient
 	IntegrationRuntimesClient *integrationruntimes.IntegrationRuntimesClient
+	LinkedServicesClient      *linkedservices.LinkedServicesClient
 	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
 	PipelinesClient           *pipelines.PipelinesClient
@@ -57,6 +59,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(integrationRuntimesClient.Client, o.Authorizers.ResourceManager)
 
+	linkedServicesClient, err := linkedservices.NewLinkedServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Linked Services client: %+v", err)
+	}
+	o.Configure(linkedServicesClient.Client, o.Authorizers.ResourceManager)
+
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
@@ -90,6 +98,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		Credentials:               credentialsClient,
 		DataFlowClient:            dataFlowClient,
 		IntegrationRuntimesClient: integrationRuntimesClient,
+		LinkedServicesClient:      linkedServicesClient,
 		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:    managedVirtualNetworksClient,
 		PipelinesClient:           PipelinesClient,
