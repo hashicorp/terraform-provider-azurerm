@@ -48,27 +48,57 @@ func TestAccApiManagementApiOperationTag_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementApiOperationTag_update(t *testing.T) {
+func TestAccApiManagementApiOperationTag_basic_withDisplayNameBackwardCompatibility(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
 	r := ApiManagementApiOperationTagResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic_withDisplayNameBackwardCompatibility(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApiOperationTag_requiresImport_withDisplayNameBackwardCompatibility(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
+	r := ApiManagementApiOperationTagResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_withDisplayNameBackwardCompatibility(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport_withDisplayNameBackwardCompatibility),
+	})
+}
+
+func TestAccApiManagementApiOperationTag_update_withDisplayNameBackwardCompatibility(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
+	r := ApiManagementApiOperationTagResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_withDisplayNameBackwardCompatibility(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update_withDisplayNameBackwardCompatibility(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basic_withDisplayNameBackwardCompatibility(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -95,10 +125,15 @@ func (r ApiManagementApiOperationTagResource) basic(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_api_management_tag" "test" {
+  api_management_id = azurerm_api_management.test.id
+  name              = "acctest-Tag-%d"
+  display_name      = "Display-Tag"
+}
+
 resource "azurerm_api_management_api_operation_tag" "test" {
   api_operation_id = azurerm_api_management_api_operation.test.id
-  name             = "acctest-Op-Tag-%d"
-  display_name     = "Display-Op-Tag"
+  name             = azurerm_api_management_tag.test.name
 }
 `, ApiManagementApiOperationResource{}.basic(data), data.RandomInteger)
 }
@@ -110,12 +145,35 @@ func (r ApiManagementApiOperationTagResource) requiresImport(data acceptance.Tes
 resource "azurerm_api_management_api_operation_tag" "import" {
   api_operation_id = azurerm_api_management_api_operation_tag.test.api_operation_id
   name             = azurerm_api_management_api_operation_tag.test.name
-  display_name     = azurerm_api_management_api_operation_tag.test.display_name
 }
 `, r.basic(data))
 }
 
-func (r ApiManagementApiOperationTagResource) update(data acceptance.TestData) string {
+func (r ApiManagementApiOperationTagResource) basic_withDisplayNameBackwardCompatibility(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_tag" "test" {
+  api_operation_id = azurerm_api_management_api_operation.test.id
+  name             = "acctest-Op-Tag-%d"
+  display_name     = "Display-Op-Tag"
+}
+`, ApiManagementApiOperationResource{}.basic(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiOperationTagResource) requiresImport_withDisplayNameBackwardCompatibility(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_tag" "import" {
+  api_operation_id = azurerm_api_management_api_operation_tag.test.api_operation_id
+  name             = azurerm_api_management_api_operation_tag.test.name
+  display_name     = azurerm_api_management_api_operation_tag.test.display_name
+}
+`, r.basic_withDisplayNameBackwardCompatibility(data))
+}
+
+func (r ApiManagementApiOperationTagResource) update_withDisplayNameBackwardCompatibility(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
