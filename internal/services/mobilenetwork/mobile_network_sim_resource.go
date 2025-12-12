@@ -46,9 +46,14 @@ type SimStaticIPPropertiesModel struct {
 type SimResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate         = SimResource{}
-	_ sdk.ResourceWithCustomImporter = SimResource{}
+	_ sdk.ResourceWithUpdate                      = SimResource{}
+	_ sdk.ResourceWithCustomImporter              = SimResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SimResource{}
 )
+
+func (r SimResource) DeprecationMessage() string {
+	return "The `azurerm_mobile_network_sim` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+}
 
 func (r SimResource) ResourceType() string {
 	return "azurerm_mobile_network_sim"

@@ -20,6 +20,7 @@ import (
 type MobileNetworkSiteResource struct{}
 
 func TestAccMobileNetworkSite_basic(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
 
 	r := MobileNetworkSiteResource{}
@@ -35,6 +36,7 @@ func TestAccMobileNetworkSite_basic(t *testing.T) {
 }
 
 func TestAccMobileNetworkSite_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
 
 	r := MobileNetworkSiteResource{}
@@ -50,6 +52,7 @@ func TestAccMobileNetworkSite_requiresImport(t *testing.T) {
 }
 
 func TestAccMobileNetworkSite_complete(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
 
 	r := MobileNetworkSiteResource{}
@@ -65,6 +68,7 @@ func TestAccMobileNetworkSite_complete(t *testing.T) {
 }
 
 func TestAccMobileNetworkSite_update(t *testing.T) {
+	t.Skipf("Skipping since Mobile Network is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
 
 	r := MobileNetworkSiteResource{}

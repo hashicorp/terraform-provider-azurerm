@@ -6,6 +6,8 @@ description: |-
   Manages a Mobile Network Service.
 ---
 
+~> **Note:** The `azurerm_mobile_network_service` resource has been deprecated because [Azure Private 5G Core is deprecated on Sep 30, 2025](https://learn.microsoft.com/en-us/previous-versions/azure/private-5g-core/private-5g-core-overview) and will be removed in v5.0 of the AzureRM Provider.
+
 # azurerm_mobile_network_service
 
 Manages a Mobile Network Service.
@@ -41,7 +43,7 @@ resource "azurerm_mobile_network_service" "example" {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
+      preemption_vulnerability                = "Preemptible"
 
       guaranteed_bit_rate {
         downlink = "100 Mbps"
@@ -67,7 +69,7 @@ resource "azurerm_mobile_network_service" "example" {
     allocation_and_retention_priority_level = 9
     qos_indicator                           = 9
     preemption_capability                   = "NotPreempt"
-    preemption_vulnerability                = "Preemptable"
+    preemption_vulnerability                = "Preemptible"
     maximum_bit_rate {
       downlink = "1 Gbps"
       uplink   = "100 Mbps"
@@ -127,7 +129,7 @@ A `qos_policy` block supports the following:
 
 * `preemption_capability` - (Optional) The Preemption Capability of a QoS Flow controls whether it can preempt another QoS Flow with a lower priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreempt` and `MayPreempt`, Defaults to `NotPreempt`.
 
-* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptable`. Defaults to `Preemptable`.
+* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptible`. Defaults to `Preemptible`.
 
 ---
 
@@ -163,7 +165,7 @@ A `service_qos_policy` block supports the following:
 
 * `preemption_capability` - (Optional) The Preemption Capability of a QoS Flow controls whether it can preempt another QoS Flow with a lower priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreempt` and `MayPreempt`,.
 
-* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptable`.
+* `preemption_vulnerability` - (Optional) The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptible`.
 
 ---
 
