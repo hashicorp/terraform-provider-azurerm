@@ -1667,7 +1667,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"default_node_pools": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      managedclusters.NodeProvisioningDefaultNodePoolsNone,
+							Default:      managedclusters.NodeProvisioningDefaultNodePoolsAuto,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
 							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
