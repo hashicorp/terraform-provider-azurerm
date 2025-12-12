@@ -38,6 +38,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_data_protection_backup_instance_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_data_protection_backup_policy_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_hpc_cache`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
