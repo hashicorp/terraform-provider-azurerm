@@ -82,7 +82,7 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"compute_count": {
-			Type:         pluginsdk.TypeFloat,
+			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.FloatBetween(1.0, 512.0),
@@ -148,11 +148,20 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 
 		// Optional
+		"cluster_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C The customer can choose the cluster_name for their DB systems; otherwise, the backend will assign the DB system to a specific cluster.
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ClusterName,
+		},
 		"database_system_options": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -167,77 +176,64 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-
+		"disk_redundancy": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C The customer can choose the disk_redundancy for their DB systems; otherwise, the backend will assign one .
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDiskRedundancyType(), false),
+		},
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C The customer can choose the display_name for their DB systems; otherwise, the backend will assign one .
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseSystemName,
+		},
+		"domain": {
+			Type:     schema.TypeString,
+			Optional: true,
+			// NOTE: O+C Customer can can add custom domain name otherwise a default domain name will be created from OCI side and assigned to the database systems.
+			Computed: true,
+			ForceNew: true,
+		},
 		"initial_data_storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(2),
 		},
-
+		"node_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C Customer can the number of nodes for the database systems, otherwise OCI will assign certain number of nodes.
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
 		"pluggable_database_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.PluggableDatabaseName,
 		},
-
-		"tags": commonschema.Tags(),
-
-		// Computed
-		"cluster_name": {
+		"storage_volume_performance_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C The customer can choose the cluster_name for their DB systems; otherwise, the backend will assign the DB system to a specific cluster.
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ClusterName,
-		},
-
-		"disk_redundancy": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDiskRedundancyType(), false),
-		},
-
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.DatabaseSystemName,
-		},
-
-		"domain": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-		},
-
-		"node_count": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
-
-		"storage_volume_performance_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			// NOTE: O+C Customer can choose the storage volume performance if not OCI will assign to database systems.
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageVolumePerformanceMode(), false),
 		},
-
+		"tags": commonschema.Tags(),
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
+			Default:  time.UTC,
 		},
 	}
 }
@@ -409,7 +405,7 @@ func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 					state.ComputeCount = pointer.From(props.ComputeCount)
-					state.ComputeModel = string(pointer.FromEnum(props.ComputeModel))
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 					state.DatabaseEdition = string(props.DatabaseEdition)
 					state.DatabaseVersion = props.DbVersion
 					state.Hostname = props.Hostname
@@ -431,14 +427,14 @@ func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 					// Optional
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DatabaseSystemOptions = FlattenDbSystemOptions(props.DbSystemOptions)
-					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
+					state.DiskRedundancy = pointer.FromEnum(props.DiskRedundancy)
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Domain = pointer.From(props.Domain)
 					state.InitialDataStorageSizeInGb = int64(metadata.ResourceData.Get("initial_data_storage_size_in_gb").(int))
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.NodeCount = pointer.From(props.NodeCount)
 					state.PluggableDatabaseName = pointer.From(props.PdbName)
-					state.StorageVolumePerformanceMode = string(pointer.From(props.StorageVolumePerformanceMode))
+					state.StorageVolumePerformanceMode = pointer.FromEnum(props.StorageVolumePerformanceMode)
 					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
@@ -476,8 +472,25 @@ func FlattenDbSystemOptions(input *dbsystems.DbSystemOptions) []DatabaseSystemOp
 	output := make([]DatabaseSystemOptionsModel, 0)
 	if input != nil {
 		return append(output, DatabaseSystemOptionsModel{
-			StorageManagement: string(pointer.From(input.StorageManagement)),
+			StorageManagement: pointer.FromEnum(input.StorageManagement),
 		})
 	}
 	return output
+}
+
+func customizeDbSystemDiff(diff *schema.ResourceDiff, v interface{}) error {
+	computeCount, hasComputeCount := diff.GetOk("compute_count")
+	_, hasComputeModel := diff.GetOk("compute_model")
+
+	if hasComputeCount {
+		if computeCount.(int) > 0 && !hasComputeModel {
+			return fmt.Errorf("compute_model is required when compute_count is set")
+		}
+	}
+	if _, hasCpuCoreCount := diff.GetOk("cpu_core_count"); hasCpuCoreCount {
+		if hasComputeModel {
+			return fmt.Errorf("it is an error to specify compute_model when cpu_core_count is set")
+		}
+	}
+	return nil
 }

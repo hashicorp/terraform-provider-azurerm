@@ -49,7 +49,9 @@ func DatabaseSystemPassword(i interface{}, k string) (warnings []string, errors 
 		return
 	}
 
-	if len(v) < 9 || len(v) > 255 {
+	minLength := 9
+	maxLength := 255
+	if len(v) < minLength || len(v) > maxLength {
 		return []string{}, append(errors, fmt.Errorf("%v must be 9 to 255 characters", k))
 	}
 

@@ -56,6 +56,27 @@ func TestDatabaseSystemResource_complete(t *testing.T) {
 	})
 }
 
+func TestDatabaseSystemResource_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.DatabaseSystemResource{}.ResourceType(), "test")
+	r := DatabaseSystemResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+	})
+}
+
 func TestDatabaseSystemResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.DatabaseSystemResource{}.ResourceType(), "test")
 	r := DatabaseSystemResource{}
@@ -87,17 +108,14 @@ resource "azurerm_oracle_database_system" "test" {
   compute_count       = 4
   compute_model       = "ECPU"
   database_edition    = "EnterpriseEdition"
-  database_system_options {
-    storage_management = "LVM"
-  }
-  database_version   = "19.27.0.0"
-  hostname           = "hosttst"
-  license_model      = "LicenseIncluded"
-  network_anchor_id  = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/terraform-na"
-  resource_anchor_id = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
-  shape              = "VM.Standard.x86"
-  source             = "None"
-  ssh_public_keys    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  database_version    = "19.27.0.0"
+  hostname            = "hosttst"
+  license_model       = "LicenseIncluded"
+  network_anchor_id   = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/terraform-na"
+  resource_anchor_id  = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
+  shape               = "VM.Standard.x86"
+  source              = "None"
+  ssh_public_keys     = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -137,6 +155,48 @@ resource "azurerm_oracle_database_system" "test" {
   node_count                      = 1
   tags = {
     test = "testTag1"
+  }
+  time_zone = "UTC"
+
+}`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a DatabaseSystemResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_database_system" "test" {
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  zones               = ["2"]
+  admin_password      = "testAdminPassword123##"
+  compute_count       = 4
+  compute_model       = "ECPU"
+  database_edition    = "EnterpriseEdition"
+  database_system_options {
+    storage_management = "LVM"
+  }
+  database_version                = "19.27.0.0"
+  disk_redundancy                 = "Normal"
+  hostname                        = "hosttst"
+  license_model                   = "LicenseIncluded"
+  network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/networkAnchors/terraform-na"
+  resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/white-glove/providers/Oracle.Database/resourceAnchors/ra-white-glove"
+  source                          = "None"
+  shape                           = "VM.Standard.x86"
+  ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  pluggable_database_name         = "testPdbName"
+  storage_volume_performance_mode = "HighPerformance"
+  display_name                    = "acctest%[2]d"
+  initial_data_storage_size_in_gb = 256
+  node_count                      = 1
+  tags = {
+    testUpdate = "testUpdate"
   }
   time_zone = "UTC"
 

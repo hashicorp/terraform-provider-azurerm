@@ -86,11 +86,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Database System should exist. Changing this forces a new Database system to be created.
 
-* `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin. The password must be at least nine characters and contain at least two uppercase, two lowercase, two numbers, and two special characters. The special characters must be _, #, or -. Changing this forces a new Database system to be created.
+* `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin.  Changing this forces a new Database system to be created.
 
 * `compute_count` - (Required) The number of compute servers for the Database system. Changing this forces a new Database system to be created.
 
-* `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Changing this forces a new Database system to be created.
+* `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Possible values are `ECPU` , `OCPU` Changing this forces a new Database system to be created.
 
 * `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance. Possible values are `EnterpriseEdition`, `EnterpriseEditionDeveloper`, `EnterpriseEditionExtreme`, `EnterpriseEditionHighPerformance` and `StandardEdition`. Changing this forces a new Database System to be created.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `shape` - (Required) The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory. The only possible value is `VM.Standard.x86`. Changing this forces a new Database system to be created.
 
-* `source` - (Required) The source of the database: Use NONE for creating a new database. The default is `None`. Changing this forces a new Database System to be created.
+* `source` - (Required) The source of the database: Use NONE for creating a new database. Possible value is  `None`. Changing this forces a new Database System to be created.
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Database system. Changing this forces a new Database system to be created.
 
@@ -140,7 +140,7 @@ The following arguments are supported:
 
 A `database_system_options` block supports the following:
 
-* `storage_management` - (Optional) The storage option used in Database system. ASM - Automatic storage management, LVM - Logical Volume management.
+* `storage_management` - (Optional) The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
 
 ---
 

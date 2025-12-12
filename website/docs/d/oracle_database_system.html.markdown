@@ -92,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `source` - The source of the database for creating a new database.
 
-* `ssh_public_keys` - A `ssh_public_keys` block as defined below. The public key portion of one or more key pairs used for SSH access to the Database system.
+* `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Database system.
 
 * `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information.
 
@@ -106,14 +106,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `database_system_options` block supports the following:
 
-* `storage_management` - (Optional) The storage option used in Database system. ASM - Automatic storage management, LVM - Logical Volume management.
+* `storage_management` - (Optional) The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
 
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Oracle.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Oracle Database System.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
