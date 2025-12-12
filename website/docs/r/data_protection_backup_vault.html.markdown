@@ -79,7 +79,7 @@ An `encryption_settings` block supports the following:
 
 * `identity_id` - (Optional) Specifies the User Assigned Managed Identity ID which has access permissions to the Key Vault.
 
-* `infrastructure_encryption_enabled` - (Optional) Whether to enable (infrastructure encryption)[https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal].
+* `infrastructure_encryption_enabled` - (Optional) Whether to enable [infrastructure encryption](https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal).
 
 * `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to Encrypt the data in this Backup Vault.
 
