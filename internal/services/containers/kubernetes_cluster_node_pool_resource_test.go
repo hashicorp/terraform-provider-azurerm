@@ -2402,6 +2402,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   upgrade_settings {
     max_surge = "10%%"
   }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 }
 `, r.templateConfig(data))
 }
@@ -2425,6 +2431,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   upgrade_settings {
     max_unavailable = "1"
   }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 }
 `, r.templateConfig(data))
 }
@@ -2470,6 +2482,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     node_soak_duration_in_minutes = 5
     undrainable_node_behavior     = "Schedule"
   }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 }
 `, r.templateConfig(data))
 }
