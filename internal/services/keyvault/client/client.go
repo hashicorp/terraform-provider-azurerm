@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	vaults20230701 "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults"
@@ -23,6 +24,11 @@ type Client struct {
 	VaultsClient *vaults.VaultsClient
 
 	ManagementClient *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
+
+	// This is the client used for the Data Plane operations, which is used by the keys, secrets and certificates
+	// resources. because the key vault resource creation will cache the dns and connection, so we need to
+	// create a new client for creating of the child resources.
+	DataPlaneClientAlt *dataplane.BaseClient
 
 	// NOTE: @tombuildsstuff: this client is intentionally internal-only so that it's not used directly
 	resources20151101Client *resources20151101.ResourcesClient
@@ -57,9 +63,30 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
+	newDataPlaneClient := func() *dataplane.BaseClient {
+		client := dataplane.New()
+		// override the default transport to not use the cached transport
+		underSender := client.Client.Sender.(*http.Client)
+		defaultTransport := underSender.Transport.(*http.Transport)
+		transport := &http.Transport{
+			Proxy:                 defaultTransport.Proxy,
+			DialContext:           defaultTransport.DialContext,
+			ForceAttemptHTTP2:     defaultTransport.ForceAttemptHTTP2,
+			MaxIdleConns:          defaultTransport.MaxIdleConns,
+			IdleConnTimeout:       defaultTransport.IdleConnTimeout,
+			TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
+			ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
+			TLSClientConfig:       defaultTransport.TLSClientConfig,
+		}
+		underSender.Transport = transport
+		o.ConfigureClient(&client.Client, o.KeyVaultAuthorizer)
+		return &client
+	}
+
 	return &Client{
-		ManagementClient: &managementClient,
-		VaultsClient:     &vaultsClient,
+		ManagementClient:   &managementClient,
+		VaultsClient:       &vaultsClient,
+		DataPlaneClientAlt: newDataPlaneClient(),
 
 		// intentionally internal to this package for now, see above.
 		resources20151101Client: resources20151101Client,
