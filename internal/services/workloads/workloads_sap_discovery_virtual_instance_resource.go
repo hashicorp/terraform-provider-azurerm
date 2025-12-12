@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkloadsSAPDiscoveryVirtualInstanceModel struct {
@@ -169,7 +168,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 
 			if v := model.ManagedResourceGroupName; v != "" {
 				parameters.Properties.ManagedResourceGroupConfiguration = &sapvirtualinstances.ManagedRGConfiguration{
-					Name: utils.String(v),
+					Name: pointer.To(v),
 				}
 			}
 

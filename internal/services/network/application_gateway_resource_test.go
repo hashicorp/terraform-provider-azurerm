@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -362,7 +362,7 @@ func TestAccApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.routingRedirect_httpListenerError(data),
-			ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
+			ExpectError: regexp.MustCompile("conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 		},
 	})
 }
@@ -3761,10 +3761,6 @@ resource "azurerm_application_gateway" "test" {
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
   }
 
   backend_http_settings {

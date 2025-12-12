@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
@@ -19,7 +20,6 @@ import (
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNestedEndpoint() *pluginsdk.Resource {
@@ -198,37 +198,37 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	params := endpoints.Endpoint{
-		Name: utils.String(id.EndpointName),
-		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeNestedEndpoints)),
+		Name: pointer.To(id.EndpointName),
+		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeNestedEndpoints)),
 		Properties: &endpoints.EndpointProperties{
 			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus:    &status,
-			MinChildEndpoints: utils.Int64(int64(d.Get("minimum_child_endpoints").(int))),
-			TargetResourceId:  utils.String(d.Get("target_resource_id").(string)),
+			MinChildEndpoints: pointer.To(int64(d.Get("minimum_child_endpoints").(int))),
+			TargetResourceId:  pointer.To(d.Get("target_resource_id").(string)),
 			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {
-		params.Properties.Weight = utils.Int64(int64(weight))
+		params.Properties.Weight = pointer.To(int64(weight))
 	}
 
 	minChildEndpointsIPv4 := d.Get("minimum_required_child_endpoints_ipv4").(int)
 	if minChildEndpointsIPv4 > 0 {
-		params.Properties.MinChildEndpointsIPv4 = utils.Int64(int64(minChildEndpointsIPv4))
+		params.Properties.MinChildEndpointsIPv4 = pointer.To(int64(minChildEndpointsIPv4))
 	}
 
 	minChildEndpointsIPv6 := d.Get("minimum_required_child_endpoints_ipv6").(int)
 	if minChildEndpointsIPv6 > 0 {
-		params.Properties.MinChildEndpointsIPv6 = utils.Int64(int64(minChildEndpointsIPv6))
+		params.Properties.MinChildEndpointsIPv6 = pointer.To(int64(minChildEndpointsIPv6))
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
-		params.Properties.Priority = utils.Int64(int64(priority))
+		params.Properties.Priority = pointer.To(int64(priority))
 	}
 
 	if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {
-		params.Properties.EndpointLocation = utils.String(endpointLocation)
+		params.Properties.EndpointLocation = pointer.To(endpointLocation)
 	}
 
 	inputMappings := d.Get("geo_mappings").([]interface{})

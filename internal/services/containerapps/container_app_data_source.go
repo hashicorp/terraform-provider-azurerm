@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -178,7 +178,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 							containerApp.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
-							containerApp.MaxInactiveRevisions = pointer.ToInt64(config.MaxInactiveRevisions)
+							containerApp.MaxInactiveRevisions = pointer.From(config.MaxInactiveRevisions)
 						}
 					}
 					containerApp.LatestRevisionName = pointer.From(props.LatestRevisionName)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -248,7 +248,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
 			BgpSettings:                     bgpSettings,
 			VirtualHub: &virtualwans.SubResource{
-				Id: utils.String(d.Get("virtual_hub_id").(string)),
+				Id: pointer.To(d.Get("virtual_hub_id").(string)),
 			},
 			VpnGatewayScaleUnit:         pointer.To(int64(d.Get("scale_unit").(int))),
 			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference").(string) == "Internet"),
@@ -329,7 +329,7 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 	if d.HasChange("bgp_route_translation_for_nat_enabled") {
-		model.Properties.EnableBgpRouteTranslationForNat = utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool))
+		model.Properties.EnableBgpRouteTranslationForNat = pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool))
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
