@@ -2346,5 +2346,5 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }

@@ -111,7 +111,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // IoT Hub Device Update is only available in certain locations
-        "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
+        "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "brazilSouth", "westus2", false)),
 
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
