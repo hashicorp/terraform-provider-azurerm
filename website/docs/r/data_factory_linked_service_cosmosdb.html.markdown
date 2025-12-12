@@ -65,6 +65,8 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `account_key` - (Optional) The account key of the Azure Cosmos DB account. Required if `connection_string` is unspecified.
 
+* `credential_name` - (Optional) The name of the Data Factory credential to use for authentication. Cannot be specified if `account_key` or `account_endpoint` are provided.
+
 * `database` - (Optional) The name of the database. Required if `connection_string` is unspecified.
 
 * `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
