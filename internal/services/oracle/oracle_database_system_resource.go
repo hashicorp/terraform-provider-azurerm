@@ -146,9 +146,9 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
@@ -231,9 +231,9 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C Customer can choose specific timezone if not OCI will assign to database systems.
 			Computed: true,
 			ForceNew: true,
-			Default:  time.UTC,
 		},
 	}
 }
