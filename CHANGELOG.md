@@ -6,6 +6,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* Resource: `azurerm_linux_function_app` - fix panic when deployed without all required permissions [GH-31344]
 
 ## 4.56.0 (December 11, 2025)
 
