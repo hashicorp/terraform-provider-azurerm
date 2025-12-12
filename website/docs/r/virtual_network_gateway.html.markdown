@@ -170,6 +170,8 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
 
+~> **Note:** `public_ip_address_id` should not be specified when `type` is set to `ExpressRoute`.
+
 ---
 
 The `policy_group` block supports:
