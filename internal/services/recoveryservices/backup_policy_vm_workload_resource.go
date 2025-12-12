@@ -40,6 +40,7 @@ type ProtectionPolicy struct {
 	RetentionMonthly []RetentionMonthly `tfschema:"retention_monthly"`
 	RetentionYearly  []RetentionYearly  `tfschema:"retention_yearly"`
 	SimpleRetention  []SimpleRetention  `tfschema:"simple_retention"`
+	TieringPolicy    []TieringPolicy    `tfschema:"tiering_policy"`
 }
 
 type Backup struct {
@@ -77,6 +78,16 @@ type RetentionYearly struct {
 
 type SimpleRetention struct {
 	Count int64 `tfschema:"count"`
+}
+
+type TieringPolicy struct {
+	ArchivedRestorePoint []ArchivedRestorePoint `tfschema:"archived_restore_point"`
+}
+
+type ArchivedRestorePoint struct {
+	Mode         string `tfschema:"mode"`
+	Duration     int64  `tfschema:"duration"`
+	DurationType string `tfschema:"duration_type"`
 }
 
 type Settings struct {
@@ -373,6 +384,50 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 							},
 						},
 					},
+
+					"tiering_policy": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"archived_restore_point": {
+									Type:     pluginsdk.TypeList,
+									MaxItems: 1,
+									Required: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"mode": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(protectionpolicies.TieringModeTierAfter),
+													string(protectionpolicies.TieringModeTierRecommended),
+												}, false),
+											},
+
+											"duration": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntAtLeast(45),
+											},
+
+											"duration_type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(protectionpolicies.RetentionDurationTypeDays),
+													string(protectionpolicies.RetentionDurationTypeWeeks),
+													string(protectionpolicies.RetentionDurationTypeMonths),
+													string(protectionpolicies.RetentionDurationTypeYears),
+												}, false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -653,6 +708,7 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 		result := protectionpolicies.SubProtectionPolicy{
 			PolicyType:     pointer.To(protectionpolicies.PolicyType(item.PolicyType)),
 			SchedulePolicy: expandBackupProtectionPolicyVMWorkloadSchedulePolicy(item, times),
+			TieringPolicy:  expandBackupProtectionPolicyVMWorkloadTieringPolicy(item.TieringPolicy),
 		}
 
 		if v, err := expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times); err != nil {
@@ -690,6 +746,8 @@ func flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(input *[]protecti
 				result.SimpleRetention = flattenBackupProtectionPolicyVMWorkloadSimpleRetention(simpleRetentionPolicy.RetentionDuration)
 			}
 		}
+
+		result.TieringPolicy = flattenBackupProtectionPolicyVMWorkloadTieringPolicy(item.TieringPolicy)
 
 		results = append(results, result)
 	}
@@ -1050,6 +1108,34 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 	return &weekly
 }
 
+func expandBackupProtectionPolicyVMWorkloadTieringPolicy(input []TieringPolicy) *map[string]protectionpolicies.TieringPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make(map[string]protectionpolicies.TieringPolicy)
+
+	if len(input[0].ArchivedRestorePoint) > 0 {
+		arp := input[0].ArchivedRestorePoint[0]
+
+		tieringPolicy := protectionpolicies.TieringPolicy{
+			TieringMode: pointer.To(protectionpolicies.TieringMode(arp.Mode)),
+		}
+
+		if arp.Duration != 0 {
+			tieringPolicy.Duration = pointer.To(arp.Duration)
+		}
+
+		if arp.DurationType != "" {
+			tieringPolicy.DurationType = pointer.To(protectionpolicies.RetentionDurationType(arp.DurationType))
+		}
+
+		result["ArchivedRP"] = tieringPolicy
+	}
+
+	return &result
+}
+
 func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *protectionpolicies.WeeklyRetentionFormat) (weekdays, weeks []string) {
 	if v := input.DaysOfTheWeek; v != nil {
 		days := make([]string, 0)
@@ -1080,4 +1166,28 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *protecti
 	}
 
 	return result
+}
+
+func flattenBackupProtectionPolicyVMWorkloadTieringPolicy(input *map[string]protectionpolicies.TieringPolicy) []TieringPolicy {
+	if input == nil || len(*input) == 0 {
+		return []TieringPolicy{}
+	}
+
+	tieringPolicies := *input
+	archivedRP, ok := tieringPolicies["ArchivedRP"]
+	if !ok {
+		return []TieringPolicy{}
+	}
+
+	return []TieringPolicy{
+		{
+			ArchivedRestorePoint: []ArchivedRestorePoint{
+				{
+					Mode:         string(pointer.From(archivedRP.TieringMode)),
+					Duration:     pointer.From(archivedRP.Duration),
+					DurationType: string(pointer.From(archivedRP.DurationType)),
+				},
+			},
+		},
+	}
 }
