@@ -3,7 +3,10 @@
 
 package datafactory
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 	cases := []struct {
@@ -121,26 +124,38 @@ func TestNormalizeJSON(t *testing.T) {
 func TestExpandCompressionType(t *testing.T) {
 	cases := []struct {
 		input          string
-		expectedOutput string
+		isDynamic      bool
+		expectedOutput interface{}
 	}{
 		{
 			input:          "Gzip",
+			isDynamic:      false,
 			expectedOutput: "gzip",
 		},
 		{
 			input:          "gzip",
+			isDynamic:      false,
 			expectedOutput: "gzip",
 		},
 		{
 			input:          "TarGZip",
+			isDynamic:      false,
 			expectedOutput: "TarGZip",
+		},
+		{
+			input:     "@concat('Tar', 'GZip')",
+			isDynamic: true,
+			expectedOutput: map[string]string{
+				"type":  "Expression",
+				"value": "@concat('Tar', 'GZip')",
+			},
 		},
 	}
 
 	for _, tc := range cases {
-		output := expandCompressionType(tc.input)
+		output := expandCompressionType(tc.input, tc.isDynamic)
 
-		if output != tc.expectedOutput {
+		if !reflect.DeepEqual(output, tc.expectedOutput) {
 			t.Fatalf("Expected expandCompressionType to be '%s' for '%s' - got '%s'", tc.expectedOutput, tc.input, output)
 		}
 	}
