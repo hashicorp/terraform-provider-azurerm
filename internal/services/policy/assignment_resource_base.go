@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -31,7 +32,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id)
+			existing, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -49,6 +50,10 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 					Scope:              pointer.To(id.Scope),
 					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
 				},
+			}
+
+			if v := metadata.ResourceData.Get("definition_version").(string); v != "" {
+				assignment.Properties.DefinitionVersion = utils.String(v)
 			}
 
 			if v := metadata.ResourceData.Get("description").(string); v != "" {
@@ -158,15 +163,14 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 
 			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
-				return err
+			return err
+		}
+
+		resp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return metadata.MarkAsGone(id)
 			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 			if resp.Model == nil {
@@ -188,6 +192,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			}
 
 			if props := model.Properties; props != nil {
+				metadata.ResourceData.Set("definition_version", props.DefinitionVersion)
 				metadata.ResourceData.Set("description", props.Description)
 				metadata.ResourceData.Set("display_name", props.DisplayName)
 				var enforce bool
@@ -227,21 +232,20 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+		id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
 
-			getResp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
+		getResp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
 
-			existing := getResp.Model
-			if existing == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-			}
-
+		existing := getResp.Model
+		if existing == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+		}
 			update := policyassignments.PolicyAssignment{
 				Location:   existing.Location,
 				Properties: existing.Properties,
@@ -252,6 +256,9 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				update.Properties.Description = pointer.To(metadata.ResourceData.Get("description").(string))
+			}
+			if metadata.ResourceData.HasChange("definition_version") {
+				update.Properties.DefinitionVersion = utils.String(metadata.ResourceData.Get("definition_version").(string))
 			}
 			if metadata.ResourceData.HasChange("display_name") {
 				update.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
@@ -348,6 +355,16 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			ValidateFunc: validation.Any(
 				validate.PolicyDefinitionID,
 				validate.PolicySetDefinitionID,
+			),
+		},
+
+		"definition_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^\d+(\.\*|\.\d+)(\.\*|\.\d+)?$`),
+				"definitionVersion must follow the format: major.minor.patch where minor and patch can be wildcards (*). Examples: 1.*.*, 1.2.*, 1.2.3",
 			),
 		},
 
