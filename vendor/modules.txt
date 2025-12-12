@@ -140,7 +140,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.75.2-0.20251211101606-ef6a49bd94d6
+# github.com/hashicorp/go-azure-helpers v0.75.2-0.20251212081031-92cc09f4a4b5
 ## explicit; go 1.25.3
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
