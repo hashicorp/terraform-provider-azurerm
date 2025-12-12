@@ -1,6 +1,7 @@
 ## 4.57.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
 
 FEATURES:
 
