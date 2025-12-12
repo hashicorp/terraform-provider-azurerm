@@ -1,0 +1,39 @@
+name: Go Lint and Auto-Fix 🛠️
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint-fix:
+#    Conditional to limit to local repo only, not forks, while we test
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GOLANGCI_LINT_PUSH_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: .go-version
+
+      - name: Run golangci-lint with --fix
+        run: |
+          make tools
+          golangci-lint run --fix
+
+      - name: Commit and Push Changes (if any)
+        uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
+        with:
+          commit_message: "automatic fixes from golangci-lint action"
+          commit_author: 'GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>'
+          branch: ${{ github.event.pull_request.head.ref }}
