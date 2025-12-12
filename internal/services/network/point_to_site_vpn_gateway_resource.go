@@ -393,7 +393,7 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}, d *
 				VpnClientAddressPool: &virtualwans.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
 			},
 		})
 
