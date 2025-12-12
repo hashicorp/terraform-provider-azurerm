@@ -29,6 +29,12 @@ type SectionWithTemplate interface {
 	Template() string
 }
 
+type SectionWithNormalize interface {
+	Section
+	// Normalize applies formatting normalization to the section content
+	Normalize() ([]string, bool)
+}
+
 // InsertAfterSection inserts a provided section after a specified section and returns an updated Section slice.
 // if a matching section wasn't found, it returns an error
 func InsertAfterSection(newSection Section, sections []Section, after Section) ([]Section, error) {
