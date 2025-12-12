@@ -516,8 +516,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			versionOld, versionNew := diff.GetChange("version")
 			// version should be set since cluster only support pg17+
-			version, _ := strconv.ParseInt(versionNew.(string), 10, 32)
-			if version < 17 {
+			if version, err := strconv.ParseInt(versionNew.(string), 10, 32); err != nil {
+				return fmt.Errorf("parsing `version` %q: %v", versionNew.(string), err)
+			} else if version < 17 {
 				return errors.New("`cluster` is only supported for PostgreSQL major version 17 or above")
 			}
 
