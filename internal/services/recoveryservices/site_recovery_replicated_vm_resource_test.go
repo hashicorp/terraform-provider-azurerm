@@ -252,6 +252,28 @@ func TestAccSiteRecoveryReplicatedVm_targetVirtualMachineSize(t *testing.T) {
 	})
 }
 
+func TestAccSiteRecoveryReplicatedVm_addDisks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addDisks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) string {
 	tags := ""
 	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
@@ -395,7 +417,8 @@ resource "azurerm_virtual_machine" "test" {
 
   vm_size = "Standard_B1s"
 
-  delete_os_disk_on_termination = true
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "OpenLogic"
@@ -2525,6 +2548,80 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 `, r.vmSizeTemplate(data, "Standard_B2s"), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicatedVmResource) addDisks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "data-disk-%[2]d"
+  location             = azurerm_virtual_machine.test.location
+  resource_group_name  = azurerm_virtual_machine.test.resource_group_name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+
+# disks must be initialized and formatted to be replicated
+resource "azurerm_virtual_machine_extension" "disk_formatter" {
+  name                 = "diskformatter"
+  virtual_machine_id   = azurerm_virtual_machine.test.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.1"
+  protected_settings   = <<-PROTECTED_SETTINGS
+  {
+    "commandToExecute": "sudo parted /dev/sdc --script mklabel gpt mkpart xfspart xfs 0%% 100%% && sudo partprobe /dev/sdc && sudo mkfs.xfs /dev/sdc1 && sudo mkdir /datadrive && sudo mount /dev/sdc1 /datadrive || exit 1"
+  }
+  PROTECTED_SETTINGS
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.test]
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  managed_disk {
+    disk_id                    = azurerm_managed_disk.test.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_extension.disk_formatter
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
