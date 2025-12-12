@@ -249,6 +249,44 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementBackend_poolWithMultipleServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.poolWithMultipleServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_api_management_backend.test_pool").ExistsInAzure(r),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.#").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.#").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.weight").HasValue("50"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.priority").HasValue("2"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.weight").HasValue("30"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.priority").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.weight").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.poolWithMultipleServicesWithUpdatedPriorityAndWeight(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_api_management_backend.test_pool").ExistsInAzure(r),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.#").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.#").HasValue("3"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.0.weight").HasValue("10"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.priority").HasValue("1"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.1.weight").HasValue("20"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.priority").HasValue("0"),
+				check.That("azurerm_api_management_backend.test_pool").Key("pool.0.service.2.weight").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
@@ -292,6 +330,28 @@ resource "azurerm_api_management_backend" "test" {
   url                 = "https://acctest"
 }
 `, r.template(data, testName), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) tripleBasic(data acceptance.TestData, testName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test2" {
+  name                = "acctestbackend2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+
+resource "azurerm_api_management_backend" "test3" {
+  name                = "acctestbackend3-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+`, r.basic(data, testName), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleBasic(data acceptance.TestData) string {
@@ -461,7 +521,7 @@ resource "azurerm_api_management_backend" "test" {
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
 	// nolint: dupword
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_certificate" "test" {
@@ -634,4 +694,62 @@ resource "azurerm_api_management_backend" "test" {
   }
 }
 `, r.template(data, "all"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) poolWithMultipleServices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 50
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 2
+      weight   = 30
+    }
+    service {
+      id       = azurerm_api_management_backend.test3.id
+      priority = 3
+      weight   = 20
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) poolWithMultipleServicesWithUpdatedPriorityAndWeight(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 10
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 1
+      weight   = 20
+    }
+    service {
+      id = azurerm_api_management_backend.test3.id
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
 }
