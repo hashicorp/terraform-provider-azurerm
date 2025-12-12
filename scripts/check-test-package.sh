@@ -3,27 +3,21 @@
 # SPDX-License-Identifier: MPL-2.0
 
 
-files=$(find . | egrep "/internal/services/[a-z]+/[a-z_]+(resource|data_source)[a-z_]+\.go$" | egrep "test.go")
-error=false
-
 echo "==> Checking that acceptance test packages are used..."
 
-for f in $files; do
-  lines=$(head -n 5 "$f")
-  local_error=true
-  for line in $lines; do
-    if [ "$line" = "${line%%_test}" ]; then
-      local_error=false
-    fi
-  done
+invalid_files=$(find ./internal/services -maxdepth 2 -type f -regex '.*\(resource\|data_source\).*_test\.go$' -print0 | \
+  xargs -0 awk '
+    FNR > 5 {
+      nextfile  # Skip to next file after processing first 5 lines
+    }
+    $1 == "package" && $0 !~ /_test$/ {
+      print FILENAME
+      nextfile  # Skip to next file once we find an invalid package
+    }
+  ')
 
-  if [ "local_error" = true ]; then
-    echo "$f"
-    error=true
-  fi
-done
-
-if $error; then
+if [ -n "$invalid_files" ]; then
+  echo "$invalid_files"
   echo ""
   echo "------------------------------------------------"
   echo ""
