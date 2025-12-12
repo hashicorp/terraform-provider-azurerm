@@ -56,6 +56,21 @@ func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyFileShare_vaultStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vaultStandard(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBackupProtectionPolicyFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 	r := BackupProtectionPolicyFileShareResource{}
@@ -463,6 +478,36 @@ resource "azurerm_backup_policy_file_share" "test" {
   retention_daily {
     count = 10
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) vaultStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Hourly"
+
+    hourly {
+      interval        = 4
+      start_time      = "10:00"
+      window_duration = 12
+    }
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  snapshot_retention_in_days = 10
+
+  backup_tier = "vault-standard"
 }
 `, r.template(data), data.RandomInteger)
 }
