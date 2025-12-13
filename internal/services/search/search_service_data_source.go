@@ -91,6 +91,11 @@ func dataSourceSearchService() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"tags": commonschema.TagsDataSource(),
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -136,6 +141,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
+			d.Set("endpoint", pointer.From(props.Endpoint))
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
@@ -165,6 +171,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil && !response.WasStatusCode(adminKeysResp.HttpResponse, http.StatusForbidden) {
 		return fmt.Errorf("retrieving Admin Keys for %s: %+v", id, err)
 	}
+
 	if model := adminKeysResp.Model; model != nil {
 		primaryKey = pointer.From(model.PrimaryKey)
 		secondaryKey = pointer.From(model.SecondaryKey)
