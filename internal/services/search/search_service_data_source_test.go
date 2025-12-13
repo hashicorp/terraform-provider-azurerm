@@ -31,6 +31,7 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 			),
 		},
 	})
