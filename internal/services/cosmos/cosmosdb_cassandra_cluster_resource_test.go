@@ -58,7 +58,7 @@ func testAccCassandraCluster_complete(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "3.11"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -73,14 +73,59 @@ func testAccCassandraCluster_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "3.11"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("default_admin_password"),
 		{
-			Config: r.update(data),
+			Config: r.update(data, "4.0"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+	})
+}
+
+func testAccCassandraCluster_versionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
+	r := CassandraClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "3.11"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+		{
+			Config: r.update(data, "5.0"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+	})
+}
+
+func testAccCassandraCluster_invalidVersionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
+	r := CassandraClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "4.0"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+		{
+			Config:      r.update(data, "3.11"),
+			ExpectError: acceptance.RequiresImportError("azurerm_cosmosdb_cassandra_cluster"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,7 +164,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CassandraClusterResource) complete(data acceptance.TestData) string {
+func (r CassandraClusterResource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,7 +175,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
   authentication_method          = "Cassandra"
-  version                        = "3.11"
+  version                        = "%s"
   repair_enabled                 = true
 
   client_certificate_pems          = [file("testdata/cert.pem")]
@@ -148,10 +193,10 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, version)
 }
 
-func (r CassandraClusterResource) update(data acceptance.TestData) string {
+func (r CassandraClusterResource) update(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,7 +207,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
   authentication_method          = "None"
-  version                        = "3.11"
+  version                        = "%s"
   repair_enabled                 = false
 
   client_certificate_pems          = [file("testdata/cert2.pem")]
@@ -176,7 +221,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, version)
 }
 
 func (r CassandraClusterResource) requiresImport(data acceptance.TestData) string {

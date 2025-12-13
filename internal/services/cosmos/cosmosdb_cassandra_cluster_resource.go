@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -25,6 +26,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+var supportedVersions = []string{
+	"3.11",
+	"4.0",
+	"4.1",
+	"5.0",
+}
 
 func resourceCassandraCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -124,14 +132,11 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "3.11",
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"3.11",
-					"4.0",
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "3.11",
+				ForceNew:     false,
+				ValidateFunc: validation.StringInSlice(supportedVersions, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -279,6 +284,16 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	if d.HasChange("version") {
+		oldVersion, newVersion := d.GetChange("version")
+		oldPos := sort.SearchStrings(supportedVersions, oldVersion.(string))
+		newPos := sort.SearchStrings(supportedVersions, newVersion.(string))
+
+		if oldPos+1 != newPos {
+			return fmt.Errorf("invalid version upgrade from %s to %s: only sequential version upgrades are supported (e.g., 3.11 -> 4.0)", oldVersion, newVersion)
+		}
 	}
 
 	authenticationMethod := managedcassandras.AuthenticationMethod(d.Get("authentication_method").(string))
