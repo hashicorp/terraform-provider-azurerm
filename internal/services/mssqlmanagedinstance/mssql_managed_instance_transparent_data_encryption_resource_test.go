@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance_test
@@ -6,8 +6,10 @@ package mssqlmanagedinstance_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceTransparentDataEncryptionResource struct{}
@@ -83,6 +84,10 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_systemManaged(t *testi
 }
 
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
 
@@ -137,7 +142,7 @@ func (MsSqlManagedInstanceTransparentDataEncryptionResource) Exists(ctx context.
 		return nil, fmt.Errorf("reading Encryption Protector for managed instance %q (Resource Group %q): %v", id.ManagedInstanceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MsSqlManagedInstanceTransparentDataEncryptionResource) keyVaultSystemAssignedIdentity(data acceptance.TestData) string {

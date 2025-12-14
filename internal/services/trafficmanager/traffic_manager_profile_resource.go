@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
@@ -220,27 +220,24 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	// No existing profile - start from a new struct.
 	profile := profiles.Profile{
-		Name:     utils.String(id.TrafficManagerProfileName),
-		Location: utils.String("global"), // must be provided in request
+		Name:     pointer.To(id.TrafficManagerProfileName),
+		Location: pointer.To("global"), // must be provided in request
 		Properties: &profiles.ProfileProperties{
-			TrafficRoutingMethod: &trafficRoutingMethod,
-			DnsConfig:            expandArmTrafficManagerDNSConfig(d),
-			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+			TrafficRoutingMethod:        &trafficRoutingMethod,
+			TrafficViewEnrollmentStatus: expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool)),
+			DnsConfig:                   expandArmTrafficManagerDNSConfig(d),
+			MonitorConfig:               expandArmTrafficManagerMonitorConfig(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
-		profile.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		profile.Properties.MaxReturn = pointer.To(int64(maxReturn.(int)))
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
 		profileStatus := profiles.ProfileStatus(status.(string))
 		profile.Properties.ProfileStatus = &profileStatus
-	}
-
-	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-		profile.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -345,7 +342,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("max_return") {
 		if maxReturn, ok := d.GetOk("max_return"); ok {
-			update.Properties.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+			update.Properties.MaxReturn = pointer.To(int64(maxReturn.(int)))
 		}
 	}
 
@@ -358,9 +355,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("traffic_view_enabled") {
-		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-			update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
-		}
+		update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool))
 	}
 
 	if _, err := client.Update(ctx, *id, update); err != nil {
@@ -400,11 +395,11 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	cfg := profiles.MonitorConfig{
 		Protocol:                  &protocol,
 		CustomHeaders:             customHeaders,
-		Port:                      utils.Int64(int64(monitor["port"].(int))),
-		Path:                      utils.String(monitor["path"].(string)),
-		IntervalInSeconds:         utils.Int64(int64(monitor["interval_in_seconds"].(int))),
-		TimeoutInSeconds:          utils.Int64(int64(monitor["timeout_in_seconds"].(int))),
-		ToleratedNumberOfFailures: utils.Int64(int64(monitor["tolerated_number_of_failures"].(int))),
+		Port:                      pointer.To(int64(monitor["port"].(int))),
+		Path:                      pointer.To(monitor["path"].(string)),
+		IntervalInSeconds:         pointer.To(int64(monitor["interval_in_seconds"].(int))),
+		TimeoutInSeconds:          pointer.To(int64(monitor["timeout_in_seconds"].(int))),
+		ToleratedNumberOfFailures: pointer.To(int64(monitor["tolerated_number_of_failures"].(int))),
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
@@ -414,8 +409,8 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
 			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
-				Min: utils.Int64(int64(min)),
-				Max: utils.Int64(int64(max)),
+				Min: pointer.To(int64(min)),
+				Max: pointer.To(int64(max)),
 			})
 		}
 		cfg.ExpectedStatusCodeRanges = &ranges
@@ -434,8 +429,8 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	for i, v := range d {
 		ch := v.(map[string]interface{})
 		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
-			Name:  utils.String(ch["name"].(string)),
-			Value: utils.String(ch["value"].(string)),
+			Name:  pointer.To(ch["name"].(string)),
+			Value: pointer.To(ch["value"].(string)),
 		}
 	}
 

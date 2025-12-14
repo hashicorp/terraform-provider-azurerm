@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -56,6 +56,7 @@ import (
 	apiversionset_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
 	apiversionsets_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	certificate_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
 	policyfragment_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
@@ -82,6 +83,7 @@ type Client struct {
 	BackendClient                      *backend.BackendClient
 	CacheClient                        *cache.CacheClient
 	CertificatesClient                 *certificate.CertificateClient
+	CertificateClient_v2024_05_01      *certificate_v2024_05_01.CertificateClient
 	DelegationSettingsClient           *delegationsettings.DelegationSettingsClient
 	DeletedServicesClient              *deletedservice.DeletedServiceClient
 	DiagnosticClient                   *diagnostic.DiagnosticClient
@@ -232,6 +234,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building certificates client: %+v", err)
 	}
 	o.Configure(certificatesClient.Client, o.Authorizers.ResourceManager)
+
+	certificateClient_v2024_05_01, err := certificate_v2024_05_01.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building certificate client: %+v", err)
+	}
+	o.Configure(certificateClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
 
 	diagnosticClient, err := diagnostic.NewDiagnosticClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -457,6 +465,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackendClient:                      backendClient,
 		CacheClient:                        cacheClient,
 		CertificatesClient:                 certificatesClient,
+		CertificateClient_v2024_05_01:      certificateClient_v2024_05_01,
 		DelegationSettingsClient:           delegationSettingsClient,
 		DeletedServicesClient:              deletedServicesClient,
 		DiagnosticClient:                   diagnosticClient,

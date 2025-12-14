@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
@@ -63,6 +63,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
+			}),
+			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
 			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1648,6 +1651,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"node_provisioning_profile": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      managedclusters.NodeProvisioningModeManual,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+						"default_node_pools": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      managedclusters.NodeProvisioningDefaultNodePoolsAuto,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+					},
+				},
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1661,6 +1688,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["node_provisioning_profile"].Required = false
+		// NOTE: O+C The API returns default values here even if not set in the request
+		resource.Schema["node_provisioning_profile"].Optional = true
+		resource.Schema["node_provisioning_profile"].Computed = true
+
 		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
@@ -1715,7 +1747,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
@@ -1771,6 +1803,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
 	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
+
+	nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+	nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
@@ -1874,6 +1909,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AadProfile:                azureADProfile,
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
+			NodeProvisioningProfile:   nodeProvisioningProfile,
 			AutoScalerProfile:         autoScalerProfile,
 			AutoUpgradeProfile:        autoUpgradeProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
@@ -2097,8 +2133,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		azureADProfile := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw)
 
 		props.AadProfile = azureADProfile
-		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
+		if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
+			props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
 			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
 				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
@@ -2452,6 +2489,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
 			Enabled: pointer.To(d.Get("ai_toolchain_operator_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("node_provisioning_profile") {
+		updateCluster = true
+		nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+		nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+		existing.Model.Properties.NodeProvisioningProfile = nodeProvisioningProfile
 	}
 
 	if d.HasChanges("workload_identity_enabled") {
@@ -2975,6 +3019,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
+			nodeProvisioningProfile := flattenKubernetesClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
+			}
+
 			aiToolchainOperatorEnabled := false
 			if props.AiToolchainOperatorProfile != nil {
 				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
@@ -3379,6 +3428,23 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pl
 	return &workloadAutoscalerProfile
 }
 
+func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *managedclusters.ManagedClusterNodeProvisioningProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	config := input[0].(map[string]interface{})
+	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
+	if v := config["mode"].(string); v != "" {
+		mv := managedclusters.NodeProvisioningMode(v)
+		profile.Mode = &mv
+	}
+	if v := config["default_node_pools"].(string); v != "" {
+		dv := managedclusters.NodeProvisioningDefaultNodePools(v)
+		profile.DefaultNodePools = &dv
+	}
+	return profile
+}
+
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -3452,6 +3518,16 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 			"vertical_pod_autoscaler_enabled": vpaEnabled,
 		},
 	}
+}
+
+func flattenKubernetesClusterNodeProvisioningProfile(profile *managedclusters.ManagedClusterNodeProvisioningProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+	return []interface{}{map[string]interface{}{
+		"mode":               pointer.From(profile.Mode),
+		"default_node_pools": pointer.From(profile.DefaultNodePools),
+	}}
 }
 
 func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
@@ -3904,7 +3980,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) *managedclusters.ManagedClusterAADProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

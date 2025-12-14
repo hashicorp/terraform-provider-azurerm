@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
+* `high_availability` - A `high_availability` block for this PostgreSQL Flexible Server as defined below.
+
 * `public_network_access_enabled` - Is public network access enabled?
 
 * `sku_name` - The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
@@ -57,7 +59,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `version` - The version of PostgreSQL Flexible Server to use.
 
+* `zone` - The Availability Zones where this PostgreSQL Flexible Server is located.
+
 * `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
+
+---
+
+A `high_availability` block exports the following:
+
+* `mode` - The high availability mode of the PostgreSQL Flexible Server.
+
+* `standby_availability_zone` - The availability zone of the standby Flexible Server.
 
 ## Timeouts
 
@@ -69,4 +81,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL` - 2024-08-01
+* `Microsoft.DBforPostgreSQL` - 2025-08-01

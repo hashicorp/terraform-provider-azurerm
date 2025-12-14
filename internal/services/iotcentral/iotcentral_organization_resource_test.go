@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTCentralOrganizationResource struct{}
@@ -103,7 +103,7 @@ func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil || *resp.ID == ""), nil
+	return pointer.To(resp.ID != nil || *resp.ID == ""), nil
 }
 
 func (r IoTCentralOrganizationResource) basic(data acceptance.TestData) string {
