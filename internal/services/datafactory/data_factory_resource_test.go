@@ -282,6 +282,19 @@ func TestAccDataFactory_keyVaultKeyEncryptionMissingKeyIdentity(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_keyVaultKeyEncryptionKeyIdentityKnownAfterApply(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.keyVaultKeyEncryptionKeyIdentityKnownAfterApply(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func TestAccDataFactory_globalParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}
@@ -1005,6 +1018,34 @@ resource "azurerm_data_factory" "test" {
   customer_managed_key_id = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
 }
 	`
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionKeyIdentityKnownAfterApply(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF"
+  location            = "eastus"
+  resource_group_name = "acctestRG"
+
+  customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
+}
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (DataFactoryResource) globalParameter(data acceptance.TestData) string {

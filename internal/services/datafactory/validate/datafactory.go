@@ -50,10 +50,15 @@ func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
 }
 
 func CMKIdentityIdRequiredAtCreation(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
-	if d.Id() == "" &&
-		d.Get("customer_managed_key_id").(string) != "" &&
-		d.Get("customer_managed_key_identity_id").(string) == "" {
-		return fmt.Errorf("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
+	if d.Id() == "" {
+		rawConfig := d.GetRawConfig().AsValueMap()
+
+		rawCMK := rawConfig["customer_managed_key_id"]
+		rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+
+		if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+			return fmt.Errorf("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
+		}
 	}
 	return nil
 }
