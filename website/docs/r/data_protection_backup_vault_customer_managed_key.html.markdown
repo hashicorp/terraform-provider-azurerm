@@ -8,9 +8,9 @@ description: |-
 
 # azurerm_data_protection_backup_vault_customer_managed_key
 
-Manages a Backup Vault Customer Managed Key.
+Manages a Backup Vault Customer Managed Key with system-assigned managed identity.
 
-!> **Note:** It is not possible to remove the Customer Managed Key from the Backup Vault once it's been added. To remove the Customer Managed Key, the parent Data Protection Backup Vault must be deleted and recreated.
+!> **Note:** It is not possible to remove the Customer Managed Key from the Backup Vault once it's been added. To remove the Customer Managed Key, the parent Data Protection Backup Vault must be deleted and recreated. This resource cannot be used on `azurerm_data_protection_backup_vault` with `infrastructure_encryption_settings` block.
 
 ## Example Usage
 

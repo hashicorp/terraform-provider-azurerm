@@ -109,34 +109,27 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
-			"encryption_settings": {
+			"infrastructure_encryption_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+							ForceNew: true,
+						},
+
 						"identity_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 
-						"infrastructure_encryption_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							ForceNew: true,
-							RequiredWith: []string{
-								"encryption_settings.0.identity_id",
-								"encryption_settings.0.key_vault_key_id",
-							},
-						},
-
 						"key_vault_key_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							RequiredWith: []string{
-								"encryption_settings.0.identity_id",
-							},
+							Type:         pluginsdk.TypeString,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 					},
@@ -242,7 +235,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
 
-	if v, ok := d.GetOk("encryption_settings"); ok {
+	if v, ok := d.GetOk("infrastructure_encryption_settings"); ok {
 		encryptionSettings, err := expandBackupVaultEncryptionSettings(v.([]interface{}))
 
 		if err != nil {
@@ -303,8 +296,12 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
-			if securitySetting.EncryptionSettings != nil {
-				d.Set("encryption_settings", *flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings))
+
+			_, infrastructureEncryptionSettings := d.GetChange("infrastructure_encryption_settings")
+
+			// Only read EncryptionSettings when infrastructure_encryption_settings is specified in Terraform configuration. This avoid conflict when azurerm_data_protection_backup_vault_customer_managed_key resource is used. The drawback is that `terraform import` does not work on infrastructure_encryption_settings
+			if securitySetting.EncryptionSettings != nil && len(infrastructureEncryptionSettings.([]interface{})) > 0 {
+				d.Set("infrastructure_encryption_settings", *flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings))
 			}
 		}
 		d.Set("immutability", string(immutability))
@@ -401,31 +398,27 @@ func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaults.Enc
 
 	v := input[0].(map[string]interface{})
 	output := &backupvaults.EncryptionSettings{
-		KekIdentity: &backupvaults.CmkKekIdentity{},
+		KekIdentity: &backupvaults.CmkKekIdentity{
+			IdentityId:   pointer.To(v["identity_id"].(string)),
+			IdentityType: pointer.To(backupvaults.IdentityTypeUserAssigned),
+		},
+		State: pointer.To(backupvaults.EncryptionStateEnabled),
 	}
 
-	if v["identity_id"].(string) != "" {
-		output.KekIdentity.IdentityId = pointer.To(v["identity_id"].(string))
-		output.KekIdentity.IdentityType = pointer.To(backupvaults.IdentityTypeUserAssigned)
-		output.State = pointer.To(backupvaults.EncryptionStateEnabled)
+	if v["encryption_enabled"].(bool) {
+		output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateEnabled)
+	} else {
+		output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateDisabled)
+	}
 
-		if v["infrastructure_encryption_enabled"].(bool) {
-			output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateEnabled)
-		} else {
-			output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateDisabled)
-		}
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
 
-		if v["key_vault_key_id"].(string) != "" {
-			keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	if err != nil {
+		return nil, err
+	}
 
-			if err != nil {
-				return nil, err
-			}
-
-			output.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
-				KeyUri: pointer.To(keyId.ID()),
-			}
-		}
+	output.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
+		KeyUri: pointer.To(keyId.ID()),
 	}
 
 	return output, nil
@@ -435,7 +428,7 @@ func flattenBackupVaultEncryptionSettings(input *backupvaults.EncryptionSettings
 	output := make(map[string]interface{})
 
 	if input.InfrastructureEncryption != nil {
-		output["infrastructure_encryption_enabled"] = pointer.From(input.InfrastructureEncryption) == backupvaults.InfrastructureEncryptionStateEnabled
+		output["encryption_enabled"] = pointer.From(input.InfrastructureEncryption) == backupvaults.InfrastructureEncryptionStateEnabled
 	}
 
 	if input.KekIdentity != nil && input.KekIdentity.IdentityId != nil {
