@@ -60,6 +60,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
+This data source uses the following Azure API Providers:
 
 * `Microsoft.Authorization` - 2025-01-01
