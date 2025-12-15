@@ -244,10 +244,6 @@ func (r CloudHardwareSecurityModuleClusterResource) Read() sdk.ResourceFunc {
 						}
 						model.HSM = hsms
 					}
-
-					// if props.PrivateEndpointConnections != nil {
-					// 	model.PrivateEndpointConnections = flattenPrivateEndpointConnections(props.PrivateEndpointConnections)
-					// }
 				}
 			}
 
