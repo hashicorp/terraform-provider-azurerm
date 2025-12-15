@@ -107,7 +107,7 @@ func TestAccManagementGroupPolicyDefinition_removeParameter(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withAdditionalParameter(data),
+			Config: r.additionalParameter(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -285,7 +285,7 @@ POLICY_RULE
 `, data.RandomInteger)
 }
 
-func (r ManagementGroupPolicyDefinitionResourceTest) withAdditionalParameter(data acceptance.TestData) string {
+func (r ManagementGroupPolicyDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -302,39 +302,88 @@ resource "azurerm_management_group_policy_definition" "test" {
   display_name        = "acctestpol-%[1]d"
   management_group_id = azurerm_management_group.test.id
 
-  parameters = <<PARAMETERS
-    {
-      "allowedLocations": {
-        "type": "Array",
-        "metadata": {
-          "description": "The list of allowed locations for resources.",
-          "displayName": "Allowed locations",
-          "strongType": "location"
-        }
-      },
-      "additionalParameter": {
-        "type": "String",
-        "metadata": {
-          "description": "An additional parameter",
-          "displayName": "Additional Parameter"
-        }
-      }
-    }
-PARAMETERS
-
   policy_rule = <<POLICY_RULE
-    {
-      "if": {
-        "not": {
+	{
+    "if": {
+      "allOf": [
+        {
+          "not": {
+            "field": "location",
+            "in": "[parameters('allowedLocations')]"
+          }
+        },
+        {
           "field": "location",
-          "in": "[parameters('allowedLocations')]"
+          "like": "[parameters('testObject').location]"
         }
-      },
-      "then": {
-        "effect": "Deny"
+      ]
+    },
+    "then": {
+       "effect": "AuditIfNotExists",
+        "details": {
+          "type": "Microsoft.Insights/diagnosticSettings",
+          "existenceCondition": {
+            "allOf": [
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.enabled",
+              "equals": "true"
+            },
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.days",
+              "equals": "[parameters('requiredRetentionDays')]"
+            }
+          ]
+        }
       }
     }
+  }
 POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    },
+    "requiredRetentionDays": {
+        "type": "Integer",
+        "defaultValue": 365,
+        "allowedValues": [
+          0,
+          30,
+          90,
+          180,
+          365
+        ],
+        "metadata": {
+          "displayName": "Required retention (days)",
+          "description": "The required diagnostic logs retention in days"
+      }
+    },
+    "testObject": {
+      "type": "Object",
+      "metadata": {
+        "description": "test",
+        "displayName": "test"
+      },
+      "schema": {
+        "description": "test",
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "test",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+PARAMETERS
 }
 `, data.RandomInteger)
 }

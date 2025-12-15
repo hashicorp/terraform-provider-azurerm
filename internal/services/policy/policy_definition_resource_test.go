@@ -500,10 +500,18 @@ resource "azurerm_policy_definition" "test" {
   policy_rule = <<POLICY_RULE
 	{
     "if": {
-      "not": {
-        "field": "location",
-        "in": "[parameters('allowedLocations')]"
-      }
+      "allOf": [
+        {
+          "not": {
+            "field": "location",
+            "in": "[parameters('allowedLocations')]"
+          }
+        },
+        {
+          "field": "location",
+          "like": "[parameters('testObject').location]"
+        }
+      ]
     },
     "then": {
        "effect": "AuditIfNotExists",
@@ -549,6 +557,24 @@ POLICY_RULE
         "metadata": {
           "displayName": "Required retention (days)",
           "description": "The required diagnostic logs retention in days"
+      }
+    },
+    "testObject": {
+      "type": "Object",
+      "metadata": {
+        "description": "test",
+        "displayName": "test"
+      },
+      "schema": {
+        "description": "test",
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "test",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       }
     }
   }
