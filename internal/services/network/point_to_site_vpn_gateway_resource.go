@@ -154,8 +154,9 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							// NOTE: O+C Previous default value specified here does not match Azure default now. Instead of fixing default here which causes breaking change, O+C is used
+							Computed: true,
 							ForceNew: true,
-							Default:  false,
 						},
 					},
 				},
