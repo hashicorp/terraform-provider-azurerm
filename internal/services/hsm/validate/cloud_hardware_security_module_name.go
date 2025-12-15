@@ -6,6 +6,7 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func ValidateCloudHsmClusterName(i interface{}, k string) (warnings []string, errors []error) {
@@ -24,7 +25,7 @@ func ValidateCloudHsmClusterName(i interface{}, k string) (warnings []string, er
 	}
 
 	// No consecutive hyphens
-	if regexp.MustCompile("(--)").MatchString(v) {
+	if strings.Contains(v, "--") {
 		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
 	}
 

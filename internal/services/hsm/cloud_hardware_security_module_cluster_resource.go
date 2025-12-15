@@ -33,35 +33,15 @@ type CloudHardwareSecurityModuleClusterModel struct {
 	Tags                              map[string]string            `tfschema:"tags"`
 
 	// Computed
-	ActivationState            string                           `tfschema:"activation_state"`
-	Hsms                       []CloudHsmPropertiesModel        `tfschema:"hsms"`
-	PrivateEndpointConnections []PrivateEndpointConnectionModel `tfschema:"private_endpoint_connections"`
-	StatusMessage              string                           `tfschema:"status_message"`
+	ActivationState string                    `tfschema:"activation_state"`
+	Hsms            []CloudHsmPropertiesModel `tfschema:"hsms"`
+	StatusMessage   string                    `tfschema:"status_message"`
 }
 
 type CloudHsmPropertiesModel struct {
 	Fqdn         string `tfschema:"fqdn"`
 	State        string `tfschema:"state"`
 	StateMessage string `tfschema:"state_message"`
-}
-
-type PrivateEndpointConnectionModel struct {
-	Id                                string                                   `tfschema:"id"`
-	Name                              string                                   `tfschema:"name"`
-	Type                              string                                   `tfschema:"type"`
-	GroupIds                          []string                                 `tfschema:"group_ids"`
-	PrivateEndpoint                   []PrivateEndpointModel                   `tfschema:"private_endpoint"`
-	PrivateLinkServiceConnectionState []PrivateLinkServiceConnectionStateModel `tfschema:"private_link_service_connection_state"`
-}
-
-type PrivateEndpointModel struct {
-	Id string `tfschema:"id"`
-}
-
-type PrivateLinkServiceConnectionStateModel struct {
-	Status          string `tfschema:"status"`
-	Description     string `tfschema:"description"`
-	ActionsRequired string `tfschema:"actions_required"`
 }
 
 var _ sdk.ResourceWithUpdate = CloudHardwareSecurityModuleClusterResource{}
@@ -131,66 +111,6 @@ func (r CloudHardwareSecurityModuleClusterResource) Attributes() map[string]*plu
 					"state_message": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
-					},
-				},
-			},
-		},
-
-		"private_endpoint_connections": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"group_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-					"private_endpoint": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"private_link_service_connection_state": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"description": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"actions_required": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
 					},
 				},
 			},
@@ -325,9 +245,9 @@ func (r CloudHardwareSecurityModuleClusterResource) Read() sdk.ResourceFunc {
 						model.Hsms = hsms
 					}
 
-					if props.PrivateEndpointConnections != nil {
-						model.PrivateEndpointConnections = flattenPrivateEndpointConnections(props.PrivateEndpointConnections)
-					}
+					// if props.PrivateEndpointConnections != nil {
+					// 	model.PrivateEndpointConnections = flattenPrivateEndpointConnections(props.PrivateEndpointConnections)
+					// }
 				}
 			}
 
@@ -395,7 +315,6 @@ func (r CloudHardwareSecurityModuleClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			// Use custom poller to wait for provisioning to complete
-			// https://github.com/Azure/azure-rest-api-specs/issues/36393
 			poller := custompollers.NewCloudHsmClusterStatePoller(client, *id)
 			pollerType := pollers.NewPoller(poller, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := pollerType.PollUntilDone(ctx); err != nil {
@@ -443,41 +362,4 @@ func (r CloudHardwareSecurityModuleClusterResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func flattenPrivateEndpointConnections(connections *[]cloudhsmclusters.PrivateEndpointConnection) []PrivateEndpointConnectionModel {
-	if connections == nil {
-		return []PrivateEndpointConnectionModel{}
-	}
-
-	result := make([]PrivateEndpointConnectionModel, 0)
-	for _, conn := range *connections {
-		connModel := PrivateEndpointConnectionModel{
-			Id:   pointer.From(conn.Id),
-			Name: pointer.From(conn.Name),
-			Type: pointer.From(conn.Type),
-		}
-
-		if conn.Properties != nil {
-			connModel.GroupIds = pointer.From(conn.Properties.GroupIds)
-			if conn.Properties.PrivateEndpoint != nil {
-				connModel.PrivateEndpoint = []PrivateEndpointModel{
-					{
-						Id: pointer.From(conn.Properties.PrivateEndpoint.Id),
-					},
-				}
-			}
-			if conn.Properties.PrivateLinkServiceConnectionState != (cloudhsmclusters.PrivateLinkServiceConnectionState{}) {
-				connModel.PrivateLinkServiceConnectionState = []PrivateLinkServiceConnectionStateModel{
-					{
-						Status:          string(pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Status)),
-						Description:     pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Description),
-						ActionsRequired: pointer.From(conn.Properties.PrivateLinkServiceConnectionState.ActionsRequired),
-					},
-				}
-			}
-		}
-		result = append(result, connModel)
-	}
-	return result
 }

@@ -18,6 +18,7 @@ import (
 var _ pollers.PollerType = &CloudHsmClusterStatePoller{}
 
 // CloudHsmClusterStatePoller polls until the Cloud HSM cluster has finished provisioning
+// https://github.com/Azure/azure-rest-api-specs/issues/36393
 type CloudHsmClusterStatePoller struct {
 	client    *cloudhsmclusters.CloudHsmClustersClient
 	clusterId cloudhsmclusters.CloudHsmClusterId

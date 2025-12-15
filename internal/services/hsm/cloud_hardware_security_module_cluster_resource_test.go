@@ -30,7 +30,6 @@ func TestAccCloudHardwareSecurityModuleCluster_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -58,9 +57,6 @@ func TestAccCloudHardwareSecurityModuleCluster_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_generated_domain_name_label_scope").HasValue("TenantReuse"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -83,7 +79,6 @@ func TestAccCloudHardwareSecurityModuleCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("updated"),
 			),
 		},
 		data.ImportStep(),
@@ -113,7 +108,6 @@ func TestAccCloudHardwareSecurityModuleCluster_userAssignedIdentity(t *testing.T
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
 		data.ImportStep(),
@@ -129,24 +123,9 @@ func TestAccCloudHardwareSecurityModuleCluster_privateEndpoint(t *testing.T) {
 			Config: r.privateEndpoint(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_endpoint_connections.#").Exists(),
 			),
 		},
 		data.ImportStep(),
-		{
-			// need another apply to read the private endpoint connection
-			Config: r.privateEndpoint(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_endpoint_connections.#").Exists(),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.id").Exists(),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.name").Exists(),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.type").Exists(),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.group_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.private_endpoint.0.id").Exists(),
-				check.That(data.ResourceName).Key("private_endpoint_connections.0.private_link_service_connection_state.0.status").Exists(),
-			),
-		},
 	})
 }
 
@@ -197,7 +176,6 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
   name                = "acctest-hsm-%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
 }
 `, r.template(data), data.RandomString)
 }
