@@ -34,7 +34,7 @@ type CloudHardwareSecurityModuleClusterModel struct {
 
 	// Computed
 	ActivationState string                    `tfschema:"activation_state"`
-	HSM             []CloudHsmPropertiesModel `tfschema:"hsm"`
+	HSMs            []CloudHsmPropertiesModel `tfschema:"hsms"`
 	StatusMessage   string                    `tfschema:"status_message"`
 }
 
@@ -95,7 +95,7 @@ func (r CloudHardwareSecurityModuleClusterResource) Attributes() map[string]*plu
 			Computed: true,
 		},
 
-		"hsm": {
+		"hsms": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -242,7 +242,7 @@ func (r CloudHardwareSecurityModuleClusterResource) Read() sdk.ResourceFunc {
 							}
 							hsms = append(hsms, hsmModel)
 						}
-						model.HSM = hsms
+						model.HSMs = hsms
 					}
 				}
 			}
