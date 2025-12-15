@@ -16,6 +16,63 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
+	builtInOnly bool,
+) (policy.Definition, error) {
+	var policyDefinitions policy.DefinitionListResultIterator
+	var err error
+
+	if managementGroupName != "" {
+		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
+	} else {
+		if builtInOnly {
+			policyDefinitions, err = client.ListBuiltInComplete(ctx, "", nil)
+		} else {
+			policyDefinitions, err = client.ListComplete(ctx, "", nil)
+		}
+	}
+	if err != nil {
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
+	}
+
+	var results []policy.Definition
+	for policyDefinitions.NotDone() {
+		def := policyDefinitions.Value()
+		if def.DisplayName != nil && *def.DisplayName == displayName && def.ID != nil {
+			results = append(results, def)
+		}
+
+		if err := policyDefinitions.NextWithContext(ctx); err != nil {
+			return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %s", err)
+		}
+	}
+
+	// we found none
+	if len(results) == 0 {
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'. has the policies name changed? list available with `az policy definition list`", displayName)
+	}
+
+	// we found more than one
+	if len(results) > 1 {
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one (%d) policy '%s'", len(results), displayName)
+	}
+
+	return results[0], nil
+}
+
+func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
+	if managementGroupName == "" {
+		res, err = client.GetBuiltIn(ctx, name)
+		if utils.ResponseWasNotFound(res.Response) {
+			res, err = client.Get(ctx, name)
+		}
+	} else {
+		res, err = client.GetAtManagementGroup(ctx, name, managementGroupName)
+	}
+
+	return res, err
+}
+
 func getPolicyDefinitionByID(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id any) (*http.Response, *policydefinitions.PolicyDefinition, error) {
 	switch id := id.(type) {
 	case policydefinitions.ProviderPolicyDefinitionId:
