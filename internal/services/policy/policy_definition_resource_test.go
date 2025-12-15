@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -82,6 +83,10 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping test as `management_group_id` has been removed from the `azurerm_policy_definition` resource")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
