@@ -85,7 +85,7 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.FloatBetween(1.0, 512.0),
+			ValidateFunc: validation.IntBetween(1, 512),
 		},
 
 		"compute_model": {
