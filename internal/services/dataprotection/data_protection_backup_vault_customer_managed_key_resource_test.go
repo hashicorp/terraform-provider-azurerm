@@ -347,7 +347,7 @@ resource "azurerm_data_protection_backup_vault_customer_managed_key" "test" {
     azurerm_key_vault_managed_hardware_security_module_role_assignment.backup-vault,
   ]
 }
-`, r.template(data))
+`, r.templateManagedHSM(data))
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) managedHSMVersionless(data acceptance.TestData) string {
@@ -370,7 +370,7 @@ resource "azurerm_data_protection_backup_vault_customer_managed_key" "test" {
     azurerm_key_vault_managed_hardware_security_module_role_assignment.backup-vault,
   ]
 }
-`, r.template(data))
+`, r.templateManagedHSM(data))
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) templateManagedHSM(data acceptance.TestData) string {
