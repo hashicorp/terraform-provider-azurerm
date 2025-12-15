@@ -18,20 +18,20 @@ import (
 type DatabaseVersionsDataSource struct{}
 
 type DatabaseVersionsModel struct {
-	Location                            string                     `tfschema:"location"`
-	DatabaseSystemShape                 string                     `tfschema:"database_system_shape"`
-	DatabaseSoftwareImageSupportEnabled bool                       `tfschema:"database_software_image_support_enabled"`
-	ShapeFamily                         string                     `tfschema:"shape_family"`
-	StorageManagement                   string                     `tfschema:"storage_management"`
-	UpgradeSupportEnabled               bool                       `tfschema:"upgrade_support_enabled"`
-	Versions                            []DatabaseVersionItemModel `tfschema:"versions"`
+	Location                       string                     `tfschema:"location"`
+	DatabaseSoftwareImageSupported bool                       `tfschema:"database_software_image_supported"`
+	DatabaseSystemShape            string                     `tfschema:"database_system_shape"`
+	ShapeFamily                    string                     `tfschema:"shape_family"`
+	StorageManagement              string                     `tfschema:"storage_management"`
+	UpgradeSupportEnabled          bool                       `tfschema:"upgrade_support_enabled"`
+	Versions                       []DatabaseVersionItemModel `tfschema:"versions"`
 }
 
 type DatabaseVersionItemModel struct {
-	Name                         string `tfschema:"name"`
-	LatestForMajorVersionEnabled bool   `tfschema:"latest_for_major_version_enabled"`
-	PluggableDatabaseSupported   bool   `tfschema:"pluggable_database_supported"`
-	Version                      string `tfschema:"version"`
+	Name                       string `tfschema:"name"`
+	LatestVersion              bool   `tfschema:"latest_version"`
+	PluggableDatabaseSupported bool   `tfschema:"pluggable_database_supported"`
+	Version                    string `tfschema:"version"`
 }
 
 func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -40,7 +40,7 @@ func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Optional filters
 
-		"database_software_image_support_enabled": {
+		"database_software_image_supported": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -80,7 +80,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"latest_for_major_version_enabled": {
+					"latest_version": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -126,7 +126,7 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 
 			options := dbversions.DefaultListByLocationOperationOptions()
 
-			options.IsDatabaseSoftwareImageSupported = pointer.To(state.DatabaseSoftwareImageSupportEnabled)
+			options.IsDatabaseSoftwareImageSupported = pointer.To(state.DatabaseSoftwareImageSupported)
 			options.IsUpgradeSupported = pointer.To(state.UpgradeSupportEnabled)
 
 			if state.DatabaseSystemShape != "" {
@@ -153,10 +153,10 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						item := DatabaseVersionItemModel{
-							Name:                         pointer.From(element.Name),
-							Version:                      props.Version,
-							LatestForMajorVersionEnabled: pointer.From(props.IsLatestForMajorVersion),
-							PluggableDatabaseSupported:   pointer.From(props.SupportsPdb),
+							Name:                       pointer.From(element.Name),
+							Version:                    props.Version,
+							LatestVersion:              pointer.From(props.IsLatestForMajorVersion),
+							PluggableDatabaseSupported: pointer.From(props.SupportsPdb),
 						}
 						state.Versions = append(state.Versions, item)
 					}
