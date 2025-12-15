@@ -4,6 +4,7 @@ ENHANCEMENTS:
 `azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
 
 FEATURES:
+* **New Resource:** `azurerm_automation_runtime_environment` [GH-30991]
 
 BUG FIXES:
 * `azurerm_data_factory` - fix ID parsing errors when `customer_managed_key_identity_id` is an empty string [GH-28621]
