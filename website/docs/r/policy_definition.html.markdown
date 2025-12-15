@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_policy_definition
 
-Manages a policy rule definition on a management group or your provider subscription.
+Manages a policy rule definition on your provider subscription.
 
 Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
@@ -76,8 +76,6 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_id` - (Optional) The id of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
 * `policy_rule` - (Optional) The policy rule for the policy definition. This is a JSON string representing the rule that contains an if and a then block.
 
 * `metadata` - (Optional) The metadata for the policy definition. This is a JSON string representing additional metadata that should be stored with the policy definition.
@@ -109,8 +107,10 @@ Policy Definitions can be imported using the `policy name`, e.g.
 terraform import azurerm_policy_definition.examplePolicy /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
 ```
 
-or
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
 
-```shell
-terraform import azurerm_policy_definition.examplePolicy /providers/Microsoft.Management/managementgroups/<MANGAGEMENT_GROUP_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
-```
+* `Microsoft.Authorization` - 2025-01-01
+
+* `Microsoft.Management` - 2025-01-01
