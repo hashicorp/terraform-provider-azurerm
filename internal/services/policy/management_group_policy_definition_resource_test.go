@@ -158,6 +158,34 @@ resource "azurerm_management_group_policy_definition" "test" {
   mode                = "All"
   display_name        = "acctestpol-%[1]d"
   management_group_id = azurerm_management_group.test.id
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
 }
 `, data.RandomInteger)
 }
@@ -173,6 +201,34 @@ resource "azurerm_management_group_policy_definition" "import" {
   mode                = azurerm_management_group_policy_definition.test.mode
   display_name        = azurerm_management_group_policy_definition.test.display_name
   management_group_id = azurerm_management_group_policy_definition.test.management_group_id
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
 }
 `, template)
 }
