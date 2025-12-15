@@ -15,11 +15,11 @@ Manages an Automation Runtime Environment.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "rg-example"
-  location = "%[2]s"
+  location = "westeurope"
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "accexample"
+  name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Basic"
@@ -33,7 +33,7 @@ resource "azurerm_automation_runtime_environment" "example" {
   runtime_version  = "7.2"
 
   location    = azurerm_resource_group.example.location
-  description = "Thats my test subscription"
+  description = "example description"
 
   runtime_default_packages = {
     "az"        = "11.2.0"

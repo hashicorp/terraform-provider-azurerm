@@ -165,10 +165,8 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 
 			autAccId, err := runtimeenvironment.ParseAutomationAccountIDInsensitively(model.AutomationAccountId)
 			if err != nil {
-				return fmt.Errorf("parsing automation account id %s: %+v", autAccId, err)
+				return err
 			}
-
-			model.AutomationAccountId = autAccId.String()
 
 			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, autAccId.ResourceGroupName, autAccId.AutomationAccountName, model.Name)
 
@@ -234,13 +232,11 @@ func (m AutomationRuntimeEnvironmentResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AutomationRuntimeEnvironmentResourceModel{
-				Name: id.RuntimeEnvironmentName,
+				Name:                id.RuntimeEnvironmentName,
+				AutomationAccountId: runtimeenvironment.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID(),
 			}
 
-			autAccId := runtimeenvironment.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
-
 			if model := resp.Model; model != nil {
-				state.AutomationAccountId = autAccId.ID()
 				state.Location = model.Location
 
 				if model.Properties != nil {
