@@ -66,7 +66,7 @@ func (r S001) Run(d *data.TerraformNodeData, fix bool) []error {
 	}
 
 	if !exists {
-		errs = append(errs, fmt.Errorf("%s: missing API section", IdAndName(r)))
+		errs = append(errs, fmt.Errorf("%s: missing API section; expected: %s\n", IdAndName(r), strings.Join(expected, "\n")))
 
 		if !fix {
 			return errs
@@ -80,7 +80,7 @@ func (r S001) Run(d *data.TerraformNodeData, fix bool) []error {
 		currentStr := strings.Join(section.GetContent(), "\n")
 
 		if currentStr != expectedStr {
-			errs = append(errs, fmt.Errorf("%s: current section content did not match expected content", IdAndName(r)))
+			errs = append(errs, fmt.Errorf("%s: current section content did not match expected content, exptected %s\n", IdAndName(r), expectedStr))
 
 			if fix {
 				section.SetContent(expected)

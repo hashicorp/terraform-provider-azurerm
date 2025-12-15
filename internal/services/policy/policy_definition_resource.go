@@ -88,13 +88,12 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 
 	var id any
-	managementGroupName := ""
 	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupId, err := mgmtGrpParse.ManagementGroupID(v.(string))
 		if err != nil {
 			return err
 		}
-		managementGroupName = managementGroupId.Name
+		managementGroupName := managementGroupId.Name
 		id = policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, name)
 	} else {
 		id = policydefinitions.NewProviderPolicyDefinitionID(subscriptionId, name)
