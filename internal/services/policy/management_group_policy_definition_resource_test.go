@@ -186,7 +186,6 @@ POLICY_RULE
   }
 PARAMETERS
 }
-}
 `, data.RandomInteger)
 }
 
@@ -228,7 +227,6 @@ POLICY_RULE
     }
   }
 PARAMETERS
-}
 }
 `, template)
 }
