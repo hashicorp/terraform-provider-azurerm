@@ -21,7 +21,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// We need each request to have a different correlationId. By disabling this, Azure will provide a unique correlationId instead.
 	tmpClientOptions := *o
 	tmpClientOptions.DisableCorrelationRequestID = true
-	oracleClient, err := oracle.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	oracleClient, err := oracle.NewClientWithBaseURI(tmpClientOptions.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		tmpClientOptions.Configure(c, tmpClientOptions.Authorizers.ResourceManager)
 	})
 	if err != nil {
