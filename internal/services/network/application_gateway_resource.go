@@ -4803,14 +4803,14 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
-		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\"", tier)
+		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", tier)
 	}
 
 	if d.HasChange("sku.0.name") {
 		skuName := d.Get("sku.0.name").(string)
 
 		if skuName != "" && slices.Contains(networkValidate.DeprecatedV1SkuNames, skuName) {
-			return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\"", skuName)
+			return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", skuName)
 		}
 	}
 

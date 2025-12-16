@@ -1315,7 +1315,7 @@ func TestAccApplicationGateway_v1SkuTierNotSupported(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.v1SkuTierNotSupported(data),
-			ExpectError: regexp.MustCompile(`new creation / update to "[^"]+" SKU tier is no longer supported, please use supported SKU tiers: "Basic", "Standard_v2", "WAF_v2"`),
+			ExpectError: regexp.MustCompile(`new creation / update to "[^"]+" SKU tier is no longer supported, please use supported SKU tiers: "Basic", "Standard_v2", "WAF_v2", refer to https://aka.ms/V1retirement`),
 		},
 	})
 }
