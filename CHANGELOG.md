@@ -2,14 +2,14 @@
 
 ENHANCEMENTS:
 * `azurerm_data_protection_backup_vault_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31365]
-`azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
+* `azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
 
 FEATURES:
 * **New Resource:** `azurerm_automation_runtime_environment` [GH-30991]
 
 BUG FIXES:
 * `azurerm_data_factory` - fix ID parsing errors when `customer_managed_key_identity_id` is an empty string [GH-28621]
-* Resource: `azurerm_linux_function_app` - fix panic when deployed without all required permissions [GH-31344]
+* `azurerm_linux_function_app` - fix panic when deployed without all required permissions [GH-31344]
 
 ## 4.56.0 (December 11, 2025)
 
