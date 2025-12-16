@@ -1,6 +1,7 @@
 ## 4.57.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_mssql_database` - the `transparent_data_encryption_key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31373]
 * `azurerm_data_protection_backup_vault_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31365]
 * `azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
 
