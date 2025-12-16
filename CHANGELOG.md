@@ -1,5 +1,7 @@
 ## 4.57.0 (Unreleased)
 
+**NOTE:** This release removes the Mobile Network (`azurerm_mobile_network*`) resources and data sources due to Azure having retired the service
+
 ENHANCEMENTS:
 * `azurerm_mssql_database` - the `transparent_data_encryption_key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31373]
 * `azurerm_data_protection_backup_vault_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31365]
