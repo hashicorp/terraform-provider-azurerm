@@ -498,7 +498,7 @@ resource "azurerm_policy_definition" "test" {
   display_name = "acctestpol-%d"
 
   policy_rule = <<POLICY_RULE
-	{
+    {
     "if": {
       "allOf": [
         {
@@ -535,7 +535,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+    {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -561,6 +561,9 @@ POLICY_RULE
     },
     "testObject": {
       "type": "Object",
+      "defaultValue": {
+        "location": "westeurope"
+      },
       "metadata": {
         "description": "test",
         "displayName": "test"

@@ -303,7 +303,7 @@ resource "azurerm_management_group_policy_definition" "test" {
   management_group_id = azurerm_management_group.test.id
 
   policy_rule = <<POLICY_RULE
-	{
+    {
     "if": {
       "allOf": [
         {
@@ -340,7 +340,7 @@ resource "azurerm_management_group_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+    {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -366,6 +366,9 @@ POLICY_RULE
     },
     "testObject": {
       "type": "Object",
+      "defaultValue": {
+        "location": "westeurope"
+      },
       "metadata": {
         "description": "test",
         "displayName": "test"
