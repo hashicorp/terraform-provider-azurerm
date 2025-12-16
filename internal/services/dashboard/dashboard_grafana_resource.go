@@ -733,12 +733,14 @@ func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAs
 	}
 	return output
 }
+
 func flattenCsrfAlwaysCheck(input *managedgrafanas.Security) bool {
 	if input == nil || input.CsrfAlwaysCheck == nil {
 		return false
 	}
 	return *input.CsrfAlwaysCheck
 }
+
 func flattenSnapshotExternalEnabled(input *managedgrafanas.Snapshots) bool {
 	if input == nil || input.ExternalEnabled == nil {
 		return false
