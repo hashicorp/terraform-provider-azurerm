@@ -19,9 +19,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// ORP (backend for ODB@A) partly builds its idempotency keys based on correlationIds sent by client.
 	// It seems that AzureRM provider sends the same correlationId for each request during an apply.
 	// We need each request to have a different correlationId. By disabling this, Azure will provide a unique correlationId instead.
-	o.DisableCorrelationRequestID = true
+	tmpClientOptions := *o
+	tmpClientOptions.DisableCorrelationRequestID = true
 	oracleClient, err := oracle.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
-		o.Configure(c, o.Authorizers.ResourceManager)
+		tmpClientOptions.Configure(c, tmpClientOptions.Authorizers.ResourceManager)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("building Database client: %+v", err)
