@@ -163,6 +163,42 @@ func IsURLWithHTTPorHTTPS(i interface{}, k string) ([]string, []error) {
 	return validation.IsURLWithHTTPorHTTPS(i, k)
 }
 
+// IsURLWithHTTPorHTTPSOrEmpty is a SchemaValidateFunc which tests if the provided value is of type string and either:
+// - A valid HTTP or HTTPS URL (e.g., "https://index.docker.io")
+// - A valid hostname without protocol (e.g., "index.docker.io")
+// This is useful for docker registry URLs where Azure Portal strips the protocol prefix.
+func IsURLWithHTTPorHTTPSOrEmpty(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if v == "" {
+		return
+	}
+
+	// If it already has a scheme, validate as a full URL
+	if strings.HasPrefix(strings.ToLower(v), "http://") || strings.HasPrefix(strings.ToLower(v), "https://") {
+		return validation.IsURLWithHTTPorHTTPS(i, k)
+	}
+
+	// Otherwise, prepend https:// and validate as a URL to ensure it's a valid hostname
+	testURL := "https://" + v
+	u, err := url.Parse(testURL)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %q to be a valid URL or hostname, got %v: %+v", k, v, err))
+		return
+	}
+
+	if u.Host == "" {
+		errors = append(errors, fmt.Errorf("expected %q to have a host, got %v", k, v))
+		return
+	}
+
+	return
+}
+
 // IsURLWithHTTPS is a SchemaValidateFunc which tests if the provided value is of type string and a valid HTTPS URL
 func IsURLWithHTTPS(i interface{}, k string) ([]string, []error) {
 	return validation.IsURLWithHTTPS(i, k)
