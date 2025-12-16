@@ -82,7 +82,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
@@ -193,7 +192,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		maintenance.Registration{},
 		managedhsm.Registration{},
 		managedredis.Registration{},
-		mobilenetwork.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},

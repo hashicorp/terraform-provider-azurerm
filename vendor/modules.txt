@@ -708,17 +708,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcoredataplane
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/sim
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site
-github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/users
