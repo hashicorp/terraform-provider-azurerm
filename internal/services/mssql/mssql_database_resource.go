@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
@@ -34,8 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -467,9 +466,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
 		keyVaultKeyId := v.(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
 
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
@@ -930,7 +929,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
 		keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
@@ -1838,7 +1837,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"transparent_data_encryption_key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"transparent_data_encryption_key_automatic_rotation_enabled": {
