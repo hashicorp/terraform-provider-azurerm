@@ -74,50 +74,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://aka.ms/AzureMapsCreatorDeprecation).
 
-### `azurerm_mobile_network`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_attached_data_network`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_data_network`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_packet_core_control_plane`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_packet_core_data_plane`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_service`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_sim`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_sim_group`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_sim_policy`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_site`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_mobile_network_slice`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider.
-
 ### `azurerm_network_packet_capture`
 
 * This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
@@ -189,50 +145,6 @@ This deprecated data source has been superseded/retired and has been removed fro
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `client_certificate_mode` property now defaults to `Required` to match API default value.
-
-### `azurerm_mobile_network`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_attached_data_network`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_data_network`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_packet_core_control_plane`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_packet_core_data_plane`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_service`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_sim`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_sim_group`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_sim_policy`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_site`
-
-* This deprecated data source has been retired from the Azure Provider.
-
-### `azurerm_mobile_network_slice`
-
-* This deprecated data source has been retired from the Azure Provider.
 
 ### `azurerm_postgresql_server`
 
