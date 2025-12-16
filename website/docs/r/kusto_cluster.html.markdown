@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days). Defaults to `true`.
 
+* `callout_policy` - (Optional) A `callout_policy` block as defined below.
+
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted. Defaults to `false`.
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
@@ -91,6 +93,16 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
 
 ~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `callout_policy` block supports the following:
+
+* `callout_type` - (Required) The type of callout service. Possible values are `azure_digital_twins`, `azure_openai`, `cosmosdb`, `external_data`, `genevametrics`, `kusto`, `mysql`, `postgresql`, `sandbox_artifacts`, `sql`, and `webapi`.
+
+* `callout_uri_regex` - (Required) A regular expression or FQDN pattern for the callout URI.
+
+* `outbound_access` - (Required) Indicates whether outbound access is permitted for the specified URI pattern. Possible values are `Allow` and `Deny`.
 
 ---
 

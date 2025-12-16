@@ -306,6 +306,82 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_calloutPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.calloutPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("callout_policy.0.callout_type").HasValue("kusto"),
+				check.That(data.ResourceName).Key("callout_policy.0.callout_uri_regex").HasValue(".*\\.kusto\\.windows\\.net"),
+				check.That(data.ResourceName).Key("callout_policy.0.outbound_access").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_calloutPolicyMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.calloutPolicyMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_calloutPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.calloutPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.calloutPolicyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("callout_policy.0.callout_type").HasValue("webapi"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callout_policy.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoCluster_languageExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
@@ -982,6 +1058,108 @@ resource "azurerm_kusto_cluster" "test" {
   sku {
     name     = "Standard_L8s_v3"
     capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) calloutPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  callout_policy {
+    callout_type      = "kusto"
+    callout_uri_regex = ".*\\.kusto\\.windows\\.net"
+    outbound_access   = "Allow"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) calloutPolicyMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  callout_policy {
+    callout_type      = "kusto"
+    callout_uri_regex = ".*\\.kusto\\.windows\\.net"
+    outbound_access   = "Allow"
+  }
+
+  callout_policy {
+    callout_type      = "sql"
+    callout_uri_regex = ".*\\.database\\.windows\\.net"
+    outbound_access   = "Allow"
+  }
+
+  callout_policy {
+    callout_type      = "cosmosdb"
+    callout_uri_regex = ".*\\.documents\\.azure\\.com"
+    outbound_access   = "Deny"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) calloutPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  callout_policy {
+    callout_type      = "webapi"
+    callout_uri_regex = "https://.*\\.example\\.com"
+    outbound_access   = "Allow"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
