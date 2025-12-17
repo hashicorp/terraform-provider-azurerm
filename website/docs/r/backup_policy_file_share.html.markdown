@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `backup_tier` - (Optional) The backup tier to use. Possible values are `vault-standard` and `snapshot`. Defaults to `snapshot`.
 
+-> **NOTE:** When `backup_tier` is set to `vault-standard`, the `snapshot_retention_in_days` value must be less than the `retention_daily` count.
+
 ---
 
 The `backup` block supports:

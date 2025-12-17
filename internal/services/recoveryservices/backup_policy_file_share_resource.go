@@ -218,78 +218,42 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 			}
 
 			if retention, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
-				if s := retention.DailySchedule; s != nil {
-					if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
-						return fmt.Errorf("setting `retention_daily`: %+v", err)
-					}
-				} else {
-					d.Set("retention_daily", nil)
+				if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(retention.DailySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_daily`: %+v", err)
 				}
 
-				if s := retention.WeeklySchedule; s != nil {
-					if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
-						return fmt.Errorf("setting `retention_weekly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_weekly", nil)
+				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(retention.WeeklySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_weekly`: %+v", err)
 				}
 
-				if s := retention.MonthlySchedule; s != nil {
-					if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
-						return fmt.Errorf("setting `retention_monthly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_monthly", nil)
+				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(retention.MonthlySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_monthly`: %+v", err)
 				}
 
-				if s := retention.YearlySchedule; s != nil {
-					if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
-						return fmt.Errorf("setting `retention_yearly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_yearly", nil)
+				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(retention.YearlySchedule)); err != nil {
+					return fmt.Errorf("setting `retention_yearly`: %+v", err)
 				}
 			}
 
 			if properties.VaultRetentionPolicy != nil {
 				d.Set("backup_tier", "vault-standard")
-				if s := properties.VaultRetentionPolicy.SnapshotRetentionInDays; s != 0 {
-					d.Set("snapshot_retention_in_days", int(s))
-				} else {
-					d.Set("snapshot_retention_in_days", 0)
-				}
+				d.Set("snapshot_retention_in_days", int(properties.VaultRetentionPolicy.SnapshotRetentionInDays))
 
 				if retention, ok := properties.VaultRetentionPolicy.VaultRetention.(protectionpolicies.LongTermRetentionPolicy); ok {
-					if s := retention.DailySchedule; s != nil {
-						if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
-							return fmt.Errorf("setting `retention_daily`: %+v", err)
-						}
-					} else {
-						d.Set("retention_daily", nil)
+					if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(retention.DailySchedule)); err != nil {
+						return fmt.Errorf("setting `retention_daily`: %+v", err)
 					}
 
-					if s := retention.WeeklySchedule; s != nil {
-						if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
-							return fmt.Errorf("setting `retention_weekly`: %+v", err)
-						}
-					} else {
-						d.Set("retention_weekly", nil)
+					if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(retention.WeeklySchedule)); err != nil {
+						return fmt.Errorf("setting `retention_weekly`: %+v", err)
 					}
 
-					if s := retention.MonthlySchedule; s != nil {
-						if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
-							return fmt.Errorf("setting `retention_monthly`: %+v", err)
-						}
-					} else {
-						d.Set("retention_monthly", nil)
+					if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(retention.MonthlySchedule)); err != nil {
+						return fmt.Errorf("setting `retention_monthly`: %+v", err)
 					}
 
-					if s := retention.YearlySchedule; s != nil {
-						if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
-							return fmt.Errorf("setting `retention_yearly`: %+v", err)
-						}
-					} else {
-						d.Set("retention_yearly", nil)
+					if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(retention.YearlySchedule)); err != nil {
+						return fmt.Errorf("setting `retention_yearly`: %+v", err)
 					}
 				}
 			} else {
@@ -525,6 +489,10 @@ func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []interface{} {
+	if daily == nil {
+		return nil
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := daily.RetentionDuration; duration != nil {
@@ -537,6 +505,10 @@ func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolic
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []interface{} {
+	if weekly == nil {
+		return nil
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := weekly.RetentionDuration; duration != nil {
@@ -557,6 +529,10 @@ func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpol
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []interface{} {
+	if monthly == nil {
+		return nil
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := monthly.RetentionDuration; duration != nil {
@@ -577,6 +553,10 @@ func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionp
 }
 
 func flattenBackupProtectionPolicyFileShareRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []interface{} {
+	if yearly == nil {
+		return nil
+	}
+
 	block := map[string]interface{}{}
 
 	if duration := yearly.RetentionDuration; duration != nil {
