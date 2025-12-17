@@ -38,7 +38,7 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+					querycheck.ExpectLength(listResourceAddress, 3),
 				},
 			},
 		},
