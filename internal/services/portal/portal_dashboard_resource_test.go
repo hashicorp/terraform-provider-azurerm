@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package portal_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PortalDashboardResource struct{}
@@ -71,7 +71,7 @@ func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PortalDashboardResource) basic(data acceptance.TestData) string {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_test
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DatabricksAccessConnectorResource struct{}
@@ -130,7 +129,7 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DatabricksAccessConnectorResource) template(data acceptance.TestData) string {

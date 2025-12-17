@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -257,7 +256,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", resourceGroup)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
