@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-const CONTINUES_TARGET_OCCURENCE = 5
+const CONTINUES_TARGET_OCCURRENCE = 5
 
 var _ pollers.PollerType = &resourceProviderRegistrationPoller{}
 
@@ -42,7 +42,7 @@ func (p *resourceProviderRegistrationPoller) Poll(ctx context.Context) (*pollers
 	}
 
 	if strings.EqualFold(registrationState, "Registered") {
-		if p.continuesTargetOccurence == CONTINUES_TARGET_OCCURENCE {
+		if p.continuesTargetOccurence == CONTINUES_TARGET_OCCURRENCE {
 			return &pollers.PollResult{
 				Status:       pollers.PollingStatusSucceeded,
 				PollInterval: 10 * time.Second,
