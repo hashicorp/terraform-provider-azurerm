@@ -159,7 +159,7 @@ func (r NetworkProfileListResource) List(ctx context.Context, request list.ListR
 
 1. Register the new List Resource
 
-List Resources are registered within the registration.go within each Service Package - and should look something like this:
+List Resources are registered within the `registration.go` within each Service Package - and should look something like this:
 
 ```
 package network
@@ -182,7 +182,137 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 
 1. Add Acceptance Tests for this List Resource
 
-// TODO
+Create a new acceptance test file for the List Resource (for example, `network_profile_resource_list_test.go`) and add tests to cover the List Resource functionality. The test should provision any prerequisite resources and multiple resources of the type of List Resource we want to test. 
+
+The test should look something like this:
+
+```
+package network_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
+)
+
+func TestAccNetworkProfile_list_basic(t *testing.T) {
+	r := NetworkProfileResource{}
+	listResourceAddress := "azurerm_network_profile.list"
+
+	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test1")
+
+	resource.Test(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basicList(data), // provision multiple resources
+			},
+			{
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 3), // expect at least the 3 we created
+				},
+			},
+			{
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3), // expect exactly the 3 we created in that resource group
+				},
+			},
+		},
+	})
+}
+
+// provision multiple Network Profile resources for testing
+func (r NetworkProfileResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+// Prerequisite Resources ....
+
+resource "azurerm_network_profile" "test1" {
+  name                = "acctestnetprofile-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "acctesteth-%[1]d"
+
+    ip_configuration {
+      name      = "acctestipconfig-%[1]d"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test2" {
+  name                = "acctestnetprofile2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "acctesteth-%[1]d"
+
+    ip_configuration {
+      name      = "acctestipconfig-%[1]d"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test3" {
+  name                = "acctestnetprofile3-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = "acctesteth-%[1]d"
+
+    ip_configuration {
+      name      = "acctestipconfig-%[1]d"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// define the basic list query for testing
+func (r NetworkProfileResource) basicQuery() string {
+	return `
+list "azurerm_network_profile" "list" {
+  provider = azurerm
+  config {}
+}
+`
+}
+
+// define the list query for testing by resource group name
+func (r NetworkProfileResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+list "azurerm_network_profile" "list" {
+  provider = azurerm
+  config {
+    resource_group_name = "acctestRG-%[1]d"
+  }
+}
+`, data.RandomInteger)
+}
+
+```
 
 1. Add documentation for this List Resource
 
