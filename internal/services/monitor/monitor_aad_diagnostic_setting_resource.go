@@ -442,8 +442,9 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 var _ pollers.PollerType = waitForAADDiagnosticSettingToBeGonePoller{}
 
 type waitForAADDiagnosticSettingToBeGonePoller struct {
-	client *diagnosticsettings.DiagnosticSettingsClient
-	id     diagnosticsettings.DiagnosticSettingId
+	client                    *diagnosticsettings.DiagnosticSettingsClient
+	id                        diagnosticsettings.DiagnosticSettingId
+	continuousTargetOccurence int
 }
 
 func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
@@ -452,16 +453,18 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 		if !response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
 		}
-
-		return &pollers.PollResult{
-			HttpResponse: &client.Response{
-				Response: resp.HttpResponse,
-			},
-			PollInterval: 15 * time.Second,
-			Status:       pollers.PollingStatusSucceeded,
-		}, nil
+		if p.continuousTargetOccurence++; p.continuousTargetOccurence >= 3 {
+			return &pollers.PollResult{
+				HttpResponse: &client.Response{
+					Response: resp.HttpResponse,
+				},
+				PollInterval: 15 * time.Second,
+				Status:       pollers.PollingStatusSucceeded,
+			}, nil
+		}
 	}
 
+	p.continuousTargetOccurence = 0
 	return &pollers.PollResult{
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
