@@ -150,7 +150,7 @@ resource "azurerm_redis_cache_access_policy_assignment" "test2" {
   name               = "acctestRedisAccessPolicyAssignmentTest2"
   redis_cache_id     = azurerm_redis_cache.test.id
   access_policy_name = azurerm_redis_cache_access_policy.test2.name
-  object_id          = azurerm_user_assigned_identity.test.principle_id
+  object_id          = azurerm_user_assigned_identity.test.principal_id
   object_id_alias    = "UserAssignedIdentity"
 }
 `, r.basic(data), data.RandomInteger)
