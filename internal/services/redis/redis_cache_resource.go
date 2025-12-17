@@ -892,10 +892,12 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 
 	// AAD/Entra support
 	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
+	v, valExists := d.GetOk("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
 		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
+	} else {
+		output.AadEnabled = pointer.To("false")
 	}
 
 	// RDB Backup

@@ -134,25 +134,24 @@ func (r RedisCacheAccessPolicyAssignmentResource) multi(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-provider "azuread" {}
-
 resource "azurerm_redis_cache_access_policy" "test2" {
   name           = "acctestRedisAccessPolicytest2"
   redis_cache_id = azurerm_redis_cache.test.id
   permissions    = "+@read +@connection +cluster|info allkeys"
 }
 
-resource "azuread_group" "test2" {
-  display_name     = "acctestredis"
-  security_enabled = true
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_redis_cache_access_policy_assignment" "test2" {
   name               = "acctestRedisAccessPolicyAssignmentTest2"
   redis_cache_id     = azurerm_redis_cache.test.id
-  access_policy_name = "Data Contributor"
-  object_id          = azuread_group.test2.id
-  object_id_alias    = "Group"
+  access_policy_name = azurerm_redis_cache_access_policy.test2.name
+  object_id          = azurerm_user_assigned_identity.test.principle_id
+  object_id_alias    = "UserAssignedIdentity"
 }
-`, r.basic(data))
+`, r.basic(data), data.RandomInteger)
 }
