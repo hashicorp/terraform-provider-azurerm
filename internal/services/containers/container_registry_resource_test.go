@@ -742,6 +742,7 @@ resource "azurerm_container_registry" "test" {
 
   network_rule_set {
     default_action = "Allow"
+    ip_rule = []
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
