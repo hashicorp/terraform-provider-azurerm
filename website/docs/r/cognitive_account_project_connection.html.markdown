@@ -80,19 +80,23 @@ The following arguments are supported:
 
 * `auth_type` - (Required) The authentication type for the connection. Possible values are `AAD`, `ApiKey`, `CustomKeys`, and `OAuth2`.
 
-* `category` - (Required) The category of the connection. Changing this forces a new resource to be created. Possible values are `ADLSGen2`, `AIServices`, `AmazonMws`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3Compatible`, `ApiKey`, `AzureBlob`, `AzureDataExplorer`, `AzureDatabricksDeltaLake`, `AzureMariaDb`, `AzureMySqlDb`, `AzureOneLake`, `AzureOpenAI`, `AzurePostgresDb`, `AzureSqlDb`, `AzureSqlMi`, `AzureSynapseAnalytics`, `AzureTableStorage`, `BingLLMSearch`, `Cassandra`, `CognitiveSearch`, `CognitiveService`, `Concur`, `ContainerRegistry`, `CosmosDb`, `CosmosDbMongoDbApi`, `Couchbase`, `CustomKeys`, `Db2`, `Drill`, `Dynamics`, `DynamicsAx`, `DynamicsCrm`, `Elasticsearch`, `Eloqua`, `FileServer`, `FtpServer`, `GenericContainerRegistry`, `GenericHttp`, `GenericRest`, `Git`, `GoogleAdWords`, `GoogleBigQuery`, `GoogleCloudStorage`, `Greenplum`, `Hbase`, `Hdfs`, `Hive`, `Hubspot`, `Impala`, `Informix`, `Jira`, `Magento`, `ManagedOnlineEndpoint`, `MariaDb`, `Marketo`, `MicrosoftAccess`, `MongoDbAtlas`, `MongoDbV2`, `MySql`, `Netezza`, `ODataRest`, `Odbc`, `Office365`, `OpenAI`, `Oracle`, `OracleCloudStorage`, `OracleServiceCloud`, `PayPal`, `Phoenix`, `Pinecone`, `PostgreSql`, `Presto`, `PythonFeed`, `QuickBooks`, `Redis`, `Responsys`, `S3`, `Salesforce`, `SalesforceMarketingCloud`, `SalesforceServiceCloud`, `SapBw`, `SapCloudForCustomer`, `SapEcc`, `SapHana`, `SapOpenHub`, `SapTable`, `Serp`, `Serverless`, `ServiceNow`, `Sftp`, `SharePointOnlineList`, `Shopify`, `Snowflake`, `Spark`, `SqlServer`, `Square`, `Sybase`, `Teradata`, `Vertica`, `WebTable`, `Xero`, and `Zoho`.
+* `category` - (Required) The category of the connection. Possible values are `ADLSGen2`, `AIServices`, `AmazonMws`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3Compatible`, `ApiKey`, `AzureBlob`, `AzureDataExplorer`, `AzureDatabricksDeltaLake`, `AzureMariaDb`, `AzureMySqlDb`, `AzureOneLake`, `AzureOpenAI`, `AzurePostgresDb`, `AzureSqlDb`, `AzureSqlMi`, `AzureSynapseAnalytics`, `AzureTableStorage`, `BingLLMSearch`, `Cassandra`, `CognitiveSearch`, `CognitiveService`, `Concur`, `ContainerRegistry`, `CosmosDb`, `CosmosDbMongoDbApi`, `Couchbase`, `CustomKeys`, `Db2`, `Drill`, `Dynamics`, `DynamicsAx`, `DynamicsCrm`, `Elasticsearch`, `Eloqua`, `FileServer`, `FtpServer`, `GenericContainerRegistry`, `GenericHttp`, `GenericRest`, `Git`, `GoogleAdWords`, `GoogleBigQuery`, `GoogleCloudStorage`, `Greenplum`, `Hbase`, `Hdfs`, `Hive`, `Hubspot`, `Impala`, `Informix`, `Jira`, `Magento`, `ManagedOnlineEndpoint`, `MariaDb`, `Marketo`, `MicrosoftAccess`, `MongoDbAtlas`, `MongoDbV2`, `MySql`, `Netezza`, `ODataRest`, `Odbc`, `Office365`, `OpenAI`, `Oracle`, `OracleCloudStorage`, `OracleServiceCloud`, `PayPal`, `Phoenix`, `Pinecone`, `PostgreSql`, `Presto`, `PythonFeed`, `QuickBooks`, `Redis`, `Responsys`, `S3`, `Salesforce`, `SalesforceMarketingCloud`, `SalesforceServiceCloud`, `SapBw`, `SapCloudForCustomer`, `SapEcc`, `SapHana`, `SapOpenHub`, `SapTable`, `Serp`, `Serverless`, `ServiceNow`, `Sftp`, `SharePointOnlineList`, `Shopify`, `Snowflake`, `Spark`, `SqlServer`, `Square`, `Sybase`, `Teradata`, `Vertica`, `WebTable`, `Xero`, and `Zoho`. Changing this forces a new resource to be created.
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection. The required keys depend on the `category` specified.
 
 * `target` - (Required) The target endpoint URL for the connection.
 
----
+* `api_key` - (Optional) The API key for authentication. This field is sensitive.
 
-* `api_key` - (Optional) The API key for the connection. Required when `auth_type` is `ApiKey`. Conflicts with `oauth2` and `custom_keys`.
+~> **Note:** `api_key` is required when `auth_type` is set to `ApiKey`. `api_key` cannot be set together with `oauth2` or `custom_keys`.
 
-* `custom_keys` - (Optional) A mapping of custom authentication keys. Required when `auth_type` is `CustomKeys`. Conflicts with `api_key` and `oauth2`.
+* `custom_keys` - (Optional) A mapping of custom keys for authentication. All values in this map are sensitive.
 
-* `oauth2` - (Optional) An `oauth2` block as defined below. Required when `auth_type` is `OAuth2`. Conflicts with `api_key` and `custom_keys`.
+~> **Note:** `custom_keys` is required when `auth_type` is set to `CustomKeys`. `custom_keys` cannot be set together with `api_key` or `oauth2`.
+
+* `oauth2` - (Optional) An `oauth2` block as defined below.
+
+~> **Note:** `oauth2` is required when `auth_type` is set to `OAuth2`. `oauth2` cannot be set together with `api_key` or `custom_keys`.
 
 ---
 
@@ -102,13 +106,13 @@ An `oauth2` block supports the following:
 
 * `client_id` - (Optional) The OAuth2 client ID.
 
-* `client_secret` - (Optional) The OAuth2 client secret.
+* `client_secret` - (Optional) The OAuth2 client secret. This field is sensitive.
 
-* `developer_token` - (Optional) The OAuth2 developer token.
+* `developer_token` - (Optional) The OAuth2 developer token. This field is sensitive.
 
-* `password` - (Optional) The OAuth2 password.
+* `password` - (Optional) The OAuth2 password. This field is sensitive.
 
-* `refresh_token` - (Optional) The OAuth2 refresh token.
+* `refresh_token` - (Optional) The OAuth2 refresh token. This field is sensitive.
 
 * `tenant_id` - (Optional) The OAuth2 tenant ID.
 
