@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -6,15 +6,16 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataFactoryResource struct{}
@@ -237,6 +238,60 @@ func TestAccDataFactory_keyVaultKeyEncryption(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.keyVaultKeyEncryptionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactory_keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity_cmkSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactory_keyVaultKeyEncryptionMissingKeyIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultKeyEncryptionMissingKeyIdentity(),
+			ExpectError: regexp.MustCompile("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`"),
+		},
+	})
+}
+
+func TestAccDataFactory_keyVaultKeyEncryptionKeyIdentityKnownAfterApply(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.keyVaultKeyEncryptionKeyIdentityKnownAfterApply(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
 	})
 }
 
@@ -331,7 +386,7 @@ func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DataFactoryResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -347,7 +402,7 @@ func (DataFactoryResource) Destroy(ctx context.Context, client *clients.Client, 
 		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (DataFactoryResource) basic(data acceptance.TestData) string {
@@ -433,7 +488,7 @@ resource "azurerm_data_factory" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString)
 }
 
 func (DataFactoryResource) tagsUpdated(data acceptance.TestData) string {
@@ -665,18 +720,18 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%d"
+  name                = "acctest%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -722,7 +777,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctest%d"
+  name                = "acctest%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -736,7 +791,261 @@ resource "azurerm_data_factory" "test" {
   customer_managed_key_id          = azurerm_key_vault_key.test.id
   customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Get",
+      "Delete",
+      "Purge",
+      "GetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "unwrapKey",
+    "wrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "key2"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "unwrapKey",
+    "wrapKey"
+  ]
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  customer_managed_key_id          = azurerm_key_vault_key.test2.versionless_id
+  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionWithExistingDataFactoryAndManagedServiceIdentity_cmkSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+data "azurerm_data_factory" "existing" {
+  name                = "acctestDF%d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acckv%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Get",
+      "Delete",
+      "Purge",
+      "GetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_data_factory.existing.identity.0.principal_id
+
+    key_permissions = [
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "unwrapKey",
+    "wrapKey"
+  ]
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  customer_managed_key_id = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionMissingKeyIdentity() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF"
+  location            = "eastus"
+  resource_group_name = "acctestRG"
+
+  customer_managed_key_id = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+}
+	`
+}
+
+func (DataFactoryResource) keyVaultKeyEncryptionKeyIdentityKnownAfterApply(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF"
+  location            = "eastus"
+  resource_group_name = "acctestRG"
+
+  customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
+}
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (DataFactoryResource) globalParameter(data acceptance.TestData) string {

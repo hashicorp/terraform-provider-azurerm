@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -84,6 +84,21 @@ func TestAccOrchestratedVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_specializedImage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.specializedImage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -923,6 +938,44 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) specializedImage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  # Flexible orchestration mode allows for heterogeneous VMs and more flexibility
+  platform_fault_domain_count = 2 # Number of fault domains for availability
+  instances                   = 2
+  sku_name                    = "Standard_D2s_v3"
+  source_image_id             = azurerm_shared_image_version.test.id
+
+  network_interface {
+    name    = "orchestrated-nic"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Premium_LRS"
+    caching              = "ReadWrite"
+  }
+
+  tags = {
+    Environment = "env"
+    Type        = "Orchestrated"
+  }
+}
+`, SharedImageVersionResource{}.imageVersionSpecializedByVM(data), data.RandomInteger)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
