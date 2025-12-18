@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveAccountConnectionTestResource struct{}
+type CognitiveAccountConnectionResource struct{}
 
 func TestAccCognitiveAccountConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCognitiveAccountConnection_basic(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCognitiveAccountConnection_requiresImport(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_apiKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccCognitiveAccountConnection_apiKey(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_apiKeyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccCognitiveAccountConnection_apiKeyUpdate(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_oauth2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccCognitiveAccountConnection_oauth2(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_customKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccCognitiveAccountConnection_customKeys(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -132,7 +132,7 @@ func TestAccCognitiveAccountConnection_update(t *testing.T) {
 
 func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection", "test")
-	r := CognitiveAccountConnectionTestResource{}
+	r := CognitiveAccountConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,7 +166,7 @@ func TestAccCognitiveAccountConnection_updateStorageBlob(t *testing.T) {
 	})
 }
 
-func (r CognitiveAccountConnectionTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveAccountConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountconnectionresource.ParseConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (r CognitiveAccountConnectionTestResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CognitiveAccountConnectionTestResource) template(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-ac-%[1]d"
@@ -237,7 +237,7 @@ resource "azurerm_storage_container" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r CognitiveAccountConnectionTestResource) basic(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -260,7 +260,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -279,7 +279,7 @@ resource "azurerm_cognitive_account_connection" "import" {
 `, r.basic(data))
 }
 
-func (r CognitiveAccountConnectionTestResource) apiKey(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) apiKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -304,7 +304,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) oauth2(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) oauth2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -332,7 +332,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) oauth2_anotherContainer(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) oauth2_anotherContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -365,7 +365,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) oauth2Updated(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) oauth2Updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -399,7 +399,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) customKeys(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) customKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -428,7 +428,7 @@ resource "azurerm_cognitive_account_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionTestResource) apiKeyUpdate(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionResource) apiKeyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
