@@ -6,6 +6,7 @@ package managedredis
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,7 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -86,6 +89,10 @@ func (r ManagedRedisGeoReplicationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			if slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId) {
+				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
+			}
+
 			id, err := redisenterprise.ParseRedisEnterpriseID(model.ManagedRedisId)
 			if err != nil {
 				return err
@@ -130,12 +137,14 @@ func (r ManagedRedisGeoReplicationResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil && props.GeoReplication != nil {
 					state.LinkedManagedRedisIds = make([]string, 0, len(pointer.From(props.GeoReplication.LinkedDatabases)))
 					for _, db := range pointer.From(props.GeoReplication.LinkedDatabases) {
-						cId, err := toClusterId(pointer.From(db.Id))
-						if err != nil {
-							return err
-						}
-						if !resourceids.Match(cId, clusterId) {
-							state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, cId.ID())
+						if pointer.From(db.State) == databases.LinkStateLinked {
+							cId, err := toClusterId(pointer.From(db.Id))
+							if err != nil {
+								return err
+							}
+							if !resourceids.Match(cId, clusterId) {
+								state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, cId.ID())
+							}
 						}
 					}
 				}
@@ -160,6 +169,10 @@ func (r ManagedRedisGeoReplicationResource) Update() sdk.ResourceFunc {
 			var model ManagedRedisGeoReplicationResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId) {
+				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
 			}
 
 			if err := linkUnlinkGeoReplication(ctx, client, model, clusterId); err != nil {
@@ -193,14 +206,20 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 				fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
 				toDbIds := []string{dbId.ID()}
 
-				dbIdsToUnlink := databaselink.DbIdsToUnlink(fromDbIds, toDbIds)
+				dbIdsToUnlink, intermediateDbIds, _ := databaselink.LinkUnlink(fromDbIds, toDbIds)
 
-				if len(dbIdsToUnlink) > 0 {
-					params := databases.ForceUnlinkParameters{
-						Ids: dbIdsToUnlink,
+				for _, inv := range databaselink.ForceUnlinkInvocations(intermediateDbIds, dbIdsToUnlink) {
+					id, err := databases.ParseDatabaseID(inv.Id)
+					if err != nil {
+						return err
 					}
-					if err := client.ForceUnlinkThenPoll(ctx, dbId, params); err != nil {
-						return fmt.Errorf("force unlink %s: %+v", dbId, err)
+
+					params := databases.ForceUnlinkParameters{
+						Ids: inv.Ids,
+					}
+
+					if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
+						return fmt.Errorf("force unlink %s: %+v", *id, err)
 					}
 				}
 			}
@@ -221,6 +240,12 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 			var model ManagedRedisGeoReplicationResourceModel
 			if err := metadata.DecodeDiff(&model); err != nil {
 				return err
+			}
+
+			if model.ManagedRedisId != "" && slices.ContainsFunc(model.LinkedManagedRedisIds, func(id string) bool {
+				return id != "" && id == model.ManagedRedisId
+			}) {
+				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
 			}
 
 			return nil
@@ -249,30 +274,48 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 		return err
 	}
 
-	dbIdsToUnlink := databaselink.DbIdsToUnlink(fromDbIds, toDbIds)
+	dbIdsToUnlink, intermediateDbIds, dbIdsToLink := databaselink.LinkUnlink(fromDbIds, toDbIds)
 
-	if len(dbIdsToUnlink) > 0 {
-		params := databases.ForceUnlinkParameters{
-			Ids: dbIdsToUnlink,
+	for _, inv := range databaselink.ForceUnlinkInvocations(intermediateDbIds, dbIdsToUnlink) {
+		id, err := databases.ParseDatabaseID(inv.Id)
+		if err != nil {
+			return err
 		}
-		if err := client.ForceUnlinkThenPoll(ctx, id, params); err != nil {
-			return fmt.Errorf("force unlink %s: %+v", id, err)
+
+		params := databases.ForceUnlinkParameters{
+			Ids: inv.Ids,
+		}
+
+		if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
+			return fmt.Errorf("force unlink %s: %+v", *id, err)
 		}
 	}
 
-	if databaselink.HasDbToLink(fromDbIds, toDbIds) {
+	for _, inv := range databaselink.ForceLinkInvocations(intermediateDbIds, dbIdsToLink) {
+		id, err := databases.ParseDatabaseID(inv.Id)
+		if err != nil {
+			return err
+		}
+
 		params := databases.ForceLinkParameters{
 			GeoReplication: databases.ForceLinkParametersGeoReplication{
 				GroupNickname:   existing.Model.Properties.GeoReplication.GroupNickname,
-				LinkedDatabases: expandLinkedDatabases(toDbIds),
+				LinkedDatabases: expandLinkedDatabases(inv.LinkedDatabaseIds),
 			},
 		}
 
-		err = client.ForceLinkToReplicationGroupThenPoll(ctx, id, params)
+		err = client.ForceLinkToReplicationGroupThenPoll(ctx, *id, params)
 		if err != nil {
-			return fmt.Errorf("force link %s: %+v", id, err)
+			return fmt.Errorf("force link %s: %+v", *id, err)
 		}
 	}
+
+	pollerType := custompollers.NewGeoReplicationPoller(client, id, toDbIds)
+	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent for %s: %+v", id, err)
+	}
+
 	return nil
 }
 
