@@ -953,21 +953,15 @@ func expandKustoClusterCalloutPolicies(input []interface{}) *[]clusters.CalloutP
 
 func flattenKustoClusterCalloutPolicies(input *[]clusters.CalloutPolicy) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return make([]interface{}, 0)
 	}
 
 	output := make([]interface{}, 0)
 	for _, policy := range *input {
 		policyMap := map[string]interface{}{}
-		if policy.CalloutType != nil {
-			policyMap["callout_type"] = string(*policy.CalloutType)
-		}
-		if policy.CalloutUriRegex != nil {
-			policyMap["callout_uri_regex"] = *policy.CalloutUriRegex
-		}
-		if policy.OutboundAccess != nil {
-			policyMap["outbound_access"] = string(*policy.OutboundAccess)
-		}
+		policyMap["callout_type"] = string(pointer.From(policy.CalloutType))
+		policyMap["callout_uri_regex"] = pointer.From(policy.CalloutUriRegex)
+		policyMap["outbound_access"] = string(pointer.From(policy.OutboundAccess))
 		output = append(output, policyMap)
 	}
 
