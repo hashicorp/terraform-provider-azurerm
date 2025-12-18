@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementWorkspaceLoggerEventhubTestResource struct{}
+type ApiManagementWorkspaceLoggerEventhubResource struct{}
 
 func TestAccApiManagementWorkspaceLoggerEventhub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
-	r := ApiManagementWorkspaceLoggerEventhubTestResource{}
+	r := ApiManagementWorkspaceLoggerEventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApiManagementWorkspaceLoggerEventhub_basic(t *testing.T) {
 
 func TestAccApiManagementWorkspaceLoggerEventhub_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
-	r := ApiManagementWorkspaceLoggerEventhubTestResource{}
+	r := ApiManagementWorkspaceLoggerEventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccApiManagementWorkspaceLoggerEventhub_systemAssignedIdentity(t *testi
 
 func TestAccApiManagementWorkspaceLoggerEventhub_managedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
-	r := ApiManagementWorkspaceLoggerEventhubTestResource{}
+	r := ApiManagementWorkspaceLoggerEventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccApiManagementWorkspaceLoggerEventhub_managedIdentity(t *testing.T) {
 	})
 }
 
-func (ApiManagementWorkspaceLoggerEventhubTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementWorkspaceLoggerEventhubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := logger.ParseWorkspaceLoggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (ApiManagementWorkspaceLoggerEventhubTestResource) Exists(ctx context.Conte
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) basic(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,7 +140,7 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) managedIdentity(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) managedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -163,7 +163,7 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
 `, r.templateWithManagedIdentity(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) managedIdentityUpdate(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) managedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,7 +186,7 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
 `, r.templateWithManagedIdentity(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -208,7 +208,7 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
 `, r.templateWithSystemAssignedIdentity(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) systemAssignedIdentityUpdate(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) systemAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -230,7 +230,7 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
 `, r.templateWithSystemAssignedIdentity(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) template(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-apim-%[1]d"
@@ -254,7 +254,7 @@ resource "azurerm_api_management_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) templateWithManagedIdentity(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) templateWithManagedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-apim-%[1]d"
@@ -340,7 +340,7 @@ resource "azurerm_api_management_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubTestResource) templateWithSystemAssignedIdentity(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerEventhubResource) templateWithSystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-apim-%[1]d"

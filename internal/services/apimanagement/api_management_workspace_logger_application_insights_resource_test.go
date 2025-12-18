@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementWorkspaceLoggerApplicationInsightsTestResource struct{}
+type ApiManagementWorkspaceLoggerApplicationInsightsResource struct{}
 
 func TestAccApiManagementWorkspaceLoggerApplicationInsights_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_application_insights", "test")
-	r := ApiManagementWorkspaceLoggerApplicationInsightsTestResource{}
+	r := ApiManagementWorkspaceLoggerApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApiManagementWorkspaceLoggerApplicationInsights_basic(t *testing.T) 
 
 func TestAccApiManagementWorkspaceLoggerApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_application_insights", "test")
-	r := ApiManagementWorkspaceLoggerApplicationInsightsTestResource{}
+	r := ApiManagementWorkspaceLoggerApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApiManagementWorkspaceLoggerApplicationInsights_requiresImport(t *te
 
 func TestAccApiManagementWorkspaceLoggerApplicationInsights_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_application_insights", "test")
-	r := ApiManagementWorkspaceLoggerApplicationInsightsTestResource{}
+	r := ApiManagementWorkspaceLoggerApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +86,7 @@ func TestAccApiManagementWorkspaceLoggerApplicationInsights_update(t *testing.T)
 
 func TestAccApiManagementWorkspaceLoggerApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_application_insights", "test")
-	r := ApiManagementWorkspaceLoggerApplicationInsightsTestResource{}
+	r := ApiManagementWorkspaceLoggerApplicationInsightsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccApiManagementWorkspaceLoggerApplicationInsights_complete(t *testing.
 	})
 }
 
-func (ApiManagementWorkspaceLoggerApplicationInsightsTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementWorkspaceLoggerApplicationInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := logger.ParseWorkspaceLoggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (ApiManagementWorkspaceLoggerApplicationInsightsTestResource) Exists(ctx co
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsTestResource) basic(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,7 +139,7 @@ resource "azurerm_api_management_workspace_logger_application_insights" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsTestResource) complete(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,7 +168,7 @@ resource "azurerm_api_management_workspace_logger_application_insights" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsTestResource) update(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,7 +204,7 @@ resource "azurerm_api_management_workspace_logger_application_insights" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsTestResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -219,7 +219,7 @@ resource "azurerm_api_management_workspace_logger_application_insights" "import"
 `, r.basic(data))
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsTestResource) template(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-apim-%[1]d"

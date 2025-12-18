@@ -3,6 +3,9 @@
 
 package apimanagement
 
+// NOTE: this resource and azurerm_api_management_workspace_logger_application_insights share the same Azure resource type
+// but are split by LoggerType: "azureEventHub" vs "applicationInsights"
+
 import (
 	"context"
 	"fmt"

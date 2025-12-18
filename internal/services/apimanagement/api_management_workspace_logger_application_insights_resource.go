@@ -3,6 +3,9 @@
 
 package apimanagement
 
+// NOTE: this resource and azurerm_api_management_workspace_logger_eventhub share the same Azure resource type
+// but are split by LoggerType: "applicationInsights" vs "azureEventHub"
+
 import (
 	"context"
 	"fmt"
@@ -239,7 +242,10 @@ func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) Update() sdk.Re
 			}
 
 			payload := resp.Model
-			payload.Properties.Credentials = expandApiManagementWorkspaceLoggerApplicationInsights(model.ApplicationInsights)
+
+			if metadata.ResourceData.HasChange("application_insights") {
+				payload.Properties.Credentials = expandApiManagementWorkspaceLoggerApplicationInsights(model.ApplicationInsights)
+			}
 
 			if metadata.ResourceData.HasChange("buffering_enabled") {
 				payload.Properties.IsBuffered = pointer.To(model.BufferingEnabled)
