@@ -403,12 +403,12 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
-		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesInlined, 0)
+		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesItem, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
-			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
+			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesItem{
 				Min: pointer.To(int64(min)),
 				Max: pointer.To(int64(max)),
 			})
@@ -419,16 +419,16 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersInlined {
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersItem {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
 
-	customHeaders := make([]profiles.MonitorConfigCustomHeadersInlined, len(d))
+	customHeaders := make([]profiles.MonitorConfigCustomHeadersItem, len(d))
 
 	for i, v := range d {
 		ch := v.(map[string]interface{})
-		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
+		customHeaders[i] = profiles.MonitorConfigCustomHeadersItem{
 			Name:  pointer.To(ch["name"].(string)),
 			Value: pointer.To(ch["value"].(string)),
 		}
@@ -437,7 +437,7 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersInlined) []interface{} {
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
