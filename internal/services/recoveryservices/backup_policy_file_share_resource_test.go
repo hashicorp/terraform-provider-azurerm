@@ -531,7 +531,7 @@ resource "azurerm_backup_policy_file_share" "test" {
     count = 10
   }
 
-  snapshot_retention_in_days = 10
+  snapshot_retention_in_days = 9
 
   backup_tier = "vault-standard"
 }

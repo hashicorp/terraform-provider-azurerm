@@ -78,6 +78,28 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 			default:
 				return errors.New("unrecognized value for backup.0.frequency")
 			}
+
+			// validate backup_tier and snapshot_retention_in_days
+			if backupTier, ok := diff.GetOk("backup_tier"); ok && strings.ToLower(backupTier.(string)) == "vault-standard" {
+				snapshotRetention := 0
+				if v, ok := diff.GetOk("snapshot_retention_in_days"); ok {
+					snapshotRetention = v.(int)
+				}
+
+				if retentionDaily, ok := diff.GetOk("retention_daily"); ok {
+					retentionDailyList := retentionDaily.([]interface{})
+					if len(retentionDailyList) > 0 {
+						retentionDailyMap := retentionDailyList[0].(map[string]interface{})
+						if count, ok := retentionDailyMap["count"]; ok {
+							dailyCount := count.(int)
+							if snapshotRetention >= dailyCount {
+								return fmt.Errorf("`snapshot_retention_in_days` must be less than `retention_daily` count when `backup_tier` is set to `vault-standard`. Got snapshot_retention_in_days: %d, retention_daily count: %d", snapshotRetention, dailyCount)
+							}
+						}
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -490,7 +512,7 @@ func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.
 
 func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []interface{} {
 	if daily == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}
@@ -506,7 +528,7 @@ func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolic
 
 func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []interface{} {
 	if weekly == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}
@@ -530,7 +552,7 @@ func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpol
 
 func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []interface{} {
 	if monthly == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}
@@ -554,7 +576,7 @@ func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionp
 
 func flattenBackupProtectionPolicyFileShareRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []interface{} {
 	if yearly == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}
