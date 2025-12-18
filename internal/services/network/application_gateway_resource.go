@@ -296,12 +296,24 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								},
 							},
 						},
-
+						"validate_cert_chain_and_expiry": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"validate_sni": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"sni_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
 						"probe_name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -1683,6 +1695,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
 				return fmt.Errorf("only one of `host_name` or `pick_host_name_from_backend_address` can be set")
 			}
+
+			if !*props.ValidateSNI && props.SniName != nil {
+				return fmt.Errorf("`sni_name` can not be used if `validate_sni` is false")
+			}
 		}
 	}
 
@@ -2427,6 +2443,9 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
 		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int64(v["request_timeout"].(int))
+		validateCertChainAndExpiry := v["validate_cert_chain_and_expiry"].(bool)
+		validateSNI := v["validate_sni"].(bool)
+		sniName := v["sni_name"].(string)
 
 		setting := applicationgateways.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
@@ -2439,6 +2458,9 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 				Protocol:                       pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
 				RequestTimeout:                 pointer.To(requestTimeout),
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
+				ValidateCertChainAndExpiry:     pointer.To(validateCertChainAndExpiry),
+				ValidateSNI:                    pointer.To(validateSNI),
+				SniName:                        pointer.To(sniName),
 			},
 		}
 
@@ -2586,7 +2608,11 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 				}
 			}
 			output["trusted_root_certificate_names"] = trustedRootCertificateNames
-
+			output["validate_cert_chain_and_expiry"] = props.ValidateCertChainAndExpiry
+			output["validate_sni"] = props.ValidateSNI
+			if props.SniName != nil {
+				output["sni_name"] = props.SniName
+			}
 			if probe := props.Probe; probe != nil {
 				if probe.Id != nil {
 					id, err := parse.ProbeIDInsensitively(*probe.Id)
