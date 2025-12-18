@@ -1,20 +1,23 @@
-## 4.57.0 (Unreleased)
+## 4.57.0 (December 18, 2025)
 
 **NOTE:** This release removes the Mobile Network (`azurerm_mobile_network*`) resources and data sources due to Azure having retired the service
 
-ENHANCEMENTS:
-* `azurerm_log_analytics_cluster_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31375]
-* `azurerm_mssql_database` - the `transparent_data_encryption_key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31373]
-* `azurerm_data_protection_backup_vault_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault [GH-31365]
-* `azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block [GH-30517]
-
 FEATURES:
-* **New Resource:** `azurerm_automation_runtime_environment` [GH-30991]
+
+* **New Resource:** `azurerm_automation_runtime_environment` ([#30991](https://github.com/hashicorp/terraform-provider-azurerm/issues/30991))
+
+ENHANCEMENTS:
+
+* `azurerm_data_protection_backup_vault_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault ([#31365](https://github.com/hashicorp/terraform-provider-azurerm/issues/31365))
+* `azurerm_kubernetes_cluster` - support for the `node_provisioning_profile` block ([#30517](https://github.com/hashicorp/terraform-provider-azurerm/issues/30517))
+* `azurerm_log_analytics_cluster_customer_managed_key` - the `key_vault_key_id` property now supports keys from a Managed HSM vault ([#31375](https://github.com/hashicorp/terraform-provider-azurerm/issues/31375))
+* `azurerm_mssql_database` - the `transparent_data_encryption_key_vault_key_id` property now supports keys from a Managed HSM vault ([#31373](https://github.com/hashicorp/terraform-provider-azurerm/issues/31373))
 
 BUG FIXES:
-* `azurerm_data_factory` - fix ID parsing errors when `customer_managed_key_identity_id` is an empty string [GH-28621]
-* `azurerm_linux_function_app` - fix panic when deployed without all required permissions [GH-31344]
-* `azurerm_eventhub` - `partition_count` can now be updated for dedicated clusters [GH-30993]
+
+* `azurerm_data_factory` - fix ID parsing errors when `customer_managed_key_identity_id` is an empty string ([#28621](https://github.com/hashicorp/terraform-provider-azurerm/issues/28621))
+* `azurerm_eventhub` - `partition_count` can now be updated for dedicated clusters ([#30993](https://github.com/hashicorp/terraform-provider-azurerm/issues/30993))
+* `azurerm_linux_function_app` - fix panic when deployed without all required permissions ([#31344](https://github.com/hashicorp/terraform-provider-azurerm/issues/31344))
 
 ## 4.56.0 (December 11, 2025)
 
