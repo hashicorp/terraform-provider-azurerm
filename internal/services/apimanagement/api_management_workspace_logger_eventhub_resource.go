@@ -20,95 +20,49 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ApiManagementWorkspaceLoggerModel struct {
-	Name                     string                     `tfschema:"name"`
-	ApiManagementWorkspaceId string                     `tfschema:"api_management_workspace_id"`
-	ApplicationInsights      []ApplicationInsightsModel `tfschema:"application_insights"`
-	EventHub                 []EventHubModel            `tfschema:"eventhub"`
-	BufferingEnabled         bool                       `tfschema:"buffering_enabled"`
-	Description              string                     `tfschema:"description"`
-	ResourceId               string                     `tfschema:"resource_id"`
+type ApiManagementWorkspaceLoggerEventhubModel struct {
+	Name                     string          `tfschema:"name"`
+	ApiManagementWorkspaceId string          `tfschema:"api_management_workspace_id"`
+	Eventhub                 []EventhubModel `tfschema:"eventhub"`
+	BufferingEnabled         bool            `tfschema:"buffering_enabled"`
+	Description              string          `tfschema:"description"`
+	ResourceId               string          `tfschema:"resource_id"`
 }
 
-type ApplicationInsightsModel struct {
-	InstrumentationKey string `tfschema:"instrumentation_key"`
-	ConnectionString   string `tfschema:"connection_string"`
-}
-
-type EventHubModel struct {
+type EventhubModel struct {
 	Name                         string `tfschema:"name"`
 	ConnectionString             string `tfschema:"connection_string"`
 	EndpointUri                  string `tfschema:"endpoint_uri"`
 	UserAssignedIdentityClientId string `tfschema:"user_assigned_identity_client_id"`
 }
 
-type ApiManagementWorkspaceLoggerResource struct{}
+type ApiManagementWorkspaceLoggerEventhubResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceLoggerResource{}
+var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceLoggerEventhubResource{}
 
-func (r ApiManagementWorkspaceLoggerResource) ResourceType() string {
-	return "azurerm_api_management_workspace_logger"
+func (r ApiManagementWorkspaceLoggerEventhubResource) ResourceType() string {
+	return "azurerm_api_management_workspace_logger_eventhub"
 }
 
-func (r ApiManagementWorkspaceLoggerResource) ModelObject() interface{} {
-	return &ApiManagementWorkspaceLoggerModel{}
+func (r ApiManagementWorkspaceLoggerEventhubResource) ModelObject() interface{} {
+	return &ApiManagementWorkspaceLoggerEventhubModel{}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ApiManagementWorkspaceLoggerEventhubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return logger.ValidateWorkspaceLoggerID
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementChildName(),
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&logger.WorkspaceId{}),
 
-		"application_insights": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"application_insights", "eventhub"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"connection_string": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Sensitive:    true,
-						ExactlyOneOf: []string{"application_insights.0.connection_string", "application_insights.0.instrumentation_key"},
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"instrumentation_key": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Sensitive:    true,
-						ExactlyOneOf: []string{"application_insights.0.connection_string", "application_insights.0.instrumentation_key"},
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
-		"buffering_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"eventhub": {
-			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
-			Optional:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"application_insights", "eventhub"},
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -153,6 +107,18 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 			},
 		},
 
+		"buffering_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"resource_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -161,17 +127,17 @@ func (r ApiManagementWorkspaceLoggerResource) Arguments() map[string]*pluginsdk.
 	}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Create() sdk.ResourceFunc {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.LoggerClient_v2024_05_01
 
-			var model ApiManagementWorkspaceLoggerModel
+			var model ApiManagementWorkspaceLoggerEventhubModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -193,18 +159,10 @@ func (r ApiManagementWorkspaceLoggerResource) Create() sdk.ResourceFunc {
 
 			parameters := logger.LoggerContract{
 				Properties: &logger.LoggerContractProperties{
-					IsBuffered: pointer.To(model.BufferingEnabled),
+					LoggerType:  logger.LoggerTypeAzureEventHub,
+					IsBuffered:  pointer.To(model.BufferingEnabled),
+					Credentials: expandApiManagementWorkspaceLoggerEventhub(model.Eventhub),
 				},
-			}
-
-			if len(model.ApplicationInsights) > 0 {
-				parameters.Properties.LoggerType = logger.LoggerTypeApplicationInsights
-				parameters.Properties.Credentials = expandApiManagementWorkspaceLoggerApplicationInsights(model.ApplicationInsights)
-			}
-
-			if len(model.EventHub) > 0 {
-				parameters.Properties.LoggerType = logger.LoggerTypeAzureEventHub
-				parameters.Properties.Credentials = expandApiManagementWorkspaceLoggerEventHub(model.EventHub)
 			}
 
 			if model.Description != "" {
@@ -225,7 +183,7 @@ func (r ApiManagementWorkspaceLoggerResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Read() sdk.ResourceFunc {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -244,33 +202,28 @@ func (r ApiManagementWorkspaceLoggerResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := ApiManagementWorkspaceLoggerModel{
+			model := ApiManagementWorkspaceLoggerEventhubModel{
 				Name:                     id.LoggerId,
 				ApiManagementWorkspaceId: logger.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceId).ID(),
 			}
 
 			if respModel := resp.Model; respModel != nil {
 				if props := respModel.Properties; props != nil {
+					if props.LoggerType != logger.LoggerTypeAzureEventHub {
+						return fmt.Errorf("expected Logger Type to be %q but got %q", string(logger.LoggerTypeAzureEventHub), string(props.LoggerType))
+					}
+
 					model.BufferingEnabled = pointer.From(props.IsBuffered)
 					model.Description = pointer.From(props.Description)
 					model.ResourceId = pointer.From(props.ResourceId)
 
 					if credentials := props.Credentials; credentials != nil {
-						var config ApiManagementWorkspaceLoggerModel
+						var config ApiManagementWorkspaceLoggerEventhubModel
 						if err := metadata.Decode(&config); err != nil {
 							return fmt.Errorf("decoding: %+v", err)
 						}
 
-						switch props.LoggerType {
-						case logger.LoggerTypeApplicationInsights:
-							// The `application_insights.0.instrumentation_key` and `application_insights.0.connection_string` returned by the Azure API is intentionally masked
-							// (e.g. "{{Logger-Credentials--<hash>}}") and does not match the original value provided during creation/update.
-							// This is by design to prevent exposing sensitive credentials in API responses.
-							// Therefore, the `application_insights` is sourced from the state.
-							model.ApplicationInsights = config.ApplicationInsights
-						case logger.LoggerTypeAzureEventHub:
-							model.EventHub = flattenApiManagementWorkspaceLoggerEventHub(config, props)
-						}
+						model.Eventhub = flattenApiManagementWorkspaceLoggerEventhub(config, props)
 					}
 				}
 			}
@@ -280,13 +233,13 @@ func (r ApiManagementWorkspaceLoggerResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Update() sdk.ResourceFunc {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.LoggerClient_v2024_05_01
 
-			var model ApiManagementWorkspaceLoggerModel
+			var model ApiManagementWorkspaceLoggerEventhubModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -310,15 +263,9 @@ func (r ApiManagementWorkspaceLoggerResource) Update() sdk.ResourceFunc {
 			}
 
 			payload := resp.Model
-			if len(model.ApplicationInsights) > 0 {
-				// `application_insights.0,instrumentation_key` and `application_insights.0.connection_string` read from config since the API masks `instrumentationKey ` and `connectionString`.
-				payload.Properties.Credentials = expandApiManagementWorkspaceLoggerApplicationInsights(model.ApplicationInsights)
-			}
 
-			if len(model.EventHub) > 0 {
-				if metadata.ResourceData.HasChange("eventhub") {
-					payload.Properties.Credentials = expandApiManagementWorkspaceLoggerEventHub(model.EventHub)
-				}
+			if metadata.ResourceData.HasChange("eventhub") {
+				payload.Properties.Credentials = expandApiManagementWorkspaceLoggerEventhub(model.Eventhub)
 			}
 
 			if metadata.ResourceData.HasChange("buffering_enabled") {
@@ -342,7 +289,7 @@ func (r ApiManagementWorkspaceLoggerResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ApiManagementWorkspaceLoggerResource) Delete() sdk.ResourceFunc {
+func (r ApiManagementWorkspaceLoggerEventhubResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -362,23 +309,7 @@ func (r ApiManagementWorkspaceLoggerResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandApiManagementWorkspaceLoggerApplicationInsights(inputs []ApplicationInsightsModel) *map[string]string {
-	if len(inputs) == 0 {
-		return nil
-	}
-
-	input := &inputs[0]
-	result := make(map[string]string)
-	if input.InstrumentationKey != "" {
-		result["instrumentationKey"] = input.InstrumentationKey
-	}
-	if input.ConnectionString != "" {
-		result["connectionString"] = input.ConnectionString
-	}
-	return &result
-}
-
-func expandApiManagementWorkspaceLoggerEventHub(inputs []EventHubModel) *map[string]string {
+func expandApiManagementWorkspaceLoggerEventhub(inputs []EventhubModel) *map[string]string {
 	if len(inputs) == 0 {
 		return nil
 	}
@@ -390,6 +321,7 @@ func expandApiManagementWorkspaceLoggerEventHub(inputs []EventHubModel) *map[str
 		result["connectionString"] = input.ConnectionString
 	} else if len(input.EndpointUri) > 0 {
 		result["endpointAddress"] = input.EndpointUri
+
 		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the creation/update if the field is omitted/removed
 		result["identityClientId"] = "SystemAssigned"
 		if input.UserAssignedIdentityClientId != "" {
@@ -400,13 +332,13 @@ func expandApiManagementWorkspaceLoggerEventHub(inputs []EventHubModel) *map[str
 	return &result
 }
 
-func flattenApiManagementWorkspaceLoggerEventHub(model ApiManagementWorkspaceLoggerModel, input *logger.LoggerContractProperties) []EventHubModel {
-	outputList := make([]EventHubModel, 0)
+func flattenApiManagementWorkspaceLoggerEventhub(model ApiManagementWorkspaceLoggerEventhubModel, input *logger.LoggerContractProperties) []EventhubModel {
+	outputList := make([]EventhubModel, 0)
 	if input == nil || input.Credentials == nil {
 		return outputList
 	}
 
-	output := EventHubModel{}
+	output := EventhubModel{}
 
 	if name, ok := (*input.Credentials)["name"]; ok {
 		output.Name = name
@@ -416,7 +348,7 @@ func flattenApiManagementWorkspaceLoggerEventHub(model ApiManagementWorkspaceLog
 		output.EndpointUri = endpoint
 	}
 
-	if eventhub := model.EventHub; len(eventhub) > 0 {
+	if eventhub := model.Eventhub; len(eventhub) > 0 {
 		// The `eventhub.0.connection_string` returned by the Azure API is intentionally masked
 		// (e.g. "{{Logger-Credentials--<hash>}}") and does not match the original value provided during creation/update.
 		// This is by design to prevent exposing sensitive credentials in API responses.

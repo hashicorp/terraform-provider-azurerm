@@ -1,14 +1,14 @@
 ---
 subcategory: "API Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management_workspace_logger"
+page_title: "Azure Resource Manager: azurerm_api_management_workspace_logger_application_insights"
 description: |-
-  Manages a Logger within an API Management Workspace.
+  Manages an Application Insights Logger within an API Management Workspace.
 ---
 
-# azurerm_api_management_workspace_logger
+# azurerm_api_management_workspace_logger_application_insights
 
-Manages a Logger within an API Management Workspace.
+Manages an Application Insights Logger within an API Management Workspace.
 
 ## Example Usage
 
@@ -41,10 +41,11 @@ resource "azurerm_application_insights" "example" {
   application_type    = "web"
 }
 
-resource "azurerm_api_management_workspace_logger" "example" {
+resource "azurerm_api_management_workspace_logger_application_insights" "example" {
   name                        = "example-logger"
   api_management_workspace_id = azurerm_api_management_workspace.example.id
-  description                 = "Example logger for workspace"
+  description                 = "Example Application Insights logger for workspace"
+  resource_id                 = azurerm_application_insights.example.id
 
   application_insights {
     instrumentation_key = azurerm_application_insights.example.instrumentation_key
@@ -60,47 +61,25 @@ The following arguments are supported:
 
 * `api_management_workspace_id` - (Required) Specifies the ID of the API Management Workspace. Changing this forces a new resource to be created.
 
----
+* `application_insights` - (Required) An `application_insights` block as defined below. Changing this forces a new resource to be created.
 
-* `application_insights` - (Optional) Specifies the application insights of the API Management Workspace Logger. Changing this forces a new resource to be created.
+---
 
 * `buffering_enabled` - (Optional) Specifies whether records should be buffered in the API Management Workspace Logger prior to publishing. Defaults to `true`.
 
 * `description` - (Optional) Specifies a description of the API Management Workspace Logger.
 
-* `eventhub` - (Optional) Specifies the eventhub of the API Management Workspace Logger. Changing this forces a new resource to be created.
-
--> **Note:** Exactly one of `application_insights` or `eventhub` must be specified.
-
-* `resource_id` - (Optional) Specifies the target resource ID of the API Management Workspace Logger, which can be either an Azure Event Hub or an application insights resource.
+* `resource_id` - (Optional) Specifies the Azure Resource ID of the Application Insights resource.
 
 ---
 
 An `application_insights` block supports the following:
 
-* `connection_string` - (Optional) Specifies the connection string of application insights.
+* `connection_string` - (Optional) Specifies the connection string of Application Insights.
 
-* `instrumentation_key` - (Optional) Specifies the instrumentation key of the application insights.
+* `instrumentation_key` - (Optional) Specifies the instrumentation key of the Application Insights.
 
 -> **Note:** Exactly one of `connection_string` or `instrumentation_key` must be specified.
-
----
-
-An `eventhub` block supports the following:
-
-* `name` - (Required) Specifies the name of the Event Hub.
-
-* `connection_string` - (Optional) Specifies the connection string of the Event Hub namespace.
-
-* `endpoint_uri` - (Optional) Specifies the endpoint address of an Event Hub namespace.
-
--> **Note:** Exactly one of `connection_string` or `endpoint_uri` must be specified.
-
-* `user_assigned_identity_client_id` - (Optional) Specifies the client ID of user-assigned identity that has the "Azure Event Hubs Data Sender" role on the target Event Hub namespace.
-
--> **Note:** * If this is omitted, the `SystemAssigned` will be used.
-
----
 
 ## Attributes Reference
 
@@ -119,10 +98,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-API Management Workspace Loggers can be imported using the `resource id`, e.g.
+API Management Workspace Application Insights Loggers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_workspace_logger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/workspaces/workspace1/loggers/logger1
+terraform import azurerm_api_management_workspace_logger_application_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/workspaces/workspace1/loggers/logger1
 ```
 
 ## API Providers
