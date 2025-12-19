@@ -76,6 +76,15 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"compute_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// placeholder
+				Default:      "Hybrid",
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{}, false),
+			},
+
 			"managed_resource_group_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -382,8 +391,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 				_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 				_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
+				_, managedDiskCMKKeyVaultId := d.GetChange("managed_disk_cmk_key_vault_id")
 				_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
 				_, enhancedSecurityCompliance := d.GetChange("enhanced_security_compliance")
+				_, computeMode := d.GetChange("compute_mode")
+				_, managedResourceGroupName := d.GetChange("managed_resource_group_name")
+				_, customParams := d.GetChange("custom_parameters")
+				_, accessConnectorIdRaw := d.GetChange("access_connector_id")
 
 				oldSku, newSku := d.GetChange("sku")
 
@@ -411,6 +425,37 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
 					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
+				}
+
+				// placeholder
+				if computeMode == "Serverless" {
+					if managedResourceGroupName.(string) != "" {
+						return fmt.Errorf("`managed_resource_group_name` argument is not allowed when `compute_mode` argument is `Serverless`")
+					}
+
+					if defaultStorageFirewallEnabled.(string) == "Enabled" {
+						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `Serverless`")
+					}
+
+					if requireNsgRules.(string) != "" {
+						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `Serverless`")
+					}
+
+					if len(customParams.([]interface{})) > 0 {
+						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `Serverless`")
+					}
+
+					if managedDiskCMKKeyVaultId.(string) != "" {
+						return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `Serverless`")
+					}
+
+					if managedDiskCMK.(string) != "" {
+						return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `Serverless`")
+					}
+
+					if accessConnectorIdRaw.(string) != "" {
+						return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `Serverless`")
+					}
 				}
 
 				return nil
@@ -481,6 +526,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	var backendPoolName, loadBalancerId string
 	skuName := d.Get("sku").(string)
+	computeMode := d.Get("compute_mode").(string)
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
@@ -514,7 +560,8 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if managedResourceGroupName == "" {
+	// placeholder
+	if managedResourceGroupName == "" && computeMode == "Hybrid" {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
