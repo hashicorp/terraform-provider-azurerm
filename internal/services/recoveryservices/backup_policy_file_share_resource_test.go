@@ -77,11 +77,20 @@ func TestAccBackupProtectionPolicyFileShare_updateVaultStandard(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("snapshot"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.vaultStandard(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("vault-standard"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
-				check.That(data.ResourceName).Key("snapshot_retention_in_days").HasValue("10"),
+				check.That(data.ResourceName).Key("snapshot_retention_in_days").HasValue("9"),
 			),
 		},
 		data.ImportStep(),
@@ -89,6 +98,7 @@ func TestAccBackupProtectionPolicyFileShare_updateVaultStandard(t *testing.T) {
 			Config: r.vaultStandardUpdated(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("vault-standard"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("20"),
 				check.That(data.ResourceName).Key("snapshot_retention_in_days").HasValue("15"),
 			),
