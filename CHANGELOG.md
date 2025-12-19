@@ -1,6 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20251217.1163055` [GH-31384]
 `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` [GH-31392]
 
 FEATURES:
