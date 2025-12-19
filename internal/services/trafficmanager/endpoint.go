@@ -5,15 +5,15 @@ package trafficmanager
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 )
 
-func expandEndpointCustomHeaderConfig(input []interface{}) *[]endpoints.EndpointPropertiesCustomHeadersInlined {
-	output := make([]endpoints.EndpointPropertiesCustomHeadersInlined, 0)
+func expandEndpointCustomHeaderConfig(input []interface{}) *[]trafficmanagers.EndpointPropertiesCustomHeadersItem {
+	output := make([]trafficmanagers.EndpointPropertiesCustomHeadersItem, 0)
 
 	for _, header := range input {
 		headerBlock := header.(map[string]interface{})
-		output = append(output, endpoints.EndpointPropertiesCustomHeadersInlined{
+		output = append(output, trafficmanagers.EndpointPropertiesCustomHeadersItem{
 			Name:  pointer.To(headerBlock["name"].(string)),
 			Value: pointer.To(headerBlock["value"].(string)),
 		})
@@ -22,7 +22,7 @@ func expandEndpointCustomHeaderConfig(input []interface{}) *[]endpoints.Endpoint
 	return &output
 }
 
-func flattenEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCustomHeadersInlined) []interface{} {
+func flattenEndpointCustomHeaderConfig(input *[]trafficmanagers.EndpointPropertiesCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -45,18 +45,18 @@ func flattenEndpointCustomHeaderConfig(input *[]endpoints.EndpointPropertiesCust
 	return result
 }
 
-func expandEndpointSubnetConfig(input []interface{}) *[]endpoints.EndpointPropertiesSubnetsInlined {
-	output := make([]endpoints.EndpointPropertiesSubnetsInlined, 0)
+func expandEndpointSubnetConfig(input []interface{}) *[]trafficmanagers.EndpointPropertiesSubnetsItem {
+	output := make([]trafficmanagers.EndpointPropertiesSubnetsItem, 0)
 
 	for _, subnet := range input {
 		subnetBlock := subnet.(map[string]interface{})
 		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
-			output = append(output, endpoints.EndpointPropertiesSubnetsInlined{
+			output = append(output, trafficmanagers.EndpointPropertiesSubnetsItem{
 				First: pointer.To(subnetBlock["first"].(string)),
 				Last:  pointer.To(subnetBlock["last"].(string)),
 			})
 		} else {
-			output = append(output, endpoints.EndpointPropertiesSubnetsInlined{
+			output = append(output, trafficmanagers.EndpointPropertiesSubnetsItem{
 				First: pointer.To(subnetBlock["first"].(string)),
 				Scope: pointer.To(int64(subnetBlock["scope"].(int))),
 			})
@@ -66,7 +66,7 @@ func expandEndpointSubnetConfig(input []interface{}) *[]endpoints.EndpointProper
 	return &output
 }
 
-func flattenEndpointSubnetConfig(input *[]endpoints.EndpointPropertiesSubnetsInlined) []interface{} {
+func flattenEndpointSubnetConfig(input *[]trafficmanagers.EndpointPropertiesSubnetsItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
