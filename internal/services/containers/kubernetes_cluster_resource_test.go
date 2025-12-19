@@ -57,6 +57,28 @@ func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_defaultNodePoolSecurityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultNodePoolSecurityProfile(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultNodePoolSecurityProfile(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1370,4 +1392,39 @@ resource "azurerm_kubernetes_cluster" "test" {
     object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func (KubernetesClusterResource) defaultNodePoolSecurityProfile(data acceptance.TestData, vtpmEnabled bool, secureBootEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+
+    security_profile {
+      vtpm_enabled        = %[3]t
+      secure_boot_enabled = %[4]t
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, vtpmEnabled, secureBootEnabled)
 }
