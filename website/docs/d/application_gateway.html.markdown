@@ -171,6 +171,14 @@ A `backend_http_settings` block exports the following:
 
 * `trusted_root_certificate_names` - A list of `trusted_root_certificate` names.
 
+* `validate_cert_chain_and_expiry` - Verify the certificate chain and certificate expiry to confirm 
+ if the certificate is valid, default to `true`.
+
+* `validate_sni` - Verify the certificate against the Server Name Indication (SNI) 
+ that was sent by the Application Gateway.
+
+*  `sni_name` - Server Name Indication (SNI) name, it can not be set if * `validate_sni` is `false`
+
 * `connection_draining` - A `connection_draining` block as defined below.
 
 ---
