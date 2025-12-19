@@ -1,6 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` [GH-31392]
 
 FEATURES:
 
