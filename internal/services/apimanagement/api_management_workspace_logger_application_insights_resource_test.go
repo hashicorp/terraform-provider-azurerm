@@ -116,7 +116,11 @@ func (ApiManagementWorkspaceLoggerApplicationInsightsResource) Exists(ctx contex
 func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
 }
 
 %[1]s
@@ -142,7 +146,11 @@ resource "azurerm_api_management_workspace_logger_application_insights" "test" {
 func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
 }
 
 %[1]s
@@ -171,7 +179,11 @@ resource "azurerm_api_management_workspace_logger_application_insights" "test" {
 func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
 }
 
 %[1]s
