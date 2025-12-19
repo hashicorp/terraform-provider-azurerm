@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -109,7 +110,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 }
 
 func resourceApplicationGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceApplicationGatewayCreate,
 		Read:     resourceApplicationGatewayRead,
 		Update:   resourceApplicationGatewayUpdate,
@@ -249,24 +250,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional:     true,
 							Default:      30,
 							ValidateFunc: validation.IntBetween(1, 86400),
-						},
-
-						"authentication_certificate": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 
 						"trusted_root_certificate_names": {
@@ -845,33 +828,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"capacity": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-						},
-					},
-				},
-			},
-
-			// Optional
-			"authentication_certificate": {
-				Type:     pluginsdk.TypeList, // todo this should probably be a map
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"data": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Sensitive:    true,
-						},
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
 						},
 					},
 				},
@@ -1550,6 +1506,58 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema["authentication_certificate"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Deprecated: "`backend_http_settings.authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider. Refer to https://aka.ms/V1retirement.",
+		}
+
+		resource.Schema["authentication_certificate"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"data": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Sensitive:    true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Deprecated: "`authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider. Refer to https://aka.ms/V1retirement.",
+		}
+	}
+
+	return resource
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1626,7 +1634,6 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags:     tags.Expand(t),
 		Properties: &applicationgateways.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
-			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
 			TrustedRootCertificates:       trustedRootCertificates,
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
@@ -1650,6 +1657,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			RewriteRuleSets: rewriteRuleSets,
 			UrlPathMaps:     urlPathMaps,
 		},
+	}
+
+	if !features.FivePointOh() {
+		gateway.Properties.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{}))
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -1850,7 +1861,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.AutoscaleConfiguration = expandApplicationGatewayAutoscaleConfiguration(d)
 	}
 
-	if d.HasChange("authentication_certificate") {
+	if !features.FivePointOh() && d.HasChange("authentication_certificate") {
 		payload.Properties.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{}))
 	}
 
@@ -2025,8 +2036,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if props := model.Properties; props != nil {
-			if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-				return fmt.Errorf("setting `authentication_certificate`: %+v", err)
+			if !features.FivePointOh() {
+				if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
+					return fmt.Errorf("setting `authentication_certificate`: %+v", err)
+				}
 			}
 
 			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
@@ -2449,7 +2462,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 			setting.Properties.AffinityCookieName = pointer.To(affinityCookieName)
 		}
 
-		if v["authentication_certificate"] != nil {
+		if !features.FivePointOh() && v["authentication_certificate"] != nil {
 			authCerts := v["authentication_certificate"].([]interface{})
 			authCertSubResources := make([]applicationgateways.SubResource, 0)
 
@@ -2546,26 +2559,28 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 				output["request_timeout"] = int(*timeout)
 			}
 
-			authenticationCertificates := make([]interface{}, 0)
-			if certs := props.AuthenticationCertificates; certs != nil {
-				for _, cert := range *certs {
-					if cert.Id == nil {
-						continue
-					}
+			if !features.FivePointOh() {
+				authenticationCertificates := make([]interface{}, 0)
+				if certs := props.AuthenticationCertificates; certs != nil {
+					for _, cert := range *certs {
+						if cert.Id == nil {
+							continue
+						}
 
-					certId, err := parse.AuthenticationCertificateIDInsensitively(*cert.Id)
-					if err != nil {
-						return nil, err
-					}
+						certId, err := parse.AuthenticationCertificateIDInsensitively(*cert.Id)
+						if err != nil {
+							return nil, err
+						}
 
-					certificate := map[string]interface{}{
-						"id":   certId.ID(),
-						"name": certId.Name,
+						certificate := map[string]interface{}{
+							"id":   certId.ID(),
+							"name": certId.Name,
+						}
+						authenticationCertificates = append(authenticationCertificates, certificate)
 					}
-					authenticationCertificates = append(authenticationCertificates, certificate)
 				}
+				output["authentication_certificate"] = authenticationCertificates
 			}
-			output["authentication_certificate"] = authenticationCertificates
 
 			trustedRootCertificateNames := make([]interface{}, 0)
 			if certs := props.TrustedRootCertificates; certs != nil {
@@ -4887,10 +4902,12 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		if v, ok := m["request_timeout"]; ok {
 			buf.WriteString(fmt.Sprintf("%d", v.(int)))
 		}
-		if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
-			for _, ac := range authCert {
-				config := ac.(map[string]interface{})
-				buf.WriteString(config["name"].(string))
+		if !features.FivePointOh() {
+			if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
+				for _, ac := range authCert {
+					config := ac.(map[string]interface{})
+					buf.WriteString(config["name"].(string))
+				}
 			}
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
