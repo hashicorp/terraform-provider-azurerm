@@ -3079,7 +3079,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_type               = "Windows"
-  os_sku                = "Windows2019"
+  os_sku                = "Windows2022"
   windows_profile {
     outbound_nat_enabled = true
   }
