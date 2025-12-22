@@ -16,10 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -296,14 +294,7 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	// API has bug, which appears API returns before the resource is fully deleted. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/38944
-	pollerType := custompollers.NewDataProtectionBackupVaultPoller(client, *id)
-	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
+		return fmt.Errorf("deleting DataProtection BackupVault (%q): %+v", id, err)
 	}
 
 	return nil
