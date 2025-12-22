@@ -296,7 +296,6 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting DataProtection BackupVault (%q): %+v", id, err)
 	}
-
 	return nil
 }
 

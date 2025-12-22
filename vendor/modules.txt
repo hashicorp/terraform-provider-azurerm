@@ -485,7 +485,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/bac
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share
