@@ -170,7 +170,9 @@ func (r ManagementGroupPolicyDefinitionResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding `policy_rule`: %+v", err)
 				}
+
 				var iPolicyRule interface{} = policyRule
+
 				props.PolicyRule = &iPolicyRule
 			}
 
@@ -179,7 +181,9 @@ func (r ManagementGroupPolicyDefinitionResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
+
 				var iMetadata interface{} = metaData
+
 				props.Metadata = &iMetadata
 			}
 
@@ -300,7 +304,7 @@ func (r ManagementGroupPolicyDefinitionResource) Update() sdk.ResourceFunc {
 			props := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("policy_type") {
-				props.PolicyType = pointer.To(policydefinitions.PolicyType(config.PolicyType))
+				props.PolicyType = pointer.ToEnum[policydefinitions.PolicyType](config.PolicyType)
 			}
 
 			if metadata.ResourceData.HasChange("mode") {
@@ -322,6 +326,7 @@ func (r ManagementGroupPolicyDefinitionResource) Update() sdk.ResourceFunc {
 				}
 
 				var iPolicyRule interface{} = expandedPolicyRule
+
 				props.PolicyRule = &iPolicyRule
 			}
 
