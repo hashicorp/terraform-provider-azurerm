@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -20,6 +20,8 @@ import (
 type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +36,8 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +52,8 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_policy_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
