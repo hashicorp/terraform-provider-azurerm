@@ -123,6 +123,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"certificate_type": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringInSlice(validDigiCertCertificateTypes, false),
 									},
 								},
@@ -420,6 +421,49 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			policiesRaw, ok := d.Get("certificate_policy").([]interface{})
+			if !ok || len(policiesRaw) == 0 || policiesRaw[0] == nil {
+				return nil
+			}
+
+			policy, ok := policiesRaw[0].(map[string]interface{})
+			if !ok {
+				return nil
+			}
+
+			issuerParametersRaw, ok := policy["issuer_parameters"].([]interface{})
+			if !ok || len(issuerParametersRaw) == 0 || issuerParametersRaw[0] == nil {
+				return nil
+			}
+
+			issuer, ok := issuerParametersRaw[0].(map[string]interface{})
+			if !ok {
+				return nil
+			}
+
+			issuerName, _ := issuer["name"].(string)
+
+			certificateType := ""
+			if v, exists := issuer["certificate_type"]; exists && v != nil {
+				if s, ok := v.(string); ok {
+					certificateType = strings.TrimSpace(s)
+				}
+			}
+
+			if certificateType != "" {
+				if !strings.EqualFold(issuerName, "DigiCert") {
+					return fmt.Errorf("`certificate_type` can only be specified when the issuer is DigiCert")
+				}
+
+				if !isValidDigiCertCertificateType(certificateType) {
+					return fmt.Errorf("`certificate_type` must be one of [%s] when the issuer is DigiCert", strings.Join(validDigiCertCertificateTypes, ", "))
+				}
+			}
+
+			return nil
 		},
 	}
 }
