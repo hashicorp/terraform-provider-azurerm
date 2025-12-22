@@ -87,6 +87,8 @@ resource "azurerm_kusto_script" "example" {
   sas_token                          = data.azurerm_storage_account_blob_container_sas.example.sas
   continue_on_errors_enabled         = true
   force_an_update_when_value_changed = "first"
+  script_level                       = "Database"
+  principal_permissions_action       = "RemovePermissionOnScriptCompletion"
 }
 ```
 
@@ -109,6 +111,10 @@ The following arguments are supported:
 * `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property. Changing this forces a new resource to be created.
 
 * `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
+
+* `script_level` - (Optional) Differentiates between the type of script commands included - `Database` or `Cluster`. Defaults to `Database`.
+
+* `principal_permissions_action` - (Optional) Indicates if the permissions for the script caller are kept following completion of the script. Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
 
 ## Attributes Reference
 
