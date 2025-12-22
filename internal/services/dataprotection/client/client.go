@@ -5,18 +5,17 @@ package client
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	BackupVaultClient    *backupvaults.BackupVaultsClient
 	BackupPolicyClient   *backuppolicies.BackupPoliciesClient
-	BackupInstanceClient *backupinstances.BackupInstancesClient
+	BackupInstanceClient *backupinstanceresources.BackupInstanceResourcesClient
 	ResourceGuardClient  *resourceguards.ResourceGuardsClient
 }
 
@@ -33,7 +32,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(backupPolicyClient.Client, o.Authorizers.ResourceManager)
 
-	backupInstanceClient, err := backupinstances.NewBackupInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	backupInstanceClient, err := backupinstanceresources.NewBackupInstanceResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building BackupInstances client: %+v", err)
 	}

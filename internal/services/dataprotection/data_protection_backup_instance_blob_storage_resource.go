@@ -14,8 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -40,7 +41,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backupinstances.ParseBackupInstanceID(id)
+			_, err := backupinstanceresources.ParseBackupInstanceID(id)
 			return err
 		}),
 
@@ -57,7 +58,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: backupinstances.ValidateBackupVaultID,
+				ValidateFunc: backupvaults.ValidateBackupVaultID,
 			},
 
 			"storage_account_id": {
@@ -103,11 +104,11 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
+	vaultId, _ := backupvaults.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
@@ -128,9 +129,9 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		return err
 	}
 
-	parameters := backupinstances.BackupInstanceResource{
-		Properties: &backupinstances.BackupInstance{
-			DataSourceInfo: backupinstances.Datasource{
+	parameters := backupinstanceresources.BackupInstanceResource{
+		Properties: &backupinstanceresources.BackupInstance{
+			DataSourceInfo: backupinstanceresources.Datasource{
 				DatasourceType:   pointer.To("Microsoft.Storage/storageAccounts/blobServices"),
 				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       storageAccountId.ID(),
@@ -140,23 +141,23 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				ResourceUri:      pointer.To(storageAccountId.ID()),
 			},
 			FriendlyName: pointer.To(id.BackupInstanceName),
-			PolicyInfo: backupinstances.PolicyInfo{
+			PolicyInfo: backupinstanceresources.PolicyInfo{
 				PolicyId: policyId.ID(),
 			},
 		},
 	}
 
 	if v, ok := d.GetOk("storage_account_container_names"); ok {
-		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstances.PolicyParameters{
-			BackupDatasourceParametersList: &[]backupinstances.BackupDatasourceParameters{
-				backupinstances.BlobBackupDatasourceParameters{
+		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
+			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
+				backupinstanceresources.BlobBackupDatasourceParameters{
 					ContainersList: pointer.From(utils.ExpandStringSlice(v.([]interface{}))),
 				},
 			},
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
@@ -165,8 +166,8 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(backupinstances.StatusConfiguringProtection), "UpdatingProtection"},
-		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
+		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection), "UpdatingProtection"},
+		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -185,12 +186,12 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
@@ -199,7 +200,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 	if model := resp.Model; model != nil {
@@ -211,7 +212,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
 				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
 					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
-						if parameter, ok := dsp[0].(backupinstances.BlobBackupDatasourceParameters); ok {
+						if parameter, ok := dsp[0].(backupinstanceresources.BlobBackupDatasourceParameters); ok {
 							d.Set("storage_account_container_names", utils.FlattenStringSlice(&parameter.ContainersList))
 						}
 					}
@@ -227,12 +228,12 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+	err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

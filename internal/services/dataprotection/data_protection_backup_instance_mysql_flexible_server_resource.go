@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,7 +43,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) ModelObject() i
 }
 
 func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backupinstances.ValidateBackupInstanceID
+	return backupinstanceresources.ValidateBackupInstanceID
 }
 
 func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,14 +85,14 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.Re
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			vaultId, err := backupinstances.ParseBackupVaultID(model.VaultId)
+			vaultId, err := backupvaults.ParseBackupVaultID(model.VaultId)
 			if err != nil {
 				return err
 			}
 
-			id := backupinstances.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
+			id := backupinstanceresources.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.BackupInstancesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -112,9 +113,9 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.Re
 				return err
 			}
 
-			parameters := backupinstances.BackupInstanceResource{
-				Properties: &backupinstances.BackupInstance{
-					DataSourceInfo: backupinstances.Datasource{
+			parameters := backupinstanceresources.BackupInstanceResource{
+				Properties: &backupinstanceresources.BackupInstance{
+					DataSourceInfo: backupinstanceresources.Datasource{
 						DatasourceType:   pointer.To("Microsoft.DBforMySQL/flexibleServers"),
 						ObjectType:       pointer.To("Datasource"),
 						ResourceID:       serverId.ID(),
@@ -123,7 +124,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.Re
 						ResourceType:     pointer.To("Microsoft.DBforMySQL/flexibleServers"),
 						ResourceUri:      pointer.To(serverId.ID()),
 					},
-					DataSourceSetInfo: &backupinstances.DatasourceSet{
+					DataSourceSetInfo: &backupinstanceresources.DatasourceSet{
 						DatasourceType:   pointer.To("Microsoft.DBforMySQL/flexibleServers"),
 						ObjectType:       pointer.To("DatasourceSet"),
 						ResourceID:       serverId.ID(),
@@ -133,13 +134,13 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.Re
 						ResourceUri:      pointer.To(serverId.ID()),
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
-					PolicyInfo: backupinstances.PolicyInfo{
+					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
 					},
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -151,8 +152,8 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Create() sdk.Re
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
-				Pending:      []string{string(backupinstances.CurrentProtectionStateConfiguringProtection)},
-				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Pending:      []string{string(backupinstanceresources.CurrentProtectionStateConfiguringProtection)},
+				Target:       []string{string(backupinstanceresources.CurrentProtectionStateProtectionConfigured)},
 				Refresh:      dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx, client, id),
 				PollInterval: 1 * time.Minute,
 				Timeout:      time.Until(deadline),
@@ -174,12 +175,12 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Read() sdk.Reso
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -188,7 +189,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Read() sdk.Reso
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+			vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 
 			state := BackupInstanceMySQLFlexibleServerModel{
 				Name:    id.BackupInstanceName,
@@ -226,7 +227,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Update() sdk.Re
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -236,7 +237,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Update() sdk.Re
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -258,7 +259,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Update() sdk.Re
 				parameters.Properties.PolicyInfo.PolicyId = policyId.ID()
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, *id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -270,8 +271,8 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Update() sdk.Re
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
-				Pending:      []string{string(backupinstances.CurrentProtectionStateUpdatingProtection)},
-				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Pending:      []string{string(backupinstanceresources.CurrentProtectionStateUpdatingProtection)},
+				Target:       []string{string(backupinstanceresources.CurrentProtectionStateProtectionConfigured)},
 				Refresh:      dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx, client, *id),
 				PollInterval: 1 * time.Minute,
 				Timeout:      time.Until(deadline),
@@ -292,12 +293,12 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Delete() sdk.Re
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -307,9 +308,9 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Delete() sdk.Re
 	}
 }
 
-func dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+func dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
+		resp, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
