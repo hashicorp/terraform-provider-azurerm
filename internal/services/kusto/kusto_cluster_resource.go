@@ -941,9 +941,9 @@ func expandKustoClusterCalloutPolicies(input []interface{}) *[]clusters.CalloutP
 	for _, item := range input {
 		policyMap := item.(map[string]interface{})
 		policy := clusters.CalloutPolicy{
-			CalloutType:     pointer.To(clusters.CalloutType(policyMap["callout_type"].(string))),
+			CalloutType:     pointer.ToEnum[clusters.CalloutType](policyMap["callout_type"].(string)),
 			CalloutUriRegex: pointer.To(policyMap["callout_uri_regex"].(string)),
-			OutboundAccess:  pointer.To(clusters.OutboundAccess(policyMap["outbound_access"].(string))),
+			OutboundAccess:  pointer.ToEnum[clusters.OutboundAccess](policyMap["outbound_access"].(string)),
 		}
 		policies = append(policies, policy)
 	}
@@ -959,9 +959,9 @@ func flattenKustoClusterCalloutPolicies(input *[]clusters.CalloutPolicy) []inter
 	output := make([]interface{}, 0)
 	for _, policy := range *input {
 		policyMap := map[string]interface{}{}
-		policyMap["callout_type"] = string(pointer.From(policy.CalloutType))
+		policyMap["callout_type"] = pointer.FromEnum(policy.CalloutType)
 		policyMap["callout_uri_regex"] = pointer.From(policy.CalloutUriRegex)
-		policyMap["outbound_access"] = string(pointer.From(policy.OutboundAccess))
+		policyMap["outbound_access"] = pointer.FromEnum(policy.OutboundAccess)
 		output = append(output, policyMap)
 	}
 

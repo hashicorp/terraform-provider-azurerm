@@ -102,7 +102,7 @@ A `callout_policy` block supports the following:
 
 * `callout_uri_regex` - (Required) A regular expression or the callout URI.
 
-* `outbound_access` - (Required) Whether outbound access is permitted for the specified service with the URI pattern? Possible values are `Allow` and `Deny`.
+* `outbound_access` - (Required) Whether outbound access is permitted for the specified service with the URI pattern. Possible values are `Allow` and `Deny`.
 
 ---
 

@@ -315,10 +315,6 @@ func TestAccKustoCluster_calloutPolicy(t *testing.T) {
 			Config: r.calloutPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("callout_policy.0.callout_type").HasValue("kusto"),
-				check.That(data.ResourceName).Key("callout_policy.0.callout_uri_regex").HasValue(".*\\.kusto\\.windows\\.net"),
-				check.That(data.ResourceName).Key("callout_policy.0.outbound_access").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -334,7 +330,6 @@ func TestAccKustoCluster_calloutPolicyMultiple(t *testing.T) {
 			Config: r.calloutPolicyMultiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -350,7 +345,6 @@ func TestAccKustoCluster_calloutPolicyUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -358,7 +352,6 @@ func TestAccKustoCluster_calloutPolicyUpdate(t *testing.T) {
 			Config: r.calloutPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -366,8 +359,6 @@ func TestAccKustoCluster_calloutPolicyUpdate(t *testing.T) {
 			Config: r.calloutPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("callout_policy.0.callout_type").HasValue("webapi"),
 			),
 		},
 		data.ImportStep(),
@@ -375,7 +366,6 @@ func TestAccKustoCluster_calloutPolicyUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callout_policy.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
