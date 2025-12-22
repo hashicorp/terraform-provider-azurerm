@@ -150,6 +150,7 @@ resource "azurerm_powerbi_embedded" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "A1"
   administrators      = [data.azurerm_client_config.test.object_id]
+  mode                = "Gen1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -164,6 +165,7 @@ resource "azurerm_powerbi_embedded" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "A2"
   administrators      = [data.azurerm_client_config.test.object_id]
+  mode                = "Gen1"
 
   tags = {
     ENV = "Test"
@@ -197,6 +199,7 @@ resource "azurerm_powerbi_embedded" "import" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "A1"
   administrators      = [data.azurerm_client_config.test.object_id]
+  mode                = "Gen1"
 }
 `, r.basic(data))
 }
