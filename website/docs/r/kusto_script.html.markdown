@@ -112,9 +112,9 @@ The following arguments are supported:
 
 * `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
-* `script_level` - (Optional) Differentiates between the type of script commands included - `Database` or `Cluster`. Defaults to `Database`.
+* `script_level` - (Optional) Type of script commands. Possible values are `Database` or `Cluster`. Defaults to `Database`.
 
-* `principal_permissions_action` - (Optional) Indicates if the permissions for the script caller are kept following completion of the script. Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
+* `principal_permissions_action` - (Optional) Whether the script caller’s permissions remain in effect after the script has finished running. Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
 
 ## Attributes Reference
 

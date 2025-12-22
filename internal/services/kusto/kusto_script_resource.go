@@ -165,14 +165,12 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		parameters.Properties.ScriptContent = pointer.To(scriptContent.(string))
 	}
 
-	if v, ok := d.GetOk("script_level"); ok {
-		scriptLevel := scripts.ScriptLevel(v.(string))
-		parameters.Properties.ScriptLevel = &scriptLevel
+	if scriptLevel, ok := d.GetOk("script_level"); ok {
+		parameters.Properties.ScriptLevel = pointer.ToEnum[scripts.ScriptLevel](scriptLevel.(string))
 	}
 
-	if v, ok := d.GetOk("principal_permissions_action"); ok {
-		principalPermissionsAction := scripts.PrincipalPermissionsAction(v.(string))
-		parameters.Properties.PrincipalPermissionsAction = &principalPermissionsAction
+	if principalPermissionsAction, ok := d.GetOk("principal_permissions_action"); ok {
+		parameters.Properties.PrincipalPermissionsAction = pointer.ToEnum[scripts.PrincipalPermissionsAction](principalPermissionsAction.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -210,18 +208,12 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
 			d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
 			d.Set("url", props.ScriptURL)
-
-			scriptLevel := ""
 			if props.ScriptLevel != nil {
-				scriptLevel = string(*props.ScriptLevel)
+				d.Set("script_level", pointer.FromEnum(props.ScriptLevel))
 			}
-			d.Set("script_level", scriptLevel)
-
-			principalPermissionsAction := ""
 			if props.PrincipalPermissionsAction != nil {
-				principalPermissionsAction = string(*props.PrincipalPermissionsAction)
+				d.Set("principal_permissions_action", pointer.FromEnum(props.PrincipalPermissionsAction))
 			}
-			d.Set("principal_permissions_action", principalPermissionsAction)
 		}
 	}
 	return nil
