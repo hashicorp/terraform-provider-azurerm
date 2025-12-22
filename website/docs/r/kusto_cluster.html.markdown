@@ -100,7 +100,7 @@ A `callout_policy` block supports the following:
 
 * `callout_type` - (Required) The type of callout service. Possible values are `azure_digital_twins`, `azure_openai`, `cosmosdb`, `external_data`, `genevametrics`, `kusto`, `mysql`, `postgresql`, `sandbox_artifacts`, `sql`, and `webapi`.
 
-* `callout_uri_regex` - (Required) A regular expression or FQDN pattern for the callout URI.
+* `callout_uri_regex` - (Required) A regular expression or the callout URI.
 
 * `outbound_access` - (Required) Indicates whether outbound access is permitted for the specified URI pattern. Possible values are `Allow` and `Deny`.
 
