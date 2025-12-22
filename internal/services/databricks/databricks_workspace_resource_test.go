@@ -3384,7 +3384,6 @@ resource "azurerm_databricks_workspace" "test" {
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
   compute_mode = "Serverless"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   public_network_access_enabled         = false
