@@ -105,7 +105,6 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
@@ -696,11 +695,8 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 					clusterClient := metadata.Client.ManagedRedis.Client
-					warning, err := isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName)
-					if err != nil {
+					if !isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName) {
 						metadata.ResourceDiff.ForceNew("sku_name")
-					} else if warning != "" {
-						metadata.Logger.Warnf(warning)
 					}
 				}
 			}
@@ -885,24 +881,18 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	return ""
 }
 
-func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) (warning string, err error) {
+func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) bool {
 	skusForScaling, err := clusterClient.ListSkusForScaling(ctx, *clusterId)
 	if err != nil {
-		return fmt.Sprintf("SKU scaling cannot be validated due to an error whilst retrieving the list: %+v. The deployment might fail, check resource documentation for more information", err), nil
+		log.Printf("[WARN] SKU scaling cannot be validated due to an error whilst retrieving the list. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale: %+v", err)
+		return true
 	}
 	if skusForScaling.Model.Skus == nil {
-		return "SKU scaling cannot be validated due to Azure returning no information. The deployment might fail", nil
+		log.Printf("[WARN] SKU scaling cannot be validated due to Azure returning no information. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale.")
+		return true
 	}
 
-	validSku := false
-	for _, sku := range *skusForScaling.Model.Skus {
-		if *sku.Name == targetSkuName {
-			validSku = true
-			break
-		}
-	}
-	if !validSku {
-		return "", fmt.Errorf("%s is not valid for scaling from the current SKU and resource configuration", targetSkuName)
-	}
-	return "", nil
+	return slices.ContainsFunc(pointer.From(skusForScaling.Model.Skus), func(sku redisenterprise.SkuDetails) bool {
+		return pointer.From(sku.Name) == targetSkuName
+	})
 }
