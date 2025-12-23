@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -223,9 +223,10 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 		Name:     pointer.To(id.TrafficManagerProfileName),
 		Location: pointer.To("global"), // must be provided in request
 		Properties: &profiles.ProfileProperties{
-			TrafficRoutingMethod: &trafficRoutingMethod,
-			DnsConfig:            expandArmTrafficManagerDNSConfig(d),
-			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+			TrafficRoutingMethod:        &trafficRoutingMethod,
+			TrafficViewEnrollmentStatus: expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool)),
+			DnsConfig:                   expandArmTrafficManagerDNSConfig(d),
+			MonitorConfig:               expandArmTrafficManagerMonitorConfig(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -237,10 +238,6 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	if status, ok := d.GetOk("profile_status"); ok {
 		profileStatus := profiles.ProfileStatus(status.(string))
 		profile.Properties.ProfileStatus = &profileStatus
-	}
-
-	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-		profile.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -358,9 +355,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("traffic_view_enabled") {
-		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
-			update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
-		}
+		update.Properties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(d.Get("traffic_view_enabled").(bool))
 	}
 
 	if _, err := client.Update(ctx, *id, update); err != nil {
@@ -408,12 +403,12 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
-		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesInlined, 0)
+		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesItem, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
-			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
+			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesItem{
 				Min: pointer.To(int64(min)),
 				Max: pointer.To(int64(max)),
 			})
@@ -424,16 +419,16 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersInlined {
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersItem {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
 
-	customHeaders := make([]profiles.MonitorConfigCustomHeadersInlined, len(d))
+	customHeaders := make([]profiles.MonitorConfigCustomHeadersItem, len(d))
 
 	for i, v := range d {
 		ch := v.(map[string]interface{})
-		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
+		customHeaders[i] = profiles.MonitorConfigCustomHeadersItem{
 			Name:  pointer.To(ch["name"].(string)),
 			Value: pointer.To(ch["value"].(string)),
 		}
@@ -442,7 +437,7 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersInlined) []interface{} {
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
