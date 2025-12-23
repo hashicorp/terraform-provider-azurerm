@@ -50,8 +50,13 @@ func TestFlexibleServerDatabaseName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "Valid",
+			name:  "Invalid character: `-`",
 			input: "flexdb-1-test",
+			valid: false,
+		},
+		{
+			name:  "Valid",
+			input: "flexdb_1_test",
 			valid: true,
 		},
 	}
