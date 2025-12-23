@@ -61,6 +61,10 @@ The following arguments are supported:
 
 -> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
 
+* `infrastructure_encryption_settings` - (Optional) An `infrastructure_encryption_settings` block as defined below.
+
+~> **Note:** `infrastructure_encryption_settings` is used specifically to setup Backup Vault with [infrastructure encryption](https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal) and user-assigned managed identity. This block cannot be used in `azurerm_data_protection_backup_vault` which is referred by `azurerm_data_protection_backup_vault_customer_managed_key`. `terraform import` is not supported for this property.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 
 ---
@@ -70,6 +74,16 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Backup Vault.
+
+---
+
+An `infrastructure_encryption_settings` block supports the following:
+
+* `encryption_enabled` - (Required) Whether to enable [infrastructure encryption](https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal). Changing this forces a new resource to be created. To disable existing infrastructure encryption, set this to `false` instead of removing `infrastructure_encryption_settings` block.
+
+* `identity_id` - (Required) Specifies the User Assigned Managed Identity ID which has access permissions to the Key Vault.
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to encrypt the data in this Backup Vault.
 
 ## Attributes Reference
 
