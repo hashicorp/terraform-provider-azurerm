@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,7 +27,7 @@ import (
 )
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePointToSiteVPNGatewayCreate,
 		Read:   resourcePointToSiteVPNGatewayRead,
 		Update: resourcePointToSiteVPNGatewayUpdate,
@@ -154,9 +156,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							// NOTE: O+C Previous default value specified here does not match Azure default now. Instead of fixing default here which causes breaking change, O+C is used
-							Computed: true,
-							ForceNew: true,
+							Default:  true,
 						},
 					},
 				},
@@ -186,7 +186,15 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(pointToSiteVpnGatewayCustomizeDiff),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["connection_configuration"].Elem.(*pluginsdk.Resource).Schema["internet_security_enabled"].Default = false
+	}
+
+	return resource
 }
 
 func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -212,7 +220,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.P2SVpnGatewayProperties{
 			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference_internet_enabled").(bool)),
-			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}), d),
+			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{})),
 			VpnServerConfiguration: &virtualwans.SubResource{
 				Id: pointer.To(d.Get("vpn_server_configuration_id").(string)),
 			},
@@ -261,7 +269,7 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("connection_configuration") {
-		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}), d)
+		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}))
 	}
 
 	if d.HasChange("scale_unit") {
@@ -369,10 +377,10 @@ func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}, d *pluginsdk.ResourceData) *[]virtualwans.P2SConnectionConfiguration {
+func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]virtualwans.P2SConnectionConfiguration {
 	configurations := make([]virtualwans.P2SConnectionConfiguration, 0)
 
-	for i, v := range input {
+	for _, v := range input {
 		raw := v.(map[string]interface{})
 
 		addressPrefixes := make([]string, 0)
@@ -394,13 +402,10 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}, d *
 				VpnClientAddressPool: &virtualwans.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
+				EnableInternetSecurity: pointer.To(raw["internet_security_enabled"].(bool)),
 			},
 		})
-
-		if enableInternetSecurity, ok := d.GetOk(fmt.Sprintf("connection_configuration.%d.internet_security_enabled", i)); ok {
-			configurations[len(configurations)-1].Properties.EnableInternetSecurity = pointer.To(enableInternetSecurity.(bool))
-		}
 	}
 
 	return &configurations
@@ -468,7 +473,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
-		enableInternetSecurity := false
+		enableInternetSecurity := true
 		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
@@ -552,4 +557,20 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 			"labels": utils.FlattenStringSlice(input.Labels),
 		},
 	}
+}
+
+func pointToSiteVpnGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if rawConnectionConfigurations, ok := d.GetOk("connection_configuration"); ok {
+		var key string
+
+		for i := range rawConnectionConfigurations.([]interface{}) {
+			key = fmt.Sprintf("connection_configuration.%d.internet_security_enabled", i)
+
+			if d.HasChange(key) {
+				d.ForceNew(key)
+			}
+		}
+	}
+
+	return nil
 }
