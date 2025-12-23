@@ -76,6 +76,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "manageddevopspools" to "Managed DevOps Pools",
         "managedhsm" to "Managed HSM",
         "managedredis" to "Managed Redis",
         "managedidentity" to "ManagedIdentity",
