@@ -320,6 +320,10 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
+	if meta.(*clients.Client).Features.ManagedDisk.SkipAttachmentDestroy {
+		return nil
+	}
+
 	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
 
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
@@ -360,6 +364,14 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	virtualMachine.Model.Resources = nil
 	// fixes #24145
 	virtualMachine.Model.Properties.ApplicationProfile = nil
+
+	if meta.(*clients.Client).Features.ManagedDisk.StopVMBeforeDetaching {
+		options := virtualmachines.DefaultPowerOffOperationOptions()
+		options.SkipShutdown = pointer.To(false)
+		if err := client.PowerOffThenPoll(ctx, virtualMachineId, options); err != nil {
+			return fmt.Errorf("sending Power Off to %s: %+v", virtualMachineId, err)
+		}
+	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing %s from Virtual Machine %q : %+v", id, id.VirtualMachineName, err)
