@@ -237,6 +237,14 @@ A `security` block supports the following:
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
 
+* `backend_tls12_enabled` - (Optional) Should TLS 1.2 be enabled on the backend of the gateway? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls12` field
+
+* `backend_tls13_enabled` - (Optional) Should TLS 1.3 be enabled on the backend of the gateway? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls13` field
+
 * `frontend_ssl30_enabled` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
@@ -249,17 +257,41 @@ A `security` block supports the following:
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
 
+* `frontend_tls12_enabled` - (Optional) Should TLS 1.2 be enabled on the frontend of the gateway? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls12` field
+
+* `frontend_tls13_enabled` - (Optional) Should TLS 1.3 be enabled on the frontend of the gateway? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls13` field
+
+* `tls_ecdhe_ecdsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256` field
+
 * `tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` field
+
+* `tls_ecdhe_ecdsa_with_aes256_cbc_sha384_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384` cipher be enabled? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384` field
 
 * `tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
 
+* `tls_ecdhe_rsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256` field
+
 * `tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
+
+* `tls_ecdhe_rsa_with_aes256_cbc_sha384_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384` cipher be enabled? Defaults to `false`.
+
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384` field
 
 * `tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
