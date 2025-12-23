@@ -207,7 +207,7 @@ A `cluster_profile` block supports the following:
 
 * `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `managed_resource_group_name` - (Optional) The name of a Resource Group which will be created to host VMs of Azure Red Hat OpenShift Cluster. The value cannot contain uppercase characters. Defaults to `aro-{domain}`. Changing this forces a new resource to be created.
+* `managed_resource_group_name` - (Optional) The name of a Resource Group which will be created to host VMs of Azure Red Hat OpenShift Cluster. The value cannot contain uppercase characters. Changing this forces a new resource to be created.
 
 ---
 
@@ -219,7 +219,7 @@ A `network_profile` block supports the following:
 
 * `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `Loadbalancer`. Changing this forces a new resource to be created.
 
-* `preconfigured_network_security_group_enabled` - (Optional) Whether a preconfigured network security group is being used on the subnets.  Defaults to `false`.  Changing this forces a new resource to be created.
+* `preconfigured_network_security_group_enabled` - (Optional) Whether a preconfigured network security group is being used on the subnets. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 

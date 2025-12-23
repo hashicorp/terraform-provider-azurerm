@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlFirewallRule() *pluginsdk.Resource {
@@ -101,8 +101,8 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	parameters := firewallrules.FirewallRule{
 		Properties: &firewallrules.ServerFirewallRuleProperties{
-			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
-			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
+			StartIPAddress: pointer.To(d.Get("start_ip_address").(string)),
+			EndIPAddress:   pointer.To(d.Get("end_ip_address").(string)),
 		},
 	}
 

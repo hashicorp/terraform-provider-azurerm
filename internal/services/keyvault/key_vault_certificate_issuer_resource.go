@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -138,12 +139,12 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider:            utils.String(d.Get("provider_name").(string)),
+		Provider:            pointer.To(d.Get("provider_name").(string)),
 		OrganizationDetails: &keyvault.OrganizationDetails{},
 	}
 
 	if orgIdRaw, ok := d.GetOk("org_id"); ok {
-		parameter.OrganizationDetails.ID = utils.String(orgIdRaw.(string))
+		parameter.OrganizationDetails.ID = pointer.To(orgIdRaw.(string))
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
@@ -155,8 +156,8 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 
 	if gotAccountId && gotPassword {
 		parameter.Credentials = &keyvault.IssuerCredentials{
-			AccountID: utils.String(accountId.(string)),
-			Password:  utils.String(password.(string)),
+			AccountID: pointer.To(accountId.(string)),
+			Password:  pointer.To(password.(string)),
 		}
 	}
 
@@ -280,16 +281,16 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interfa
 		administratorDetails := keyvault.AdministratorDetails{}
 		args := v.(map[string]interface{})
 		if firstName, ok := args["first_name"]; ok {
-			administratorDetails.FirstName = utils.String(firstName.(string))
+			administratorDetails.FirstName = pointer.To(firstName.(string))
 		}
 		if lastName, ok := args["last_name"]; ok {
-			administratorDetails.LastName = utils.String(lastName.(string))
+			administratorDetails.LastName = pointer.To(lastName.(string))
 		}
 		if emailAddress, ok := args["email_address"]; ok {
-			administratorDetails.EmailAddress = utils.String(emailAddress.(string))
+			administratorDetails.EmailAddress = pointer.To(emailAddress.(string))
 		}
 		if phone, ok := args["phone"]; ok {
-			administratorDetails.Phone = utils.String(phone.(string))
+			administratorDetails.Phone = pointer.To(phone.(string))
 		}
 		results = append(results, administratorDetails)
 	}

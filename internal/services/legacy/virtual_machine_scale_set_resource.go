@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy
@@ -1680,7 +1680,7 @@ func expandVirtualMachineScaleSetSku(d *pluginsdk.ResourceData) *virtualmachines
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(config["name"].(string)),
-		Capacity: utils.Int64(int64(config["capacity"].(int))),
+		Capacity: pointer.To(int64(config["capacity"].(int))),
 	}
 
 	if tier, ok := config["tier"].(string); ok && tier != "" {

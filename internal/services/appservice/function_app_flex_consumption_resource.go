@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -257,7 +257,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      100,
-			ValidateFunc: validation.IntBetween(40, 1000),
+			ValidateFunc: validation.IntBetween(1, 1000),
 		},
 
 		"http_concurrency": {
