@@ -359,7 +359,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		id:     *id,
 	}
 	initialDelayDuration := 15 * time.Second
-	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	poller := pollers.NewPoller(&waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 	}
@@ -439,7 +439,7 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 	return results
 }
 
-var _ pollers.PollerType = waitForAADDiagnosticSettingToBeGonePoller{}
+var _ pollers.PollerType = &waitForAADDiagnosticSettingToBeGonePoller{}
 
 type waitForAADDiagnosticSettingToBeGonePoller struct {
 	client                    *diagnosticsettings.DiagnosticSettingsClient
@@ -447,7 +447,7 @@ type waitForAADDiagnosticSettingToBeGonePoller struct {
 	continuousTargetOccurence int
 }
 
-func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
@@ -488,7 +488,7 @@ func NewAadDiagnosticSettingCreatePoller(client *diagnosticsettings.DiagnosticSe
 	}
 }
 
-func (p aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
