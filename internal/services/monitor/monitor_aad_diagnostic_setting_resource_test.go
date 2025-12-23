@@ -6,12 +6,16 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,12 +53,45 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 	}
 }
 
+func deleteExistingAcctestAADDiagnosticSetting(t *testing.T) func() {
+	return func() {
+		clientManager, err := testclient.Build()
+		if err != nil {
+			t.Fatalf("building client: %+v", err)
+		}
+
+		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(30*time.Minute))
+		defer cancel()
+
+		client := clientManager.Monitor.AADDiagnosticSettingsClient
+		resp, err := client.List(ctx)
+		if err != nil {
+			t.Fatalf("list AAD Diagnostic Setting: %+v", err)
+		}
+
+		re := regexp.MustCompile("acctest-DS-[0-9]{18}")
+		if resp.Model != nil && resp.Model.Value != nil {
+			for _, v := range *resp.Model.Value {
+				if v.Name != nil && re.MatchString(*v.Name) {
+					resp, err := client.Delete(ctx, diagnosticsettings.NewDiagnosticSettingID(*v.Name))
+					if err != nil {
+						if !response.WasNotFound(resp.HttpResponse) {
+							t.Fatalf("deleting AAD Diagnostic Setting %s: %+v", *v.Name, err)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eventhubDefault(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.eventhubDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -68,7 +105,8 @@ func testAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eventhub(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -83,7 +121,8 @@ func testAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eventhub(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -101,7 +140,8 @@ func testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logAnalyticsWorkspace(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.logAnalyticsWorkspace(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -116,7 +156,8 @@ func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccount(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.storageAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -131,7 +172,8 @@ func testAccMonitorAADDiagnosticSetting_updateToEnabledLog(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccount(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.storageAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -167,7 +209,8 @@ func testAccMonitorAADDiagnosticSetting_updateEnabledLog(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.singleEnabledLog(data),
+			PreConfig: deleteExistingAcctestAADDiagnosticSetting(t),
+			Config:    r.singleEnabledLog(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
