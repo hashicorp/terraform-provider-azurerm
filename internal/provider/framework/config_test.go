@@ -289,7 +289,8 @@ func defaultFeaturesList() types.List {
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
 	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
-		"data_plane_available": basetypes.NewBoolNull(),
+		"data_plane_available":              basetypes.NewBoolNull(),
+		"data_plane_auth_any_scope_enabled": basetypes.NewBoolNull(),
 	})
 	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
 
