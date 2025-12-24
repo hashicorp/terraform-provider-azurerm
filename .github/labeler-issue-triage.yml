@@ -77,6 +77,9 @@ service/communication:
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
 
+service/confluent:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_confluent_((.|\n)*)###'
+
 service/consumption:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_consumption_budget_((.|\n)*)###'
 
