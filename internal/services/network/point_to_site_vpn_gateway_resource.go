@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,7 +27,7 @@ import (
 )
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePointToSiteVPNGatewayCreate,
 		Read:   resourcePointToSiteVPNGatewayRead,
 		Update: resourcePointToSiteVPNGatewayUpdate,
@@ -154,8 +156,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ForceNew: true,
-							Default:  false,
+							Default:  true,
 						},
 					},
 				},
@@ -185,7 +186,15 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(pointToSiteVpnGatewayCustomizeDiff),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["connection_configuration"].Elem.(*pluginsdk.Resource).Schema["internet_security_enabled"].Default = false
+	}
+
+	return resource
 }
 
 func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -464,7 +473,12 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
-		enableInternetSecurity := false
+		enableInternetSecurity := true
+
+		if !features.FivePointOh() {
+			enableInternetSecurity = false
+		}
+
 		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
@@ -548,4 +562,20 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 			"labels": utils.FlattenStringSlice(input.Labels),
 		},
 	}
+}
+
+func pointToSiteVpnGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if rawConnectionConfigurations, ok := d.GetOk("connection_configuration"); ok {
+		var key string
+
+		for i := range rawConnectionConfigurations.([]interface{}) {
+			key = fmt.Sprintf("connection_configuration.%d.internet_security_enabled", i)
+
+			if d.HasChange(key) {
+				d.ForceNew(key)
+			}
+		}
+	}
+
+	return nil
 }
