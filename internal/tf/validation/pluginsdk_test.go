@@ -9,6 +9,55 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+func TestIsURLWithHTTPorHTTPSOrEmpty(t *testing.T) {
+	cases := map[string]struct {
+		Value                  interface{}
+		ExpectValidationErrors bool
+	}{
+		"accept empty string": {
+			Value:                  "",
+			ExpectValidationErrors: false,
+		},
+		"accept valid https URL": {
+			Value:                  "https://index.docker.io",
+			ExpectValidationErrors: false,
+		},
+		"accept valid http URL": {
+			Value:                  "http://myregistry.example.com",
+			ExpectValidationErrors: false,
+		},
+		"accept hostname without protocol": {
+			Value:                  "index.docker.io",
+			ExpectValidationErrors: false,
+		},
+		"accept hostname with path without protocol": {
+			Value:                  "index.docker.io/v1",
+			ExpectValidationErrors: false,
+		},
+		"accept private registry hostname": {
+			Value:                  "myregistry.azurecr.io",
+			ExpectValidationErrors: false,
+		},
+		"accept https URL with path": {
+			Value:                  "https://index.docker.io/v1",
+			ExpectValidationErrors: false,
+		},
+		"reject non-string value": {
+			Value:                  123,
+			ExpectValidationErrors: true,
+		},
+	}
+
+	for tn, tc := range cases {
+		_, errors := IsURLWithHTTPorHTTPSOrEmpty(tc.Value, tn)
+		if len(errors) > 0 && !tc.ExpectValidationErrors {
+			t.Errorf("%s: unexpected errors %s", tn, errors)
+		} else if len(errors) == 0 && tc.ExpectValidationErrors {
+			t.Errorf("%s: expected errors but got none", tn)
+		}
+	}
+}
+
 func TestValidateFloatInSlice(t *testing.T) {
 	cases := map[string]struct {
 		Value                  interface{}
