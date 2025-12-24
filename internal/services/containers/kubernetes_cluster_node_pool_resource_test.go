@@ -381,7 +381,8 @@ func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	r := KubernetesClusterNodePoolResource{}
 	taints1 := []string{"key=value:NoSchedule"}
 	taints2 := []string{"key=value:NoSchedule", "key2=value2:NoSchedule"}
-	taints3 := []string{}
+	taints3 := []string{"key=value:NoSchedule", "key2=value2:NoSchedule", "key3=:NoSchedule"}
+	taints4 := []string{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -401,6 +402,15 @@ func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 		},
 		{
 			Config: r.nodeTaintsConfig(data, taints3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("3"),
+				check.That(data.ResourceName).Key("node_taints.0").HasValue("key=value:NoSchedule"),
+				check.That(data.ResourceName).Key("node_taints.1").HasValue("key2=value2:NoSchedule"),
+				check.That(data.ResourceName).Key("node_taints.2").HasValue("key3=:NoSchedule"),
+			),
+		},
+		{
+			Config: r.nodeTaintsConfig(data, taints4),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("node_taints.#").HasValue("0"),
 			),
