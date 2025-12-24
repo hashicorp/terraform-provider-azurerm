@@ -236,6 +236,8 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
 
+* `certificate_chain_validation_enabled` - (Optional) Whether to validate the certificate chain and expiry on the backend HTTPS servers. Defaults to `true`.
+
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
 * `dedicated_backend_connection_enabled` - (Optional) Whether to use a dedicated backend connection. Defaults to `false`.
@@ -249,6 +251,10 @@ A `backend_http_settings` block supports the following:
 * `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+
+* `sni_name` - (Optional) The Server Name Indication (SNI) hostname to send to the backend servers. Can only be set when `sni_validation_enabled` is set to `true`.
+
+* `sni_validation_enabled` - (Optional) Whether to enable Server Name Indication (SNI) validation on the backend HTTPS servers. Defaults to `true`.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
