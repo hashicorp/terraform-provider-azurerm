@@ -211,6 +211,8 @@ The following arguments are supported:
 
 * `cool_access` - (Optional) A `cool_access` block as defined below.
 
+* `unix_permissions` - (Optional) The unix permissions for an NFS volume are accepted in a four-digit octal format. The first digit selects the set user ID (4), set group ID (2), and sticky bit (1) attributes. The second digit selects the permissions for the owner of the file: read (4), write (2), and execute (1). The third digit selects the permissions for users in the same group. The fourth digit selects the permissions for users not in the group. Defaults to `0770`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 -> **Note:** It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.
