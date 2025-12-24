@@ -112,6 +112,8 @@ The following arguments are supported:
 
 ~> **Note:** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schedule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
 
+* `runtime_environment_name` - (Optional) The environment of the runbook.
+
 ---
 
 The `publish_content_link` block supports the following:

@@ -276,6 +276,12 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"runtime_environment_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -322,6 +328,11 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 			Location: &location,
 		}
+
+		if v, ok := d.GetOk("runtime_environment_name"); ok {
+			parameters.Properties.RuntimeEnvironment = pointer.To(v.(string))
+		}
+
 		if tagsVal := expandStringInterfaceMap(t); tagsVal != nil {
 			parameters.Tags = &tagsVal
 		}
@@ -406,6 +417,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
+		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
 	}
