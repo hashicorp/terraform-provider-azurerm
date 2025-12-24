@@ -30,6 +30,8 @@ The following arguments are supported:
 
 * `storage_container_name` - The name of the Storage Container where the Blob exists.
 
+* `is_content_sensitive` - Whether the (human readable) content of this blob will be populated to `content` or `sensitive_content` (when set to `true`)? Defaults to `false`.
+
 ## Attributes Reference
 
 * `id` - The ID of the storage blob.
@@ -39,6 +41,13 @@ The following arguments are supported:
 * `type` - The type of the storage blob
 
 * `access_tier` - The access tier of the storage blob.
+
+* `content` - The content stored in the storage blob.
+
+* `sensitive_content` - The sensitive content stored in the storage blob.
+
+
+~> **Note:** `content`/`sensitive_content` is only populated when the `content_type` is one of `text/*`, `application/{json | ld+json | x-httpd-php | xhtml+xml | x-csh | x-sh | xml | atom+xml | x-sql | yaml}`.
 
 * `content_type` - The content type of the storage blob.
 

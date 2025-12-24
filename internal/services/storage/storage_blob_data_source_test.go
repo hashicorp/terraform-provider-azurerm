@@ -40,6 +40,26 @@ func TestAccDataSourceStorageBlob_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageBlob_humanReadableContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_blob", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageBlobDataSource{}.humanReadableContent(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("content").HasValue("hello"),
+				check.That(data.ResourceName).Key("sensitive_content").HasValue(""),
+			),
+		},
+		{
+			Config: StorageBlobDataSource{}.humanReadableContent(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("content").HasValue(""),
+				check.That(data.ResourceName).Key("sensitive_content").HasValue("hello"),
+			),
+		},
+	})
+}
+
 func (d StorageBlobDataSource) basic(data acceptance.TestData, fileName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -99,4 +119,48 @@ data "azurerm_storage_blob" "test" {
   storage_container_name = azurerm_storage_blob.test.storage_container_name
 }
 `, config)
+}
+
+func (d StorageBlobDataSource) humanReadableContent(data acceptance.TestData, isSensitive bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "blobdstest-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsadsc%[1]s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "containerdstest-%[1]s"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "hello"
+  content_type           = "text/plain"
+}
+
+data "azurerm_storage_blob" "test" {
+  name                   = azurerm_storage_blob.test.name
+  storage_account_name   = azurerm_storage_blob.test.storage_account_name
+  storage_container_name = azurerm_storage_blob.test.storage_container_name
+  is_content_sensitive   = %[3]t
+}
+`, data.RandomString, data.Locations.Primary, isSensitive)
 }
