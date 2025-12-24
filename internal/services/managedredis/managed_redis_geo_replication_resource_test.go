@@ -22,7 +22,7 @@ const defaultDatabaseName = "default"
 
 type ManagedRedisGeoReplicationResource struct{}
 
-func TestAccManagedRedisDatabaseGeoReplication_basic(t *testing.T) {
+func TestAccManagedRedisGeoReplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
 	r := ManagedRedisGeoReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -36,7 +36,7 @@ func TestAccManagedRedisDatabaseGeoReplication_basic(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
+func TestAccManagedRedisGeoReplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
 	r := ManagedRedisGeoReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,7 +59,7 @@ func TestAccManagedRedisDatabaseGeoReplication_update(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisDatabaseGeoReplication_linkedManagedRedisIdsCannotContainSelf(t *testing.T) {
+func TestAccManagedRedisGeoReplication_linkedManagedRedisIdsCannotContainSelf(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
 	r := ManagedRedisGeoReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
