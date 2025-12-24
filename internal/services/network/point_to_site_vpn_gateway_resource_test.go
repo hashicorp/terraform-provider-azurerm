@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-  "github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -104,7 +104,7 @@ func TestAccPointToSiteVPNGateway_update(t *testing.T) {
 }
 
 func TestAccPointToSiteVPNGateway_enableInternetSecurity(t *testing.T) {
-  if features.FivePointOh() {
+	if features.FivePointOh() {
 		t.Skip("Skipping since `internet_security_enabled` property default is `true` in 5.0")
 	}
 
