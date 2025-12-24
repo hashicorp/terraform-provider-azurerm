@@ -12,7 +12,7 @@ type ForceUnlinkInvocation struct {
 // The API has to be called on the database that's currently in the GR group (intermediateIds).
 //
 // Given an input intermediateIds: ['a', 'b'] and idsToUnlink: ['c', 'd'], following is the sequence of API invocations that should be made:
-//   - POST /databases/a/forceUnlink with ids: ['c'] (POST /databases/{id} cannot be called against itself)
+//   - POST /databases/a/forceUnlink with ids: ['c'] (POST /databases/{id}/forceUnlink cannot be called against itself)
 //   - POST /databases/a/forceUnlink with ids: ['d']
 //
 // This function returns a slice of invocation parameters that will be passed as API parameters

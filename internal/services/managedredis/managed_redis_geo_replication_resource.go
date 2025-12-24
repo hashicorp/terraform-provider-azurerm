@@ -254,22 +254,22 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesClient, model ManagedRedisGeoReplicationResourceModel, clusterId *redisenterprise.RedisEnterpriseId) error {
-	id := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
+	primaryId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.Get(ctx, primaryId)
 	if err != nil {
 		return err
 	}
 
 	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+		return fmt.Errorf("retrieving %s: `properties` was nil", primaryId)
 	}
 	if existing.Model.Properties.GeoReplication == nil {
-		return fmt.Errorf("geo_replication_group_name has to be set on database %s", id)
+		return fmt.Errorf("geo_replication_group_name has to be set on database %s", primaryId)
 	}
 
 	fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
-	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, id)
+	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, primaryId)
 	if err != nil {
 		return err
 	}
@@ -308,12 +308,14 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 		if err != nil {
 			return fmt.Errorf("force link %s: %+v", *id, err)
 		}
-	}
 
-	pollerType := custompollers.NewGeoReplicationPoller(client, id, toDbIds)
-	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent for %s: %+v", id, err)
+		// Workaround for race-condition bug after force-linking
+		// The API bug will be fixed in https://msazure.visualstudio.com/RedisCache/_workitems/edit/36267535
+		pollerType := custompollers.NewGeoReplicationPoller(client, primaryId, inv.LinkedDatabaseIds)
+		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent for %s: %+v", primaryId, err)
+		}
 	}
 
 	return nil
