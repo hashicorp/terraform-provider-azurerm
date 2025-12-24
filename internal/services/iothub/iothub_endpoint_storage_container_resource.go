@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -221,20 +221,20 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 
 	if authenticationType == devices.AuthenticationTypeKeyBased {
 		if v, ok := d.GetOk("connection_string"); ok {
-			storageContainerEndpoint.ConnectionString = utils.String(v.(string))
+			storageContainerEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
-			storageContainerEndpoint.EndpointURI = utils.String(v.(string))
+			storageContainerEndpoint.EndpointURI = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {
 			storageContainerEndpoint.Identity = &devices.ManagedIdentity{
-				UserAssignedIdentity: utils.String(v.(string)),
+				UserAssignedIdentity: pointer.To(v.(string)),
 			}
 		}
 	}
