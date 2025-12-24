@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
@@ -24,18 +23,6 @@ type clusterStatePoller struct {
 	client RedisEnterpriseClientInterface
 	id     redisenterprise.RedisEnterpriseId
 }
-
-var (
-	pollingSuccess = pollers.PollResult{
-		PollInterval: 15 * time.Second,
-		Status:       pollers.PollingStatusSucceeded,
-	}
-	pollingInProgress = pollers.PollResult{
-		HttpResponse: nil,
-		PollInterval: 15 * time.Second,
-		Status:       pollers.PollingStatusInProgress,
-	}
-)
 
 // Poll for cluster properties "resourceState" == "Running" as the LRO only polls for "provisioningState" and can
 // complete prematurely
