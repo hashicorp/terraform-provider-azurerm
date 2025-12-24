@@ -29,6 +29,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		ManagementGroupAssignmentResource{},
+		ManagementGroupPolicyDefinitionResource{},
 		ManagementGroupPolicySetDefinitionResource{},
 		ResourceAssignmentResource{},
 		ResourceGroupAssignmentResource{},
@@ -36,6 +37,7 @@ func (r Registration) Resources() []sdk.Resource {
 	}
 
 	if features.FivePointOh() {
+		resources = append(resources, PolicyDefinitionResource{})
 		resources = append(resources, PolicySetDefinitionResource{})
 	}
 
@@ -67,7 +69,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	resources := map[string]*pluginsdk.Resource{
-		"azurerm_policy_definition":                               resourceArmPolicyDefinition(),
 		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
 		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
 		"azurerm_management_group_policy_exemption":               resourceArmManagementGroupPolicyExemption(),
@@ -80,7 +81,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		// When this is removed post 5.0, the untyped resource functions for `azurerm_policy_set_definition` should also be cleaned up
+		// When these are removed post 5.0, the untyped resource functions for `azurerm_policy_definition` and `azurerm_policy_set_definition` should also be cleaned up
+		resources["azurerm_policy_definition"] = resourceArmPolicyDefinition()
 		resources["azurerm_policy_set_definition"] = resourceArmPolicySetDefinition()
 	}
 
