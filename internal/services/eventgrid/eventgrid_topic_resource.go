@@ -390,6 +390,12 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("minimum_tls_version", *props.MinimumTlsVersionAllowed)
 			d.Set("data_residency_boundary", *props.DataResidencyBoundary)
 
+			minimumTlsVersion := topics.TlsVersionOnePointTwo
+			if props.MinimumTlsVersionAllowed != nil {
+				minimumTlsVersion = *props.MinimumTlsVersionAllowed
+			}
+			d.Set("minimum_tls_version", minimumTlsVersion)
+
 			inboundIPRules := flattenTopicInboundIPRules(props.InboundIPRules)
 			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
