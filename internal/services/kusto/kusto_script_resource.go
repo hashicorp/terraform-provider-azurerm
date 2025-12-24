@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/scripts"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoDatabaseScript() *pluginsdk.Resource {
@@ -135,21 +135,21 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := scripts.Script{
 		Properties: &scripts.ScriptProperties{
-			ContinueOnErrors: utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
-			ForceUpdateTag:   utils.String(forceUpdateTag),
+			ContinueOnErrors: pointer.To(d.Get("continue_on_errors_enabled").(bool)),
+			ForceUpdateTag:   pointer.To(forceUpdateTag),
 		},
 	}
 
 	if scriptURL, ok := d.GetOk("url"); ok {
-		parameters.Properties.ScriptURL = utils.String(scriptURL.(string))
+		parameters.Properties.ScriptURL = pointer.To(scriptURL.(string))
 	}
 
 	if scriptURLSasToken, ok := d.GetOk("sas_token"); ok {
-		parameters.Properties.ScriptURLSasToken = utils.String(scriptURLSasToken.(string))
+		parameters.Properties.ScriptURLSasToken = pointer.To(scriptURLSasToken.(string))
 	}
 
 	if scriptContent, ok := d.GetOk("script_content"); ok {
-		parameters.Properties.ScriptContent = utils.String(scriptContent.(string))
+		parameters.Properties.ScriptContent = pointer.To(scriptContent.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {

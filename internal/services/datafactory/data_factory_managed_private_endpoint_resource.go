@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
@@ -138,12 +139,12 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	payload := managedprivateendpoints.ManagedPrivateEndpointResource{
 		Properties: managedprivateendpoints.ManagedPrivateEndpoint{
-			PrivateLinkResourceId: utils.String(targetResourceId),
+			PrivateLinkResourceId: pointer.To(targetResourceId),
 		},
 	}
 
 	if len(subResourceName) > 0 {
-		payload.Properties.GroupId = utils.String(subResourceName)
+		payload.Properties.GroupId = pointer.To(subResourceName)
 	}
 
 	if len(fqdns) > 0 {

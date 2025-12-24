@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -579,8 +579,8 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 
 	for _, v := range input {
 		h := webtests.HeaderField{
-			Key:   utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Key:   pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		}
 		headers = append(headers, h)
 	}
