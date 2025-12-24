@@ -4920,6 +4920,15 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
 			buf.WriteString(fmt.Sprintf("%s", trustedRootCertificateNames.([]interface{})))
 		}
+		if v, ok := m["validate_cert_chain_and_expiry"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["validate_sni"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["sni_name"]; ok {
+			buf.WriteString(v.(string))
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
