@@ -76,7 +76,9 @@ The following arguments are supported:
 
 * `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account.
 
--> **Note:** The `storage_account_container_names` should be specified in the vaulted backup policy/operational and vaulted hybrid backup policy. Removing the `storage_account_container_names` will force a new resource to be created since it can't be removed once specified.
+-> **Note:** If the `azurerm_data_protection_backup_policy_blob_storage` referenced by `backup_policy_id` is vaulted or hybrid (e.g., it has `vault_default_retention_duration` set) then `storage_account_container_names` is required.
+
+-> **Note:** Removing `storage_account_container_names` will force a new resource to be created since it can't be removed once specified.
 
 ## Attributes Reference
 
