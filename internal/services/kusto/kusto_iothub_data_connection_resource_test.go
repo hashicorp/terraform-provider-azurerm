@@ -107,6 +107,7 @@ resource "azurerm_kusto_iothub_data_connection" "test" {
   mapping_rule_name         = "Json_Mapping"
   data_format               = "MULTIJSON"
   database_routing_type     = "Multi"
+  retrieval_start_date      = "2023-06-26T12:00:00Z"
 }
 `, r.template(data), data.RandomInteger)
 }

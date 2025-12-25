@@ -132,6 +132,13 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
+
+			"retrieval_start_date": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
 		},
 	}
 }
@@ -217,6 +224,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 				d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
+				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 			}
 		}
 	}
@@ -264,6 +272,10 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
 		iotHubDataConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+	}
+
+	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {
+		iotHubDataConnectionProperties.RetrievalStartDate = pointer.To(retrievalStartDate.(string))
 	}
 
 	return iotHubDataConnectionProperties
