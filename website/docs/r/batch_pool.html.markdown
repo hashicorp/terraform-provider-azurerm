@@ -165,6 +165,8 @@ The following arguments are supported:
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
+* `os_disk_size_gb` - (Optional) Specifies the size of the operating system disk in GB. This property can be used to specify the size of the disk in a Virtual Machine Image or the OS Disk managed by the Batch service. If not specified, the default is the default size of the VM image's OS disk. Changing this forces a new resource to be created.
+
 * `security_profile` - (Optional) A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
 
 * `target_node_communication_mode` - (Optional) The desired node communication mode for the pool. Possible values are `Classic`, `Default` and `Simplified`.
