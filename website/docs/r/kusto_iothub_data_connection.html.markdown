@@ -76,9 +76,10 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
   shared_access_policy_name = azurerm_iothub_shared_access_policy.example.name
   event_system_properties   = ["message-id", "sequence-number", "to"]
 
-  table_name        = "my-table"
-  mapping_rule_name = "my-table-mapping"
-  data_format       = "JSON"
+  table_name           = "my-table"
+  mapping_rule_name    = "my-table-mapping"
+  data_format          = "JSON"
+  retrieval_start_date = "2023-06-26T12:00:00Z"
 }
 ```
 
@@ -111,6 +112,8 @@ The following arguments are supported:
 * `data_format` - (Optional) Specifies the data format of the IoTHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV`, `TSVE`, `TXT` and `W3CLOGFILE`. Changing this forces a new resource to be created.
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
+
+* `retrieval_start_date` - (Optional) Specifies the date after which data should be retrieved from IoT Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the IoT Hub, based on its retention period. The value should be in RFC3339 format (e.g., `2023-06-26T12:00:00Z`). Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
