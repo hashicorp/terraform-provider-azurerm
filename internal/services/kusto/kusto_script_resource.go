@@ -109,6 +109,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 			"principal_permissions_action": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Default:      string(scripts.PrincipalPermissionsActionRetainPermissionOnScriptCompletion),
 				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForPrincipalPermissionsAction(), false),
 			},
 		},
