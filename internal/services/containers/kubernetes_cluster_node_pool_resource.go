@@ -1227,7 +1227,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
 
-		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile, d.Get("windows_profile").([]interface{}))); err != nil {
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
@@ -1777,8 +1777,13 @@ func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWin
 	}
 }
 
-func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile, config []interface{}) []interface{} {
 	if input == nil || input.DisableOutboundNat == nil {
+		return []interface{}{}
+	}
+
+	// If API returns default value and user didn't set it, omit from state
+	if *input.DisableOutboundNat == false && (len(config) == 0 || config[0] == nil) {
 		return []interface{}{}
 	}
 
