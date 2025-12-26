@@ -309,11 +309,11 @@ func (r ExpressRouteCircuitConnectionResource) writeOnlyAuthorizationKey(data ac
 %s
 
 resource "azurerm_express_route_circuit_connection" "test" {
-  name                = "acctest-ExpressRouteCircuitConn-%d"
-  peering_id          = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = "192.169.8.0/29"
-  authorization_key_wo   = ephemeral.azurerm_key_vault_secret.test.value
+  name                         = "acctest-ExpressRouteCircuitConn-%d"
+  peering_id                   = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id              = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4          = "192.169.8.0/29"
+  authorization_key_wo         = ephemeral.azurerm_key_vault_secret.test.value
   authorization_key_wo_version = %d
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)

@@ -764,20 +764,20 @@ resource "azurerm_resource_group" "test" {
 %s
 
 resource "azurerm_express_route_circuit" "test" {
-  name                  = "acctest-erc-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
-  bandwidth_in_mbps     = 50
-  authorization_key_wo   = ephemeral.azurerm_key_vault_secret.test.value
+  name                         = "acctest-erc-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  service_provider_name        = "Equinix"
+  peering_location             = "Silicon Valley"
+  bandwidth_in_mbps            = 50
+  authorization_key_wo         = ephemeral.azurerm_key_vault_secret.test.value
   authorization_key_wo_version = %d
 
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
-  
+
   allow_classic_operations = false
 
   tags = {

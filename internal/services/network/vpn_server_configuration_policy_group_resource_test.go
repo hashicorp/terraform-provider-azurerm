@@ -257,9 +257,9 @@ resource "azurerm_vpn_server_configuration" "test" {
   }
 
   lifecycle {
-	ignore_changes = [
-	  "radius[0].server[0].secret"
-	]
+    ignore_changes = [
+      "radius[0].server[0].secret"
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
