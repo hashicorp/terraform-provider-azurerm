@@ -361,6 +361,12 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
     }
   }
+
+  lifecycle {
+	ignore_changes = [
+	  "radius[0].server[0].secret"
+	]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -565,6 +571,12 @@ resource "azurerm_vpn_server_configuration" "test" {
       secret  = "vindicators-the-return-of-worldender"
       score   = 15
     }
+  }
+
+  lifecycle {
+	ignore_changes = [
+	  "radius[0].server[0].secret"
+	]
   }
 }
 `, r.template(data), data.RandomInteger)

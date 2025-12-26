@@ -10,9 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitconnections"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -106,6 +110,59 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 	})
 }
 
+func TestAccExpressRouteCircuitConnection_writeOnlyAuthorizationKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
+	r := ExpressRouteCircuitConnectionResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key_wo_version"),
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "946a1918-b7a2-4917-b43c-8c4cdaee006a", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key_wo_version"),
+		},
+	})
+}
+
+func TestAccExpressRouteCircuitConnection_updateToWriteOnlyAuthorizationKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
+	r := ExpressRouteCircuitConnectionResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.complete(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a"),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key"),
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key_wo_version"),
+			{
+				Config: r.complete(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a"),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key"),
+		},
+	})
+}
+
 func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := expressroutecircuitconnections.ParsePeeringConnectionID(state.ID)
 	if err != nil {
@@ -156,6 +213,12 @@ resource "azurerm_express_route_circuit_connection" "test" {
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "%s"
+
+  lifecycle {
+    ignore_changes = [
+      "authorization_key"
+    ]
+  }
 }
 `, r.template(data), data.RandomInteger, authorizationKey)
 }
@@ -237,4 +300,21 @@ resource "azurerm_express_route_circuit_peering" "peer_test" {
   vlan_id                       = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ExpressRouteCircuitConnectionResource) writeOnlyAuthorizationKey(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_express_route_circuit_connection" "test" {
+  name                = "acctest-ExpressRouteCircuitConn-%d"
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = "192.169.8.0/29"
+  authorization_key_wo   = ephemeral.azurerm_key_vault_secret.test.value
+  authorization_key_wo_version = %d
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }

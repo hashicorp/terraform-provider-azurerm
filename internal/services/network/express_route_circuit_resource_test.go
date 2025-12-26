@@ -10,9 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -337,6 +341,59 @@ func testAccExpressRouteCircuit_updateExpressRoutePort(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccExpressRouteCircuit_writeOnlyAuthorizationKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "b0be57f5-1fba-463b-adec-ffe767354cdd", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key_wo_version"),
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "946a1918-b7a2-4917-b43c-8c4cdaee006a", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key_wo_version"),
+		},
+	})
+}
+
+func TestAccExpressRouteCircuit_updateToWriteOnlyAuthorizationKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.authorizationKey(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key"),
+			{
+				Config: r.writeOnlyAuthorizationKey(data, "b0be57f5-1fba-463b-adec-ffe767354cdd", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key", "authorization_key_wo_version"),
+			{
+				Config: r.authorizationKey(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("authorization_key"),
+		},
 	})
 }
 
@@ -691,4 +748,42 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ExpressRouteCircuitResource) writeOnlyAuthorizationKey(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+%s
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+  authorization_key_wo   = ephemeral.azurerm_key_vault_secret.test.value
+  authorization_key_wo_version = %d
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+  
+  allow_classic_operations = false
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }

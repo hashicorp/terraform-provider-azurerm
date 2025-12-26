@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -76,6 +77,20 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"authorization_key_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				RequiredWith:  []string{"authorization_key_wo_version"},
+				ConflictsWith: []string{"authorization_key"},
+			},
+
+			"authorization_key_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"authorization_key_wo"},
+			},
+
 			"address_prefix_ipv6": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -129,6 +144,12 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("authorization_key"); ok {
 		expressRouteCircuitConnectionParameters.Properties.AuthorizationKey = pointer.To(v.(string))
+	}
+
+	if authorizationKeyWo, err := pluginsdk.GetWriteOnly(d, "authorization_key_wo", cty.String); err != nil {
+		return err
+	} else if !authorizationKeyWo.IsNull() {
+		expressRouteCircuitConnectionParameters.Properties.AuthorizationKey = pointer.To(authorizationKeyWo.AsString())
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
@@ -191,6 +212,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 				authorizationKey = *props.AuthorizationKey
 			}
 			d.Set("authorization_key", authorizationKey)
+			d.Set("authorization_key_wo_version", d.Get("authorization_key_wo_version"))
 
 			addressPrefixIPv6 := ""
 			if props.IPv6CircuitConnectionConfig != nil && props.IPv6CircuitConnectionConfig.AddressPrefix != nil {
@@ -247,6 +269,14 @@ func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("authorization_key"); ok {
 		expressRouteCircuitConnectionParameters.Properties.AuthorizationKey = pointer.To(v.(string))
+	}
+
+	if d.HasChange("authorization_key_wo_version") {
+		if authorizationKeyWo, err := pluginsdk.GetWriteOnly(d, "authorization_key", cty.String); err != nil {
+			return err
+		} else if !authorizationKeyWo.IsNull() {
+			expressRouteCircuitConnectionParameters.Properties.AuthorizationKey = pointer.To(authorizationKeyWo.AsString())
+		}
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
