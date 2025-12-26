@@ -5,6 +5,7 @@ package compute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -258,6 +259,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			// NOTE: single_placement_group is now supported in orchestrated VMSS
 			// Since null is now a valid value for this field there is no default
 			// for this bool
@@ -322,6 +329,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
@@ -689,8 +702,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.Priority = pointer.To(virtualmachinescalesets.VirtualMachinePriorityTypes(v.(string)))
 	}
 
+	securityEncryptionType := ""
 	if v, ok := d.GetOk("os_disk"); ok {
-		virtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
+		virtualMachineProfile.StorageProfile.OsDisk, err = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
+		if err != nil {
+			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
+		securityEncryptionType = v.([]interface{})[0].(map[string]interface{})["security_encryption_type"].(string)
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -727,8 +746,62 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
-			EncryptionAtHost: pointer.To(v.(bool)),
+		if v.(bool) {
+			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
+				return errors.New("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+		}
+
+		virtualMachineProfile.SecurityProfile.EncryptionAtHost = pointer.To(v.(bool))
+	}
+
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+
+	if securityEncryptionType != "" {
+		if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+			return errors.New("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		if !vtpmEnabled {
+			return errors.New("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		}
+
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+		}
+		virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesConfidentialVM)
+
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+		}
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
+	} else {
+		if secureBootEnabled {
+			if virtualMachineProfile.SecurityProfile == nil {
+				virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+			}
+
+			if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+				virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+			}
+			virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+			virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
+		}
+
+		if vtpmEnabled {
+			if virtualMachineProfile.SecurityProfile == nil {
+				virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+			}
+			if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+				virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+			}
+			virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+			virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
 		}
 	}
 
@@ -1123,9 +1196,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 
 		if d.HasChange("encryption_at_host_enabled") {
-			updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
-				EncryptionAtHost: pointer.To(d.Get("encryption_at_host_enabled").(bool)),
+			if d.Get("encryption_at_host_enabled").(bool) {
+				if v, ok := d.GetOk("os_disk"); ok {
+					securityEncryptionType := v.([]interface{})[0].(map[string]interface{})["security_encryption_type"].(string)
+					if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
+						return errors.New("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+					}
+				}
 			}
+
+			if updateProps.VirtualMachineProfile.SecurityProfile == nil {
+				updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+			}
+
+			updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = pointer.To(d.Get("encryption_at_host_enabled").(bool))
 		}
 
 		if d.HasChange("license_type") {
@@ -1474,10 +1558,27 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
 				encryptionAtHostEnabled := false
-				if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+				vtpmEnabled := false
+				secureBootEnabled := false
+
+				if securityProfile := profile.SecurityProfile; securityProfile != nil {
+					if securityProfile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *securityProfile.EncryptionAtHost
+					}
+
+					if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
+					}
 				}
+
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
