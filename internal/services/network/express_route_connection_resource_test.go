@@ -158,6 +158,12 @@ resource "azurerm_express_route_connection" "test" {
       route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      "authorization_key"
+    ]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -233,6 +239,12 @@ resource "azurerm_express_route_connection" "test" {
     outbound_route_map_id = azurerm_route_map.routemap2.id
   }
   depends_on = [azurerm_route_map.routemap1, azurerm_route_map.routemap2]
+
+  lifecycle {
+    ignore_changes = [
+      "authorization_key"
+    ]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
