@@ -1783,7 +1783,7 @@ func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile, c
 	}
 
 	// If API returns default value and user didn't set it, omit from state
-	if *input.DisableOutboundNat == false && (len(config) == 0 || config[0] == nil) {
+	if !*input.DisableOutboundNat && (len(config) == 0 || config[0] == nil) {
 		return []interface{}{}
 	}
 
