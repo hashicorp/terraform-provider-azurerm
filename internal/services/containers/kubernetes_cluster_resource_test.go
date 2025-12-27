@@ -915,7 +915,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
 
-  automatic_cluster_enabled        = %t
+  automatic_cluster_enabled = %t
 
   default_node_pool {
     name       = "default"
