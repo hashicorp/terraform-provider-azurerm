@@ -442,8 +442,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
 
-			d.Set("data_residency_boundary", *props.DataResidencyBoundary)
-			d.Set("minimum_tls_version", *props.MinimumTlsVersionAllowed)
+			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
+			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
 
 			autoDeleteTopicWithLastSubscription := true
 			if props.AutoDeleteTopicWithLastSubscription != nil {

@@ -387,8 +387,8 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 				publicNetworkAccessEnabled = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-			d.Set("minimum_tls_version", *props.MinimumTlsVersionAllowed)
-			d.Set("data_residency_boundary", *props.DataResidencyBoundary)
+			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
+			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
 
 			minimumTlsVersion := topics.TlsVersionOnePointTwo
 			if props.MinimumTlsVersionAllowed != nil {
