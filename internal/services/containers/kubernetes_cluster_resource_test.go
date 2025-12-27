@@ -160,6 +160,28 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_automaticClusterToggle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.automaticCluster(data, currentKubernetesVersion, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("automatic_cluster_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.automaticCluster(data, currentKubernetesVersion, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("automatic_cluster_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -858,6 +880,42 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   image_cleaner_enabled        = %t
   image_cleaner_interval_hours = 96
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
+}
+
+func (KubernetesClusterResource) automaticCluster(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  automatic_cluster_enabled        = %t
 
   default_node_pool {
     name       = "default"
