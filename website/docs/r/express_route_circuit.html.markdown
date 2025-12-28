@@ -69,6 +69,12 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
 
+* `authorization_key_wo` - (Optional, Write-Only) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
+
+~> **Note:** One of `authorization_key` or `authorization_key_wo` must be specified.
+
+* `authorization_key_wo_version` - (Optional) An integer value used to trigger an update for `authorization_key_wo`. This property should be incremented when updating `authorization_key_wo`.
+
 * `rate_limiting_enabled` - (Optional) Enable [rate limiting](https://learn.microsoft.com/en-us/azure/expressroute/rate-limit) for the circuit. Only works with ExpressRoute Ports. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
