@@ -222,8 +222,7 @@ func TestAccEventGridTopic_dataResidencyBoundary(t *testing.T) {
 			Config: r.dataResidencyBoundary(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinGeopair"),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
 			),
 		},
 		data.ImportStep(),
@@ -395,7 +394,6 @@ resource "azurerm_eventgrid_topic" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   data_residency_boundary = "WithinRegion"
-  minimum_tls_version     = "1.1"
 
   tags = {
     "foo" = "bar"

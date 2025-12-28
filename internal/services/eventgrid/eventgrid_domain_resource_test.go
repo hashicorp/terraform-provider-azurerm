@@ -207,6 +207,22 @@ func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
 	})
 }
 
+func TestAccEventGridDomain_basicWithDataResidencyBoundary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridDomain_defaultTlsMinimumVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 	r := EventGridDomainResource{}
@@ -482,7 +498,8 @@ resource "azurerm_eventgrid_domain" "test" {
     action  = "Allow"
   }
 
-  minimum_tls_version = "1.1"
+  minimum_tls_version     = "1.2"
+  data_residency_boundary = "WithinRegion"
 
   input_schema = "CustomEventSchema"
 
