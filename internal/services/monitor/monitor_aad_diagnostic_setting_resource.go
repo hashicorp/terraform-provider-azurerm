@@ -449,11 +449,12 @@ type waitForAADDiagnosticSettingToBeGonePoller struct {
 
 func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
-		}
-		if p.continuousTargetOccurence++; p.continuousTargetOccurence >= 3 {
+	if err != nil && !response.WasNotFound(resp.HttpResponse) {
+		return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
+	}
+
+	if response.WasNotFound(resp.HttpResponse) {
+		if p.continuousTargetOccurence >= 3 {
 			return &pollers.PollResult{
 				HttpResponse: &client.Response{
 					Response: resp.HttpResponse,
@@ -462,9 +463,11 @@ func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*
 				Status:       pollers.PollingStatusSucceeded,
 			}, nil
 		}
+		p.continuousTargetOccurence++
+	} else {
+		p.continuousTargetOccurence = 0
 	}
 
-	p.continuousTargetOccurence = 0
 	return &pollers.PollResult{
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
