@@ -397,6 +397,42 @@ func TestAccStorageContainer_web(t *testing.T) {
 	})
 }
 
+func TestAccStorageContainer_dnsZoneDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dnsZoneDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_dnsZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageContainer_migrateToStorageID(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
@@ -830,6 +866,62 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 `, r.template(data))
+}
+
+func (r StorageContainerResource) dnsZoneDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = resource.azurerm_resource_group.test.name
+  location                 = resource.azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  dns_endpoint_type        = "AzureDnsZone"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageContainerResource) dnsZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = resource.azurerm_resource_group.test.name
+  location                 = resource.azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  dns_endpoint_type        = "AzureDnsZone"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageContainerResource) template(data acceptance.TestData) string {
