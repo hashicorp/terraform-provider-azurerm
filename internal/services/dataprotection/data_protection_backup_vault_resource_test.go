@@ -396,7 +396,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   soft_delete                = "On"
   retention_duration_in_days = 15
 
-  encryption_settings {
+  user_assigned_identity_encryption_settings {
     identity_id                       = azurerm_user_assigned_identity.test.id
     key_vault_key_id                  = azurerm_key_vault_key.test.id
     infrastructure_encryption_enabled = true
@@ -597,7 +597,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  encryption_settings {
+  user_assigned_identity_encryption_settings {
     identity_id      = azurerm_user_assigned_identity.test.id
     key_vault_key_id = azurerm_key_vault_key.test.id
   }

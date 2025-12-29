@@ -61,9 +61,9 @@ The following arguments are supported:
 
 -> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
 
-* `encryption_settings` - (Optional) An `encryption_settings` block as defined below.
+* `user_assigned_identity_encryption_settings` - (Optional) An `user_assigned_identity_encryption_settings` block as defined below.
 
-~> **Note:** `encryption_settings` is used to setup Backup Vault with user-assigned managed identity. This block will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key`. To remove `encryption_settings`, set it to empty slice (`[]`). This forces a new resource to be created.
+~> **Note:** `user_assigned_identity_encryption_settings` is used to setup Backup Vault Customer Managed Key with user-assigned managed identity. This block will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key`. To remove `user_assigned_identity_encryption_settings`, set it to empty slice (`[]`). This forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 
@@ -77,7 +77,7 @@ An `identity` block supports the following:
 
 ---
 
-An `encryption_settings` block supports the following:
+An `user_assigned_identity_encryption_settings` block supports the following:
 
 * `identity_id` - (Required) Specifies the User Assigned Managed Identity ID which has access permissions to the Key Vault.
 

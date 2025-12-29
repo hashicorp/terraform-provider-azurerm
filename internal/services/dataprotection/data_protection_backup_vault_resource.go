@@ -109,7 +109,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
-			"encryption_settings": {
+			"user_assigned_identity_encryption_settings": {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
@@ -248,9 +248,9 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
 
-	if v, ok := d.GetOk("encryption_settings"); ok {
+	if v, ok := d.GetOk("user_assigned_identity_encryption_settings"); ok {
 		if encryptionEnabledWithSystemAssignedIdentity {
-			log.Printf("[INFO] Customer Managed Keys settings in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key` resource. If `azurerm_data_protection_backup_vault_customer_managed_key` resource exists in Terraform configurations, please remove it to avoid confusion.")
+			log.Printf("[INFO] Customer Managed Keys settings in `user_assigned_identity_encryption_settings` block of `azurerm_data_protection_backup_vault` resource will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key` resource. If `azurerm_data_protection_backup_vault_customer_managed_key` resource exists in Terraform configurations, please remove it to avoid confusion.")
 		}
 
 		encryptionSettings, err := expandBackupVaultEncryptionSettings(v.([]interface{}))
@@ -315,7 +315,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 			}
 
 			if securitySetting.EncryptionSettings != nil {
-				d.Set("encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
+				d.Set("user_assigned_identity_encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
 			}
 		}
 		d.Set("immutability", string(immutability))
