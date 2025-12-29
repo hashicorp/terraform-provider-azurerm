@@ -2525,6 +2525,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
 func (OrchestratedVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
+	// Confidential VM has limited region support
+	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
