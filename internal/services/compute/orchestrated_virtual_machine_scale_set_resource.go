@@ -1562,17 +1562,11 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				secureBootEnabled := false
 
 				if securityProfile := profile.SecurityProfile; securityProfile != nil {
-					if securityProfile.EncryptionAtHost != nil {
-						encryptionAtHostEnabled = *securityProfile.EncryptionAtHost
-					}
+					encryptionAtHostEnabled = pointer.From(securityProfile.EncryptionAtHost)
 
 					if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
-						if uefi.VTpmEnabled != nil {
-							vtpmEnabled = *uefi.VTpmEnabled
-						}
-						if uefi.SecureBootEnabled != nil {
-							secureBootEnabled = *uefi.SecureBootEnabled
-						}
+						vtpmEnabled = pointer.From(uefi.VTpmEnabled)
+						secureBootEnabled = pointer.From(uefi.SecureBootEnabled)
 					}
 				}
 
