@@ -397,8 +397,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
   retention_duration_in_days = 15
 
   encryption_settings {
-    identity_id        = azurerm_user_assigned_identity.test.id
-    key_vault_key_id   = azurerm_key_vault_key.test.id
+    identity_id                       = azurerm_user_assigned_identity.test.id
+    key_vault_key_id                  = azurerm_key_vault_key.test.id
     infrastructure_encryption_enabled = true
   }
 
@@ -534,7 +534,7 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
-  
+
   access_policy {
     tenant_id = azurerm_data_protection_backup_vault.test.identity[0].tenant_id
     object_id = azurerm_data_protection_backup_vault.test.identity[0].principal_id
@@ -596,10 +596,10 @@ resource "azurerm_data_protection_backup_vault" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   encryption_settings {
-    identity_id        = azurerm_user_assigned_identity.test.id
-    key_vault_key_id   = azurerm_key_vault_key.test.id
+    identity_id      = azurerm_user_assigned_identity.test.id
+    key_vault_key_id = azurerm_key_vault_key.test.id
   }
 }
 
@@ -637,7 +637,7 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
-  
+
   access_policy {
     tenant_id = azurerm_user_assigned_identity.test.tenant_id
     object_id = azurerm_user_assigned_identity.test.principal_id

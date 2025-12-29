@@ -6,7 +6,7 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
-  "regexp"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -329,10 +329,10 @@ resource "azurerm_data_protection_backup_vault" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   encryption_settings {
-    identity_id        = azurerm_user_assigned_identity.test.id
-    key_vault_key_id   = azurerm_key_vault_key.test.id
+    identity_id      = azurerm_user_assigned_identity.test.id
+    key_vault_key_id = azurerm_key_vault_key.test.id
   }
 }
 
@@ -346,7 +346,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  
+
   sku_name = "standard"
 
   access_policy {
@@ -370,11 +370,11 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
-  
+
   access_policy {
     tenant_id = azurerm_user_assigned_identity.test.tenant_id
     object_id = azurerm_user_assigned_identity.test.principal_id
-    
+
     key_permissions = [
       "Create",
       "Decrypt",

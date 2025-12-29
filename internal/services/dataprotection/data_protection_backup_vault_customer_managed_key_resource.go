@@ -205,7 +205,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.Resour
 					}
 				}
 			}
-			
+
 			return nil
 		},
 	}
