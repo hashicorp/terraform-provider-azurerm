@@ -323,8 +323,8 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			return err
 		}
 		if model := resp.Model; model != nil {
-			if model.Sku.Name != namespaces.SkuNamePremium {
-				return fmt.Errorf("`partition_count` cannot be changed unless the namespace sku is `Premium`")
+			if model.Sku.Name != namespaces.SkuNamePremium && model.Properties.ClusterArmId == nil {
+				return fmt.Errorf("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
 			}
 		}
 	}

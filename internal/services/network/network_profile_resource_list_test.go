@@ -14,6 +14,7 @@ import (
 
 func TestAccNetworkProfile_list_basic(t *testing.T) {
 	r := NetworkProfileResource{}
+	listResourceAddress := "azurerm_network_profile.list"
 
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test1")
 
@@ -27,14 +28,18 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(),
-				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroupName(data),
-				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
 			},
 		},
 	})
