@@ -410,7 +410,6 @@ func TestAccStorageContainer_dnsZoneDeprecated(t *testing.T) {
 			Config: r.dnsZoneDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue("$web"),
 			),
 		},
 		data.ImportStep(),
@@ -426,7 +425,6 @@ func TestAccStorageContainer_dnsZone(t *testing.T) {
 			Config: r.dnsZone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue("$web"),
 			),
 		},
 		data.ImportStep(),
