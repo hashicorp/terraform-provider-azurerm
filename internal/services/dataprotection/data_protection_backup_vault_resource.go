@@ -315,7 +315,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 			}
 
 			if securitySetting.EncryptionSettings != nil {
-				d.Set("encryption_settings", *flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings))
+				d.Set("encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
 			}
 		}
 		d.Set("immutability", string(immutability))
