@@ -131,6 +131,8 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"3.11",
 					"4.0",
+					"4.1",
+					"5.0",
 				}, false),
 			},
 
