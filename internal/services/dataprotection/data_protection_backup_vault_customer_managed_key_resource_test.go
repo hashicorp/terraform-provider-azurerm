@@ -113,7 +113,7 @@ func TestAccDataProtectionBackupVaultCustomerManagedKey_conflictedEncryptionSett
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("customer managed keys settings have been specified in `user_assigned_identity_encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed"),
+			ExpectError: regexp.MustCompile("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed"),
 		},
 	})
 }
@@ -588,7 +588,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  user_assigned_identity_encryption_settings {
+  encryption_settings {
     identity_id      = azurerm_user_assigned_identity.test.id
     key_vault_key_id = azurerm_key_vault_key.test.id
   }

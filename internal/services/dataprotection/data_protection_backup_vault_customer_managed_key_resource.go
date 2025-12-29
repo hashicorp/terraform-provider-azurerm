@@ -94,7 +94,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
 				if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
 					if *kekIdentity.IdentityType == backupvaults.IdentityTypeUserAssigned {
-						return fmt.Errorf("customer managed keys settings has been specified in `user_assigned_identity_encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
+						return fmt.Errorf("customer managed keys settings has been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
 					}
 				}
 
