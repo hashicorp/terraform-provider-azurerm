@@ -109,6 +109,46 @@ func TestAccBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedFileShare_suspendAndRetainData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.protectionSuspendOnDestroy(data),
+		},
+	})
+}
+
+func TestAccBackupProtectedFileShare_stopAndRetainData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.protectionStopOnDestroy(data),
+		},
+	})
+}
+
 func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
@@ -123,12 +163,18 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (BackupProtectedFileShareResource) base(data acceptance.TestData) string {
+func (t BackupProtectedFileShareResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+    %s
+`, t.baseWithoutProvider(data))
+}
+
+func (BackupProtectedFileShareResource) baseWithoutProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"
@@ -388,4 +434,32 @@ resource "azurerm_backup_protected_file_share" "test1" {
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
 `, r.baseMultiple(data), data.RandomInteger)
+}
+
+func (r BackupProtectedFileShareResource) protectionSuspendOnDestroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+    features {
+      recovery_service {
+        file_share_backup_suspend_protection_and_retain_data_on_destroy = true
+      }
+    }
+  }
+
+  %s
+`, r.baseWithoutProvider(data))
+}
+
+func (r BackupProtectedFileShareResource) protectionStopOnDestroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+    features {
+      recovery_service {
+        file_share_backup_stop_protection_and_retain_data_on_destroy = true
+      }
+    }
+  }
+
+  %s
+`, r.baseWithoutProvider(data))
 }

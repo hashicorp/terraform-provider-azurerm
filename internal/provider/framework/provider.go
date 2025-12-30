@@ -176,10 +176,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
-			// Azure AKS Workload Identity fields
+			// Azure ASK Workload Identity fields
 			"use_aks_workload_identity": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
+				Description: "Allow Azure ASK Workload Identity to be used for Authentication.",
 			},
 
 			// Managed Tracking GUID for User-agent
@@ -461,6 +461,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 										Optional: true,
 									},
 									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"file_share_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"file_share_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
 									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
