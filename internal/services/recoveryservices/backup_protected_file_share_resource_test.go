@@ -166,7 +166,11 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 func (t BackupProtectedFileShareResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+      recovery_service{
+        purge_protected_items_from_vault_on_destroy          = true
+      }
+    }
 }
 
     %s
@@ -441,6 +445,7 @@ func (r BackupProtectedFileShareResource) protectionSuspendOnDestroy(data accept
 provider "azurerm" {
     features {
       recovery_service {
+        purge_protected_items_from_vault_on_destroy          = true
         file_share_backup_suspend_protection_and_retain_data_on_destroy = true
       }
     }
@@ -455,6 +460,7 @@ func (r BackupProtectedFileShareResource) protectionStopOnDestroy(data acceptanc
 provider "azurerm" {
     features {
       recovery_service {
+        purge_protected_items_from_vault_on_destroy          = true
         file_share_backup_stop_protection_and_retain_data_on_destroy = true
       }
     }
