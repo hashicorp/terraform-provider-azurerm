@@ -725,7 +725,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   encryption_settings = []
 }
 
@@ -763,7 +763,7 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
-  
+
   access_policy {
     tenant_id = azurerm_user_assigned_identity.test.tenant_id
     object_id = azurerm_user_assigned_identity.test.principal_id
