@@ -250,7 +250,7 @@ resource "azurerm_kusto_script" "test" {
   sas_token                          = data.azurerm_storage_account_blob_container_sas.test.sas
   continue_on_errors_enabled         = true
   force_an_update_when_value_changed = "first"
-  script_level                       = "Database"
+  script_level                       = "Cluster"
   principal_permissions_action       = "RemovePermissionOnScriptCompletion"
 }
 `, template, data.RandomInteger)
