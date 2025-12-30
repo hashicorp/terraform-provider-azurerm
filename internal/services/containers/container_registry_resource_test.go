@@ -429,7 +429,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
@@ -449,7 +449,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
@@ -482,7 +482,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%[2]d"
+  name                = "acctestCr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = true
@@ -527,7 +527,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%[2]d"
+  name                = "acctestCr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = true
@@ -570,7 +570,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%[2]d"
+  name                = "acctestCr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = true
@@ -595,7 +595,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -618,7 +618,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -644,7 +644,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -675,7 +675,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
@@ -694,12 +694,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "acctestCr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -729,12 +729,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "acctestCr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -742,6 +742,7 @@ resource "azurerm_container_registry" "test" {
 
   network_rule_set {
     default_action = "Allow"
+    ip_rule        = []
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
@@ -754,12 +755,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "acctestCr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -778,7 +779,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_container_registry" "test" {
-  name                    = "testacccr%d"
+  name                    = "acctestCr%d"
   resource_group_name     = azurerm_resource_group.test.name
   location                = azurerm_resource_group.test.location
   sku                     = "Premium"
@@ -797,7 +798,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -819,7 +820,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestCr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
@@ -843,7 +844,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                   = "testacccr%d"
+  name                   = "acctestCr%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   sku                    = "Standard"
@@ -864,7 +865,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                  = "testacccr%d"
+  name                  = "acctestCr%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
@@ -885,7 +886,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                       = "testacccr%d"
+  name                       = "acctestCr%d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   sku                        = "Premium"
@@ -909,7 +910,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%[2]d"
+  name                = "acctestCr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"

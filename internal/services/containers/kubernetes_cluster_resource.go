@@ -3323,6 +3323,10 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		EnablePrivateCluster:           &enablePrivateCluster,
 		EnablePrivateClusterPublicFQDN: pointer.To(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 		DisableRunCommand:              pointer.To(!d.Get("run_command_enabled").(bool)),
+
+		// Set these values to the default in case this has been removed from config
+		AuthorizedIPRanges: utils.ExpandStringSlice(nil),
+		SubnetId:           pointer.To(""),
 	}
 
 	apiServerAccessProfileRaw := d.Get("api_server_access_profile").([]interface{})
@@ -3332,10 +3336,7 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 
 	config := apiServerAccessProfileRaw[0].(map[string]interface{})
 	if v := config["authorized_ip_ranges"]; v != nil {
-		apiServerAuthorizedIPRangesRaw := v.(*pluginsdk.Set).List()
-		if apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw); len(*apiServerAuthorizedIPRanges) > 0 {
-			apiAccessProfile.AuthorizedIPRanges = apiServerAuthorizedIPRanges
-		}
+		apiAccessProfile.AuthorizedIPRanges = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	apiAccessProfile.EnableVnetIntegration = pointer.To(config["virtual_network_integration_enabled"].(bool))
