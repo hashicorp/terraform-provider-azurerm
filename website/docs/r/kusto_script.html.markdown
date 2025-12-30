@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `script_level` - (Optional) The type of script commands. Possible values are `Database` or `Cluster`. Defaults to `Database`.
 
-* `principal_permissions_action` - (Optional) Whether the script caller’s permissions remain in effect after the script has finished running. Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
+* `principal_permissions_action` - (Optional) Whether the script caller’s permissions remain in effect after the script has finished running? Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
 
 ## Attributes Reference
 
