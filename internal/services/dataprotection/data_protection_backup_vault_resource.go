@@ -114,7 +114,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
-				ForceNew:   true,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -159,6 +158,21 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+			}),
+
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, oldRaw, newRaw, meta interface{}) bool {
+				oldPopulated := false
+				newPopulated := false
+
+				if old := oldRaw.([]interface{}); len(old) > 0 && old[0] != nil {
+					oldPopulated = len(old[0].(map[string]interface{})) > 0
+				}
+
+				if new := newRaw.([]interface{}); len(new) > 0 && new[0] != nil {
+					newPopulated = len(new[0].(map[string]interface{})) > 0
+				}
+
+				return oldPopulated && !newPopulated
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -313,9 +327,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 
-			if securitySetting.EncryptionSettings != nil {
-				d.Set("encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
-			}
+			d.Set("encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
 		}
 		d.Set("immutability", string(immutability))
 
@@ -438,6 +450,10 @@ func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaults.Enc
 
 func flattenBackupVaultEncryptionSettings(input *backupvaults.EncryptionSettings) *[]interface{} {
 	output := make(map[string]interface{})
+
+	if input == nil {
+		return &[]interface{}{output}
+	}
 
 	if input.KekIdentity != nil && input.KekIdentity.IdentityId != nil {
 		output["identity_id"] = pointer.From(input.KekIdentity.IdentityId)
