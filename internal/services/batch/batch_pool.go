@@ -428,23 +428,20 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []inte
 	return securityProfile
 }
 
-func flattenBatchPoolManagedDisk(managedDisk *pool.ManagedDisk) []interface{} {
+func flattenBatchPoolManagedDisk(input *pool.ManagedDisk) []interface{} {
 	result := make([]interface{}, 0)
-	if managedDisk == nil {
+	if input == nil {
 		return result
 	}
 
-	batchPoolManagedDisk := make(map[string]interface{})
+	managedDisk := make(map[string]interface{})
+	managedDisk["storage_account_type"] = pointer.FromEnum(input.StorageAccountType)
 
-	if managedDisk.StorageAccountType != nil {
-		batchPoolManagedDisk["storage_account_type"] = pointer.FromEnum(managedDisk.StorageAccountType)
+	if input.SecurityProfile != nil {
+		managedDisk["security_encryption_type"] = pointer.FromEnum(input.SecurityProfile.SecurityEncryptionType)
 	}
 
-	if managedDisk.SecurityProfile != nil && managedDisk.SecurityProfile.SecurityEncryptionType != nil {
-		batchPoolManagedDisk["security_encryption_type"] = pointer.FromEnum(managedDisk.SecurityProfile.SecurityEncryptionType)
-	}
-
-	result = append(result, batchPoolManagedDisk)
+	result = append(result, managedDisk)
 
 	return result
 }
@@ -829,7 +826,6 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 	if v, ok := d.GetOk("os_disk_placement"); ok {
 		osDisk.EphemeralOSDiskSettings = expandBatchPoolEphemeralOSDiskSettings(v.(string))
 	}
-
 	if v, ok := d.GetOk("managed_disk"); ok {
 		osDisk.ManagedDisk = expandBatchPoolManagedDisk(v.([]interface{}))
 	}
@@ -875,22 +871,22 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	return securityProfile
 }
 
-func expandBatchPoolEphemeralOSDiskSettings(ref interface{}) *pool.DiffDiskSettings {
-	if ref == nil {
+func expandBatchPoolEphemeralOSDiskSettings(input string) *pool.DiffDiskSettings {
+	if input == "" {
 		return nil
 	}
 
 	return &pool.DiffDiskSettings{
-		Placement: pointer.To(pool.DiffDiskPlacement(ref.(string))),
+		Placement: pointer.To(pool.DiffDiskPlacement(input)),
 	}
 }
 
-func expandBatchPoolManagedDisk(managedDisks []interface{}) *pool.ManagedDisk {
-	if len(managedDisks) == 0 || managedDisks[0] == nil {
+func expandBatchPoolManagedDisk(input []interface{}) *pool.ManagedDisk {
+	if len(input) == 0 {
 		return nil
 	}
 
-	managedDisk := managedDisks[0].(map[string]interface{})
+	managedDisk := input[0].(map[string]interface{})
 	result := &pool.ManagedDisk{}
 
 	if v, ok := managedDisk["storage_account_type"]; ok && v.(string) != "" {

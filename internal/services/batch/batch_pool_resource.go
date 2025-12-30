@@ -1105,6 +1105,9 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			if d.HasChange("data_disks") {
 				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
 			}
+			if d.HasChange("managed_disk") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.OsDisk.ManagedDisk = expandBatchPoolManagedDisk(d.Get("managed_disk").([]interface{}))
+			}
 		}
 	}
 	certificates := d.Get("certificate").([]interface{})
