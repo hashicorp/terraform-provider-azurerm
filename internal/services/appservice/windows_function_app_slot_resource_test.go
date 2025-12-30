@@ -557,6 +557,26 @@ func TestAccWindowsFunctionAppSlot_withConnectionStringsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_stickySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsFunctionAppSlot_dailyTimeQuotaConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
@@ -3676,6 +3696,54 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.template(data, planSKU), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First", "Third"]
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
 
 func (r WindowsFunctionAppSlotResource) withTlsVersion(data acceptance.TestData, planSku string, tlsVersion string) string {
