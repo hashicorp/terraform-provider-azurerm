@@ -102,6 +102,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 			"script_level": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      string(scripts.ScriptLevelDatabase),
 				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForScriptLevel(), false),
 			},
