@@ -165,6 +165,8 @@ The following arguments are supported:
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
+* `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
 * `security_profile` - (Optional) A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
 
 * `target_node_communication_mode` - (Optional) The desired node communication mode for the pool. Possible values are `Classic`, `Default` and `Simplified`.
@@ -198,6 +200,14 @@ A `data_disks` block supports the following:
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
 * `storage_account_type` - (Optional) The storage account type to be used for the data disk. Values are: Possible values are `Standard_LRS` - The data disk should use standard locally redundant storage. `Premium_LRS` - The data disk should use premium locally redundant storage. Defaults to `Standard_LRS`.
+
+---
+
+A `managed_disk` block supports the following:
+
+* `storage_account_type` - (Optional) The storage account type to be used for the OS disk. Possible values are `Standard_LRS`, `Premium_LRS` and `StandardSSD_LRS`.
+
+* `security_encryption_type` - (Optional) The encryption type of the managed disk. Possible values are `VMGuestStateOnly` and `NonPersistedTPM`.
 
 ---
 

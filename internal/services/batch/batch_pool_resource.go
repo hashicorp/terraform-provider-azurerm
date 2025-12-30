@@ -713,6 +713,25 @@ func resourceBatchPool() *pluginsdk.Resource {
 						string(pool.DiffDiskPlacementCacheDisk),
 					}, false),
 			},
+			"managed_disk": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"storage_account_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForStorageAccountType(), false),
+						},
+						"security_encryption_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityEncryptionTypes(), false),
+						},
+					},
+				},
+			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1295,6 +1314,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+
+					if config.OsDisk != nil {
+						d.Set("managed_disk", flattenBatchPoolManagedDisk(config.OsDisk.ManagedDisk))
+					}
 
 					if config.SecurityProfile != nil {
 						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
