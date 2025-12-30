@@ -138,6 +138,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
