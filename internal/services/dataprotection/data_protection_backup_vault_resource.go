@@ -133,7 +133,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
-							ForceNew: true,
 						},
 					},
 				},
@@ -173,6 +172,10 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				}
 
 				return oldPopulated && !newPopulated
+			}),
+
+			pluginsdk.ForceNewIfChange("encryption_settings.0.infrastructure_encryption_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) != new.(bool)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -449,11 +452,11 @@ func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaults.Enc
 }
 
 func flattenBackupVaultEncryptionSettings(input *backupvaults.EncryptionSettings) *[]interface{} {
-	output := make(map[string]interface{})
-
 	if input == nil {
-		return &[]interface{}{output}
+		return &[]interface{}{}
 	}
+
+	output := make(map[string]interface{})
 
 	if input.KekIdentity != nil && input.KekIdentity.IdentityId != nil {
 		output["identity_id"] = pointer.From(input.KekIdentity.IdentityId)
