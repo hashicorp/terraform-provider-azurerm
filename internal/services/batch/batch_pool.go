@@ -887,19 +887,13 @@ func expandBatchPoolManagedDisk(input []interface{}) *pool.ManagedDisk {
 	}
 
 	managedDisk := input[0].(map[string]interface{})
-	result := &pool.ManagedDisk{}
 
-	if v, ok := managedDisk["storage_account_type"]; ok && v.(string) != "" {
-		result.StorageAccountType = pointer.To(pool.StorageAccountType(v.(string)))
+	return &pool.ManagedDisk{
+		StorageAccountType: pointer.To(pool.StorageAccountType(managedDisk["storage_account_type"].(string))),
+		SecurityProfile: &pool.VMDiskSecurityProfile{
+			SecurityEncryptionType: pointer.To(pool.SecurityEncryptionTypes(managedDisk["security_encryption_type"].(string))),
+		},
 	}
-
-	if v, ok := managedDisk["security_encryption_type"]; ok && v.(string) != "" {
-		result.SecurityProfile = &pool.VMDiskSecurityProfile{
-			SecurityEncryptionType: pointer.To(pool.SecurityEncryptionTypes(v.(string))),
-		}
-	}
-
-	return result
 }
 
 func expandBatchPoolNodeReplacementConfig(list []interface{}) *pool.NodePlacementConfiguration {

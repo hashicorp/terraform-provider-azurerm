@@ -719,16 +719,16 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"security_encryption_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityEncryptionTypes(), false),
+						},
 						"storage_account_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(pool.StorageAccountTypeStandardLRS),
 							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForStorageAccountType(), false),
-						},
-						"security_encryption_type": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityEncryptionTypes(), false),
 						},
 					},
 				},

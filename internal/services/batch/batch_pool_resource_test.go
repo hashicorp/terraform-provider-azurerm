@@ -775,7 +775,6 @@ func TestAccBatchPool_securityProfileWithConfidentialVM(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
 	})
 }
 
@@ -2789,12 +2788,12 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                           = "acctestpool%s"
-  resource_group_name            = azurerm_resource_group.test.name
-  account_name                   = azurerm_batch_account.test.name
-  vm_size                        = "Standard_DC2as_v5"
-  node_agent_sku_id              = "batch.node.ubuntu 22.04"
-  max_tasks_per_node             = 1
+  name                = "acctestpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  vm_size             = "Standard_DC2as_v5"
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  max_tasks_per_node  = 1
 
   storage_image_reference {
     publisher = "Canonical"
@@ -2807,7 +2806,7 @@ resource "azurerm_batch_pool" "test" {
     target_dedicated_nodes = 1
   }
 
-  network_configuration{
+  network_configuration {
     accelerated_networking_enabled = false
   }
 
