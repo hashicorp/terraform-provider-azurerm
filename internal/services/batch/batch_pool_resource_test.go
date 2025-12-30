@@ -2773,7 +2773,14 @@ resource "azurerm_batch_pool" "test" {
 
 func (BatchPoolResource) securityProfileWithConfidentialVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%d"
+  location = "%s"
+}
 
 resource "azurerm_batch_account" "test" {
   name                = "acctestbatch%s"
@@ -2782,34 +2789,38 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                = "acctestpool%s"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "STANDARD_A1_V2"
+  name                           = "acctestpool%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  account_name                   = azurerm_batch_account.test.name
+  vm_size                        = "Standard_DC2as_v5"
+  node_agent_sku_id              = "batch.node.ubuntu 22.04"
+  max_tasks_per_node             = 1
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
+    version   = "latest"
+  }
 
   fixed_scale {
     target_dedicated_nodes = 1
   }
 
+  network_configuration{
+    accelerated_networking_enabled = false
+  }
+
   security_profile {
     host_encryption_enabled = false
     security_type           = "confidentialVM"
-    secure_boot_enabled     = true
-    vtpm_enabled            = false
-  }
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
+    secure_boot_enabled     = false
+    vtpm_enabled            = true
   }
 
   managed_disk {
-    storage_account_type     = "Standard_LRS"
     security_encryption_type = "VMGuestStateOnly"
   }
 }
-`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

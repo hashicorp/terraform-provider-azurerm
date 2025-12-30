@@ -722,6 +722,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"storage_account_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Default:      string(pool.StorageAccountTypeStandardLRS),
 							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForStorageAccountType(), false),
 						},
 						"security_encryption_type": {
