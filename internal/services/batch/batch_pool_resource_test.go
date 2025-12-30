@@ -765,6 +765,20 @@ func TestAccBatchPool_securityProfileWithUEFISettings(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_securityProfileWithConfidentialVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileWithConfidentialVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_linuxUserAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -2755,4 +2769,47 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) securityProfileWithConfidentialVM(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_batch_account" "test" {
+  name                = "acctestbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "acctestpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "STANDARD_A1_V2"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  security_profile {
+    host_encryption_enabled = false
+    security_type           = "confidentialVM"
+    secure_boot_enabled     = true
+    vtpm_enabled            = false
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  managed_disk {
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+}
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
