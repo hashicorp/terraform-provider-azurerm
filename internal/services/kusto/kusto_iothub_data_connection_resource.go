@@ -29,6 +29,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceKustoIotHubDataConnectionCreate,
 		Read:   resourceKustoIotHubDataConnectionRead,
+		Update: resourceKustoIotHubDataConnectionUpdate,
 		Delete: resourceKustoIotHubDataConnectionDelete,
 
 		SchemaVersion: 1,
@@ -44,6 +45,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -136,7 +138,6 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
@@ -230,6 +231,36 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Kusto.DataConnectionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := dataconnections.ParseDataConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	iotHubDataConnectionProperties := expandKustoIotHubDataConnectionProperties(d)
+
+	dataConnection := dataconnections.IotHubDataConnection{
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: iotHubDataConnectionProperties,
+	}
+
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
+		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
+		dataConnection.Properties.DatabaseRouting = &dbRoutingType
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceKustoIotHubDataConnectionRead(d, meta)
 }
 
 func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {

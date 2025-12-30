@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
 
-* `retrieval_start_date` - (Optional) Specifies the date after which data should be retrieved from IoT Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the IoT Hub, based on its retention period. The value should be in RFC3339 format (e.g., `2023-06-26T12:00:00Z`). Changing this forces a new resource to be created.
+* `retrieval_start_date` - (Optional) Specifies the date after which data should be retrieved from IoT Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the IoT Hub, based on its retention period. The value should be in RFC3339 format (e.g., `2023-06-26T12:00:00Z`).
 
 ## Attributes Reference
 
@@ -127,6 +127,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto IotHub Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto IotHub Data Connection.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto IotHub Data Connection.
 * `delete` - (Defaults to 1 hour) Used when deleting the Kusto IotHub Data Connection.
 
 ## Import

@@ -42,6 +42,38 @@ func TestAccKustoIotHubDataConnection_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
+				check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-06-26T12:00:00Z"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoIotHubDataConnection_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_iothub_data_connection", "test")
+	r := KustoIotHubDataConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withRetrievalStartDate(data, "2023-06-26T12:00:00Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-06-26T12:00:00Z"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withRetrievalStartDate(data, "2024-01-15T08:30:00Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2024-01-15T08:30:00Z"),
 			),
 		},
 		data.ImportStep(),
@@ -110,6 +142,25 @@ resource "azurerm_kusto_iothub_data_connection" "test" {
   retrieval_start_date      = "2023-06-26T12:00:00Z"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r KustoIotHubDataConnectionResource) withRetrievalStartDate(data acceptance.TestData, retrievalStartDate string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_iothub_data_connection" "test" {
+  name                = "acctestkedc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+  database_name       = azurerm_kusto_database.test.name
+
+  iothub_id                 = azurerm_iothub.test.id
+  consumer_group            = azurerm_iothub_consumer_group.test.name
+  shared_access_policy_name = azurerm_iothub_shared_access_policy.test.name
+  retrieval_start_date      = "%s"
+}
+`, r.template(data), data.RandomInteger, retrievalStartDate)
 }
 
 func (KustoIotHubDataConnectionResource) template(data acceptance.TestData) string {
