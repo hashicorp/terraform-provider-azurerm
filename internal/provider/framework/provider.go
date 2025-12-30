@@ -176,10 +176,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
-			// Azure ASK Workload Identity fields
+			// Azure AKS Workload Identity fields
 			"use_aks_workload_identity": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Allow Azure ASK Workload Identity to be used for Authentication.",
+				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
 			},
 
 			// Managed Tracking GUID for User-agent
