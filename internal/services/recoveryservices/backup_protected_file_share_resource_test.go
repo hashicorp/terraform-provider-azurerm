@@ -18,7 +18,6 @@ import (
 
 type BackupProtectedFileShareResource struct{}
 
-// TODO: These tests fail because enabling backup on file shares with no content
 func TestAccBackupProtectedFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 	r := BackupProtectedFileShareResource{}
