@@ -3593,6 +3593,10 @@ resource "azurerm_application_gateway" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+  
   backend_http_settings {
     name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"

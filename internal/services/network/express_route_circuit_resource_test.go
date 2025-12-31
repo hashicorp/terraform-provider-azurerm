@@ -287,14 +287,14 @@ func testAccExpressRouteCircuit_bandwidthMbpsUpdate(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.bandwidthReductionConfig(data, "2000"),
+			Config: r.bandwidthReductionConfig(data, "1000"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("2000"),
 			),
 		},
 		{
-			Config: r.bandwidthReductionConfig(data, "5000"),
+			Config: r.bandwidthReductionConfig(data, "2000"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("5000"),
