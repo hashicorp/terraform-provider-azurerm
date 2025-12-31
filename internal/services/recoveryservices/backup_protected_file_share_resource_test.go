@@ -159,7 +159,16 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading Recovery Service Protected File Share (%s): %+v", id.String(), err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	// Soft delete is enabled by default, the back up file share will be purged after 14days, the GET response will be 200 in this status.
+	// It does not block deleting the vault. doc: https://learn.microsoft.com/en-us/azure/backup/secure-by-default?tabs=preview
+	existing := resp.Model != nil
+	if existing && resp.Model.Properties != nil {
+		if item, ok := resp.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok && item.ProtectionState != nil {
+			existing = *item.ProtectionState != protecteditems.ProtectionStateProtectionStopped
+		}
+	}
+
+	return pointer.To(existing), nil
 }
 
 func (t BackupProtectedFileShareResource) base(data acceptance.TestData) string {
