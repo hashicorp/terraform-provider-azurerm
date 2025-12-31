@@ -257,7 +257,7 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 
 			locks.ByID(model.VirtualHubId)
 			defer locks.UnlockByID(model.VirtualHubId)
-			
+
 			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, id, *props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
