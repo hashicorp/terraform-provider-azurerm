@@ -267,7 +267,7 @@ When designing schemas, consider flattening properties with `MaxItems: 1` that c
 
 :white_check_mark: **DO**
 ```go
-"certificate": {
+"credential_certificate": {
     Type:     pluginsdk.TypeList,
     Optional: true,
     Elem:     &pluginsdk.Schema{
@@ -279,7 +279,7 @@ When designing schemas, consider flattening properties with `MaxItems: 1` that c
 
 :no_entry: **DO NOT**
 ```go
-"credentials": {
+"credential": {
     Type:     pluginsdk.TypeList,
     Optional: true,
     MaxItems: 1,
@@ -349,17 +349,11 @@ When a `pluginsdk.TypeList` block has no required nested fields, `AtLeastOneOf` 
 
 ## Validation
 
-String arguments must be validated. Use `StringNotEmpty` at a minimum. Validate `name` fields for length and allowed characters. Use `commonids` or SDK-specific functions for Resource IDs. Ensure formats like dates, IPs, and URIs are validated.
+String arguments must be validated. Use `StringNotEmpty` at a minimum but ideally validation should be more strict. Validate `name` fields for length and allowed characters. Use `commonids` or SDK-specific functions for Resource IDs. Ensure common formats like dates, IPs, ports, emails, and URIs are validated.
 
 Numeric arguments should specify a valid range.
 
 ```go
-"description": {
-	Type:         pluginsdk.TypeString,
-	Optional:     true,
-	ValidateFunc: validation.StringIsNotEmpty,
-},
-
 "name": {
 	Type:     pluginsdk.TypeString,
 	Required: true,
@@ -376,10 +370,10 @@ Numeric arguments should specify a valid range.
 	ValidateFunc: commonids.ValidateSubnetID,
 },
 
-"sim_policy_id": {
+"description": {
 	Type:         pluginsdk.TypeString,
 	Optional:     true,
-	ValidateFunc: simpolicy.ValidateSimPolicyID,
+	ValidateFunc: validation.StringIsNotEmpty,
 },
 
 "extensions_time_budget": {
@@ -389,27 +383,33 @@ Numeric arguments should specify a valid range.
 	ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 },
 
+"filter_value_percentage": {
+	Type:         pluginsdk.TypeFloat,
+	Optional:     true,
+	ValidateFunc: validation.FloatBetween(0, 100),
+},
+
+"ip_address": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: azValidate.IPv4Address,
+},
+
 "output_blob_uri": {
 	Type:         pluginsdk.TypeString,
 	Optional:     true,
 	ValidateFunc: validation.IsURLWithHTTPS,
 },
 
-"ip_address": {
+"sim_policy_id": {
 	Type:         pluginsdk.TypeString,
-	Required:     true,
-	ValidateFunc: azValidate.IPv4Address,
+	Optional:     true,
+	ValidateFunc: simpolicy.ValidateSimPolicyID,
 },
 
 "storage_size_in_gb": {
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
 	ValidateFunc: validation.IntBetween(32, 16384),
-},
-
-"percentage_filter_value": {
-	Type:         pluginsdk.TypeFloat,
-	Optional:     true,
-	ValidateFunc: validation.FloatBetween(0, 100),
 },
 ```
