@@ -123,6 +123,7 @@ jobs:
       - get-go-version
       - set-product-version
     runs-on: custom-ubuntu-22.04-medium
+    timeout-minutes: 10
     strategy:
       fail-fast: true
       # Verify expected Artifacts list for a workflow run.
