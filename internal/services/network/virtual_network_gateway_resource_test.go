@@ -924,6 +924,12 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      "vpn_client_configuration[0].radius_server_secret"
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1687,6 +1693,12 @@ resource "azurerm_virtual_network_gateway" "test" {
       secret  = "1234"
       score   = 2
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      "vpn_client_configuration[0].radius_server[0].secret"
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
