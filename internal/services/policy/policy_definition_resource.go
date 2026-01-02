@@ -58,12 +58,12 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 						return d.ForceNew("parameters")
 					}
 
-					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					oldParameters, err := expandParameterDefinitionsValueForPolicyDefinition(oldParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					newParameters, err := expandParameterDefinitionsValueForPolicyDefinition(newParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
@@ -123,7 +123,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: &policydefinitions.PolicyDefinitionProperties{
 			DisplayName: pointer.To(d.Get("display_name").(string)),
 			Description: pointer.To(d.Get("description").(string)),
-			PolicyType:  pointer.To(policydefinitions.PolicyType(d.Get("policy_type").(string))),
+			PolicyType:  pointer.ToEnum[policydefinitions.PolicyType](d.Get("policy_type").(string)),
 			Mode:        pointer.To(d.Get("mode").(string)),
 		},
 	}
@@ -564,7 +564,7 @@ func (r PolicyDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &policydefinitions.PolicyDefinitionProperties{
 					Description: pointer.To(model.Description),
 					DisplayName: pointer.To(model.DisplayName),
-					PolicyType:  pointer.To(policydefinitions.PolicyType(model.PolicyType)),
+					PolicyType:  pointer.ToEnum[policydefinitions.PolicyType](model.PolicyType),
 					Mode:        pointer.To(model.Mode),
 				},
 			}

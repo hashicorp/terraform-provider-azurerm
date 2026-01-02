@@ -159,7 +159,7 @@ func (r ManagementGroupPolicyDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &policydefinitions.PolicyDefinitionProperties{
 					DisplayName: pointer.To(model.DisplayName),
 					Description: pointer.To(model.Description),
-					PolicyType:  pointer.To(policydefinitions.PolicyType(model.PolicyType)),
+					PolicyType:  pointer.ToEnum[policydefinitions.PolicyType](model.PolicyType),
 					Mode:        pointer.To(model.Mode),
 				},
 			}
@@ -302,10 +302,6 @@ func (r ManagementGroupPolicyDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 			props := existing.Model.Properties
-
-			if metadata.ResourceData.HasChange("policy_type") {
-				props.PolicyType = pointer.ToEnum[policydefinitions.PolicyType](config.PolicyType)
-			}
 
 			if metadata.ResourceData.HasChange("mode") {
 				props.Mode = pointer.To(config.Mode)
