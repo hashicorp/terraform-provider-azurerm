@@ -140,7 +140,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-London-LDS"
+  peering_location    = "Equinix-London-LD5"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   billing_type        = "MeteredData"
@@ -201,7 +201,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Area51-ERDirect"
+  peering_location    = "Equinix-London-LD5"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
