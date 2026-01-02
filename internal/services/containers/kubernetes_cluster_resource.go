@@ -193,6 +193,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"automatic_cluster_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"automatic_upgrade_channel": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1865,6 +1870,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	managedClusterSKUName := managedclusters.ManagedClusterSKUNameBase
+	if d.Get("automatic_cluster_enabled").(bool) {
+		managedClusterSKUName = managedclusters.ManagedClusterSKUNameAutomatic
+	}
+
 	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 	if err != nil {
@@ -1901,7 +1911,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
-			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
+			Name: pointer.To(managedClusterSKUName),
 			Tier: pointer.To(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
@@ -2392,6 +2402,23 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			skuTier = managedclusters.ManagedClusterSKUTier(v)
 		}
 		existing.Model.Sku.Tier = &skuTier
+	}
+
+	if d.HasChange("automatic_cluster_enabled") {
+		updateCluster = true
+		if existing.Model.Sku == nil {
+			basic := managedclusters.ManagedClusterSKUNameBase
+			skuTier := managedclusters.ManagedClusterSKUTierFree
+			existing.Model.Sku = &managedclusters.ManagedClusterSKU{
+				Name: &basic,
+				Tier: &skuTier,
+			}
+		}
+
+		if d.Get("automatic_cluster_enabled").(bool) {
+			automatic := managedclusters.ManagedClusterSKUNameAutomatic
+			existing.Model.Sku.Name = &automatic
+		}
 	}
 
 	autoUpgradeChannel := "automatic_upgrade_channel"
@@ -3037,6 +3064,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
 					d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
 				}
+			}
+
+			if model.Sku != nil && model.Sku.Name != nil && *model.Sku.Name == managedclusters.ManagedClusterSKUNameAutomatic {
+				d.Set("automatic_cluster_enabled", true)
 			}
 
 			httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
