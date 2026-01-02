@@ -188,7 +188,7 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
 			),
 		},
-		// Ignore application_security_group_ids because the values obtained from GET request will not be exactly equal to values in Terraform configurations. This does not affect the functionality as the values are case insensitively equal.
+		// Ignore `application_security_group_ids` because the values obtained from GET request will not be exactly equal to values in Terraform configurations. This does not affect the functionality as the values are case insensitively equal.
 		data.ImportStep("security_rule.0.source_application_security_group_ids", "security_rule.0.destination_application_security_group_ids"),
 	})
 }

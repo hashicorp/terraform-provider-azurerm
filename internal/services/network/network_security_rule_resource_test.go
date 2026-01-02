@@ -107,7 +107,8 @@ func TestAccNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// Ignore `application_security_group_ids` because the values obtained from GET request will not be exactly equal to values in Terraform configurations. This does not affect the functionality as the values are case insensitively equal.
+		data.ImportStep("source_application_security_group_ids", "destination_application_security_group_ids"),
 	})
 }
 
