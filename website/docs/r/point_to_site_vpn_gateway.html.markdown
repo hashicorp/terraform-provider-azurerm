@@ -121,6 +121,8 @@ A `connection_configuration` block supports the following:
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
+-> **Note:** `internet_security_enabled` will be defaulted to `true` in AzureRM Terraform provider version 5.0.
+
 ---
 
 A `vpn_client_address_pool` block supports the following:
