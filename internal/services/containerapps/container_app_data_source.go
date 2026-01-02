@@ -29,6 +29,7 @@ type ContainerAppDataSourceModel struct {
 	ResourceGroup              string                                     `tfschema:"resource_group_name"`
 	ManagedEnvironmentId       string                                     `tfschema:"container_app_environment_id"`
 	Location                   string                                     `tfschema:"location"`
+	Kind                       string                                     `tfschema:"kind"`
 	RevisionMode               string                                     `tfschema:"revision_mode"`
 	MaxInactiveRevisions       int64                                      `tfschema:"max_inactive_revisions"`
 	Ingress                    []helpers.Ingress                          `tfschema:"ingress"`
@@ -71,6 +72,12 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"revision_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"kind": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The kind of container app.",
 		},
 
 		"ingress": helpers.ContainerAppIngressSchemaComputed(),
@@ -162,6 +169,10 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				containerApp.Location = location.Normalize(model.Location)
 				containerApp.Tags = tags.Flatten(model.Tags)
+
+				if model.Kind != nil {
+					containerApp.Kind = string(pointer.From(model.Kind))
+				}
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
