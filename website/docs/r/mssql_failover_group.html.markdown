@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
+* `secondary_type` - (Optional) Specifies the type of secondary replica to be used on the partner server. Possible values are `Geo` and `Standby`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
