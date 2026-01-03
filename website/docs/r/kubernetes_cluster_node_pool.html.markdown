@@ -314,7 +314,7 @@ A `upgrade_settings` block supports the following:
 
 * `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade.
 
-~> **Note:** Exactly one of `max_surge` or `max_unavailable` must be specified.
+~> **Note:** Exactly one of `max_surge` or `max_unavailable` must be specified, unless `priority` is set to `Spot`. Spot node pools do not support `max_surge` or `max_unavailable`.
 
 * `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`. Unsetting this after configuring it will force a new resource to be created.
 
