@@ -6,6 +6,7 @@ package recoveryservices
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -197,42 +198,36 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				ForceNew:   true,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"staging_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"target_resource_group_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateResourceGroupID,
 						},
 
 						"target_disk_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_replica_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(replicationprotecteditems.DiskAccountTypeStandardLRS),
 								string(replicationprotecteditems.DiskAccountTypePremiumLRS),
@@ -246,7 +241,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"target_disk_encryption_set_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
@@ -301,6 +295,21 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Elem:       networkInterfaceResource(),
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				old, new := d.GetChange("managed_disk")
+				oldSet := old.(*pluginsdk.Set)
+				newSet := new.(*pluginsdk.Set)
+				removed := oldSet.Difference(newSet).List()
+				// removing or modifing existing managed disks without recreation is not supported
+				if len(removed) > 0 {
+					d.ForceNew("managed_disk")
+					d.SetNewComputed("managed_disk")
+				}
+				return nil
+			}),
+		),
 	}
 }
 
@@ -384,11 +393,10 @@ func diskEncryptionResource() *pluginsdk.Resource {
 						"secret_url": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -403,11 +411,10 @@ func diskEncryptionResource() *pluginsdk.Resource {
 						"key_url": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -594,6 +601,47 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	}
 
 	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
+	addedManagedDisks := make([]replicationprotecteditems.A2AVMManagedDiskInputDetails, 0, len(managedDisksGet))
+
+	if !d.IsNewResource() && d.HasChange("managed_disk") {
+		old, new := d.GetChange("managed_disk")
+		oldSet := old.(*pluginsdk.Set)
+		newSet := new.(*pluginsdk.Set)
+
+		addedDisks := newSet.Difference(oldSet).List()
+		removedDisks := oldSet.Difference(newSet).List()
+
+		if len(removedDisks) > 0 {
+			return errors.New("removing or modifying an existing replicated vm in-place is not supported")
+		}
+
+		if len(addedDisks) > 0 {
+			for _, raw := range addedDisks {
+				diskInput := raw.(map[string]interface{})
+				addedManagedDisks = append(addedManagedDisks, replicationprotecteditems.A2AVMManagedDiskInputDetails{
+					DiskId:                              diskInput["disk_id"].(string),
+					PrimaryStagingAzureStorageAccountId: diskInput["staging_storage_account_id"].(string),
+					RecoveryResourceGroupId:             diskInput["target_resource_group_id"].(string),
+					RecoveryReplicaDiskAccountType:      pointer.To(diskInput["target_replica_disk_type"].(string)),
+					RecoveryTargetDiskAccountType:       pointer.To(diskInput["target_disk_type"].(string)),
+					RecoveryDiskEncryptionSetId:         pointer.To(diskInput["target_disk_encryption_set_id"].(string)),
+					DiskEncryptionInfo:                  expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
+				})
+			}
+
+			err := client.AddDisksThenPoll(ctx, id, replicationprotecteditems.AddDisksInput{
+				Properties: &replicationprotecteditems.AddDisksInputProperties{
+					ProviderSpecificDetails: replicationprotecteditems.A2AAddDisksInput{
+						VMManagedDisks: &addedManagedDisks,
+					},
+				},
+			})
+			if err != nil {
+				return fmt.Errorf("adding disks to replicated vm %s (vault %s): %+v", name, vaultName, err)
+			}
+		}
+	}
+
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(managedDisksGet))
 	for _, raw := range managedDisksGet {
 		diskInput := raw.(map[string]interface{})
@@ -980,6 +1028,45 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["staging_storage_account_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["target_resource_group_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["target_disk_encryption_set_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["target_replica_disk_type"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["target_disk_type"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["target_disk_encryption"]; ok {
+			diskEncryptionList := v.([]interface{})
+			if len(diskEncryptionList) > 0 && diskEncryptionList[0] != nil {
+				diskEncryptionMap := diskEncryptionList[0].(map[string]interface{})
+				if dekList, ok := diskEncryptionMap["disk_encryption_key"].([]interface{}); ok && len(dekList) > 0 {
+					dekMap := dekList[0].(map[string]interface{})
+					if v, ok := dekMap["secret_url"]; ok {
+						buf.WriteString(strings.ToLower(v.(string)))
+					}
+					if v, ok := dekMap["vault_id"]; ok {
+						buf.WriteString(strings.ToLower(v.(string)))
+					}
+				}
+				if kekList, ok := diskEncryptionMap["key_encryption_key"].([]interface{}); ok && len(kekList) > 0 {
+					kekMap := kekList[0].(map[string]interface{})
+					if v, ok := kekMap["key_url"]; ok {
+						buf.WriteString(strings.ToLower(v.(string)))
+					}
+					if v, ok := kekMap["vault_id"]; ok {
+						buf.WriteString(strings.ToLower(v.(string)))
+					}
+				}
+			}
 		}
 	}
 
