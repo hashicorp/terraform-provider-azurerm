@@ -6,6 +6,7 @@ package securitycenter
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
@@ -114,7 +115,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 						"ThreatResistance",
 						"MissingCoverage",
 						"DenialOfService",
-					}, false),
+					}, true), // case-insensitive to handle API returning camelCase
 				},
 			},
 
@@ -245,7 +246,8 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			threats := make([]string, 0)
 			if props.Threats != nil {
 				for _, item := range *props.Threats {
-					threats = append(threats, string(item))
+					threatValue := string(item)
+					threats = append(threats, normalizeThreatValue(threatValue))
 				}
 			}
 			d.Set("threats", utils.FlattenStringSlice(&threats))
@@ -335,4 +337,24 @@ func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, 
 	}
 
 	return nil
+}
+
+func normalizeThreatValue(value string) string {
+	threatMap := map[string]string{
+		"accountbreach":        "AccountBreach",
+		"dataexfiltration":     "DataExfiltration",
+		"dataspillage":         "DataSpillage",
+		"maliciousinsider":     "MaliciousInsider",
+		"elevationofprivilege": "ElevationOfPrivilege",
+		"threatresistance":     "ThreatResistance",
+		"missingcoverage":      "MissingCoverage",
+		"denialofservice":      "DenialOfService",
+	}
+
+	lowerValue := strings.ToLower(value)
+	if normalized, ok := threatMap[lowerValue]; ok {
+		return normalized
+	}
+
+	return value
 }
