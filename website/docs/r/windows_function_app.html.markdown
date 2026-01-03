@@ -177,7 +177,7 @@ A `application_stack` block supports the following:
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `1.8`, `11`, `17`, `21` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16`, `~18` `~20` and `~22`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16`, `~18` `~20`, `~22` and `~24`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
 
