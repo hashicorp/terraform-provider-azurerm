@@ -106,6 +106,7 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"admin_password": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+			Sensitive: true,
 		},
 
 		"admin_username": {
