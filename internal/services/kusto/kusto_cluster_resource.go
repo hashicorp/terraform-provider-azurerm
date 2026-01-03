@@ -112,6 +112,30 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"callout_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"callout_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForCalloutType(), false),
+						},
+						"callout_uri_regex": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"outbound_access": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForOutboundAccess(), false),
+						},
+					},
+				},
+			},
+
 			"trusted_external_tenants": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
@@ -409,6 +433,10 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		clusterProperties.AllowedIPRangeList = expandKustoListString(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("callout_policy"); ok {
+		clusterProperties.CalloutPolicies = expandKustoClusterCalloutPolicies(v.([]interface{}))
+	}
+
 	restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
 	if v, ok := d.GetOk("outbound_network_access_restricted"); ok {
 		if v.(bool) {
@@ -535,6 +563,10 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("allowed_ip_ranges") {
 		props.AllowedIPRangeList = expandKustoListString(d.Get("allowed_ip_ranges").([]interface{}))
+	}
+
+	if d.HasChange("callout_policy") {
+		props.CalloutPolicies = expandKustoClusterCalloutPolicies(d.Get("callout_policy").([]interface{}))
 	}
 
 	if d.HasChange("auto_stop_enabled") {
@@ -702,6 +734,9 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			}
 			d.Set("allowed_fqdns", props.AllowedFqdnList)
 			d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
+			if err := d.Set("callout_policy", flattenKustoClusterCalloutPolicies(props.CalloutPolicies)); err != nil {
+				return fmt.Errorf("setting `callout_policy`: %+v", err)
+			}
 			d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 			d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 			d.Set("auto_stop_enabled", props.EnableAutoStop)
@@ -892,6 +927,42 @@ func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExten
 				},
 			)
 		}
+	}
+
+	return output
+}
+
+func expandKustoClusterCalloutPolicies(input []interface{}) *[]clusters.CalloutPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	policies := make([]clusters.CalloutPolicy, 0)
+	for _, item := range input {
+		policyMap := item.(map[string]interface{})
+		policy := clusters.CalloutPolicy{
+			CalloutType:     pointer.ToEnum[clusters.CalloutType](policyMap["callout_type"].(string)),
+			CalloutUriRegex: pointer.To(policyMap["callout_uri_regex"].(string)),
+			OutboundAccess:  pointer.ToEnum[clusters.OutboundAccess](policyMap["outbound_access"].(string)),
+		}
+		policies = append(policies, policy)
+	}
+
+	return &policies
+}
+
+func flattenKustoClusterCalloutPolicies(input *[]clusters.CalloutPolicy) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	output := make([]interface{}, 0)
+	for _, policy := range *input {
+		policyMap := map[string]interface{}{}
+		policyMap["callout_type"] = pointer.FromEnum(policy.CalloutType)
+		policyMap["callout_uri_regex"] = pointer.From(policy.CalloutUriRegex)
+		policyMap["outbound_access"] = pointer.FromEnum(policy.OutboundAccess)
+		output = append(output, policyMap)
 	}
 
 	return output
