@@ -172,11 +172,6 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		Properties: iotHubDataConnectionProperties,
 	}
 
-	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection.Properties.DatabaseRouting = &dbRoutingType
-	}
-
 	err = client.CreateOrUpdateThenPoll(ctx, id, dataConnection)
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
@@ -244,16 +239,30 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	iotHubDataConnectionProperties := expandKustoIotHubDataConnectionProperties(d)
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return err
+	}
+
+	model := existing.Model
+	if model == nil {
+		return fmt.Errorf("retrieving existing %s: model was empty", id)
+	}
+
+	props := model.(dataconnections.IotHubDataConnection).Properties
+	if props == nil {
+		return fmt.Errorf("retrieving existing %s: properties were empty", id)
+	}
+
+	props.ProvisioningState = nil // clear read-only field
+
+	if d.HasChanges("retrieval_start_date") {
+		props.RetrievalStartDate = pointer.To(d.Get("retrieval_start_date").(string))
+	}
 
 	dataConnection := dataconnections.IotHubDataConnection{
 		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
-		Properties: iotHubDataConnectionProperties,
-	}
-
-	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection.Properties.DatabaseRouting = &dbRoutingType
+		Properties: props,
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
@@ -300,6 +309,11 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	if df, ok := d.GetOk("data_format"); ok {
 		dataFormat := dataconnections.IotHubDataFormat(df.(string))
 		iotHubDataConnectionProperties.DataFormat = &dataFormat
+	}
+
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
+		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
+		iotHubDataConnectionProperties.DatabaseRouting = &dbRoutingType
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
