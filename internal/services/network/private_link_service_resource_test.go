@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -247,6 +249,51 @@ func TestAccPrivateLinkService_destinationIPAddress(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateLinkService_forceNewWithNatIpConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicIp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNatIpConfigurationName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNatIpConfigurationPrimary(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("2"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+			),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 		data.ImportStep(),
 	})
@@ -880,12 +927,20 @@ resource "azurerm_private_link_service" "test" {
     private_ip_address_version = "IPv4"
     primary                    = false
   }
+  
+  nat_ip_configuration {
+    name                       = "quaternaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.43"
+    private_ip_address_version = "IPv4"
+    primary                    = false
+  }
 
   tags = {
     env = "test"
   }
 }
-`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
@@ -928,4 +983,78 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) updateNatIpConfigurationName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.3.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                       = "primaryIpConfigurationChanged-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.30"
+    private_ip_address_version = "IPv4"
+    primary                    = true
+  }
+  
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) updateNatIpConfigurationPrimary(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.3.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                       = "primaryIpConfigurationChanged-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.30"
+    private_ip_address_version = "IPv4"
+    primary                    = false
+  }
+
+  nat_ip_configuration {
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.22"
+    private_ip_address_version = "IPv4"
+    primary                    = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

@@ -115,7 +115,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
@@ -141,7 +140,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -170,6 +168,25 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
+			}
+
+			if rawNatIpConfigurations, ok := d.GetOk("nat_ip_configuration"); ok {
+				var key string
+
+				for i := range rawNatIpConfigurations.([]interface{}) {
+					key = fmt.Sprintf("nat_ip_configuration.%d.name", i)
+					oldRawNatIpConfigurationName, _ := d.GetChange(key)
+
+					if oldRawNatIpConfigurationName.(string) != "" && d.HasChange(key) {
+						d.ForceNew(key)
+					}
+
+					key = fmt.Sprintf("nat_ip_configuration.%d.primary", i)
+
+					if d.HasChange(key) {
+						d.ForceNew(key)
+					}
+				}
 			}
 
 			return nil
