@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between `4` and `730`; or `1095`, `1460`, `1826`, `2191`, `2556`, `2922`, `3288`, `3653`, `4018`, or `4383`.
 
--> **Note:** `retention_in_days` and `total_retention_in_days` will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a azurerm_log_analytics_workspace_table is deleted.
+-> **Note:** `retention_in_days` and `total_retention_in_days` will revert back to the value of `azurerm_log_analytics_workspace.retention_in_days` and `azurerm_log_analytics_workspace.total_retention_in_days` when a azurerm_log_analytics_workspace_table is deleted.
 
 -> **Note:** The `retention_in_days` cannot be specified when `plan` is `Basic` because the retention is fixed at eight days.
 
