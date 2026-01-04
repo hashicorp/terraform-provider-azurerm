@@ -41,6 +41,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
@@ -271,6 +272,8 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
+
+		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchema(),
 
@@ -567,6 +570,17 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			stickySettings := helpers.ExpandStickySettings(functionAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
 					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -676,6 +690,11 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, functionAppId)
+			if err != nil || stickySettings.Model == nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
@@ -737,6 +756,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingFTPBasicAuthEnabled:    basicAuthFTP,
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
@@ -1057,6 +1077,31 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: &webapps.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.Properties.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.Properties.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				functionAppId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
+				if _, err := client.UpdateSlotConfigurationNames(ctx, functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 
