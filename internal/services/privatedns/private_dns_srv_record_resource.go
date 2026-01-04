@@ -12,19 +12,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePrivateDnsSrvRecordCreateUpdate,
 		Read:   resourcePrivateDnsSrvRecordRead,
 		Update: resourcePrivateDnsSrvRecordCreateUpdate,
@@ -56,12 +59,7 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 				ValidateFunc: validate.LowerCasedString,
 			},
 
-			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"zone_name": {
+			"private_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -114,6 +112,42 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+	if !features.FivePointOh() {
+		resource.Schema["private_zone_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"zone_name", "resource_group_name"},
+			AtLeastOneOf:  []string{"zone_name", "resource_group_name", "private_zone_id"},
+		}
+		// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+		// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     resourcegroups.ValidateName,
+			Deprecated:       "The `resource_group_name` field is deprecated in favor of `private_zone_id`. This will be removed in version 5.0.",
+			ConflictsWith:    []string{"private_zone_id"},
+			AtLeastOneOf:     []string{"private_zone_id", "zone_name", "resource_group_name"},
+		}
+		resource.Schema["zone_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			Deprecated:    "The `zone_name` field is deprecated in favor of `private_zone_id`. This will be removed in version 5.0.",
+			ConflictsWith: []string{"private_zone_id"},
+			AtLeastOneOf:  []string{"private_zone_id", "zone_name", "resource_group_name"},
+		}
+	}
+
+	return resource
 }
 
 func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -122,7 +156,20 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeSRV, d.Get("name").(string))
+	rawDnsZoneId := d.Get("private_zone_id").(string)
+	if !features.FivePointOh() && rawDnsZoneId == "" {
+		dnsZoneId := &privatedns.PrivateZoneId{
+			ResourceGroupName:  d.Get("resource_group_name").(string),
+			PrivateDnsZoneName: d.Get("zone_name").(string),
+			SubscriptionId:     subscriptionId,
+		}
+		rawDnsZoneId = dnsZoneId.ID()
+	}
+	dnsZoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(rawDnsZoneId)
+	if err != nil {
+		return err
+	}
+	id := privatedns.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, privatedns.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.RecordSetsGet(ctx, id)
 		if err != nil {
@@ -138,6 +185,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
+		Type: pointer.To(string(privatedns.RecordTypeSRV)),
 		Properties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
@@ -177,8 +225,16 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	d.Set("zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	dnsZoneId := &privatedns.PrivateZoneId{
+		ResourceGroupName:  id.ResourceGroupName,
+		PrivateDnsZoneName: id.PrivateDnsZoneName,
+		SubscriptionId:     meta.(*clients.Client).Account.SubscriptionId,
+	}
+	d.Set("private_zone_id", dnsZoneId.ID())
+	if !features.FivePointOh() {
+		d.Set("zone_name", id.PrivateDnsZoneName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
