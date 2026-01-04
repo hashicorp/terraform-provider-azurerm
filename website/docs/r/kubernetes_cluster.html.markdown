@@ -427,6 +427,8 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
+* `security_profile` - (Optional) A `security_profile` block as defined below.
+
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
@@ -991,6 +993,14 @@ A `http_proxy_config` block supports the following:
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
 * `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
+---
+
+A `security_profile` block supports the following:
+
+* `vtpm_enabled` - (Optional) vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
+
+* `secure_boot_enabled` - (Optional) Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
 
 ---
 
