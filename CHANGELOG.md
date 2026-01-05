@@ -1,6 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
 * `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` [GH-31387]
 * `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` [GH-31424]
 * dependencies: `go-azure-sdk` - update to `v0.20251217.1163055` [GH-31384]
