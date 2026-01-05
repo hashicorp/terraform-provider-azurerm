@@ -1707,10 +1707,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s%s_%s", accountTier, provisionedBillingModelVersion, replicationType)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
-	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
-		if storageType == string(storageaccounts.SkuNameStandardZRS) {
-			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
-		}
+	if accountKind == storageaccounts.KindBlobStorage && storageType == string(storageaccounts.SkuNameStandardZRS) {
+		return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
