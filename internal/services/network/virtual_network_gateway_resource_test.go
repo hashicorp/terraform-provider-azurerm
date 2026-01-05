@@ -1480,7 +1480,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Standard"
 
   ip_configuration {
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id          = azurerm_public_ip.test.id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test.id
   }
@@ -1834,15 +1834,15 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
-  edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-  default_outbound_access_enabled               = false
+  name                            = "GatewaySubnet"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.1.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1851,7 +1851,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
 data "azurerm_extended_locations" "test" {
@@ -1870,7 +1870,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   ip_configuration {
     public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id                     = azurerm_subnet.test.id
+    subnet_id            = azurerm_subnet.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
