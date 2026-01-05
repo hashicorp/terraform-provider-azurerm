@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -1526,6 +1526,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// populate the cache
 	account, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -1704,10 +1707,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s%s_%s", accountTier, provisionedBillingModelVersion, replicationType)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
-	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
-		if storageType == string(storageaccounts.SkuNameStandardZRS) {
-			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
-		}
+	if accountKind == storageaccounts.KindBlobStorage && storageType == string(storageaccounts.SkuNameStandardZRS) {
+		return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -2121,155 +2122,153 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
-	if account != nil {
-		if account.Kind != nil {
-			accountKind = *account.Kind
+	if account.Kind != nil {
+		accountKind = *account.Kind
+	}
+	d.Set("account_kind", string(accountKind))
+
+	var accountTier storageaccounts.SkuTier
+	accountReplicationType := ""
+	provisionBillingModelVer := ""
+	if sku := account.Sku; sku != nil {
+		skuNameSegs := strings.Split(string(sku.Name), "_")
+		accountTierAndProvisionBillingModelVer := skuNameSegs[0]
+		accountReplicationType = skuNameSegs[1]
+		if sku.Tier != nil {
+			accountTier = *sku.Tier
+			provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
 		}
-		d.Set("account_kind", string(accountKind))
+	}
+	d.Set("account_tier", string(accountTier))
+	d.Set("account_replication_type", accountReplicationType)
+	d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
-		var accountTier storageaccounts.SkuTier
-		accountReplicationType := ""
-		provisionBillingModelVer := ""
-		if sku := account.Sku; sku != nil {
-			skuNameSegs := strings.Split(string(sku.Name), "_")
-			accountTierAndProvisionBillingModelVer := skuNameSegs[0]
-			accountReplicationType = skuNameSegs[1]
-			if sku.Tier != nil {
-				accountTier = *sku.Tier
-				provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
-			}
+	d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
+	d.Set("location", location.Normalize(account.Location))
+
+	if props := account.Properties; props != nil {
+		primaryEndpoints = props.PrimaryEndpoints
+		routingPreference = props.RoutingPreference
+		secondaryEndpoints = props.SecondaryEndpoints
+
+		d.Set("access_tier", pointer.From(props.AccessTier))
+		d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
+		if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
-		d.Set("account_tier", string(accountTier))
-		d.Set("account_replication_type", accountReplicationType)
-		d.Set("provisioned_billing_model_version", provisionBillingModelVer)
+		d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
+		d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
+		d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+		d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
+		d.Set("primary_location", pointer.From(props.PrimaryLocation))
+		if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
+			return fmt.Errorf("setting `routing`: %+v", err)
+		}
+		d.Set("secondary_location", pointer.From(props.SecondaryLocation))
+		d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
 
-		d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
-		d.Set("location", location.Normalize(account.Location))
+		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
+		// resources when a new field gets added - meaning we need to default the values below.
+		allowBlobPublicAccess := true
+		if props.AllowBlobPublicAccess != nil {
+			allowBlobPublicAccess = *props.AllowBlobPublicAccess
+		}
+		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
-		if props := account.Properties; props != nil {
-			primaryEndpoints = props.PrimaryEndpoints
-			routingPreference = props.RoutingPreference
-			secondaryEndpoints = props.SecondaryEndpoints
+		defaultToOAuthAuthentication := false
+		if props.DefaultToOAuthAuthentication != nil {
+			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
+		}
+		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
-			d.Set("access_tier", pointer.From(props.AccessTier))
-			d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
-			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
-			}
-			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
-			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
-			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
-			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
-			d.Set("primary_location", pointer.From(props.PrimaryLocation))
-			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
-				return fmt.Errorf("setting `routing`: %+v", err)
-			}
-			d.Set("secondary_location", pointer.From(props.SecondaryLocation))
-			d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
+		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
+		if props.DnsEndpointType != nil {
+			dnsEndpointType = *props.DnsEndpointType
+		}
+		d.Set("dns_endpoint_type", dnsEndpointType)
 
-			// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
-			// resources when a new field gets added - meaning we need to default the values below.
-			allowBlobPublicAccess := true
-			if props.AllowBlobPublicAccess != nil {
-				allowBlobPublicAccess = *props.AllowBlobPublicAccess
-			}
-			d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
+		isLocalEnabled := true
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
-			defaultToOAuthAuthentication := false
-			if props.DefaultToOAuthAuthentication != nil {
-				defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-			}
-			d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
+		largeFileShareEnabled := false
+		if props.LargeFileSharesState != nil {
+			largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
+		}
+		d.Set("large_file_share_enabled", largeFileShareEnabled)
 
-			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
-			if props.DnsEndpointType != nil {
-				dnsEndpointType = *props.DnsEndpointType
-			}
-			d.Set("dns_endpoint_type", dnsEndpointType)
+		minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
+		if props.MinimumTlsVersion != nil {
+			minTlsVersion = string(*props.MinimumTlsVersion)
+		}
+		d.Set("min_tls_version", minTlsVersion)
 
-			isLocalEnabled := true
-			if props.IsLocalUserEnabled != nil {
-				isLocalEnabled = *props.IsLocalUserEnabled
-			}
-			d.Set("local_user_enabled", isLocalEnabled)
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
+			publicNetworkAccessEnabled = false
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			largeFileShareEnabled := false
-			if props.LargeFileSharesState != nil {
-				largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
-			}
-			d.Set("large_file_share_enabled", largeFileShareEnabled)
+		allowSharedKeyAccess := true
+		if props.AllowSharedKeyAccess != nil {
+			allowSharedKeyAccess = *props.AllowSharedKeyAccess
+		}
+		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 
-			minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
-			if props.MinimumTlsVersion != nil {
-				minTlsVersion = string(*props.MinimumTlsVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
+		if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
+			return fmt.Errorf("setting `custom_domain`: %+v", err)
+		}
+		if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+			return fmt.Errorf("setting `immutability_policy`: %+v", err)
+		}
+		if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
+			return fmt.Errorf("setting `network_rules`: %+v", err)
+		}
 
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
-				publicNetworkAccessEnabled = false
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			allowSharedKeyAccess := true
-			if props.AllowSharedKeyAccess != nil {
-				allowSharedKeyAccess = *props.AllowSharedKeyAccess
-			}
-			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
-
-			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
-				return fmt.Errorf("setting `custom_domain`: %+v", err)
-			}
-			if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
-				return fmt.Errorf("setting `immutability_policy`: %+v", err)
-			}
-			if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
-				return fmt.Errorf("setting `network_rules`: %+v", err)
-			}
-
-			// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
-			// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
-			infrastructureEncryption := false
-			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			if encryption := props.Encryption; encryption != nil {
-				infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
-				if encryption.Services != nil {
-					if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
-						queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
-					}
-					if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
-						tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
-					}
+		// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
+		// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
+		infrastructureEncryption := false
+		queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
+		tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
+		if encryption := props.Encryption; encryption != nil {
+			infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
+			if encryption.Services != nil {
+				if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
+					queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
+				}
+				if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
+					tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
 				}
 			}
-			d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-			d.Set("table_encryption_key_type", tableEncryptionKeyType)
+		}
+		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 
-			customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
-			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
-			}
-
-			if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
-				return fmt.Errorf("setting `sas_policy`: %+v", err)
-			}
-
-			supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+		customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
+		if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
 
-		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(account.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
-		if err := d.Set("identity", flattenedIdentity); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
+			return fmt.Errorf("setting `sas_policy`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, account.Tags); err != nil {
-			return err
-		}
+		supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+	}
+
+	flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(account.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := tags.FlattenAndSet(d, account.Tags); err != nil {
+		return err
 	}
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)

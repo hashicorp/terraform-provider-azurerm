@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_test
@@ -22,8 +22,8 @@ import (
 type DatabricksWorkspaceResource struct{}
 
 type DatabricksWorkspaceAlternateSubscription struct {
-	tenant_id       string
-	subscription_id string
+	tenantID       string
+	subscriptionID string
 }
 
 func TestAccDatabricksWorkspace_basic(t *testing.T) {
@@ -578,8 +578,8 @@ func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
 	}
 
 	return &DatabricksWorkspaceAlternateSubscription{
-		tenant_id:       altTenantID,
-		subscription_id: altSubscriptonID,
+		tenantID:       altTenantID,
+		subscriptionID: altSubscriptonID,
 	}
 }
 
@@ -2659,7 +2659,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
@@ -2860,7 +2860,7 @@ resource "azurerm_key_vault_access_policy" "managedAlt" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
@@ -2986,7 +2986,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkDiskOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
@@ -3112,7 +3112,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
 }
 
 func (DatabricksWorkspaceResource) enhancedSecurityCompliance(data acceptance.TestData, sku string, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, complianceSecurityProfileStandards []string, enhancedSecurityMonitoringEnabled bool) string {

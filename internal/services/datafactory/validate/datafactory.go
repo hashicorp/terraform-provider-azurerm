@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -46,4 +47,18 @@ func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
 
 		return warnings, errors
 	}
+}
+
+func CMKIdentityIdRequiredAtCreation(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+	if d.Id() == "" {
+		rawConfig := d.GetRawConfig().AsValueMap()
+
+		rawCMK := rawConfig["customer_managed_key_id"]
+		rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+
+		if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+			return fmt.Errorf("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
+		}
+	}
+	return nil
 }

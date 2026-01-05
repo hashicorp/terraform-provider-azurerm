@@ -23,6 +23,34 @@ type ListByFleetCompleteResult struct {
 	Items              []UpdateRun
 }
 
+type ListByFleetOperationOptions struct {
+	Top *int64
+}
+
+func DefaultListByFleetOperationOptions() ListByFleetOperationOptions {
+	return ListByFleetOperationOptions{}
+}
+
+func (o ListByFleetOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o ListByFleetOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o ListByFleetOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.Top != nil {
+		out.Append("$top", fmt.Sprintf("%v", *o.Top))
+	}
+	return &out
+}
+
 type ListByFleetCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
@@ -36,15 +64,16 @@ func (p *ListByFleetCustomPager) NextPageLink() *odata.Link {
 }
 
 // ListByFleet ...
-func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result ListByFleetOperationResponse, err error) {
+func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId, options ListByFleetOperationOptions) (result ListByFleetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Pager:      &ListByFleetCustomPager{},
-		Path:       fmt.Sprintf("%s/updateRuns", id.ID()),
+		HttpMethod:    http.MethodGet,
+		OptionsObject: options,
+		Pager:         &ListByFleetCustomPager{},
+		Path:          fmt.Sprintf("%s/updateRuns", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -75,15 +104,15 @@ func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result L
 }
 
 // ListByFleetComplete retrieves all the results into a single object
-func (c UpdateRunsClient) ListByFleetComplete(ctx context.Context, id FleetId) (ListByFleetCompleteResult, error) {
-	return c.ListByFleetCompleteMatchingPredicate(ctx, id, UpdateRunOperationPredicate{})
+func (c UpdateRunsClient) ListByFleetComplete(ctx context.Context, id FleetId, options ListByFleetOperationOptions) (ListByFleetCompleteResult, error) {
+	return c.ListByFleetCompleteMatchingPredicate(ctx, id, options, UpdateRunOperationPredicate{})
 }
 
 // ListByFleetCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c UpdateRunsClient) ListByFleetCompleteMatchingPredicate(ctx context.Context, id FleetId, predicate UpdateRunOperationPredicate) (result ListByFleetCompleteResult, err error) {
+func (c UpdateRunsClient) ListByFleetCompleteMatchingPredicate(ctx context.Context, id FleetId, options ListByFleetOperationOptions, predicate UpdateRunOperationPredicate) (result ListByFleetCompleteResult, err error) {
 	items := make([]UpdateRun, 0)
 
-	resp, err := c.ListByFleet(ctx, id)
+	resp, err := c.ListByFleet(ctx, id, options)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
