@@ -5,6 +5,7 @@ package network
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -47,7 +48,8 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
-		Schema: resourceVirtualNetworkGatewaySchema(),
+		Schema:        resourceVirtualNetworkGatewaySchema(),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(virtualNetworkGatewayCustomizeDiff),
 	}
 }
 
@@ -1689,4 +1691,24 @@ func flattenVirtualNetworkGatewayPolicyGroupNames(input []virtualnetworkgateways
 	}
 
 	return results, nil
+}
+
+func virtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if d.HasChanges("type", "sku") && d.Get("type").(string) == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("sku").(string) == string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierBasic) {
+		return fmt.Errorf("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
+	}
+
+	newResourceCreated := d.HasChanges("name", "resource_group_name", "location", "type", "vpn_type", "edge_zone", "private_ip_address_enabled", "generation", "ip_configuration")
+
+	if newResourceCreated && d.Get("type").(string) == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("edge_zone").(string) == "" {
+		ipConfigurations := d.Get("ip_configuration")
+
+		for i := range ipConfigurations.([]interface{}) {
+			if d.Get(fmt.Sprintf("ip_configuration.%d.public_ip_address_id", i)).(string) != "" {
+				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` property should be omitted when creating `azurerm_virtual_network_gateway` resource without using `edge_zone` property as public IP will be created automatically. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration", i)
+			}
+		}
+	}
+
+	return nil
 }
