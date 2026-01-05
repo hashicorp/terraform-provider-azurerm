@@ -500,17 +500,8 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			// Remove the lock, if any. We will put it back again if the model says so.
-			if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {
-				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				kv.Tags = tags.Expand(model.Tags)
-			}
-
-			if metadata.ResourceData.HasChange("locked") {
-				kv.Locked = pointer.To(model.Locked)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -525,7 +516,6 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			filterChanged := false
 			timewindowFilters := make([]interface{}, 0)
 			targetingFilters := make([]interface{}, 0)
-			percentageFilter := PercentageFeatureFilter{}
 			customFilters := make([]interface{}, 0)
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
@@ -537,8 +527,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						// Skip - we'll use the value from the new config instead of preserving old state
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)
@@ -549,13 +538,19 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("percentage_filter_value") {
+				if model.PercentageFilter > 0 {
+					filters = append(filters, PercentageFeatureFilter{
+						Name:       PercentageFilterName,
+						Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
+					})
+				}
+				filterChanged = true
+			} else if model.PercentageFilter > 0 {
+				// Preserve the filter if it exists in the new config, even if unchanged
 				filters = append(filters, PercentageFeatureFilter{
 					Name:       PercentageFilterName,
 					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
 				})
-				filterChanged = true
-			} else if percentageFilter.Name != "" {
-				filters = append(filters, percentageFilter)
 			}
 
 			if metadata.ResourceData.HasChange("targeting_filter") {
@@ -607,13 +602,15 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			if model.Locked {
-				if _, err = client.PutLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
-					return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
-				}
-			} else {
-				if _, err = client.DeleteLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
-					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+			if metadata.ResourceData.HasChange("locked") {
+				if model.Locked {
+					if _, err = client.PutLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+						return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+					}
+				} else {
+					if _, err = client.DeleteLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+						return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+					}
 				}
 			}
 
