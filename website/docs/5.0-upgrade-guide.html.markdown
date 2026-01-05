@@ -381,7 +381,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_orchestrated_virtual_machine_scale_set`
 
-* The deprecated `sku_profile.vm_sizes` property has been removed in favour of the `sku_profile.vm_size` block.
+* The deprecated `sku_profile.vm_sizes` property has been removed in favour of the `sku_profile.virtual_machine_size` block.
 
 ### `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack`
 

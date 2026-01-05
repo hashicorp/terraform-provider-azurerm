@@ -69,7 +69,7 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag s
 
 type VirtualMachineScaleSetSkuProfile struct {
 	AllocationStrategy string                                   `tfschema:"allocation_strategy"`
-	VMSize             []VirtualMachineScaleSetSkuProfileVMSize `tfschema:"vm_size"`
+	VirtualMachineSize []VirtualMachineScaleSetSkuProfileVMSize `tfschema:"virtual_machine_size"`
 }
 
 type VirtualMachineScaleSetSkuProfileVMSize struct {
@@ -154,7 +154,7 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*p
 						Computed: true,
 					},
 
-					"vm_size": {
+					"virtual_machine_size": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -212,9 +212,9 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 				}
 				orchestratedVMSS.Identity = pointer.From(identityFlattened)
 
-				orchestratedVMSS.SkuProfile = flattenVirtualMachineScaleSetSkuProfileForDataSource(model.Properties.SkuProfile)
-
 				if props := model.Properties; props != nil {
+					orchestratedVMSS.SkuProfile = flattenVirtualMachineScaleSetSkuProfileForDataSource(props.SkuProfile)
+
 					if profile := props.VirtualMachineProfile; profile != nil {
 						if nwProfile := profile.NetworkProfile; nwProfile != nil {
 							orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
@@ -382,6 +382,6 @@ func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachines
 
 	return []VirtualMachineScaleSetSkuProfile{{
 		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
-		VMSize:             vmSizes,
+		VirtualMachineSize: vmSizes,
 	}}
 }

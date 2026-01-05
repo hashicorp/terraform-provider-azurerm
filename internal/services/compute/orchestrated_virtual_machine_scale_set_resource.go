@@ -40,85 +40,6 @@ const (
 	SkuNameMix = "Mix"
 )
 
-func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
-		"allocation_strategy": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice(
-				virtualmachinescalesets.PossibleValuesForAllocationStrategy(),
-				false,
-			),
-		},
-
-		"vm_size": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"rank": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 2),
-					},
-				},
-			},
-		},
-	}
-
-	if !features.FivePointOh() {
-		schema["vm_sizes"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.vm_size"},
-			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` block instead.",
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		}
-
-		schema["vm_size"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.vm_sizes"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"rank": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 2),
-					},
-				},
-			},
-		}
-	}
-
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: schema,
-		},
-	}
-}
-
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceOrchestratedVirtualMachineScaleSetCreate,
@@ -193,7 +114,83 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
-			"sku_profile": orchestratedVirtualMachineScaleSetSkuProfileSchema(),
+			"sku_profile": func() *pluginsdk.Schema {
+				schema := map[string]*pluginsdk.Schema{
+					"allocation_strategy": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice(
+							virtualmachinescalesets.PossibleValuesForAllocationStrategy(),
+							false,
+						),
+					},
+					"virtual_machine_size": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"rank": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(0, 2),
+								},
+							},
+						},
+					},
+				}
+
+				if !features.FivePointOh() {
+					schema["vm_sizes"] = &pluginsdk.Schema{
+						Type:          pluginsdk.TypeSet,
+						Optional:      true,
+						Computed:      true,
+						MinItems:      1,
+						ConflictsWith: []string{"sku_profile.0.virtual_machine_size"},
+						Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `virtual_machine_size` block instead.",
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					}
+
+					schema["virtual_machine_size"] = &pluginsdk.Schema{
+						Type:          pluginsdk.TypeSet,
+						Optional:      true,
+						Computed:      true,
+						MinItems:      1,
+						ConflictsWith: []string{"sku_profile.0.vm_sizes"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"rank": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(0, 2),
+								},
+							},
+						},
+					}
+				}
+
+				return &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: schema,
+					},
+				}
+			}(),
 
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
 
@@ -437,19 +434,19 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					// TODO: Remove in v5.0
 					if !features.FivePointOh() {
 						vmSizesProvided := len(skuProfile["vm_sizes"].(*pluginsdk.Set).List()) > 0
-						vmSizeProvided := len(skuProfile["vm_size"].(*pluginsdk.Set).List()) > 0
+						vmSizeProvided := len(skuProfile["virtual_machine_size"].(*pluginsdk.Set).List()) > 0
 						if !vmSizesProvided && !vmSizeProvided {
-							return fmt.Errorf("either `vm_sizes` or `vm_size` must be configured in `sku_profile`")
+							return fmt.Errorf("either `vm_sizes` or `virtual_machine_size` must be configured in `sku_profile`")
 						}
 						if vmSizesRaw := skuProfiles[0].AsValueMap()["vm_sizes"]; !vmSizesRaw.IsNull() && vmSizesRaw.IsKnown() {
 							if allocationStrategy == string(virtualmachinescalesets.AllocationStrategyPrioritized) {
-								return fmt.Errorf("when `allocation_strategy` is `Prioritized`, you must use `vm_size` instead of `vm_sizes` to specify rank values")
+								return fmt.Errorf("when `allocation_strategy` is `Prioritized`, you must use `virtual_machine_size` instead of `vm_sizes` to specify rank values")
 							}
 						}
 					}
 
-					// Handle validation for vm_size field (new format with rank)
-					if vmSizeRaw := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizeRaw.IsNull() && vmSizeRaw.IsKnown() {
+					// Handle validation for virtual_machine_size field (new format with rank)
+					if vmSizeRaw := skuProfiles[0].AsValueMap()["virtual_machine_size"]; !vmSizeRaw.IsNull() && vmSizeRaw.IsKnown() {
 						vmSizes := vmSizeRaw.AsValueSlice()
 						for _, vmSize := range vmSizes {
 							if !vmSize.AsValueMap()["rank"].IsNull() && allocationStrategy != string(virtualmachinescalesets.AllocationStrategyPrioritized) {
@@ -463,7 +460,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 							for _, vmSize := range vmSizes {
 								vmSizeRaw := vmSize.AsValueMap()
 								if vmSizeRaw["rank"].IsNull() {
-									return fmt.Errorf("when `allocation_strategy` is `Prioritized`, all `vm_size` entries must have the `rank` field set, `%s` is missing `rank`", vmSizeRaw["name"].AsString())
+									return fmt.Errorf("when `allocation_strategy` is `Prioritized`, all `virtual_machine_size` entries must have the `rank` field set, `%s` is missing `rank`", vmSizeRaw["name"].AsString())
 								}
 
 								rank, _ := vmSizeRaw["rank"].AsBigFloat().Int64()
@@ -1737,7 +1734,7 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 						}
 					}
 
-					if vmSizeField := skuProfileConfig["vm_size"]; !vmSizeField.IsNull() {
+					if vmSizeField := skuProfileConfig["virtual_machine_size"]; !vmSizeField.IsNull() {
 						vmSizeSlice := vmSizeField.AsValueSet().Values()
 						for _, vmSizeVal := range vmSizeSlice {
 							if vmSizeVal.IsNull() {
@@ -1763,7 +1760,7 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 	}
 
 	if features.FivePointOh() {
-		vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
+		vmSizeRaw := v["virtual_machine_size"].(*pluginsdk.Set).List()
 		for i, vmSizeRaw := range vmSizeRaw {
 			vmSizeMap := vmSizeRaw.(map[string]interface{})
 			vmSize := virtualmachinescalesets.SkuProfileVMSize{
@@ -1775,7 +1772,7 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 				if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
 					if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
-						if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
+						if vmSizePath := skuProfiles[0].AsValueMap()["virtual_machine_size"]; !vmSizePath.IsNull() {
 							if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
 								if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
 									vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
@@ -1821,13 +1818,15 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 		}
 	}
 
-	result["vm_size"] = output
+	result["virtual_machine_size"] = output
 
 	if !features.FivePointOh() {
 		output := make([]string, 0)
-		for _, vmSize := range *input.VMSizes {
-			if vmSize.Name != nil {
-				output = append(output, pointer.From(vmSize.Name))
+		if input.VMSizes != nil {
+			for _, vmSize := range *input.VMSizes {
+				if vmSize.Name != nil {
+					output = append(output, pointer.From(vmSize.Name))
+				}
 			}
 		}
 

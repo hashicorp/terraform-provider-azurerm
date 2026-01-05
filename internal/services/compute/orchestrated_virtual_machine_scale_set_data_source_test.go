@@ -32,9 +32,6 @@ func TestAccOrchestratedVMSSDataSource_skuProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_orchestrated_virtual_machine_scale_set", "test")
 	d := OrchestratedVirtualMachineScaleSetDataSource{}
 
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.skuProfile(data),

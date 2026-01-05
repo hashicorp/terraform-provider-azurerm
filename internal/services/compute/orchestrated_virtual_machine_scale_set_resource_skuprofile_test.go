@@ -19,9 +19,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.skuProfileBasic(data),
@@ -42,9 +39,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompati
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// The OVMSS is deployed with the deprecated `vm_sizes`...
@@ -55,7 +49,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompati
 		},
 		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
 		{
-			// Switching to the new `vm_size` format should not trigger any changes...
+			// Switching to the new `virtual_machine_size` format should not trigger any changes...
 			Config:   r.skuProfileUpdate(data),
 			PlanOnly: true,
 		},
@@ -77,9 +71,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompati
 
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,9 +101,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.skuProfileBasic(data),
@@ -142,9 +130,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_withRank(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.skuProfileWithRank(data),
@@ -166,7 +151,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_duplicateVMSizes(t *te
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// TypeSet automatically deduplicates, so we should only have 1 VM size
-				check.That(data.ResourceName).Key("sku_profile.0.vm_size.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_profile.0.virtual_machine_size.#").HasValue("1"),
 			),
 		},
 		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
@@ -176,9 +161,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_duplicateVMSizes(t *te
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
 
 	testSteps := []acceptance.TestStep{
 		{
@@ -199,7 +181,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 		},
 		{
 			Config:      r.skuProfilePrioritizedWithoutRank(data),
-			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, all `vm_size` entries must have the `rank` field set, `Standard_B1ls` is missing `rank`"),
+			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, all `virtual_machine_size` entries must have the `rank` field set, `Standard_B1ls` is missing `rank`"),
 		},
 		{
 			Config:      r.skuProfilePrioritizedWithNonConsecutiveRanks(data),
@@ -216,11 +198,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 		testSteps = append(testSteps,
 			acceptance.TestStep{
 				Config:      r.skuProfileNeitherFieldProvided(data),
-				ExpectError: regexp.MustCompile("either `vm_sizes` or `vm_size` must be configured in `sku_profile`"),
+				ExpectError: regexp.MustCompile("either `vm_sizes` or `virtual_machine_size` must be configured in `sku_profile`"),
 			},
 			acceptance.TestStep{
 				Config:      r.skuProfileDeprecatedWithPrioritized(data),
-				ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, you must use `vm_size` instead of `vm_sizes` to specify rank values"),
+				ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, you must use `virtual_machine_size` instead of `vm_sizes` to specify rank values"),
 			},
 		)
 	}
@@ -231,9 +213,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_forceNewOnRemovalWithSkuNameChange(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -367,12 +346,12 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileRankWithoutPriorit
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
       rank = 1
     }
@@ -384,11 +363,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDuplicateVMSizes(d
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
   }`
@@ -399,11 +378,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfilePrioritizedWithout
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
     }
   }`
@@ -414,12 +393,12 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfilePrioritizedWithNon
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
       rank = 2
     }
@@ -431,11 +410,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileWithInvalidPlatfor
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
     }
   }`
@@ -498,15 +477,15 @@ func skuProfileCapacityOptimized() string {
 	return `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B2s"
     }
   }`
@@ -516,11 +495,11 @@ func skuProfileLowestPrice() string {
 	return `  sku_profile {
     allocation_strategy = "LowestPrice"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
     }
   }`
@@ -530,17 +509,17 @@ func skuProfilePrioritizedWithRank() string {
 	return `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B1s"
       rank = 1
     }
 
-    vm_size {
+    virtual_machine_size {
       name = "Standard_B2s"
       rank = 2
     }

@@ -142,11 +142,11 @@ A `sku_profile` block supports the following:
 
 * `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice`, `Prioritized`, and `CapacityOptimized`.
 
-* `vm_size` - (Required) One or more `vm_size` blocks as defined below.
+* `virtual_machine_size` - (Required) One or more `virtual_machine_size` blocks as defined below.
 
 ---
 
-A `vm_size` block supports the following:
+A `virtual_machine_size` block supports the following:
 
 * `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
 
