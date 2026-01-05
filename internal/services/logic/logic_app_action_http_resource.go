@@ -213,7 +213,6 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 
 	v := action["inputs"]
 	if v != nil {
-
 		inputs, ok := v.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("parsing `inputs` for HTTP Action %s", id)
