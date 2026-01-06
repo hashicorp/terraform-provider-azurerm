@@ -31,8 +31,8 @@ func TestAccArcMachineAutomanageConfigurationAssignment_resourceIdentity(t *test
 			{
 				Config: r.complete(data),
 				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectIdentityValue("azurerm_arc_machine_automanage_configuration_assignment.test", tfjsonpath.New("configuration_profile_assignment_name"), knownvalue.StringExact("default")),
 					statecheck.ExpectIdentityValue("azurerm_arc_machine_automanage_configuration_assignment.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_arc_machine_automanage_configuration_assignment.test", tfjsonpath.New("configuration_profile_assignment_name"), tfjsonpath.New("configuration_profile_assignment_name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_arc_machine_automanage_configuration_assignment.test", tfjsonpath.New("machine_name"), tfjsonpath.New("arc_machine_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_arc_machine_automanage_configuration_assignment.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("arc_machine_id")),
 				},

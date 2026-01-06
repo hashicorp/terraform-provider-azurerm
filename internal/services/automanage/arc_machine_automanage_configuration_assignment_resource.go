@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name arc_machine_automanage_configuration_assignment -service-package-name automanage -properties "configuration_profile_assignment_name" -compare-values "resource_group_name:arc_machine_id,machine_name:arc_machine_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name complete
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name arc_machine_automanage_configuration_assignment -service-package-name automanage -compare-values "resource_group_name:arc_machine_id,machine_name:arc_machine_id" -known-values "subscription_id:data.Subscriptions.Primary,configuration_profile_assignment_name:default" -test-name complete
 
 type ArcMachineConfigurationAssignment struct {
 	ArcMachineId    string `tfschema:"arc_machine_id"`

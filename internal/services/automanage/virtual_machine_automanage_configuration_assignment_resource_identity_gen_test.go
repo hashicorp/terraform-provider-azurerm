@@ -31,8 +31,8 @@ func TestAccVirtualMachineAutomanageConfigurationAssignment_resourceIdentity(t *
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectIdentityValue("azurerm_virtual_machine_automanage_configuration_assignment.test", tfjsonpath.New("configuration_profile_assignment_name"), knownvalue.StringExact("default")),
 					statecheck.ExpectIdentityValue("azurerm_virtual_machine_automanage_configuration_assignment.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_machine_automanage_configuration_assignment.test", tfjsonpath.New("configuration_profile_assignment_name"), tfjsonpath.New("configuration_profile_assignment_name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_automanage_configuration_assignment.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_machine_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_automanage_configuration_assignment.test", tfjsonpath.New("virtual_machine_name"), tfjsonpath.New("virtual_machine_id")),
 				},
