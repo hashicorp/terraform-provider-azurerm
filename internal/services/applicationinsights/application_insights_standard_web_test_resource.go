@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_standard_web_test -test-name basicConfig -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+
 package applicationinsights
 
 import (
@@ -21,11 +23,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 var (
 	_ sdk.ResourceWithUpdate        = ApplicationInsightsStandardWebTestResource{}
 	_ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+	_ sdk.ResourceWithIdentity      = ApplicationInsightsStandardWebTestResource{}
 )
 
 type ApplicationInsightsStandardWebTestResource struct{}
@@ -304,6 +309,10 @@ func (ApplicationInsightsStandardWebTestResource) ResourceType() string {
 	return "azurerm_application_insights_standard_web_test"
 }
 
+func (ApplicationInsightsStandardWebTestResource) Identity() resourceids.ResourceId {
+	return &webtests.WebTestId{}
+}
+
 func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -370,6 +379,9 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -514,6 +526,9 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
