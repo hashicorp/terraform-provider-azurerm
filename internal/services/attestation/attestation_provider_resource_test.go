@@ -31,6 +31,11 @@ type AttestationProviderResource struct {
 	name string
 }
 
+func (r AttestationProviderResource) basicForResourceIdentity(data acceptance.TestData) string {
+	r.name = fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10))
+	return r.basic(data)
+}
+
 func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{

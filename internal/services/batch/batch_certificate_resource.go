@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name batch_certificate -service-package-name batch -properties "certificate_name:name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -35,10 +38,7 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := certificate.ParseCertificateID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&certificate.CertificateId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -99,6 +99,10 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&certificate.CertificateId{}),
+		},
 	}
 }
 
@@ -154,6 +158,9 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceBatchCertificateRead(d, meta)
 }
 
@@ -209,7 +216,7 @@ func resourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

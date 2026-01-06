@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArcMachineConfigurationAssignmentResource struct{}
+type ArcMachineAutomanageConfigurationAssignmentResource struct{}
 
 func TestAccArcMachineConfigurationAssignment_complete(t *testing.T) {
 	t.Skip("The deprecation check prevents the creation of a hybrid compute machine resource using os.Getenv(\"ARM_CLIENT_SECRET\")")
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_automanage_configuration_assignment", "test")
-	r := ArcMachineConfigurationAssignmentResource{}
+	r := ArcMachineAutomanageConfigurationAssignmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -34,7 +34,7 @@ func TestAccArcMachineConfigurationAssignment_complete(t *testing.T) {
 	})
 }
 
-func (r ArcMachineConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ArcMachineAutomanageConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Automanage.ConfigurationProfileArcMachineAssignmentsClient
 
 	id, err := configurationprofilehcrpassignments.ParseProviders2ConfigurationProfileAssignmentID(state.ID)
@@ -52,7 +52,7 @@ func (r ArcMachineConfigurationAssignmentResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ArcMachineConfigurationAssignmentResource) complete(data acceptance.TestData) string {
+func (r ArcMachineAutomanageConfigurationAssignmentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
