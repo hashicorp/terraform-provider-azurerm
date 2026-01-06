@@ -249,7 +249,10 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving existing %s: model was empty", id)
 	}
 
-	props := model.(dataconnections.IotHubDataConnection).Properties
+	iothubDataConnection, ok := model.(dataconnections.IotHubDataConnection)
+	if !ok {
+	  return fmt.Errorf("the Data Connection %s is not aa IoTHub Data Connection", id)
+	}
 	if props == nil {
 		return fmt.Errorf("retrieving existing %s: properties were empty", id)
 	}
