@@ -471,13 +471,9 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				kv.Tags = tags.Expand(model.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("enabled") {
-				fv.Enabled = model.Enabled
-			}
-
-			if metadata.ResourceData.HasChange("description") {
-				fv.Description = model.Description
-			}
+			// Always set enabled and description to ensure they match the config
+			fv.Enabled = model.Enabled
+			fv.Description = model.Description
 
 			filters := make([]interface{}, 0)
 			filterChanged := false
@@ -551,6 +547,26 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			kv.Value = pointer.To(string(valueBytes))
 			if _, err = client.PutKeyValue(ctx, nestedItemId.Key, model.Label, &kv, "", ""); err != nil {
 				return err
+			}
+
+			// Wait for the update to be fully propagated
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return errors.New("internal-error: context had no deadline")
+			}
+
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q update to be propagated", model.Name)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound", "Forbidden"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, nestedItemId.Key, model.Label),
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q update to be propagated: %+v", model.Name, err)
 			}
 
 			if metadata.ResourceData.HasChange("locked") {
