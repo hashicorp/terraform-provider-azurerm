@@ -320,36 +320,6 @@ func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_certificates(t *testing.T) {
-	t.Skip("This test uses azurerm_batch_certificate which was retired on 2024-02-29")
-	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
-	r := BatchPoolResource{}
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificate0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
-	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.certificates(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1_V2"),
-				check.That(data.ResourceName).Key("node_agent_sku_id").HasValue("batch.node.ubuntu 22.04"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("2"),
-				check.That(data.ResourceName).Key("certificate.0.id").HasValue(certificate0ID),
-				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
-				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
-				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("1"),
-				check.That(data.ResourceName).Key("certificate.1.id").HasValue(certificate1ID),
-				check.That(data.ResourceName).Key("certificate.1.store_location").HasValue("CurrentUser"),
-				check.That(data.ResourceName).Key("certificate.1.store_name").HasValue(""),
-				check.That(data.ResourceName).Key("certificate.1.visibility.#").HasValue("2"),
-			),
-		},
-		data.ImportStep("stop_pending_resize_operation"),
-	})
-}
 
 func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
@@ -1676,74 +1646,6 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) certificates(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestbatch%d"
-  location = "%s"
-}
-
-resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_batch_certificate" "testcer" {
-  resource_group_name  = azurerm_resource_group.test.name
-  account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.cer")
-  format               = "Cer"
-  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
-  thumbprint_algorithm = "SHA1"
-}
-
-resource "azurerm_batch_certificate" "testpfx" {
-  resource_group_name  = azurerm_resource_group.test.name
-  account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate_password.pfx")
-  format               = "Pfx"
-  password             = "terraform"
-  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
-  thumbprint_algorithm = "SHA1"
-}
-
-resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "STANDARD_A1_V2"
-
-  fixed_scale {
-    target_dedicated_nodes = 1
-  }
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  certificate {
-    id             = azurerm_batch_certificate.testcer.id
-    store_location = "CurrentUser"
-    visibility     = ["StartTask"]
-  }
-
-  certificate {
-    id             = azurerm_batch_certificate.testpfx.id
-    store_location = "CurrentUser"
-    visibility     = ["StartTask", "RemoteUser"]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
 
 func (BatchPoolResource) containerConfigurationWithRegistryUser(data acceptance.TestData) string {
 	return fmt.Sprintf(`
