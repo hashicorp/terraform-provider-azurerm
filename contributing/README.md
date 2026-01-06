@@ -34,9 +34,11 @@ Common Topics/Guides:
 * [Adding a new Resource](topics/guide-new-resource.md)
 * [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md)
 * [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md)
+* [Adding Resource Identity](topics/guide-resource-identity.md)
 * [Adding State Migrations](topics/guide-state-migrations.md)
 * [Adding Write-Only Attributes](topics/guide-new-write-only-attribute.md)
 * [Breaking Changes and Deprecations](topics/guide-breaking-changes.md)
+* [Updating API Versions](topics/guide-api-version.md)
 * [When to create a new Resource vs Inline Block](topics/guide-new-resource-vs-inline.md)
 
 References:
