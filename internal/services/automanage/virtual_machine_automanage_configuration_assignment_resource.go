@@ -10,15 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_machine_automanage_configuration_assignment -service-package-name automanage -compare-values "resource_group_name:virtual_machine_id,virtual_machine_name:virtual_machine_id" -known-values "subscription_id:data.Subscriptions.Primary,configuration_profile_assignment_name:default"
 
 type VirtualMachineConfigurationAssignment struct {
 	VirtualMachineId string `tfschema:"virtual_machine_id"`
@@ -100,9 +97,6 @@ func (v VirtualMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -143,9 +137,6 @@ func (v VirtualMachineConfigurationAssignment) Read() sdk.ResourceFunc {
 				state.VirtualMachineId = virtualMachineId.ID()
 			}
 
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -175,11 +166,4 @@ func (v VirtualMachineConfigurationAssignment) IDValidationFunc() pluginsdk.Sche
 	return configurationprofileassignments.ValidateVirtualMachineProviders2ConfigurationProfileAssignmentID
 }
 
-var (
-	_ sdk.Resource             = &VirtualMachineConfigurationAssignment{}
-	_ sdk.ResourceWithIdentity = VirtualMachineConfigurationAssignment{}
-)
-
-func (v VirtualMachineConfigurationAssignment) Identity() resourceids.ResourceId {
-	return &configurationprofileassignments.VirtualMachineProviders2ConfigurationProfileAssignmentId{}
-}
+var _ sdk.Resource = &VirtualMachineConfigurationAssignment{}

@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehcrpassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
@@ -18,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name arc_machine_automanage_configuration_assignment -service-package-name automanage -compare-values "resource_group_name:arc_machine_id,machine_name:arc_machine_id" -known-values "subscription_id:data.Subscriptions.Primary,configuration_profile_assignment_name:default" -test-name complete
 
 type ArcMachineConfigurationAssignment struct {
 	ArcMachineId    string `tfschema:"arc_machine_id"`
@@ -99,9 +96,6 @@ func (v ArcMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -142,9 +136,6 @@ func (v ArcMachineConfigurationAssignment) Read() sdk.ResourceFunc {
 				state.ArcMachineId = arcMachineId.ID()
 			}
 
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -174,11 +165,4 @@ func (v ArcMachineConfigurationAssignment) IDValidationFunc() pluginsdk.SchemaVa
 	return configurationprofilehcrpassignments.ValidateProviders2ConfigurationProfileAssignmentID
 }
 
-var (
-	_ sdk.Resource             = &ArcMachineConfigurationAssignment{}
-	_ sdk.ResourceWithIdentity = ArcMachineConfigurationAssignment{}
-)
-
-func (v ArcMachineConfigurationAssignment) Identity() resourceids.ResourceId {
-	return &configurationprofilehcrpassignments.Providers2ConfigurationProfileAssignmentId{}
-}
+var _ sdk.Resource = &ArcMachineConfigurationAssignment{}
