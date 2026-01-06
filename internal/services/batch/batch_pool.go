@@ -877,7 +877,7 @@ func expandBatchPoolEphemeralOSDiskSettings(input string) *pool.DiffDiskSettings
 	}
 
 	return &pool.DiffDiskSettings{
-		Placement: pointer.To(pool.DiffDiskPlacement(input)),
+		Placement: pointer.ToEnum[pool.DiffDiskPlacement](input),
 	}
 }
 
@@ -889,9 +889,9 @@ func expandBatchPoolManagedDisk(input []interface{}) *pool.ManagedDisk {
 	managedDisk := input[0].(map[string]interface{})
 
 	return &pool.ManagedDisk{
-		StorageAccountType: pointer.To(pool.StorageAccountType(managedDisk["storage_account_type"].(string))),
+		StorageAccountType: pointer.ToEnum[pool.StorageAccountType](managedDisk["storage_account_type"].(string)),
 		SecurityProfile: &pool.VMDiskSecurityProfile{
-			SecurityEncryptionType: pointer.To(pool.SecurityEncryptionTypes(managedDisk["security_encryption_type"].(string))),
+			SecurityEncryptionType: pointer.ToEnum[pool.SecurityEncryptionTypes](managedDisk["security_encryption_type"].(string)),
 		},
 	}
 }
