@@ -128,6 +128,10 @@ resource "azurerm_healthbot" "test" {
 `, r.template(data), data.RandomInteger, sku)
 }
 
+func (r HealthbotResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, string(healthbots.SkuNameFZero))
+}
+
 func (r HealthbotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -1,5 +1,7 @@
 package chaosstudio
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name chaos_studio_experiment -properties "name,resource_group_name" -service-package-name chaosstudio -known-values "subscription_id:data.Subscriptions.Primary"
+
 // NOTE: this file is generated - manual changes will be overwritten.
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,8 +26,9 @@ import (
 )
 
 var (
-	_ sdk.Resource           = ChaosStudioExperimentResource{}
-	_ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
+	_ sdk.Resource             = ChaosStudioExperimentResource{}
+	_ sdk.ResourceWithUpdate   = ChaosStudioExperimentResource{}
+	_ sdk.ResourceWithIdentity = ChaosStudioExperimentResource{}
 )
 
 const (
@@ -37,6 +41,10 @@ type ChaosStudioExperimentResource struct{}
 
 func (r ChaosStudioExperimentResource) ModelObject() interface{} {
 	return &ChaosStudioExperimentResourceSchema{}
+}
+
+func (r ChaosStudioExperimentResource) Identity() resourceids.ResourceId {
+	return &experiments.ExperimentId{}
 }
 
 type ChaosStudioExperimentResourceSchema struct {
@@ -243,6 +251,9 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -293,6 +304,10 @@ func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 				}
 
 				schema.Identity = *flattenedIdentity
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&schema)

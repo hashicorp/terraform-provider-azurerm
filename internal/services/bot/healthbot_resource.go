@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name healthbot -properties "name,resource_group_name" -service-package-name bot -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 package bot
 
 import (
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
@@ -36,10 +39,10 @@ func resourceHealthbotService() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := healthbots.ParseHealthBotID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&healthbots.HealthBotId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&healthbots.HealthBotId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -113,6 +116,9 @@ func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceHealthbotServiceRead(d, meta)
 }
@@ -152,7 +158,7 @@ func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
