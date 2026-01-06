@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,6 +30,7 @@ var _ sdk.DataSource = AssignmentDataSource{}
 type AssignmentDataSourceModel struct {
 	Name                 string                                     `tfschema:"name"`
 	ScopeId              string                                     `tfschema:"scope_id"`
+	DefinitionVersion    string                                     `tfschema:"definition_version"`
 	Description          string                                     `tfschema:"description"`
 	DisplayName          string                                     `tfschema:"display_name"`
 	Enforce              bool                                       `tfschema:"enforce"`
@@ -48,7 +48,7 @@ type NonComplianceMessage struct {
 	PolicyDefinitionReferenceId string `tfschema:"policy_definition_reference_id"`
 }
 
-func (AssignmentDataSource) Arguments() map[string]*schema.Schema {
+func (AssignmentDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -70,8 +70,13 @@ func (AssignmentDataSource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (AssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"definition_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -153,9 +158,9 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := assignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
-			resp, err := client.Get(ctx, id)
-			if err != nil {
+		id := assignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
+		resp, err := client.Get(ctx, id, assignments.DefaultGetOperationOptions())
+		if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
@@ -177,6 +182,9 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := respModel.Properties; props != nil {
+				if v := props.DefinitionVersion; v != nil {
+					model.DefinitionVersion = *v
+				}
 				if v := props.Description; v != nil {
 					model.Description = *v
 				}
