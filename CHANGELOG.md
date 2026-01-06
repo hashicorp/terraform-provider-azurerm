@@ -1,6 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_kusto_iothub_data_connection` - support for `retrieval_start_date` [GH-31413]
 * `azurerm_kusto_script` - support for `script_level` and `principal_permissions_action` [GH-31403]
 * dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
 * `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` [GH-31387]
