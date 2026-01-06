@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_rai_policy -properties "name,cognitive_account_id" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
+
 package cognitive
 
 import (
@@ -11,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,6 +22,7 @@ import (
 )
 
 var _ sdk.ResourceWithUpdate = &CognitiveAccountRaiPolicyResource{}
+var _ sdk.ResourceWithIdentity = CognitiveAccountRaiPolicyResource{}
 
 type CognitiveAccountRaiPolicyResource struct{}
 
@@ -171,6 +175,9 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -211,6 +218,10 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 					state.ContentFilter = flattenRaiPolicyContentFilters(props.ContentFilters)
 					state.Mode = string(pointer.From(props.Mode))
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -302,6 +313,10 @@ func (r CognitiveAccountRaiPolicyResource) Delete() sdk.ResourceFunc {
 
 func (r CognitiveAccountRaiPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return raipolicies.ValidateRaiPolicyID
+}
+
+func (r CognitiveAccountRaiPolicyResource) Identity() resourceids.ResourceId {
+	return &raipolicies.RaiPolicyId{}
 }
 
 func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]raipolicies.RaiPolicyContentFilter {

@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_rai_blocklist -properties "name,cognitive_account_id" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
+
 package cognitive
 
 import (
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -27,6 +30,7 @@ type cognitiveRaiBlocklistModel struct {
 type CognitiveRaiBlocklistResource struct{}
 
 var _ sdk.Resource = CognitiveRaiBlocklistResource{}
+var _ sdk.ResourceWithIdentity = CognitiveRaiBlocklistResource{}
 
 func (c CognitiveRaiBlocklistResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -97,6 +101,9 @@ func (c CognitiveRaiBlocklistResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -182,6 +189,10 @@ func (c CognitiveRaiBlocklistResource) IDValidationFunc() func(interface{}, stri
 	return raiblocklists.ValidateRaiBlocklistID
 }
 
+func (c CognitiveRaiBlocklistResource) Identity() resourceids.ResourceId {
+	return &raiblocklists.RaiBlocklistId{}
+}
+
 func (c CognitiveRaiBlocklistResource) ModelObject() interface{} {
 	return &cognitiveRaiBlocklistModel{}
 }
@@ -215,6 +226,10 @@ func (c CognitiveRaiBlocklistResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

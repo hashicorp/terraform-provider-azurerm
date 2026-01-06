@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name ai_services -properties "name,resource_group_name" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
+
 package cognitive
 
 import (
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -38,6 +41,8 @@ import (
 var _ sdk.ResourceWithUpdate = AIServices{}
 
 var _ sdk.ResourceWithCustomImporter = AIServices{}
+
+var _ sdk.ResourceWithIdentity = AIServices{}
 
 type AIServices struct{}
 
@@ -301,6 +306,10 @@ func (AIServices) ResourceType() string {
 	return "azurerm_ai_services"
 }
 
+func (AIServices) Identity() resourceids.ResourceId {
+	return &cognitiveservicesaccounts.AccountId{}
+}
+
 func (AIServices) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
@@ -385,6 +394,9 @@ func (AIServices) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -462,6 +474,10 @@ func (AIServices) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_project -properties "name,cognitive_account_id" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
+
 package cognitive
 
 import (
@@ -11,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -34,6 +40,7 @@ type CognitiveAccountProjectModel struct {
 var (
 	_ sdk.ResourceWithUpdate        = CognitiveAccountProjectResource{}
 	_ sdk.ResourceWithCustomizeDiff = CognitiveAccountProjectResource{}
+	_ sdk.ResourceWithIdentity      = CognitiveAccountProjectResource{}
 )
 
 type CognitiveAccountProjectResource struct{}
@@ -48,6 +55,10 @@ func (r CognitiveAccountProjectResource) ModelObject() interface{} {
 
 func (r CognitiveAccountProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesprojects.ValidateProjectID
+}
+
+func (r CognitiveAccountProjectResource) Identity() resourceids.ResourceId {
+	return &cognitiveservicesprojects.ProjectId{}
 }
 
 func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
@@ -172,6 +183,9 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -280,6 +294,10 @@ func (r CognitiveAccountProjectResource) Read() sdk.ResourceFunc {
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Endpoints = pointer.From(props.Endpoints)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

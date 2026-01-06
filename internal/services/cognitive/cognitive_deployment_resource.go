@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_deployment -properties "name,cognitive_account_id" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
+
 package cognitive
 
 import (
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -45,6 +48,7 @@ type DeploymentSkuModel struct {
 type CognitiveDeploymentResource struct{}
 
 var _ sdk.Resource = CognitiveDeploymentResource{}
+var _ sdk.ResourceWithIdentity = CognitiveDeploymentResource{}
 
 func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
@@ -56,6 +60,10 @@ func (r CognitiveDeploymentResource) ModelObject() interface{} {
 
 func (r CognitiveDeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return deployments.ValidateDeploymentID
+}
+
+func (r CognitiveDeploymentResource) Identity() resourceids.ResourceId {
+	return &deployments.DeploymentId{}
 }
 
 func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
@@ -242,6 +250,9 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -344,6 +355,11 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 				state.Sku = sku
 			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&state)
 		},
 	}

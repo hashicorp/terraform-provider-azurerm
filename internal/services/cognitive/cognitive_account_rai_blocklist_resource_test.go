@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveRaiBlocklistTestResource struct{}
+type CognitiveAccountRaiBlocklistResource struct{}
 
 func TestAccCognitiveRaiBlocklistSequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -31,7 +31,7 @@ func TestAccCognitiveRaiBlocklistSequential(t *testing.T) {
 
 func TestAccCognitiveRaiBlocklist_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
-	r := CognitiveRaiBlocklistTestResource{}
+	r := CognitiveAccountRaiBlocklistResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccCognitiveRaiBlocklist_basic(t *testing.T) {
 
 func TestAccCognitiveRaiBlocklist_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
-	r := CognitiveRaiBlocklistTestResource{}
+	r := CognitiveAccountRaiBlocklistResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccCognitiveRaiBlocklist_requiresImport(t *testing.T) {
 
 func TestAccCognitiveRaiBlocklist_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
-	r := CognitiveRaiBlocklistTestResource{}
+	r := CognitiveAccountRaiBlocklistResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccCognitiveRaiBlocklist_complete(t *testing.T) {
 
 func TestAccCognitiveRaiBlocklist_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
-	r := CognitiveRaiBlocklistTestResource{}
+	r := CognitiveAccountRaiBlocklistResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +96,7 @@ func TestAccCognitiveRaiBlocklist_update(t *testing.T) {
 	})
 }
 
-func (c CognitiveRaiBlocklistTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (c CognitiveAccountRaiBlocklistResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := raiblocklists.ParseRaiBlocklistID(state.ID)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (c CognitiveRaiBlocklistTestResource) Exists(ctx context.Context, clients *
 	return pointer.To(existing.Model != nil), nil
 }
 
-func (c CognitiveRaiBlocklistTestResource) template(data acceptance.TestData) string {
+func (c CognitiveAccountRaiBlocklistResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -130,7 +130,7 @@ resource "azurerm_cognitive_account" "test" {
 		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (c CognitiveRaiBlocklistTestResource) basic(data acceptance.TestData) string {
+func (c CognitiveAccountRaiBlocklistResource) basic(data acceptance.TestData) string {
 	template := c.template(data)
 	return fmt.Sprintf(`
 		%s
@@ -142,7 +142,7 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
 		`, template, data.RandomInteger)
 }
 
-func (c CognitiveRaiBlocklistTestResource) requiresImport(data acceptance.TestData) string {
+func (c CognitiveAccountRaiBlocklistResource) requiresImport(data acceptance.TestData) string {
 	config := c.basic(data)
 	return fmt.Sprintf(`
 		%s
@@ -154,7 +154,7 @@ resource "azurerm_cognitive_account_rai_blocklist" "import" {
 		`, config)
 }
 
-func (c CognitiveRaiBlocklistTestResource) complete(data acceptance.TestData) string {
+func (c CognitiveAccountRaiBlocklistResource) complete(data acceptance.TestData) string {
 	template := c.template(data)
 	return fmt.Sprintf(`
 		%s
@@ -166,7 +166,7 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
 		`, template, data.RandomInteger)
 }
 
-func (c CognitiveRaiBlocklistTestResource) update(data acceptance.TestData) string {
+func (c CognitiveAccountRaiBlocklistResource) update(data acceptance.TestData) string {
 	template := c.template(data)
 	return fmt.Sprintf(`
 		%s
