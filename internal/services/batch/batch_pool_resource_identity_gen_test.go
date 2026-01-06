@@ -32,7 +32,7 @@ func TestAccBatchPool_resourceIdentity(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_batch_pool.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("batch_account_name"), tfjsonpath.New("account_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("pool_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},

@@ -19,9 +19,6 @@ import (
 
 type BatchCertificateResource struct{}
 
-func (r BatchCertificateResource) basicForResourceIdentity(data acceptance.TestData) string {
-	return r.pfxWithPassword(data)
-}
 
 func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
