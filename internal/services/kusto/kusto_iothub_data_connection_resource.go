@@ -259,7 +259,7 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 
 	props.ProvisioningState = nil // clear read-only field
 
-	if d.HasChanges("retrieval_start_date") {
+	if d.HasChange("retrieval_start_date") {
 		props.RetrievalStartDate = pointer.To(d.Get("retrieval_start_date").(string))
 	}
 
