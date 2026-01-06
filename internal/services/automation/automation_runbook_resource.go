@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_runbook -properties "name:runbook_name,automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -86,10 +88,10 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 		Update: resourceAutomationRunbookCreateUpdate,
 		Delete: resourceAutomationRunbookDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := runbook.ParseRunbookID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&runbook.RunbookId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&runbook.RunbookId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -353,6 +355,9 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,
@@ -466,7 +471,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_credential -properties "name:credential_name,automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -11,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/credential"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -25,10 +28,10 @@ func resourceAutomationCredential() *pluginsdk.Resource {
 		Update: resourceAutomationCredentialCreateUpdate,
 		Delete: resourceAutomationCredentialDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := credential.ParseCredentialID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&credential.CredentialId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&credential.CredentialId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -113,6 +116,9 @@ func resourceAutomationCredentialCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceAutomationCredentialRead(d, meta)
 }
@@ -148,7 +154,7 @@ func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {

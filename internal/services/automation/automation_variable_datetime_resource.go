@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -18,10 +19,10 @@ func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 		Update: resourceAutomationVariableDateTimeCreateUpdate,
 		Delete: resourceAutomationVariableDateTimeDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := variable.ParseVariableID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&variable.VariableId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&variable.VariableId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

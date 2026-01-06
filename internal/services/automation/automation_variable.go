@@ -193,6 +193,9 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceAutomationVariableRead(d, meta, varType)
 }
@@ -242,7 +245,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {

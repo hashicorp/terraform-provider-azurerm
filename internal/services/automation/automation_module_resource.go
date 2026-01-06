@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_module -properties "name:module_name,automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/module"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -27,10 +30,10 @@ func resourceAutomationModule() *pluginsdk.Resource {
 		Update: resourceAutomationModuleCreateUpdate,
 		Delete: resourceAutomationModuleDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := module.ParseModuleID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&module.ModuleId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&module.ModuleId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -180,6 +183,9 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceAutomationModuleRead(d, meta)
 }
@@ -208,7 +214,7 @@ func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

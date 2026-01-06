@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_connection -properties "name:connection_name,automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connection"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -29,10 +32,10 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 		Update: resourceAutomationConnectionCreateUpdate,
 		Delete: resourceAutomationConnectionDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := connection.ParseConnectionID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&connection.ConnectionId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&connection.ConnectionId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -142,6 +145,9 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceAutomationConnectionRead(d, meta)
 }
@@ -185,7 +191,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {

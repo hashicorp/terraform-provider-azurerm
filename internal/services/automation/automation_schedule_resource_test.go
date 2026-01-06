@@ -238,6 +238,10 @@ func (t AutomationScheduleResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
+func (r AutomationScheduleResource) basic(data acceptance.TestData) string {
+	return r.oneTime_basic(data)
+}
+
 func (AutomationScheduleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

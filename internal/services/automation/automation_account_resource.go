@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_account -properties "name:automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -35,10 +37,11 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 		Read:   resourceAutomationAccountRead,
 		Update: resourceAutomationAccountUpdate,
 		Delete: resourceAutomationAccountDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := automationaccount.ParseAutomationAccountID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&automationaccount.AutomationAccountId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&automationaccount.AutomationAccountId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -215,6 +218,9 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceAutomationAccountRead(d, meta)
 }
 
@@ -352,7 +358,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

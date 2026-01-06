@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_webhook -properties "name:web_hook_name,automation_account_name,resource_group_name" -service-package-name automation -known-values "subscription_id:data.Subscriptions.Primary"
+
 package automation
 
 import (
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
@@ -30,10 +33,10 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 		Update: resourceAutomationWebhookCreateUpdate,
 		Delete: resourceAutomationWebhookDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webhook.ParseWebHookID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&webhook.WebHookId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webhook.WebHookId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -175,6 +178,9 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	// URI is not present in the response from Azure, so it's set now, as there was no error returned
 	if uri != "" {
 		d.Set("uri", uri)
@@ -221,7 +227,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {

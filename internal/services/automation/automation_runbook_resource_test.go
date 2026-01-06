@@ -161,6 +161,10 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
+func (r AutomationRunbookResource) basic(data acceptance.TestData) string {
+	return r.PSWorkflow(data)
+}
+
 func (AutomationRunbookResource) PS72(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
