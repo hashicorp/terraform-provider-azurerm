@@ -321,6 +321,7 @@ func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
 }
 
 func TestAccBatchPool_certificates(t *testing.T) {
+	t.Skip("This test uses azurerm_batch_certificate which was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
@@ -989,6 +990,7 @@ resource "azurerm_batch_pool" "test" {
   account_name                  = azurerm_batch_account.test.name
   display_name                  = "Test Acc Pool"
   vm_size                       = "STANDARD_A1_V2"
+  max_tasks_per_node            = 2
   node_agent_sku_id             = "batch.node.ubuntu 22.04"
   stop_pending_resize_operation = true
 
@@ -1976,11 +1978,12 @@ resource "azurerm_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {

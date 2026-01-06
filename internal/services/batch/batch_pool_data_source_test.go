@@ -14,6 +14,7 @@ import (
 type BatchPoolDataSource struct{}
 
 func TestAccBatchPoolDataSource_complete(t *testing.T) {
+	t.Skip("This test uses azurerm_batch_certificate which was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
 	r := BatchPoolDataSource{}
 

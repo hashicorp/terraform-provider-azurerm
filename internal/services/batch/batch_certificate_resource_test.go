@@ -19,8 +19,8 @@ import (
 
 type BatchCertificateResource struct{}
 
-
 func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
+	t.Skip("The Azure Batch Certificates feature was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
@@ -39,6 +39,7 @@ func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
 }
 
 func TestAccBatchCertificate_PfxWithoutPassword(t *testing.T) {
+	t.Skip("The Azure Batch Certificates feature was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
@@ -57,6 +58,7 @@ func TestAccBatchCertificate_PfxWithoutPassword(t *testing.T) {
 }
 
 func TestAccBatchCertificate_Cer(t *testing.T) {
+	t.Skip("The Azure Batch Certificates feature was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
@@ -75,6 +77,7 @@ func TestAccBatchCertificate_Cer(t *testing.T) {
 }
 
 func TestAccBatchCertificate_CerWithPassword(t *testing.T) {
+	t.Skip("The Azure Batch Certificates feature was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 

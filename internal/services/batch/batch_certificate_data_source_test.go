@@ -14,6 +14,7 @@ import (
 type BatchCertificateDataSource struct{}
 
 func TestAccBatchCertificateDataSource_basic(t *testing.T) {
+	t.Skip("The Azure Batch Certificates feature was retired on 2024-02-29")
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_certificate", "test")
 	r := BatchCertificateDataSource{}
 
