@@ -264,7 +264,7 @@ resource "azurerm_application_insights_workbook" "test" {
   source_id            = lower(azurerm_resource_group.test.id)
   category             = "workbook1"
   description          = "description1"
-  storage_container_id = azurerm_storage_container.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
@@ -339,7 +339,7 @@ resource "azurerm_application_insights_workbook" "test" {
   source_id            = "azure monitor"
   category             = "workbook2"
   description          = "description2"
-  storage_container_id = azurerm_storage_container.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
