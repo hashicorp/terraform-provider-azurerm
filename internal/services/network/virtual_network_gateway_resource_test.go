@@ -1817,7 +1817,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func (VirtualNetworkGatewayResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
-	data.Locations.Primary = "australiaeast"
+	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
 provider "azurerm" {
