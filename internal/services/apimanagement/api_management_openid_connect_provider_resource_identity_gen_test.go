@@ -31,9 +31,9 @@ func TestAccApiManagementOpenidConnectProvider_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_openid_connect_provider.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_openid_connect_provider.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_openid_connect_provider.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_openid_connect_provider.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_openid_connect_provider.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

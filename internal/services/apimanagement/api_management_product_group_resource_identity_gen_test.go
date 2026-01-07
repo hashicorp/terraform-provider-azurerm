@@ -31,10 +31,10 @@ func TestAccApiManagementProductGroup_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_product_group.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("group_name"), tfjsonpath.New("group_id")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("group_id"), tfjsonpath.New("group_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("product_id"), tfjsonpath.New("product_id")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_product_group.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

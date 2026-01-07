@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_operation_tag -service-package-name apimanagement -properties "name:tag_id,api_operation_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_operation_tag -service-package-name apimanagement -properties "name" -compare-values "resource_group_name:api_operation_id,service_name:api_operation_id,api_id:api_operation_id,operation_id:api_operation_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

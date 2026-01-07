@@ -28,12 +28,12 @@ func TestAccApiManagementLogger_resourceIdentity(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basicEventHub(data),
+				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_logger.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_logger.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_logger.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_logger.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_logger.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

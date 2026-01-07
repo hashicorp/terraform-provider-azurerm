@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -31,8 +32,10 @@ func TestAccApiManagementGatewayApi_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_gateway_api.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("api_id"), tfjsonpath.New("api_id")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("gateway_id"), tfjsonpath.New("gateway_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("api_id"), tfjsonpath.New("api_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("gateway_id"), tfjsonpath.New("gateway_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("gateway_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_gateway_api.test", tfjsonpath.New("service_name"), tfjsonpath.New("gateway_id")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

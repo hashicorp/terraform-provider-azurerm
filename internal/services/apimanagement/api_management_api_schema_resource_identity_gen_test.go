@@ -31,10 +31,10 @@ func TestAccApiManagementApiSchema_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_api_schema.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("api_name"), tfjsonpath.New("api_id")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("api_id"), tfjsonpath.New("api_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("schema_id"), tfjsonpath.New("schema_id")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_schema.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

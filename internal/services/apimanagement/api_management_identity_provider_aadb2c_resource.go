@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -22,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_aadb2c -service-package-name apimanagement -properties "api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
-
 func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
@@ -31,10 +28,10 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
 		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
 
-		Importer: identityProviderImporterValidatingIdentity(identityprovider.IdentityProviderTypeAadBTwoC),
-		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&identityprovider.IdentityProviderId{}),
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := identityprovider.ParseIdentityProviderID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -170,9 +167,6 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 
@@ -220,7 +214,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta interface{}) error {

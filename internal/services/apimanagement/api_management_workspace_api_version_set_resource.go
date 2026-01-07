@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace_api_version_set -service-package-name apimanagement -properties "name,api_management_workspace_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace_api_version_set -service-package-name apimanagement -properties "name" -compare-values "resource_group_name:api_management_workspace_id,service_name:api_management_workspace_id,workspace_id:api_management_workspace_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementWorkspaceApiVersionSetModel struct {
 	Name                     string `tfschema:"name"`

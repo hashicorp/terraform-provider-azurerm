@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -31,9 +32,10 @@ func TestAccApiManagementNotificationRecipientUser_resourceIdentity(t *testing.T
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("api_management_id"), tfjsonpath.New("api_management_id")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("notification_type"), tfjsonpath.New("notification_type")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("notification_name"), tfjsonpath.New("notification_type")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("user_id"), tfjsonpath.New("user_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("api_management_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_notification_recipient_user.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_id")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

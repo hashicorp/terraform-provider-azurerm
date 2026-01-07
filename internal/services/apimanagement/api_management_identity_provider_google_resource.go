@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_google -service-package-name apimanagement -properties "api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_google -service-package-name apimanagement -properties "service_name:api_management_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary,identity_provider_name:google" -test-name basic
 
 func resourceApiManagementIdentityProviderGoogle() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

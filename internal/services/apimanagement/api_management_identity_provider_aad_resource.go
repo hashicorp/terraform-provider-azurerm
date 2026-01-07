@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_aad -service-package-name apimanagement -properties "api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_aad -service-package-name apimanagement -properties "service_name:api_management_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary,identity_provider_name:aad" -test-name basic
 
 func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

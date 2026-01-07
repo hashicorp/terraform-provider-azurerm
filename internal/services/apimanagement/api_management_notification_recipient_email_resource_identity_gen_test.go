@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -31,9 +32,10 @@ func TestAccApiManagementNotificationRecipientEmail_resourceIdentity(t *testing.
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("api_management_id"), tfjsonpath.New("api_management_id")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("email"), tfjsonpath.New("email")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("notification_type"), tfjsonpath.New("notification_type")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("notification_name"), tfjsonpath.New("notification_type")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("recipient_email_name"), tfjsonpath.New("email")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("api_management_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_management_notification_recipient_email.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_id")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

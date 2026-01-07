@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_notification_recipient_user -service-package-name apimanagement -properties "notification_type,user_id,api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_notification_recipient_user -service-package-name apimanagement -properties "notification_name:notification_type,user_id" -compare-values "resource_group_name:api_management_id,service_name:api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementNotificationRecipientUserModel struct {
 	ApiManagementId  string `tfschema:"api_management_id"`

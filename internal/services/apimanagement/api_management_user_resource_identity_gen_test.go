@@ -31,8 +31,8 @@ func TestAccApiManagementUser_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_user.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_user.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_user.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_user.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_user.test", tfjsonpath.New("user_id"), tfjsonpath.New("user_id")),
 				},
 			},
