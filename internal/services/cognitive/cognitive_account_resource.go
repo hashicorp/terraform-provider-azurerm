@@ -636,14 +636,21 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("identity", identity)
 
 		if props := model.Properties; props != nil {
+			var qnaRuntimeEndpoint, qnaAzureSearchEndpointId, aadClientId, aadTenantId, superUser, websiteName *string
 			if apiProps := props.ApiProperties; apiProps != nil {
-				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
-				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
-				d.Set("metrics_advisor_aad_client_id", apiProps.AadClientId)
-				d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantId)
-				d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
-				d.Set("metrics_advisor_website_name", apiProps.WebsiteName)
+				qnaRuntimeEndpoint = apiProps.QnaRuntimeEndpoint
+				qnaAzureSearchEndpointId = apiProps.QnaAzureSearchEndpointId
+				aadClientId = apiProps.AadClientId
+				aadTenantId = apiProps.AadTenantId
+				superUser = apiProps.SuperUser
+				websiteName = apiProps.WebsiteName
 			}
+			d.Set("qna_runtime_endpoint", qnaRuntimeEndpoint)
+			d.Set("custom_question_answering_search_service_id", qnaAzureSearchEndpointId)
+			d.Set("metrics_advisor_aad_client_id", aadClientId)
+			d.Set("metrics_advisor_aad_tenant_id", aadTenantId)
+			d.Set("metrics_advisor_super_user_name", superUser)
+			d.Set("metrics_advisor_website_name", websiteName)
 			d.Set("endpoint", props.Endpoint)
 			d.Set("custom_subdomain_name", props.CustomSubDomainName)
 			if err := d.Set("network_acls", flattenCognitiveAccountNetworkAcls(props.NetworkAcls)); err != nil {
