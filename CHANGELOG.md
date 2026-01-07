@@ -14,6 +14,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `clients` - fix correlation id across many clients [GH-31368]
 * `azurerm_storage_account` - can now update a Storage Standard ZRS account [GH-31431]
 
 ## 4.57.0 (December 18, 2025)
