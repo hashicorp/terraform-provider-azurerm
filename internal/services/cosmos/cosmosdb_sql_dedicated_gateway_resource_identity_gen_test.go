@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbSqlDedicatedGateway_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_dedicated_gateway", "test")
-	r := CosmosDbSqlDedicatedGatewayResource{}
+	r := CosmosdbSqlDedicatedGatewayResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

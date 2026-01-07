@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbPostgresqlCoordinatorConfiguration_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_coordinator_configuration", "test")
-	r := CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+	r := CosmosdbPostgresqlCoordinatorConfigurationResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

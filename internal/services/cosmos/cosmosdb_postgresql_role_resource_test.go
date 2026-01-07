@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbPostgreSQLRoleResource struct{}
+type CosmosdbPostgresqlRoleResource struct{}
 
 func TestCosmosDbPostgreSQLRole_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_role", "test")
-	r := CosmosDbPostgreSQLRoleResource{}
+	r := CosmosdbPostgresqlRoleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestCosmosDbPostgreSQLRole_basic(t *testing.T) {
 
 func TestCosmosDbPostgreSQLRole_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_role", "test")
-	r := CosmosDbPostgreSQLRoleResource{}
+	r := CosmosdbPostgresqlRoleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestCosmosDbPostgreSQLRole_requiresImport(t *testing.T) {
 	})
 }
 
-func (r CosmosDbPostgreSQLRoleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbPostgresqlRoleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := roles.ParseRoleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r CosmosDbPostgreSQLRoleResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosDbPostgreSQLRoleResource) template(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlRoleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -89,7 +89,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLRoleResource) basic(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlRoleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -101,7 +101,7 @@ resource "azurerm_cosmosdb_postgresql_role" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLRoleResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlRoleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

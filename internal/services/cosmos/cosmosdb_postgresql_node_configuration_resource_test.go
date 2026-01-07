@@ -17,15 +17,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbPostgreSQLNodeConfigurationResource struct{}
+type CosmosdbPostgresqlNodeConfigurationResource struct{}
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) basicForResourceIdentity(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlNodeConfigurationResource) basicForResourceIdentity(data acceptance.TestData) string {
 	return r.basic(data, "array_nulls", "on")
 }
 
 func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
-	r := CosmosDbPostgreSQLNodeConfigurationResource{}
+	r := CosmosdbPostgresqlNodeConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +40,7 @@ func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 
 func TestCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
-	r := CosmosDbPostgreSQLNodeConfigurationResource{}
+	r := CosmosdbPostgresqlNodeConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
 	})
 }
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbPostgresqlNodeConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseNodeConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Exists(ctx context.Context,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) template(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlNodeConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,7 +100,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) basic(data acceptance.TestData, name, value string) string {
+func (r CosmosdbPostgresqlNodeConfigurationResource) basic(data acceptance.TestData, name, value string) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_cosmosdb_postgresql_node_configuration" "test" {

@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbPostgresqlNodeConfiguration_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
-	r := CosmosDbPostgreSQLNodeConfigurationResource{}
+	r := CosmosdbPostgresqlNodeConfigurationResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

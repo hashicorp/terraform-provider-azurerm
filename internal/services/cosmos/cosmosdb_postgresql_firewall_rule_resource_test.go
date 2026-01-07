@@ -17,15 +17,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbPostgreSQLFirewallRuleResource struct{}
+type CosmosdbPostgresqlFirewallRuleResource struct{}
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) basicForResourceIdentity(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlFirewallRuleResource) basicForResourceIdentity(data acceptance.TestData) string {
 	return r.basic(data, "10.0.17.62", "10.0.17.64")
 }
 
 func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
-	r := CosmosDbPostgreSQLFirewallRuleResource{}
+	r := CosmosdbPostgresqlFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +40,7 @@ func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 
 func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
-	r := CosmosDbPostgreSQLFirewallRuleResource{}
+	r := CosmosdbPostgresqlFirewallRuleResource{}
 	startIPAddress := "10.0.17.62"
 	endIPAddress := "10.0.17.64"
 
@@ -59,7 +59,7 @@ func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 
 func TestCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
-	r := CosmosDbPostgreSQLFirewallRuleResource{}
+	r := CosmosdbPostgresqlFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
 	})
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbPostgresqlFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) template(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlFirewallRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) basic(data acceptance.TestData, startIPAddress, endIPAddress string) string {
+func (r CosmosdbPostgresqlFirewallRuleResource) basic(data acceptance.TestData, startIPAddress, endIPAddress string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -132,7 +132,7 @@ resource "azurerm_cosmosdb_postgresql_firewall_rule" "test" {
 `, r.template(data), data.RandomInteger, startIPAddress, endIPAddress)
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) requiresImport(data acceptance.TestData, startIPAddress, endIPAddress string) string {
+func (r CosmosdbPostgresqlFirewallRuleResource) requiresImport(data acceptance.TestData, startIPAddress, endIPAddress string) string {
 	return fmt.Sprintf(`
 %s
 

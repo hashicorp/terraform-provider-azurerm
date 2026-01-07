@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbPostgresqlFirewallRule_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
-	r := CosmosDbPostgreSQLFirewallRuleResource{}
+	r := CosmosdbPostgresqlFirewallRuleResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

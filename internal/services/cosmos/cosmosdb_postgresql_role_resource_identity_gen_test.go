@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbPostgresqlRole_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_role", "test")
-	r := CosmosDbPostgreSQLRoleResource{}
+	r := CosmosdbPostgresqlRoleResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

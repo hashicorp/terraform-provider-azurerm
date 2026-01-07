@@ -20,7 +20,7 @@ import (
 
 func TestAccCosmosdbCassandraDatacenter_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
-	r := CassandraDatacenterResource{}
+	r := CosmosdbCassandraDatacenterResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
