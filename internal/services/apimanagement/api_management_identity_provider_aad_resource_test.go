@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementIdentityProviderAADResource struct{}
+type ApiManagementIdentityProviderAadResource struct{}
 
 func TestAccApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	r := ApiManagementIdentityProviderAADResource{}
+	r := ApiManagementIdentityProviderAadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApiManagementIdentityProviderAAD_basic(t *testing.T) {
 
 func TestAccApiManagementIdentityProviderAAD_clientLibrary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	r := ApiManagementIdentityProviderAADResource{}
+	r := ApiManagementIdentityProviderAadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccApiManagementIdentityProviderAAD_clientLibrary(t *testing.T) {
 
 func TestAccApiManagementIdentityProviderAAD_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	r := ApiManagementIdentityProviderAADResource{}
+	r := ApiManagementIdentityProviderAadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccApiManagementIdentityProviderAAD_update(t *testing.T) {
 
 func TestAccApiManagementIdentityProviderAAD_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	r := ApiManagementIdentityProviderAADResource{}
+	r := ApiManagementIdentityProviderAadResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccApiManagementIdentityProviderAAD_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementIdentityProviderAADResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementIdentityProviderAadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := identityprovider.ParseIdentityProviderID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (ApiManagementIdentityProviderAADResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (ApiManagementIdentityProviderAADResource) clientLibrary(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderAadResource) clientLibrary(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,7 +153,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
 
-func (ApiManagementIdentityProviderAADResource) clientLibraryUpdate(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderAadResource) clientLibraryUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,7 +185,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
 
-func (ApiManagementIdentityProviderAADResource) basic(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderAadResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

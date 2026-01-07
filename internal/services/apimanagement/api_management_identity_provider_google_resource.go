@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_identity_provider_google -service-package-name apimanagement -properties "api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementIdentityProviderGoogle() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementIdentityProviderGoogleCreateUpdate,
@@ -28,7 +31,10 @@ func resourceApiManagementIdentityProviderGoogle() *pluginsdk.Resource {
 		Update: resourceApiManagementIdentityProviderGoogleCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderGoogleDelete,
 
-		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeGoogle),
+		Importer: identityProviderImporterValidatingIdentity(identityprovider.IdentityProviderTypeGoogle),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&identityprovider.IdentityProviderId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -94,6 +100,9 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementIdentityProviderGoogleRead(d, meta)
 }
@@ -130,7 +139,7 @@ func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementIdentityProviderGoogleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -27,11 +27,11 @@ Accordingly, these tests rely on additional environment variables to be set (and
 * ARM_TEST_B2C_CLIENT_SECRET  - client secret for that application
 */
 
-type ApiManagementIdentityProviderAADB2CResource struct{}
+type ApiManagementIdentityProviderAadb2CResource struct{}
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
-	r := ApiManagementIdentityProviderAADB2CResource{}
+	r := ApiManagementIdentityProviderAadb2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +47,7 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_clientLibrary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
-	r := ApiManagementIdentityProviderAADB2CResource{}
+	r := ApiManagementIdentityProviderAadb2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,7 +77,7 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_clientLibrary(t *testing.
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
-	r := ApiManagementIdentityProviderAADB2CResource{}
+	r := ApiManagementIdentityProviderAadb2CResource{}
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -119,7 +119,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 	return config
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementIdentityProviderAadb2CResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := identityprovider.ParseIdentityProviderID(state.ID)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (ApiManagementIdentityProviderAADB2CResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) basic(data acceptance.TestData, b2cConfig map[string]string) string {
+func (ApiManagementIdentityProviderAadb2CResource) basic(data acceptance.TestData, b2cConfig map[string]string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -192,7 +192,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 `, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) clientLibrary(data acceptance.TestData, b2cConfig map[string]string) string {
+func (ApiManagementIdentityProviderAadb2CResource) clientLibrary(data acceptance.TestData, b2cConfig map[string]string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +252,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 `, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
 }
 
-func (ApiManagementIdentityProviderAADB2CResource) clientLibraryUpdate(data acceptance.TestData, b2cConfig map[string]string) string {
+func (ApiManagementIdentityProviderAadb2CResource) clientLibraryUpdate(data acceptance.TestData, b2cConfig map[string]string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -312,7 +312,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 `, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApiManagementIdentityProviderAADB2CResource) requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {
+func (r ApiManagementIdentityProviderAadb2CResource) requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {
 	template := r.basic(data, b2cConfig)
 	return fmt.Sprintf(`
 %s
@@ -331,4 +331,14 @@ resource "azurerm_api_management_identity_provider_aadb2c" "import" {
   password_reset_policy  = azurerm_api_management_identity_provider_aadb2c.test.password_reset_policy
 }
 `, template)
+}
+
+func (r ApiManagementIdentityProviderAadb2CResource) basicForResourceIdentity(data acceptance.TestData) string {
+	b2cConfig := map[string]string{
+		"tenant_id":     os.Getenv("ARM_TEST_B2C_TENANT_ID"),
+		"tenant_slug":   os.Getenv("ARM_TEST_B2C_TENANT_SLUG"),
+		"client_id":     os.Getenv("ARM_TEST_B2C_CLIENT_ID"),
+		"client_secret": os.Getenv("ARM_TEST_B2C_CLIENT_SECRET"),
+	}
+	return r.basic(data, b2cConfig)
 }
