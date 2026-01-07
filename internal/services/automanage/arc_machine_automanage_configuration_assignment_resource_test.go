@@ -66,6 +66,9 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_arc_machine" "test" {
   name                = "arc-test"
   resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
 
 resource "azurerm_automanage_configuration" "test" {
