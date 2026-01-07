@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/cache"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_redis_cache -service-package-name apimanagement -properties "name,api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 func resourceApiManagementRedisCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,10 +40,10 @@ func resourceApiManagementRedisCache() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cache.ParseCacheID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&cache.CacheId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&cache.CacheId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -138,6 +141,9 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceApiManagementRedisCacheRead(d, meta)
 }
 
@@ -181,7 +187,7 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("cache_location", props.UseFromLocation)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {

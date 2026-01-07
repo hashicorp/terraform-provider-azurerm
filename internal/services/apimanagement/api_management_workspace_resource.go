@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace -service-package-name apimanagement -properties "name" -compare-values "resource_group_name:api_management_id,service_name:api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementWorkspaceModel struct {
 	Name            string `tfschema:"name"`
@@ -28,10 +31,17 @@ type ApiManagementWorkspaceModel struct {
 
 type ApiManagementWorkspaceResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApiManagementWorkspaceResource{}
+	_ sdk.ResourceWithIdentity = ApiManagementWorkspaceResource{}
+)
 
 func (r ApiManagementWorkspaceResource) ResourceType() string {
 	return "azurerm_api_management_workspace"
+}
+
+func (r ApiManagementWorkspaceResource) Identity() resourceids.ResourceId {
+	return &workspace.WorkspaceId{}
 }
 
 func (r ApiManagementWorkspaceResource) ModelObject() interface{} {
@@ -115,6 +125,9 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -202,6 +215,10 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 					state.Description = pointer.From(properties.Description)
 					state.DisplayName = properties.DisplayName
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

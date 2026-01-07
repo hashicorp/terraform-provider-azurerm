@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace_api_version_set -service-package-name apimanagement -properties "name,api_management_workspace_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementWorkspaceApiVersionSetModel struct {
 	Name                     string `tfschema:"name"`
@@ -33,12 +36,18 @@ type ApiManagementWorkspaceApiVersionSetModel struct {
 
 type ApiManagementWorkspaceApiVersionSetResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceApiVersionSetResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = ApiManagementWorkspaceApiVersionSetResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ApiManagementWorkspaceApiVersionSetResource{}
+	_ sdk.ResourceWithCustomizeDiff = ApiManagementWorkspaceApiVersionSetResource{}
+	_ sdk.ResourceWithIdentity      = ApiManagementWorkspaceApiVersionSetResource{}
+)
 
 func (r ApiManagementWorkspaceApiVersionSetResource) ResourceType() string {
 	return "azurerm_api_management_workspace_api_version_set"
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) Identity() resourceids.ResourceId {
+	return &apiversionset.WorkspaceApiVersionSetId{}
 }
 
 func (r ApiManagementWorkspaceApiVersionSetResource) ModelObject() interface{} {
@@ -152,6 +161,9 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -258,6 +270,10 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Read() sdk.ResourceFunc {
 					model.VersionHeaderName = pointer.From(properties.VersionHeaderName)
 					model.VersionQueryName = pointer.From(properties.VersionQueryName)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&model)

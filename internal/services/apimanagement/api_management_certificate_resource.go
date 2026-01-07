@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -22,16 +23,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_certificate -service-package-name apimanagement -properties "name,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementCertificateCreateUpdate,
 		Read:   resourceApiManagementCertificateRead,
 		Update: resourceApiManagementCertificateCreateUpdate,
 		Delete: resourceApiManagementCertificateDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := certificate.ParseCertificateID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&certificate.CertificateId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&certificate.CertificateId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -151,6 +155,9 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementCertificateRead(d, meta)
 }
@@ -193,7 +200,7 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {

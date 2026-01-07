@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementGatewayAPIResource struct{}
+type ApiManagementGatewayApiResource struct{}
 
 func TestAccApiManagementGatewayApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_api", "test")
-	r := ApiManagementGatewayAPIResource{}
+	r := ApiManagementGatewayApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccApiManagementGatewayApi_basic(t *testing.T) {
 
 func TestAccApiManagementGatewayApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_api", "test")
-	r := ApiManagementGatewayAPIResource{}
+	r := ApiManagementGatewayApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApiManagementGatewayApi_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementGatewayApiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := gatewayapi.ParseGatewayApiID(state.ID)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(true), nil
 }
 
-func (ApiManagementGatewayAPIResource) basic(data acceptance.TestData) string {
+func (ApiManagementGatewayApiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_api_management_gateway_api" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementGatewayApiResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

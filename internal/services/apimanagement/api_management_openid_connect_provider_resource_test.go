@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementOpenIDConnectProviderResource struct{}
+type ApiManagementOpenidConnectProviderResource struct{}
 
 func TestAccApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
-	r := ApiManagementOpenIDConnectProviderResource{}
+	r := ApiManagementOpenidConnectProviderResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 
 func TestAccApiManagementOpenIDConnectProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
-	r := ApiManagementOpenIDConnectProviderResource{}
+	r := ApiManagementOpenidConnectProviderResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApiManagementOpenIDConnectProvider_requiresImport(t *testing.T) {
 
 func TestAccApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
-	r := ApiManagementOpenIDConnectProviderResource{}
+	r := ApiManagementOpenidConnectProviderResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	})
 }
 
-func (ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementOpenidConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := openidconnectprovider.ParseOpenidConnectProviderID(state.ID)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (r ApiManagementOpenIDConnectProviderResource) basic(data acceptance.TestData) string {
+func (r ApiManagementOpenidConnectProviderResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -100,7 +100,7 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApiManagementOpenIDConnectProviderResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementOpenidConnectProviderResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -116,7 +116,7 @@ resource "azurerm_api_management_openid_connect_provider" "import" {
 `, r.basic(data))
 }
 
-func (r ApiManagementOpenIDConnectProviderResource) complete(data acceptance.TestData) string {
+func (r ApiManagementOpenidConnectProviderResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -133,7 +133,7 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (ApiManagementOpenIDConnectProviderResource) template(data acceptance.TestData) string {
+func (ApiManagementOpenidConnectProviderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

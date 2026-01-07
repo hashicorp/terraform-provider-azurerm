@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/groupuser"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -18,15 +19,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_group_user -service-package-name apimanagement -properties "user_id,group_name:group_id,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementGroupUser() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementGroupUserCreate,
 		Read:   resourceApiManagementGroupUserRead,
 		Delete: resourceApiManagementGroupUserDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := groupuser.ParseGroupUserID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&groupuser.GroupUserId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&groupuser.GroupUserId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -70,6 +74,9 @@ func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementGroupUserRead(d, meta)
 }
@@ -100,7 +107,7 @@ func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -18,15 +19,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_product_group -service-package-name apimanagement -properties "product_id,group_name:group_id,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementProductGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementProductGroupCreate,
 		Read:   resourceApiManagementProductGroupRead,
 		Delete: resourceApiManagementProductGroupDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := productgroup.ParseProductGroupID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&productgroup.ProductGroupId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&productgroup.ProductGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -70,6 +74,9 @@ func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementProductGroupRead(d, meta)
 }
@@ -100,7 +107,7 @@ func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

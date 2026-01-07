@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace_certificate -service-package-name apimanagement -properties "name,api_management_workspace_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementWorkspaceCertificateModel struct {
 	Name                         string `tfschema:"name"`
@@ -37,10 +40,17 @@ type ApiManagementWorkspaceCertificateModel struct {
 
 type ApiManagementWorkspaceCertificateResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementWorkspaceCertificateResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApiManagementWorkspaceCertificateResource{}
+	_ sdk.ResourceWithIdentity = ApiManagementWorkspaceCertificateResource{}
+)
 
 func (r ApiManagementWorkspaceCertificateResource) ResourceType() string {
 	return "azurerm_api_management_workspace_certificate"
+}
+
+func (r ApiManagementWorkspaceCertificateResource) Identity() resourceids.ResourceId {
+	return &certificate.WorkspaceCertificateId{}
 }
 
 func (r ApiManagementWorkspaceCertificateResource) ModelObject() interface{} {
@@ -170,6 +180,9 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -215,6 +228,10 @@ func (r ApiManagementWorkspaceCertificateResource) Read() sdk.ResourceFunc {
 						model.UserAssignedIdentityClientId = pointer.From(kv.IdentityClientId)
 					}
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&model)

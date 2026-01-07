@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -22,16 +23,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_operation -service-package-name apimanagement -properties "operation_id,api_name:api_id,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementApiOperation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiOperationCreateUpdate,
 		Read:   resourceApiManagementApiOperationRead,
 		Update: resourceApiManagementApiOperationCreateUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apioperation.ParseOperationID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apioperation.OperationId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apioperation.OperationId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -211,6 +215,9 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }
@@ -277,7 +284,7 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -21,16 +22,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_schema -service-package-name apimanagement -properties "schema_id,api_name:api_id,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementApiSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiSchemaCreateUpdate,
 		Read:   resourceApiManagementApiSchemaRead,
 		Update: resourceApiManagementApiSchemaCreateUpdate,
 		Delete: resourceApiManagementApiSchemaDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apischema.ParseApiSchemaID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apischema.ApiSchemaId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apischema.ApiSchemaId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -139,6 +143,9 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
@@ -193,7 +200,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {

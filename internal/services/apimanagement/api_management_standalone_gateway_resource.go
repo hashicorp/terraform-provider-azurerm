@@ -14,11 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_standalone_gateway -service-package-name apimanagement -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementStandaloneGatewayModel struct {
 	Name               string            `tfschema:"name"`
@@ -37,10 +40,17 @@ type GatewaySkuModel struct {
 
 type ApiManagementStandaloneGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementStandaloneGatewayResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApiManagementStandaloneGatewayResource{}
+	_ sdk.ResourceWithIdentity = ApiManagementStandaloneGatewayResource{}
+)
 
 func (r ApiManagementStandaloneGatewayResource) ResourceType() string {
 	return "azurerm_api_management_standalone_gateway"
+}
+
+func (r ApiManagementStandaloneGatewayResource) Identity() resourceids.ResourceId {
+	return &apigateway.GatewayId{}
 }
 
 func (r ApiManagementStandaloneGatewayResource) ModelObject() interface{} {
@@ -169,6 +179,10 @@ func (r ApiManagementStandaloneGatewayResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -255,6 +269,10 @@ func (r ApiManagementStandaloneGatewayResource) Read() sdk.ResourceFunc {
 
 				state.Sku = flattenGatewaySkuModel(&model.Sku)
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

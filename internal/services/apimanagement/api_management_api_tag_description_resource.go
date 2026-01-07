@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitag"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitagdescription"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_tag_description -service-package-name apimanagement -properties "api_tag_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,10 +29,10 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 		Update: resourceApiManagementApiTagDescriptionCreateUpdate,
 		Delete: resourceApiManagementApiTagDescriptionDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apitagdescription.ParseTagDescriptionID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&apitagdescription.TagDescriptionId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apitagdescription.TagDescriptionId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -111,6 +114,9 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementApiTagDescriptionRead(d, meta)
 }
@@ -149,7 +155,7 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, &newId)
 }
 
 func resourceApiManagementApiTagDescriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_notification_recipient_user -service-package-name apimanagement -properties "notification_type,user_id,api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 type ApiManagementNotificationRecipientUserModel struct {
 	ApiManagementId  string `tfschema:"api_management_id"`
 	NotificationName string `tfschema:"notification_type"`
@@ -26,7 +29,14 @@ type ApiManagementNotificationRecipientUserModel struct {
 
 type ApiManagementNotificationRecipientUserResource struct{}
 
-var _ sdk.Resource = ApiManagementNotificationRecipientUserResource{}
+var (
+	_ sdk.Resource             = ApiManagementNotificationRecipientUserResource{}
+	_ sdk.ResourceWithIdentity = ApiManagementNotificationRecipientUserResource{}
+)
+
+func (r ApiManagementNotificationRecipientUserResource) Identity() resourceids.ResourceId {
+	return &notificationrecipientuser.RecipientUserId{}
+}
 
 func (r ApiManagementNotificationRecipientUserResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -111,6 +121,9 @@ func (r ApiManagementNotificationRecipientUserResource) Create() sdk.ResourceFun
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -152,6 +165,10 @@ func (r ApiManagementNotificationRecipientUserResource) Read() sdk.ResourceFunc 
 				ApiManagementId:  apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName).ID(),
 				NotificationName: string(id.NotificationName),
 				UserId:           id.UserId,
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&model)

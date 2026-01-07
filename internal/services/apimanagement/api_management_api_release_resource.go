@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apirelease"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_api_release -service-package-name apimanagement -properties "name" -compare-values "resource_group_name:api_id,service_name:api_id,api_id:api_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementApiRelease() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiReleaseCreateUpdate,
@@ -27,17 +30,17 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 		Update: resourceApiManagementApiReleaseCreateUpdate,
 		Delete: resourceApiManagementApiReleaseDelete,
 
+		Importer: pluginsdk.ImporterValidatingIdentity(&apirelease.ReleaseId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apirelease.ReleaseId{}),
+		},
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apirelease.ParseReleaseID(id)
-			return err
-		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -103,6 +106,10 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApiManagementApiReleaseRead(d, meta)
 }
 
@@ -133,7 +140,7 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("notes", pointer.From(props.Notes))
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementApiReleaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {

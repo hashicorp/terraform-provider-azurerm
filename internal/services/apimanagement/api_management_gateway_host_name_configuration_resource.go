@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayhostnameconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_gateway_host_name_configuration -service-package-name apimanagement -properties "name,gateway_name,api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
@@ -28,10 +31,10 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 		Update: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
 		Delete: resourceApiManagementGatewayHostNameConfigurationDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&gatewayhostnameconfiguration.HostnameConfigurationId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&gatewayhostnameconfiguration.HostnameConfigurationId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -130,6 +133,9 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
 }
@@ -172,7 +178,7 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

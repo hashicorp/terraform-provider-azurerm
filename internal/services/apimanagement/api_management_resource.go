@@ -44,6 +44,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management -service-package-name apimanagement -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 var (
 	apimBackendProtocolSsl3                  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
 	apimBackendProtocolTls10                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
@@ -71,10 +73,11 @@ func resourceApiManagementService() *pluginsdk.Resource {
 		Read:   resourceApiManagementServiceRead,
 		Update: resourceApiManagementServiceUpdate,
 		Delete: resourceApiManagementServiceDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apimanagementservice.ParseServiceID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apimanagementservice.ServiceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apimanagementservice.ServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(3 * time.Hour),
@@ -922,6 +925,9 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
 	apiServiceId := api.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -1187,6 +1193,9 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if d.HasChange("sign_in") {
 		signInSettingsRaw := d.Get("sign_in").([]interface{})
@@ -1411,7 +1420,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {

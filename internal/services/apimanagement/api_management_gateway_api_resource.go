@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,16 +22,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_gateway_api -service-package-name apimanagement -properties "gateway_id,api_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementGatewayApiCreate,
 		Read:   resourceApiManagementGatewayApiRead,
 		Delete: resourceApiManagementGatewayApiDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := gatewayapi.ParseGatewayApiID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&gatewayapi.GatewayApiId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&gatewayapi.GatewayApiId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -95,6 +98,9 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementGatewayApiRead(d, meta)
 }
@@ -136,7 +142,7 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("api_id", apiId.ID())
 	d.Set("gateway_id", gateway.ID())
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {

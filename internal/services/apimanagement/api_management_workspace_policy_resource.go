@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_workspace_policy -service-package-name apimanagement -properties "api_management_workspace_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 type ApiManagementWorkspacePolicyModel struct {
 	ApiManagementWorkspaceId string `tfschema:"api_management_workspace_id"`
@@ -27,10 +30,17 @@ type ApiManagementWorkspacePolicyModel struct {
 
 type ApiManagementWorkspacePolicyResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApiManagementWorkspacePolicyResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApiManagementWorkspacePolicyResource{}
+	_ sdk.ResourceWithIdentity = ApiManagementWorkspacePolicyResource{}
+)
 
 func (r ApiManagementWorkspacePolicyResource) ResourceType() string {
 	return "azurerm_api_management_workspace_policy"
+}
+
+func (r ApiManagementWorkspacePolicyResource) Identity() resourceids.ResourceId {
+	return &workspacepolicy.WorkspaceId{}
 }
 
 func (r ApiManagementWorkspacePolicyResource) ModelObject() interface{} {
@@ -113,6 +123,10 @@ func (r ApiManagementWorkspacePolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(*workspaceId)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, workspaceId); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -200,6 +214,10 @@ func (r ApiManagementWorkspacePolicyResource) Read() sdk.ResourceFunc {
 					state.XmlContent = html.UnescapeString(props.Value)
 					state.XmlLink = metadata.ResourceData.Get("xml_link").(string)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,16 +22,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_email_template -service-package-name apimanagement -properties "template_name,api_management_name:service_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementEmailTemplateCreateUpdate,
 		Read:   resourceApiManagementEmailTemplateRead,
 		Update: resourceApiManagementEmailTemplateCreateUpdate,
 		Delete: resourceApiManagementEmailTemplateDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := emailtemplates.ParseTemplateIDInsensitively(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&emailtemplates.TemplateId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&emailtemplates.TemplateId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -126,6 +130,9 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementEmailTemplateRead(d, meta)
 }
@@ -165,7 +172,7 @@ func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, &newId)
 }
 
 func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta interface{}) error {

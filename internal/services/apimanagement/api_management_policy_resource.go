@@ -14,11 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_policy -service-package-name apimanagement -properties "api_management_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
 
 func resourceApiManagementPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -27,10 +30,10 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 		Update: resourceApiManagementPolicyCreateUpdate,
 		Delete: resourceApiManagementPolicyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := policy.ParseServiceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&policy.ServiceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&policy.ServiceId{}),
+		},
 
 		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -128,6 +131,9 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementPolicyRead(d, meta)
 }
@@ -177,7 +183,7 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
