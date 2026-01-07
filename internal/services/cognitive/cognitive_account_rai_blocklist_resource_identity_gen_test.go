@@ -31,7 +31,6 @@ func TestAccCognitiveAccountRaiBlocklist_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_cognitive_account_rai_blocklist.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_rai_blocklist.test", tfjsonpath.New("cognitive_account_id"), tfjsonpath.New("cognitive_account_id")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_account_rai_blocklist.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				},
 			},

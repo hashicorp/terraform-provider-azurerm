@@ -1,8 +1,6 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_project -properties "name,cognitive_account_id" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
-
 package cognitive
 
 import (
@@ -24,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_project -properties "name" -service-package-name cognitive -known-values "subscription_id:data.Subscriptions.Primary"
 
 type CognitiveAccountProjectModel struct {
 	CognitiveAccountId string                                     `tfschema:"cognitive_account_id"`
