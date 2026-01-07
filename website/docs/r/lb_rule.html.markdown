@@ -70,7 +70,7 @@ The following arguments are supported:
   * `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers.  
   * `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers.
   
-  Also known as Session Persistence, where in the Azure portal the options are called `None`, `Client IP` and `Client IP and Protocol` respectively. Defaults to `Default`.
+~> **Note:** In the portal, this is known as Session Persistence where the options are `None`, `Client IP` and `Client IP and Protocol` respectively.
 
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
 * `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
