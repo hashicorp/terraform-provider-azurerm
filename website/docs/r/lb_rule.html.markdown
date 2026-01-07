@@ -65,7 +65,7 @@ The following arguments are supported:
 * `probe_id` - (Optional) A reference to a Probe used by this Load Balancing Rule.
 * `floating_ip_enabled` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating" IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `100` minutes. Defaults to `4` minutes.
-* `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are:  
+* `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are `Default`, `SourceIP` and `SourceIPProtocol`. Defaults to `Default.`
   * `Default` – The load balancer is configured to use a 5 tuple hash to map traffic to available servers.  
   * `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers.  
   * `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers.
