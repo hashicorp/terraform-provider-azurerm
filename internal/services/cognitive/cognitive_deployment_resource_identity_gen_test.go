@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -32,6 +33,7 @@ func TestAccCognitiveDeployment_resourceIdentity(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_cognitive_deployment.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cognitive_deployment.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cognitive_deployment.test", tfjsonpath.New("account_name"), tfjsonpath.New("cognitive_account_id")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),
