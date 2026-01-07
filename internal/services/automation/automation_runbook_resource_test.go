@@ -33,6 +33,21 @@ func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	})
 }
 
+func TestAccAutomationRunbook_RuntimeEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.RuntimeEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link"),
+	})
+}
+
 func TestAccAutomationRunbook_WithDraft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
@@ -189,6 +204,64 @@ resource "azurerm_automation_runbook" "test" {
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
   runbook_type = "PowerShell72"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AutomationRunbookResource) RuntimeEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runtime_environment" "example" {
+  name                  = "powershell_environment_custom_config"
+  automation_account_id = azurerm_automation_account.test.id
+
+  runtime_language = "PowerShell"
+  runtime_version  = "7.2"
+
+  location    = azurerm_resource_group.test.location
+  description = "acctest description"
+
+  runtime_default_packages = {
+    "az"        = "11.2.0"
+    "azure cli" = "2.56.0"
+  }
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  runtime_environment = azurerm_automation_runtime_environment.example.name
 
   content = <<CONTENT
 # Some test content

@@ -127,6 +127,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
 					string(runbook.RunbookTypeEnumPowerShell),
 					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
+					string(runbook.RunbookTypeEnumPython),
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
