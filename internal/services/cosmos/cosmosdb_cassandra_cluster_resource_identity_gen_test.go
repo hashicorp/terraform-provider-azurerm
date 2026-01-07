@@ -28,7 +28,7 @@ func TestAccCosmosdbCassandraCluster_resourceIdentity(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicForResourceIdentity(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_cosmosdb_cassandra_cluster.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_cassandra_cluster.test", tfjsonpath.New("name"), tfjsonpath.New("cassandra_cluster_name")),

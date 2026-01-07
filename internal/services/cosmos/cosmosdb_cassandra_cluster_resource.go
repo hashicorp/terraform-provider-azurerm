@@ -3,7 +3,7 @@
 
 package cosmos
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_cassandra_cluster -service-package-name cosmos -properties "name:cassandra_cluster_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_cassandra_cluster -service-package-name cosmos -properties "name:cassandra_cluster_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 import (
 	"context"

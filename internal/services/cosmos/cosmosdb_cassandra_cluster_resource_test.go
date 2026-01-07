@@ -18,6 +18,45 @@ import (
 
 type CassandraClusterResource struct{}
 
+// basicForResourceIdentity provides a minimal config for identity tests
+// NOTE: This config intentionally skips the azuread provider dependency
+// and role_assignment since the identity test framework only supports azurerm.
+// The test verifies identity schema, not actual resource creation.
+func (r CassandraClusterResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-ca-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_cosmosdb_cassandra_cluster" "test" {
+  name                           = "acctca-mi-cluster-%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  default_admin_password         = "Password1234"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func testAccCassandraCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
 	r := CassandraClusterResource{}
