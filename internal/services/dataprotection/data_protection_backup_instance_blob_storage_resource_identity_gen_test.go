@@ -17,10 +17,18 @@ func TestAccDataProtectionBackupInstanceBlobStorage_resourceIdentity(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
 	r := DataProtectionBackupInstanceBlobStorageResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"backup_vault_name":   {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_protection_backup_instance_blob_storage.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_protection_backup_instance_blob_storage.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_protection_backup_instance_blob_storage.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_instance_blob_storage.test", tfjsonpath.New("backup_vault_name"), tfjsonpath.New("vault_id")),

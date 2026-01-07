@@ -17,10 +17,18 @@ func TestAccEmailCommunicationServiceDomain_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain", "test")
 	r := EmailCommunicationServiceDomainResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"email_service_name":  {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_email_communication_service_domain.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_email_communication_service_domain.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_email_communication_service_domain.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_email_communication_service_domain.test", tfjsonpath.New("email_service_name"), tfjsonpath.New("email_service_id")),

@@ -17,10 +17,17 @@ func TestAccDataProtectionBackupVaultCustomerManagedKey_resourceIdentity(t *test
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault_customer_managed_key", "test")
 	r := DataProtectionBackupVaultCustomerManagedKeyResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_protection_backup_vault_customer_managed_key.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_protection_backup_vault_customer_managed_key.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_customer_managed_key.test", tfjsonpath.New("name"), tfjsonpath.New("data_protection_backup_vault_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_customer_managed_key.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("data_protection_backup_vault_id")),

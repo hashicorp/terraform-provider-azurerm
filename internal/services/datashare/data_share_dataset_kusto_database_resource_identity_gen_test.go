@@ -17,10 +17,19 @@ func TestAccDataShareDatasetKustoDatabase_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
 	r := DataShareDatasetKustoDatabaseResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"account_name":        {},
+		"resource_group_name": {},
+		"share_name":          {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_share_dataset_kusto_database.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("account_name"), tfjsonpath.New("share_id")),

@@ -17,10 +17,18 @@ func TestAccDatabricksVirtualNetworkPeering_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
 	r := DatabricksVirtualNetworkPeeringResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"resource_group_name": {},
+		"workspace_name":      {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_databricks_virtual_network_peering.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("workspace_id")),

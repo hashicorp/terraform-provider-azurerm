@@ -17,10 +17,17 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_resourceIdentity(t *te
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_databricks_workspace_root_dbfs_customer_managed_key.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_databricks_workspace_root_dbfs_customer_managed_key.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_workspace_root_dbfs_customer_managed_key.test", tfjsonpath.New("name"), tfjsonpath.New("workspace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_workspace_root_dbfs_customer_managed_key.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("workspace_id")),

@@ -17,10 +17,18 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_resourceIdentity(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
 	r := DashboardGrafanaManagedPrivateEndpointResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"grafana_name":        {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dashboard_grafana_managed_private_endpoint.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("grafana_name"), tfjsonpath.New("grafana_id")),

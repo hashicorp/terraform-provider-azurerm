@@ -6,15 +6,15 @@ package {{ToLower .ServicePackageName}}_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	{{- if (gt (.KnownValueMap | len) 0) }}
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	{{- end }}
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	{{- if (gt (.CompareValueMap | len) 0) }}
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
-	{{- end }}
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 {{- $resourceName := .ResourceName }}
@@ -26,6 +26,18 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
 	r := {{ ToCamel $resourceName }}Resource{}
 
+	checkedFields := map[string]struct{}{
+	{{- range $name, $_ := .KnownValueMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	{{- range $name, $_ := .PropertyNameMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	{{- range $name, $_ := .CompareValueMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			{{- if (gt (.TestParams | len) 0) }}
@@ -34,6 +46,7 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 			Config: r.{{ .TestName }}(data),
 			{{- end }}
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_{{ToSnake $resourceName }}.test", checkedFields),
 				{{- range $name, $val := .KnownValueMap }}
 					{{- if (eq $name "subscription_id") }}
 					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact({{ $val }})),

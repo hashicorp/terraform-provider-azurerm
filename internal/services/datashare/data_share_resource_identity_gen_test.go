@@ -17,10 +17,18 @@ func TestAccDataShare_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 	r := DataShareResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"account_name":        {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_share.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_share.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_share.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share.test", tfjsonpath.New("account_name"), tfjsonpath.New("account_id")),

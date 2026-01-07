@@ -17,10 +17,18 @@ func TestAccDataProtectionBackupPolicyMysqlFlexibleServer_resourceIdentity(t *te
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
 	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"name":                {},
+		"backup_vault_name":   {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_protection_backup_policy_mysql_flexible_server.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_protection_backup_policy_mysql_flexible_server.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_protection_backup_policy_mysql_flexible_server.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_policy_mysql_flexible_server.test", tfjsonpath.New("backup_vault_name"), tfjsonpath.New("vault_id")),
