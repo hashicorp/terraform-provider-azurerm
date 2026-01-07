@@ -3,12 +3,15 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_firewall_rule -service-package-name cosmos -properties "name:firewall_rule_name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -26,6 +29,7 @@ type CosmosDbPostgreSQLFirewallRuleResourceModel struct {
 type CosmosDbPostgreSQLFirewallRuleResource struct{}
 
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLFirewallRuleResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbPostgreSQLFirewallRuleResource{}
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_firewall_rule"
@@ -37,6 +41,10 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() interface{} {
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallrules.ValidateFirewallRuleID
+}
+
+func (r CosmosDbPostgreSQLFirewallRuleResource) Identity() resourceids.ResourceId {
+	return &firewallrules.FirewallRuleId{}
 }
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -110,6 +118,9 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -192,7 +203,11 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Read() sdk.ResourceFunc {
 			state.EndIPAddress = properties.EndIPAddress
 			state.StartIPAddress = properties.StartIPAddress
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

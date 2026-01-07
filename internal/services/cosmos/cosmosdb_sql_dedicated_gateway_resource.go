@@ -3,12 +3,15 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_sql_dedicated_gateway -service-package-name cosmos -properties "service_name" -compare-values "resource_group_name:cosmosdb_account_id,database_account_name:cosmosdb_account_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +28,7 @@ type CosmosDbSqlDedicatedGatewayModel struct {
 type CosmosDbSqlDedicatedGatewayResource struct{}
 
 var _ sdk.ResourceWithUpdate = CosmosDbSqlDedicatedGatewayResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbSqlDedicatedGatewayResource{}
 
 func (r CosmosDbSqlDedicatedGatewayResource) ResourceType() string {
 	return "azurerm_cosmosdb_sql_dedicated_gateway"
@@ -36,6 +40,10 @@ func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() interface{} {
 
 func (r CosmosDbSqlDedicatedGatewayResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sqldedicatedgateway.ValidateServiceID
+}
+
+func (r CosmosDbSqlDedicatedGatewayResource) Identity() resourceids.ResourceId {
+	return &sqldedicatedgateway.ServiceId{}
 }
 
 func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.Schema {
@@ -110,6 +118,9 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -201,7 +212,11 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

@@ -19,6 +19,10 @@ import (
 
 type CosmosDbPostgreSQLNodeConfigurationResource struct{}
 
+func (r CosmosDbPostgreSQLNodeConfigurationResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, "array_nulls", "on")
+}
+
 func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
 	r := CosmosDbPostgreSQLNodeConfigurationResource{}

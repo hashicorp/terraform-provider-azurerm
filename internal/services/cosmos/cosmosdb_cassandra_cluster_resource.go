@@ -3,6 +3,8 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_cassandra_cluster -service-package-name cosmos -properties "name:cassandra_cluster_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 import (
 	"context"
 	"fmt"
@@ -17,10 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,10 +35,10 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 		Update: resourceCassandraClusterUpdate,
 		Delete: resourceCassandraClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CassandraClusterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&managedcassandras.CassandraClusterId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&managedcassandras.CassandraClusterId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -200,6 +202,9 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceCassandraClusterRead(d, meta)
 }
@@ -265,7 +270,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// The "default_admin_password" is not returned in GET response, hence setting it from config.
 	d.Set("default_admin_password", d.Get("default_admin_password").(string))
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

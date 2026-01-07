@@ -3,12 +3,15 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_node_configuration -service-package-name cosmos -properties "name:node_configuration_name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +28,7 @@ type CosmosDbPostgreSQLNodeConfigurationModel struct {
 type CosmosDbPostgreSQLNodeConfigurationResource struct{}
 
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLNodeConfigurationResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbPostgreSQLNodeConfigurationResource{}
 
 func (r CosmosDbPostgreSQLNodeConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_node_configuration"
@@ -36,6 +40,10 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) ModelObject() interface{} {
 
 func (r CosmosDbPostgreSQLNodeConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurations.ValidateNodeConfigurationID
+}
+
+func (r CosmosDbPostgreSQLNodeConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurations.NodeConfigurationId{}
 }
 
 func (r CosmosDbPostgreSQLNodeConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -97,6 +105,9 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -169,7 +180,11 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

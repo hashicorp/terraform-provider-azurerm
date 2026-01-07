@@ -19,6 +19,10 @@ import (
 
 type CosmosDbPostgreSQLFirewallRuleResource struct{}
 
+func (r CosmosDbPostgreSQLFirewallRuleResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, "10.0.17.62", "10.0.17.64")
+}
+
 func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}

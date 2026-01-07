@@ -3,12 +3,15 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_coordinator_configuration -service-package-name cosmos -properties "name:coordinator_configuration_name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +28,7 @@ type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
 
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
@@ -36,6 +40,10 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interf
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurations.ValidateCoordinatorConfigurationID
+}
+
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurations.CoordinatorConfigurationId{}
 }
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -96,6 +104,9 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -168,7 +179,11 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Read() sdk.ResourceF
 				}
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

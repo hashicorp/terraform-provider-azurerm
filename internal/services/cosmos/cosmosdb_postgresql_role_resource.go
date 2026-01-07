@@ -3,12 +3,15 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_role -service-package-name cosmos -properties "name:role_name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 import (
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/roles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -24,6 +27,7 @@ type CosmosDbPostgreSQLRoleResourceModel struct {
 type CosmosDbPostgreSQLRoleResource struct{}
 
 var _ sdk.Resource = CosmosDbPostgreSQLClusterResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbPostgreSQLRoleResource{}
 
 func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
@@ -35,6 +39,10 @@ func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
 
 func (r CosmosDbPostgreSQLRoleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return roles.ValidateRoleID
+}
+
+func (r CosmosDbPostgreSQLRoleResource) Identity() resourceids.ResourceId {
+	return &roles.RoleId{}
 }
 
 func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -103,6 +111,9 @@ func (r CosmosDbPostgreSQLRoleResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -139,7 +150,11 @@ func (r CosmosDbPostgreSQLRoleResource) Read() sdk.ResourceFunc {
 				Password:  metadata.ResourceData.Get("password").(string),
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

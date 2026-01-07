@@ -3,6 +3,8 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_cassandra_datacenter -service-package-name cosmos -properties "name:data_center_name" -compare-values "resource_group_name:cassandra_cluster_id,cassandra_cluster_name:cassandra_cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basic
+
 import (
 	"context"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -31,10 +34,10 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 		Update: resourceCassandraDatacenterUpdate,
 		Delete: resourceCassandraDatacenterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedcassandras.ParseDataCenterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&managedcassandras.DataCenterId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&managedcassandras.DataCenterId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -184,6 +187,9 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceCassandraDatacenterRead(d, meta)
 }
@@ -229,7 +235,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
