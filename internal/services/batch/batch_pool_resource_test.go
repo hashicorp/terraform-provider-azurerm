@@ -6,7 +6,6 @@ package batch_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -319,7 +318,6 @@ func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
 		data.ImportStep("stop_pending_resize_operation"),
 	})
 }
-
 
 func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
@@ -1645,7 +1643,6 @@ resource "azurerm_batch_pool" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
-
 
 func (BatchPoolResource) containerConfigurationWithRegistryUser(data acceptance.TestData) string {
 	return fmt.Sprintf(`
