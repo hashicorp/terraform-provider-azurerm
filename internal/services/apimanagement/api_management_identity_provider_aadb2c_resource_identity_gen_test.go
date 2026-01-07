@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccApiManagementBackend_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementBackendResource{}
+func TestAccApiManagementIdentityProviderAadb2C_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb_2_c", "test")
+	r := ApiManagementIdentityProviderAadb2CResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -30,10 +30,9 @@ func TestAccApiManagementBackend_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basicForResourceIdentity(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValue("azurerm_api_management_backend.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_backend.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_backend.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_backend.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
+					statecheck.ExpectIdentityValue("azurerm_api_management_identity_provider_aadb_2_c.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_identity_provider_aadb_2_c.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_identity_provider_aadb_2_c.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),
