@@ -201,7 +201,7 @@ resource "azurerm_api_management_redis_cache" "test" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r ApimanagementRedisCacheResource) update(data acceptance.TestData) string {
+func (r ApiManagementRedisCacheResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

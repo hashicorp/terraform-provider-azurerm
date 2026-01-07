@@ -295,7 +295,7 @@ resource "azurerm_api_management_backend" "test" {
 }
 
 func (r ApiManagementBackendResource) basicForResourceIdentity(data acceptance.TestData) string {
-	return r.basic(data, "identity")
+	return r.basic(data, "basic")
 }
 
 func (r ApiManagementBackendResource) circuitBreakerRuleBasic(data acceptance.TestData) string {

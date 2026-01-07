@@ -28,7 +28,7 @@ func TestAccApiManagementIdentityProviderAadb2C_resourceIdentity(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicForResourceIdentity(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_api_management_identity_provider_aadb_2_c.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_identity_provider_aadb_2_c.test", tfjsonpath.New("api_management_name"), tfjsonpath.New("service_name")),

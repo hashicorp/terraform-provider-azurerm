@@ -216,7 +216,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
 
-func (ApiManagementIdentityProviderAADResource) update(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderAadResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,7 +246,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
-func (r ApiManagementIdentityProviderAADResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementIdentityProviderAadResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
