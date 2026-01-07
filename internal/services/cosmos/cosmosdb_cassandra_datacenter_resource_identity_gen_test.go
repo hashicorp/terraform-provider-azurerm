@@ -32,7 +32,7 @@ func TestAccCosmosdbCassandraDatacenter_resourceIdentity(t *testing.T) {
 				Config: r.basicForResourceIdentity(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_cosmosdb_cassandra_datacenter.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_cassandra_datacenter.test", tfjsonpath.New("name"), tfjsonpath.New("data_center_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_cassandra_datacenter.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cosmosdb_cassandra_datacenter.test", tfjsonpath.New("cassandra_cluster_name"), tfjsonpath.New("cassandra_cluster_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cosmosdb_cassandra_datacenter.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("cassandra_cluster_id")),
 				},

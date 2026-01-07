@@ -31,7 +31,7 @@ func TestAccCosmosdbPostgresqlCluster_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_cosmosdb_postgresql_cluster.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_postgresql_cluster.test", tfjsonpath.New("name"), tfjsonpath.New("server_groupsv2_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_postgresql_cluster.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cosmosdb_postgresql_cluster.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},

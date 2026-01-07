@@ -3,7 +3,7 @@
 
 package cosmos
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_node_configuration -service-package-name cosmos -properties "name:node_configuration_name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_node_configuration -service-package-name cosmos -properties "name" -compare-values "resource_group_name:cluster_id,server_groupsv2_name:cluster_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 import (
 	"context"
