@@ -261,7 +261,7 @@ resource "azurerm_automation_runbook" "test" {
   description  = "This is a test runbook for terraform acceptance test"
   runbook_type = "PowerShell"
 
-  runtime_environment = azurerm_automation_runtime_environment.example.name
+  runtime_environment_name = azurerm_automation_runtime_environment.example.name
 
   content = <<CONTENT
 # Some test content
