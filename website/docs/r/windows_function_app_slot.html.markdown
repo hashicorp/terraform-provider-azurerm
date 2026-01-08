@@ -459,6 +459,8 @@ A `site_config` block supports the following:
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights.
 
+* `application_insights_authentication_string` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights using either the system-assigned or a user-assigned identity.
+
 * `application_stack` - (Optional) an `application_stack` block as detailed below.
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap with when this slot is successfully deployed.
