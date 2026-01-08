@@ -55,6 +55,7 @@ func TestAccMonitorScheduledQueryRulesAlertV2_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("action.0.email_subject").HasValue("acctest subject v1"),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +70,7 @@ func TestAccMonitorScheduledQueryRulesAlertV2_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -76,6 +78,7 @@ func TestAccMonitorScheduledQueryRulesAlertV2_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("action.0.email_subject").HasValue("acctest subject v1"),
 			),
 		},
 		data.ImportStep(),
@@ -83,6 +86,7 @@ func TestAccMonitorScheduledQueryRulesAlertV2_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("action.0.email_subject").HasValue("acctest subject v2"),
 			),
 		},
 		data.ImportStep(),
@@ -305,6 +309,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
     custom_properties = {
       key = "value"
     }
+    email_subject = "acctest subject v1"
   }
 
   tags = {
@@ -363,6 +368,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "acctest subject v2"
   }
 
   tags = {
