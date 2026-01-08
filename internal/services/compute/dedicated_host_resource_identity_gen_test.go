@@ -36,8 +36,8 @@ func TestAccDedicatedHost_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("dedicated_host_group_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

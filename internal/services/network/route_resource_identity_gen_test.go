@@ -36,8 +36,8 @@ func TestAccRoute_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route.test", tfjsonpath.New("route_table_name"), tfjsonpath.New("route_table_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

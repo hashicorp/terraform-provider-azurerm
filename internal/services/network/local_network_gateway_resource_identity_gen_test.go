@@ -35,8 +35,8 @@ func TestAccLocalNetworkGateway_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_local_network_gateway.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
