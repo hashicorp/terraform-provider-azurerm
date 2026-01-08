@@ -95,6 +95,12 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"metrics": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"http_correlation_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -235,6 +241,10 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		parameters.Properties.HTTPCorrelationProtocol = pointer.To(apidiagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
 	}
 
+	if metrics, ok := d.GetOk("metrics"); ok {
+		parameters.Properties.Metrics = pointer.To(metrics.(bool))
+	}
+
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
 	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
 	if frontendRequestSet || frontendResponseSet {
@@ -311,6 +321,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
