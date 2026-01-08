@@ -23,31 +23,30 @@ import (
 type NetworkAnchorDataSource struct{}
 
 type NetworkAnchorDataModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	Zones             zones.Schema      `tfschema:"zones"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	Location          string `tfschema:"location"`
 
-	ResourceAnchorId  string `tfschema:"resource_anchor_id"`
-	ProvisioningState string `tfschema:"provisioning_state"`
-	VnetId            string `tfschema:"vnet_id"`
-	SubnetId          string `tfschema:"subnet_id"`
-
-	CidrBlock                          string `tfschema:"cidr_block"`
-	OciVcnId                           string `tfschema:"oci_vcn_id"`
-	OciVcnDnsLabel                     string `tfschema:"oci_vcn_dns_label"`
-	OciSubnetId                        string `tfschema:"oci_subnet_id"`
-	OciBackupCidrBlock                 string `tfschema:"oci_backup_cidr_block"`
-	OracleDnsForwardingEndpointEnabled bool   `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
-	OracleDnsListeningEndpointEnabled  bool   `tfschema:"oracle_dns_listening_endpoint_enabled"`
-	OracleToAzureDnsZoneSyncEnabled    bool   `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
-	DnsForwardingEndpointIpAddress     string `tfschema:"dns_forwarding_endpoint_ip_address"`
-	DnsForwardingRuleUrl               string `tfschema:"dns_forwarding_rule_url"`
-	DnsForwardingEndpointNsgRuleUrl    string `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
-	DnsListeningEndpointAllowedCidrs   string `tfschema:"dns_listening_endpoint_allowed_cidrs"`
-	DnsListeningEndpointIpAddress      string `tfschema:"dns_listening_endpoint_ip_address"`
-	DnsListeningEndpointNsgRuleUrl     string `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	CidrBlock                          string            `tfschema:"cidr_block"`
+	DnsForwardingEndpointIpAddress     string            `tfschema:"dns_forwarding_endpoint_ip_address"`
+	DnsForwardingEndpointNsgRuleUrl    string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
+	DnsForwardingRuleUrl               string            `tfschema:"dns_forwarding_rule_url"`
+	DnsListeningEndpointAllowedCidrs   string            `tfschema:"dns_listening_endpoint_allowed_cidrs"`
+	DnsListeningEndpointIpAddress      string            `tfschema:"dns_listening_endpoint_ip_address"`
+	DnsListeningEndpointNsgRuleUrl     string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	OciBackupCidrBlock                 string            `tfschema:"oci_backup_cidr_block"`
+	OciSubnetId                        string            `tfschema:"oci_subnet_id"`
+	OciVcnDnsLabel                     string            `tfschema:"oci_vcn_dns_label"`
+	OciVcnId                           string            `tfschema:"oci_vcn_id"`
+	OracleDnsForwardingEndpointEnabled bool              `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
+	OracleDnsListeningEndpointEnabled  bool              `tfschema:"oracle_dns_listening_endpoint_enabled"`
+	OracleToAzureDnsZoneSyncEnabled    bool              `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
+	ProvisioningState                  string            `tfschema:"provisioning_state"`
+	ResourceAnchorId                   string            `tfschema:"resource_anchor_id"`
+	SubnetId                           string            `tfschema:"subnet_id"`
+	VnetId                             string            `tfschema:"vnet_id"`
+	Tags                               map[string]string `tfschema:"tags"`
+	Zones                              zones.Schema      `tfschema:"zones"`
 }
 
 func (d NetworkAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {

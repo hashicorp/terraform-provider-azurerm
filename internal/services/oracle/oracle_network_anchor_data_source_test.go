@@ -14,7 +14,7 @@ import (
 
 type NetworkAnchorDataSource struct{}
 
-func TestNetworkAnchorDataSource_basic(t *testing.T) {
+func TestAccNetworkAnchorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%[1]s", oracle.NetworkAnchorDataSource{}.ResourceType()), "test")
 	r := NetworkAnchorDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

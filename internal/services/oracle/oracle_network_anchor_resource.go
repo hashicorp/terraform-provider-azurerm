@@ -28,27 +28,28 @@ var _ sdk.Resource = NetworkAnchorResource{}
 type NetworkAnchorResource struct{}
 
 type NetworkAnchorResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	Zones             zones.Schema      `tfschema:"zones"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	Location          string `tfschema:"location"`
 
-	ResourceAnchorId string `tfschema:"resource_anchor_id"`
-	SubnetId         string `tfschema:"subnet_id"`
+	ResourceAnchorId string       `tfschema:"resource_anchor_id"`
+	SubnetId         string       `tfschema:"subnet_id"`
+	Zones            zones.Schema `tfschema:"zones"`
 
-	OciVcnDnsLabel                     string                   `tfschema:"oci_vcn_dns_label"`
+	DnsForwardingRule                  []DnsForwardingRuleModel `tfschema:"dns_forwarding_rule"`
+	DnsListeningEndpointAllowedCidrs   string                   `tfschema:"dns_listening_endpoint_allowed_cidrs"`
 	OciBackupCidrBlock                 string                   `tfschema:"oci_backup_cidr_block"`
+	OciVcnDnsLabel                     string                   `tfschema:"oci_vcn_dns_label"`
 	OracleDnsForwardingEndpointEnabled bool                     `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
 	OracleDnsListeningEndpointEnabled  bool                     `tfschema:"oracle_dns_listening_endpoint_enabled"`
 	OracleToAzureDnsZoneSyncEnabled    bool                     `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
-	DnsForwardingRuleUrl               string                   `tfschema:"dns_forwarding_rule_url"`
-	DnsForwardingRule                  []DnsForwardingRuleModel `tfschema:"dns_forwarding_rule"`
-	DnsForwardingEndpointIpAddress     string                   `tfschema:"dns_forwarding_endpoint_ip_address"`
-	DnsForwardingEndpointNsgRuleUrl    string                   `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
-	DnsListeningEndpointAllowedCidrs   string                   `tfschema:"dns_listening_endpoint_allowed_cidrs"`
-	DnsListeningEndpointIpAddress      string                   `tfschema:"dns_listening_endpoint_ip_address"`
-	DnsListeningEndpointNsgRuleUrl     string                   `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	Tags                               map[string]string        `tfschema:"tags"`
+
+	DnsForwardingRuleUrl            string `tfschema:"dns_forwarding_rule_url"`
+	DnsForwardingEndpointIpAddress  string `tfschema:"dns_forwarding_endpoint_ip_address"`
+	DnsForwardingEndpointNsgRuleUrl string `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
+	DnsListeningEndpointIpAddress   string `tfschema:"dns_listening_endpoint_ip_address"`
+	DnsListeningEndpointNsgRuleUrl  string `tfschema:"dns_listening_endpoint_nsg_rule_url"`
 }
 
 type DnsForwardingRuleModel struct {

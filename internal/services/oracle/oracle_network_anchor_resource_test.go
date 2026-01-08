@@ -31,7 +31,7 @@ func (a NetworkAnchorResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestNetworkAnchorResource_basic(t *testing.T) {
+func TestAccNetworkAnchorResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestNetworkAnchorResource_basic(t *testing.T) {
 	})
 }
 
-func TestNetworkAnchorResource_complete(t *testing.T) {
+func TestAccNetworkAnchorResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func TestNetworkAnchorResource_complete(t *testing.T) {
 	})
 }
 
-func TestNetworkAnchorResource_requiresImport(t *testing.T) {
+func TestAccNetworkAnchorResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,7 +75,7 @@ func TestNetworkAnchorResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestNetworkAnchorResource_update(t *testing.T) {
+func TestAccNetworkAnchorResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -185,7 +185,7 @@ provider "azurerm" {
 
 locals {
   resource_group_name = "TerraformTest"
-  zones               = ["2"]
+  zones               = ["1"]
 }
 
 data "azurerm_client_config" "current" {}

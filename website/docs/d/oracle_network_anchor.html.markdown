@@ -75,9 +75,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vnet_id` - Oracle Cloud Infrastructure VNET for network connectivity.
 
-* `zones` - A list of availability `zones`.
-
 * `tags` - A mapping of tags assigned to the Oracle Network Anchor.
+
+* `zones` - A list of availability `zones`.
 
 ## Timeouts
 
