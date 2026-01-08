@@ -255,13 +255,13 @@ A `custom_domain` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
 
 * `managed_hsm_key_id` - (Optional) The ID of the managed HSM Key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
 
-* `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
-~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`. `user_assigned_identity_id` is required when the identity type is `UserAssigned`.
 
 ---
 
