@@ -38,6 +38,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_data_protection_backup_instance_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_data_protection_backup_policy_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_hpc_cache`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -272,6 +280,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+* The `node_provisioning_profile` block is now required.
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
@@ -333,10 +342,6 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
-
-### `azurerm_mobile_network_slice`
-
-* The `single_network_slice_selection_assistance_information` has been removed and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -445,6 +450,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_storage_share_directory`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
+### `azurerm_storage_share_file`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
 ### `azurerm_mssql_virtual_machine`
 
 * The deprecated `auto_backup.encryption_enabled` property has been removed.
@@ -464,10 +477,12 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 

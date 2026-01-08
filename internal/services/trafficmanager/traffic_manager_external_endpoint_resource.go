@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +19,6 @@ import (
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceExternalEndpoint() *pluginsdk.Resource {
@@ -29,12 +28,12 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 		Update: resourceExternalEndpointUpdate,
 		Delete: resourceExternalEndpointDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			endpointType, err := endpoints.ParseEndpointTypeID(id)
+			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
 			}
 
-			if endpointType.EndpointType != endpoints.EndpointTypeExternalEndpoints {
+			if endpointType.EndpointType != trafficmanagers.EndpointTypeExternalEndpoints {
 				return fmt.Errorf("this resource only supports `ExternalEndpoints` but got %s", string(endpointType.EndpointType))
 			}
 
@@ -167,9 +166,9 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("parsing `profile_id`: %+v", err)
 	}
 
-	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, endpoints.EndpointTypeExternalEndpoints, d.Get("name").(string))
+	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeExternalEndpoints, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.EndpointsGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
@@ -180,37 +179,37 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_traffic_manager_external_endpoint", id.ID())
 	}
 
-	status := endpoints.EndpointStatusEnabled
+	status := trafficmanagers.EndpointStatusEnabled
 	if !d.Get("enabled").(bool) {
-		status = endpoints.EndpointStatusDisabled
+		status = trafficmanagers.EndpointStatusDisabled
 	}
 
-	params := endpoints.Endpoint{
-		Name: utils.String(id.EndpointName),
-		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
-		Properties: &endpoints.EndpointProperties{
-			AlwaysServe:    pointer.To(endpoints.AlwaysServeDisabled),
+	params := trafficmanagers.Endpoint{
+		Name: pointer.To(id.EndpointName),
+		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", trafficmanagers.EndpointTypeExternalEndpoints)),
+		Properties: &trafficmanagers.EndpointProperties{
+			AlwaysServe:    pointer.To(trafficmanagers.AlwaysServeDisabled),
 			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
-			Target:         utils.String(d.Get("target").(string)),
+			Target:         pointer.To(d.Get("target").(string)),
 			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
 	}
 
 	if alwaysServe := d.Get("always_serve_enabled").(bool); alwaysServe {
-		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServeEnabled)
+		params.Properties.AlwaysServe = pointer.To(trafficmanagers.AlwaysServeEnabled)
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
-		params.Properties.Priority = utils.Int64(int64(priority))
+		params.Properties.Priority = pointer.To(int64(priority))
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {
-		params.Properties.Weight = utils.Int64(int64(weight))
+		params.Properties.Weight = pointer.To(int64(weight))
 	}
 
 	if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {
-		params.Properties.EndpointLocation = utils.String(endpointLocation)
+		params.Properties.EndpointLocation = pointer.To(endpointLocation)
 	}
 
 	inputMappings := d.Get("geo_mappings").([]interface{})
@@ -222,7 +221,7 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		params.Properties.GeoMapping = &geoMappings
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+	if _, err := client.EndpointsCreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -235,12 +234,12 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := trafficmanagers.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.EndpointsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -255,7 +254,7 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			enabled := true
-			if props.EndpointStatus != nil && *props.EndpointStatus == endpoints.EndpointStatusDisabled {
+			if props.EndpointStatus != nil && *props.EndpointStatus == trafficmanagers.EndpointStatusDisabled {
 				enabled = false
 			}
 			d.Set("enabled", enabled)
@@ -265,7 +264,7 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("endpoint_location", props.EndpointLocation)
 			d.Set("geo_mappings", props.GeoMapping)
 
-			if props.AlwaysServe != nil && *props.AlwaysServe == endpoints.AlwaysServeEnabled {
+			if props.AlwaysServe != nil && *props.AlwaysServe == trafficmanagers.AlwaysServeEnabled {
 				d.Set("always_serve_enabled", true)
 			} else {
 				d.Set("always_serve_enabled", false)
@@ -293,9 +292,9 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("parsing `profile_id`: %+v", err)
 	}
 
-	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, endpoints.EndpointTypeExternalEndpoints, d.Get("name").(string))
+	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeExternalEndpoints, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.EndpointsGet(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 	}
@@ -307,17 +306,17 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 	params := *existing.Model
 
 	if d.HasChange("enabled") {
-		status := endpoints.EndpointStatusEnabled
+		status := trafficmanagers.EndpointStatusEnabled
 		if !d.Get("enabled").(bool) {
-			status = endpoints.EndpointStatusDisabled
+			status = trafficmanagers.EndpointStatusDisabled
 		}
 		params.Properties.EndpointStatus = pointer.To(status)
 	}
 
 	if d.HasChange("always_serve_enabled") {
-		alwaysServe := endpoints.AlwaysServeDisabled
+		alwaysServe := trafficmanagers.AlwaysServeDisabled
 		if d.Get("always_serve_enabled").(bool) {
-			alwaysServe = endpoints.AlwaysServeEnabled
+			alwaysServe = trafficmanagers.AlwaysServeEnabled
 		}
 		params.Properties.AlwaysServe = pointer.To(alwaysServe)
 	}
@@ -327,7 +326,7 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("target") {
-		params.Properties.Target = utils.String(d.Get("target").(string))
+		params.Properties.Target = pointer.To(d.Get("target").(string))
 	}
 
 	if d.HasChange("subnet") {
@@ -336,19 +335,19 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("priority") {
 		if priority := d.Get("priority").(int); priority != 0 {
-			params.Properties.Priority = utils.Int64(int64(priority))
+			params.Properties.Priority = pointer.To(int64(priority))
 		}
 	}
 
 	if d.HasChange("weight") {
 		if weight := d.Get("weight").(int); weight != 0 {
-			params.Properties.Weight = utils.Int64(int64(weight))
+			params.Properties.Weight = pointer.To(int64(weight))
 		}
 	}
 
 	if d.HasChange("endpoint_location") {
 		if endpointLocation := d.Get("endpoint_location").(string); endpointLocation != "" {
-			params.Properties.EndpointLocation = utils.String(endpointLocation)
+			params.Properties.EndpointLocation = pointer.To(endpointLocation)
 		} else {
 			params.Properties.EndpointLocation = nil
 		}
@@ -366,7 +365,7 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 			params.Properties.GeoMapping = nil
 		}
 	}
-	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+	if _, err := client.EndpointsCreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -378,12 +377,12 @@ func resourceExternalEndpointDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := trafficmanagers.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.EndpointsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

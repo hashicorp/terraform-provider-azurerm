@@ -26,8 +26,10 @@ jobs:
       - run: make website-lint
       - run: make document-validate
   save-artifacts-on-fail:
-    if: ${{ needs.website-lint.result }} == 'failure'
+    needs: website-lint
+    if: ${{ failure() }}
     uses: ./.github/workflows/save-artifacts.yaml
   comment-on-fail:
-    if: ${{ needs.depscheck.result }} == 'failure'
+    needs: website-lint
+    if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml

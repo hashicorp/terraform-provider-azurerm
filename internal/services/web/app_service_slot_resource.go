@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -201,7 +201,7 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
@@ -216,16 +216,16 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanId),
-			Enabled:               utils.Bool(enabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
+			ServerFarmID:          pointer.To(appServicePlanId),
+			Enabled:               pointer.To(enabled),
+			HTTPSOnly:             pointer.To(httpsOnly),
 			SiteConfig:            siteConfig,
 			ClientAffinityEnabled: &affinity,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -261,7 +261,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
@@ -275,19 +275,19 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
+			ServerFarmID: pointer.To(appServicePlanId),
+			Enabled:      pointer.To(enabled),
+			HTTPSOnly:    pointer.To(httpsOnly),
 			SiteConfig:   siteConfig,
 		},
 	}
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
 		enabled := v.(bool)
-		siteEnvelope.ClientAffinityEnabled = utils.Bool(enabled)
+		siteEnvelope.ClientAffinityEnabled = pointer.To(enabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -318,7 +318,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -348,7 +348,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := expandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{
-			ID:                       utils.String(d.Id()),
+			ID:                       pointer.To(d.Id()),
 			SiteLogsConfigProperties: &logs,
 		}
 
@@ -387,7 +387,7 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		sitePatchResource := web.SitePatchResource{
-			ID:       utils.String(d.Id()),
+			ID:       pointer.To(d.Id()),
 			Identity: appServiceIdentity,
 		}
 		if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatchResource, id.SlotName); err != nil {
@@ -477,8 +477,8 @@ func resourceAppServiceSlotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.SlotName)
 	d.Set("app_service_name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.SiteProperties; props != nil {

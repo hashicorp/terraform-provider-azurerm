@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerAdminRuleModel struct {
@@ -393,7 +393,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, adminrules.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

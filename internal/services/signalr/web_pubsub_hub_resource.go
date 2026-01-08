@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
@@ -274,7 +275,7 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 		}
 
 		if v, ok := block["user_event_pattern"]; ok {
-			eventHandlerSettings.UserEventPattern = utils.String(v.(string))
+			eventHandlerSettings.UserEventPattern = pointer.To(v.(string))
 		}
 
 		if v, ok := block["system_events"]; ok {
@@ -350,7 +351,7 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 		}
 		filter := webpubsub.EventNameFilter{
 			SystemEvents:     &systemEvents,
-			UserEventPattern: utils.String(userEventPattern),
+			UserEventPattern: pointer.To(userEventPattern),
 		}
 
 		endpointName := block["eventhub_namespace_name"].(string)

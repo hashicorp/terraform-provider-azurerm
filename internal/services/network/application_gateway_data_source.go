@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -101,6 +101,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 						"affinity_cookie_name": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 

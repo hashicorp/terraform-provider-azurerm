@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -66,15 +67,18 @@ type WindowsWebAppModel struct {
 	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
 	Tags                               map[string]string                          `tfschema:"tags"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
-var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
-
-var _ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = WindowsWebAppResource{}
+	_ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
+)
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -199,12 +203,28 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
+
+	if !features.FivePointOh() {
+		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return s
 }
 
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -384,6 +404,19 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawVnetImagePullEnabled.IsNull() {
+					siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webApp.VirtualNetworkImagePullEnabled)
+				}
+			} else {
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webApp.VirtualNetworkImagePullEnabled)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -657,6 +690,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -851,6 +885,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
 				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VirtualNetworkImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -1082,6 +1120,51 @@ func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		return nil
+	}
+}
+
+func (r WindowsWebAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.ServicePlanClient
+
+			model := WindowsWebAppModel{}
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
+			if metadata.ResourceDiff.HasChange("virtual_network_image_pull_enabled") {
+				planId := model.ServicePlanId
+				if planId == "" {
+					return nil
+				}
+
+				_, newValue := metadata.ResourceDiff.GetChange("virtual_network_image_pull_enabled")
+				if newValue.(bool) {
+					return nil
+				}
+
+				servicePlanID, err := commonids.ParseAppServicePlanID(planId)
+				if err != nil {
+					return err
+				}
+
+				resp, err := client.Get(ctx, *servicePlanID)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %w", *servicePlanID, err)
+				}
+
+				if aspModel := resp.Model; aspModel != nil {
+					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
+						pointer.From(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`virtual_network_image_pull_enabled` cannot be disabled for app running in an app service environment")
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
