@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -93,6 +94,26 @@ func TestAccPowerBIEmbedded_gen2(t *testing.T) {
 	})
 }
 
+func TestAccPowerBIEmbedded_defaultMode5x(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skipf("Skipping test for 5.0 default behavior when not running in 5.0 mode")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
+	r := PowerBIEmbeddedResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultMode5x(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mode").HasValue("Gen2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPowerBIEmbedded_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 	r := PowerBIEmbeddedResource{}
@@ -150,7 +171,7 @@ resource "azurerm_powerbi_embedded" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "A1"
   administrators      = [data.azurerm_client_config.test.object_id]
-  mode                = "Gen1"
+  mode                = "Gen2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -165,7 +186,7 @@ resource "azurerm_powerbi_embedded" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "A2"
   administrators      = [data.azurerm_client_config.test.object_id]
-  mode                = "Gen1"
+  mode                = "Gen2"
 
   tags = {
     ENV = "Test"
@@ -185,6 +206,20 @@ resource "azurerm_powerbi_embedded" "test" {
   sku_name            = "A1"
   administrators      = [data.azurerm_client_config.test.object_id]
   mode                = "Gen2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PowerBIEmbeddedResource) defaultMode5x(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_powerbi_embedded" "test" {
+  name                = "acctestpowerbi%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "A1"
+  administrators      = [data.azurerm_client_config.test.object_id]
 }
 `, r.template(data), data.RandomInteger)
 }
