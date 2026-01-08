@@ -32,9 +32,10 @@ resource "azurerm_network_manager" "example" {
 }
 
 resource "azurerm_network_manager_routing_configuration" "example" {
-  name               = "example-routing-configuration"
-  network_manager_id = azurerm_network_manager.example.id
-  description        = "example routing configuration"
+  name                   = "example-routing-configuration"
+  network_manager_id     = azurerm_network_manager.example.id
+  description            = "example routing configuration"
+  route_table_usage_mode = "ManagedOnly"
 }
 ```
 
@@ -49,6 +50,8 @@ The following arguments are supported:
 ---
 
 * `description` - (Optional) The description of the Network Manager Routing Configuration.
+
+* `route_table_usage_mode` - (Optional) The route table usage mode for the Network Manager Routing Configuration. Possible values are `ManagedOnly` and `UseExisting`. Defaults to `ManagedOnly`.
 
 ## Attributes Reference
 
