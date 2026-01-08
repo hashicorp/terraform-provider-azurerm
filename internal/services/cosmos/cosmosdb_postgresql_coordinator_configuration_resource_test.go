@@ -95,9 +95,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
   coordinator_vcore_count         = 2
-  node_count                      = 2
-  node_storage_quota_in_mb        = 131072
-  node_vcores                     = 2
+  node_count                      = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

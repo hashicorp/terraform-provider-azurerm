@@ -94,7 +94,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   coordinator_storage_quota_in_mb = 131072
   coordinator_vcore_count         = 2
   node_count                      = 2
-  node_storage_quota_in_mb        = 131072
+  node_storage_quota_in_mb        = 524288
   node_vcores                     = 2
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
