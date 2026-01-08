@@ -151,7 +151,9 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interf
 		}
 		d.Set("sku_name", model.Sku.Name)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

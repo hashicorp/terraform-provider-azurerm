@@ -1498,7 +1498,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("extension_operations_enabled", extensionOperationsEnabled)
 			d.Set("upgrade_mode", upgradeMode)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
