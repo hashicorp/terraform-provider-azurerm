@@ -104,7 +104,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
     **Option A: Skip tests (when API still works)**
     
-    If the Azure API can still provision the resource, skip the tests so they run until the major release:
+    If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
     
     ```go
     func TestAccExample_basic(t *testing.T) {
