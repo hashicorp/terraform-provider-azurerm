@@ -125,6 +125,7 @@ var CognitiveAccountAttributes = map[string]attr.Type{
 }
 
 type KeyVault struct {
+	CheckPublicAvailability                              types.Bool `tfsdk:"check_public_availability"`
 	PurgeSoftDeleteOnDestroy                             types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
 	PurgeSoftDeletedCertificatesOnDestroy                types.Bool `tfsdk:"purge_soft_deleted_certificates_on_destroy"`
 	PurgeSoftDeletedKeysOnDestroy                        types.Bool `tfsdk:"purge_soft_deleted_keys_on_destroy"`
@@ -139,6 +140,7 @@ type KeyVault struct {
 }
 
 var KeyVaultAttributes = map[string]attr.Type{
+	"check_public_availability":                                   types.BoolType,
 	"purge_soft_delete_on_destroy":                                types.BoolType,
 	"purge_soft_deleted_certificates_on_destroy":                  types.BoolType,
 	"purge_soft_deleted_keys_on_destroy":                          types.BoolType,
