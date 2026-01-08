@@ -163,7 +163,9 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("source_platform", string(props.SourcePlatform))
 			d.Set("target_platform", string(props.TargetPlatform))
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
