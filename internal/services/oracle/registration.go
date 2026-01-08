@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -15,21 +15,32 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AdbsCharSetsDataSource{},
 		AdbsNCharSetsDataSource{},
+		AutonomousDatabaseBackupDataSource{},
+		AutonomousDatabaseBackupsDataSource{},
+		AutonomousDatabaseCloneFromBackupDataSource{},
+		AutonomousDatabaseCloneFromDatabaseDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
 		DBNodesDataSource{},
 		DBServersDataSource{},
 		DbSystemShapesDataSource{},
 		ExadataInfraDataSource{},
+		ExascaleDatabaseStorageVaultDataSource{},
 		GiVersionsDataSource{},
+		ResourceAnchorDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AutonomousDatabaseBackupResource{},
+		AutonomousDatabaseCloneFromBackupResource{},
+		AutonomousDatabaseCloneFromDatabaseResource{},
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
+		ExascaleDatabaseStorageVaultResource{},
+		ResourceAnchorResource{},
 	}
 }
 

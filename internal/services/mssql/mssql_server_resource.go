@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -461,22 +461,38 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("azuread_administrator") {
-		// need to check if aadOnly is enabled or not before calling delete, else you will get the following error:
-		// InvalidServerAADOnlyAuthNoAADAdminPropertyName: AAD Admin is not configured, AAD Admin must be set
-		// before enabling/disabling AAD Only Authentication.
-		log.Printf("[INFO] Checking if Azure Active Directory Administrators exist")
-		aadOnlyAdmin := false
-
-		resp, err := adminClient.Get(ctx, pointer.From(id))
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("retrieving Azure Active Directory Administrators %s: %+v", pointer.From(id), err)
+		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
+		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
+			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		} else {
-			aadOnlyAdmin = true
-		}
+			_, err := adminClient.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
+			}
 
-		if aadOnlyAdmin {
+			err = adminClient.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("azuread_administrator") && d.HasChange("azuread_administrator.0.azuread_authentication_only") {
+		if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthenticationEnabled {
+			aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: true,
+				},
+			}
+
+			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
+			}
+		} else {
 			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
 			if err != nil {
 				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
@@ -497,37 +513,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
 				}
 			}
-		}
-
-		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
-		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
-			if err != nil {
-				return fmt.Errorf("creating Azure Active Directory Administrator %s: %+v", id, err)
-			}
-		} else {
-			_, err := adminClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
-			}
-
-			err = adminClient.DeleteThenPoll(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
-			}
-		}
-	}
-
-	if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthenticationEnabled {
-		aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
-			Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
-				AzureADOnlyAuthentication: aadOnlyAuthenticationEnabled,
-			},
-		}
-
-		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
-		if err != nil {
-			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 		}
 	}
 

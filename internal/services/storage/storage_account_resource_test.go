@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageAccountResource struct{}
@@ -1618,6 +1618,13 @@ func TestAccStorageAccount_storageV1StandardZRS(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.storageV1StandardZRSUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1686,7 +1693,14 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.sasPolicy(data),
+			Config: r.sasPolicy(data, "Log"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sasPolicy(data, "Block"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2003,11 +2017,11 @@ func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Clie
 	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageAccountResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -2018,7 +2032,7 @@ func (r StorageAccountResource) Destroy(ctx context.Context, client *clients.Cli
 	if _, err := client.Storage.ResourceManager.StorageAccounts.Delete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageAccountResource) basic(data acceptance.TestData) string {
@@ -4377,12 +4391,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4477,12 +4492,13 @@ func (r StorageAccountResource) customerManagedKeyUpdate(data acceptance.TestDat
 %s
 
 resource "azurerm_key_vault" "update" {
-  name                     = "acctestkvu%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkvu%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storageupdate" {
@@ -4672,13 +4688,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "remotetest" {
-  provider                 = azurerm-alt
-  name                     = "acctestkvr%s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = "%s"
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  provider                   = azurerm-alt
+  name                       = "acctestkvr%s"
+  location                   = azurerm_resource_group.remotetest.location
+  resource_group_name        = azurerm_resource_group.remotetest.name
+  tenant_id                  = "%s"
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4798,6 +4815,32 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) storageV1StandardZRSUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "ZRS"
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) smbMultichannel(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4890,7 +4933,7 @@ resource "azurerm_storage_account" "test" {
     `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) sasPolicy(data acceptance.TestData) string {
+func (r StorageAccountResource) sasPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4910,11 +4953,11 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   sas_policy {
-    expiration_action = "Log"
+    expiration_action = "%s"
     expiration_period = "1.15:5:05"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, action)
 }
 
 func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {

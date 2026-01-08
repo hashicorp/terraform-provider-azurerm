@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -76,6 +78,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
 				false),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"os_type": {
@@ -191,7 +194,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.AppServiceEnvironmentId != "" {
 				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
+					return errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
 					Id: pointer.To(servicePlan.AppServiceEnvironmentId),

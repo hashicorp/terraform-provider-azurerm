@@ -254,7 +254,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 			testStepConfig = teststep.Configuration(confRequest)
 
-			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			if !step.Query {
+				err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			}
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -348,6 +350,42 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 						map[string]interface{}{logging.KeyError: err},
 					)
 					t.Fatalf("Step %d/%d error running refresh: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
+		if step.Query {
+			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
+
+			err := testStepNewQuery(ctx, t, wd, step, providers)
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running query: expected an error but got none")
+					t.Fatalf("Step %d/%d error running query: expected an error but got none", stepNumber, len(c.Steps))
+				}
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running query: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running query",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query checks: %s", stepNumber, len(c.Steps), err)
 				}
 			}
 
@@ -646,7 +684,7 @@ func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugin
 	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
 
 	baseDir := wd.BaseDir()
-	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+	rootBaseDir := strings.TrimPrefix(baseDir, workingDir)
 
 	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
 	if err != nil {

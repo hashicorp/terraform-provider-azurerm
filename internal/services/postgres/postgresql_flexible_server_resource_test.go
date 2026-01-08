@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
@@ -184,27 +184,27 @@ func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withVersion(data, 12, ""),
+			Config: r.withVersion(data, 15, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.withVersion(data, 13, ""),
+			Config: r.withVersion(data, 16, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.withVersion(data, 13, "Update"),
+			Config: r.withVersion(data, 17, "Update"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.withVersion(data, 14, "Default"),
+			Config: r.withVersion(data, 18, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -410,42 +410,6 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 			Config: r.updateReplicationRole(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-	})
-}
-
-func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "13"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "14"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.upgradeVersion(data, "15"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -772,6 +736,19 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (PostgresqlFlexibleServerResource) templateWithLocationOverride(data acceptance.TestData, location string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-postgresql-%d"
+  location = "%s"
+}
+`, data.RandomInteger, location)
+}
+
 func (r PostgresqlFlexibleServerResource) updateOnlyWithStorageTier(data acceptance.TestData, storageTier string) string {
 	return fmt.Sprintf(`
 %s
@@ -859,9 +836,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "%d"
   %s
   sku_name = "GP_Standard_D2s_v3"
-  zone     = "2"
 }
-`, r.template(data), data.RandomInteger, versionNum, createModeProp)
+`, r.templateWithLocationOverride(data, "northcentralus"), data.RandomInteger, versionNum, createModeProp)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
@@ -1341,12 +1317,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
@@ -1467,25 +1444,6 @@ resource "azurerm_postgresql_flexible_server" "replica" {
 `, r.basic(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  create_mode            = "Update"
-  version                = "%s"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-}
-`, r.template(data), data.RandomInteger, version)
-}
-
 func (r PostgresqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1502,12 +1460,13 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                     = "acctestkv2%s"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv2%s"
+  location                   = azurerm_resource_group.test2.location
+  resource_group_name        = azurerm_resource_group.test2.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {
@@ -1582,12 +1541,13 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                     = "acctestkv2%s"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv2%s"
+  location                   = azurerm_resource_group.test2.location
+  resource_group_name        = azurerm_resource_group.test2.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {

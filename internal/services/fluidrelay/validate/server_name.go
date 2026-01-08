@@ -1,10 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 )
@@ -19,7 +18,7 @@ func FluidRelayServerName(input interface{}, key string) (warnings []string, err
 	}
 	// Name should contain only alphanumeric characters and hyphens, up to 50 characters long.
 	if !serverNameReg.MatchString(v) {
-		errs = append(errs, errors.New("Name should contain only alphanumeric characters and hyphens, up to 50 characters long."))
+		errs = append(errs, fmt.Errorf("%s should contain only alphanumeric characters and hyphens, up to 50 characters long", key))
 	}
 	return
 }

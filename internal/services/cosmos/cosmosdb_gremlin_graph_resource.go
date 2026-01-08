@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
@@ -226,7 +227,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(v.(int)))
 	}
 
 	if partitionkeypaths != "" {
@@ -236,7 +237,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 			Kind:  &partitionKindHash,
 		}
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -248,7 +249,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
 		if defaultTTL != 0 {
-			db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+			db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 		}
 	}
 
@@ -307,7 +308,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -318,11 +319,11 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+		db.Properties.Resource.AnalyticalStorageTtl = pointer.To(int64(v.(int)))
 	}
 
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
-		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
+		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
 	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db)
@@ -476,7 +477,7 @@ func expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d *pluginsdk.ResourceData) 
 	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
 
 	if automatic, ok := input["automatic"].(bool); ok {
-		policy.Automatic = utils.Bool(automatic)
+		policy.Automatic = pointer.To(automatic)
 	}
 
 	return policy
@@ -489,7 +490,7 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 	for i, pathConfig := range includedPath {
 		attrs := pathConfig.(string)
 		path := cosmosdb.IncludedPath{
-			Path: utils.String(attrs),
+			Path: pointer.To(attrs),
 		}
 		paths[i] = path
 	}
@@ -504,7 +505,7 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 	for i, pathConfig := range excludedPath {
 		attrs := pathConfig.(string)
 		path := cosmosdb.ExcludedPath{
-			Path: utils.String(attrs),
+			Path: pointer.To(attrs),
 		}
 		paths[i] = path
 	}

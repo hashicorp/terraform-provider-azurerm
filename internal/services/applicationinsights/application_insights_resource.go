@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -429,41 +429,41 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
-	componentProps := existing.Model.Properties
+	component := existing.Model
 
 	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
 	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
+		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value")
 	}
 
 	if d.HasChange("sampling_percentage") {
-		componentProps.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
+		component.Properties.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
 	}
 
 	if d.HasChange("disable_ip_masking") {
-		componentProps.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+		component.Properties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
 	}
 
 	if d.HasChange("local_authentication_disabled") {
-		componentProps.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+		component.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 	}
 
 	if d.HasChange("internet_ingestion_enabled") {
-		componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_ingestion_enabled").(bool) {
-			componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
 		}
 	}
 
 	if d.HasChange("internet_query_enabled") {
-		componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_query_enabled").(bool) {
-			componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
 		}
 	}
 
 	if d.HasChange("force_customer_storage_for_profiler") {
-		componentProps.ForceCustomerStorageForProfiler = pointer.To(d.Get("force_customer_storage_for_profiler").(bool))
+		component.Properties.ForceCustomerStorageForProfiler = pointer.To(d.Get("force_customer_storage_for_profiler").(bool))
 	}
 
 	if d.HasChange("workspace_id") {
@@ -471,25 +471,18 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
-		componentProps.WorkspaceResourceId = pointer.To(workspaceID.ID())
+		component.Properties.WorkspaceResourceId = pointer.To(workspaceID.ID())
 	}
 
 	if d.HasChange("retention_in_days") {
-		componentProps.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
-	}
-
-	insightProperties := components.ApplicationInsightsComponent{
-		Name:       pointer.To(id.ComponentName),
-		Location:   location.Normalize(d.Get("location").(string)),
-		Kind:       d.Get("application_type").(string),
-		Properties: componentProps,
+		component.Properties.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
 	}
 
 	if d.HasChange("tags") {
-		insightProperties.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		component.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, insightProperties); err != nil {
+	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, *component); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

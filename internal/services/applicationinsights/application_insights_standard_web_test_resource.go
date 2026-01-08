@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -477,19 +478,22 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				tags := pointer.From(model.Tags)
-				appInsightsId := ""
 				for i := range tags {
 					if strings.HasPrefix(i, "hidden-link") {
-						appInsightsId = strings.Split(i, ":")[1]
+						appInsightsId := strings.Split(i, ":")[1]
+
+						parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+						if err != nil {
+							// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
+							log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
+							delete(tags, i)
+							continue
+						}
+						state.ApplicationInsightsID = parsedAppInsightsId.ID()
 						delete(tags, i)
 					}
 				}
 
-				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
-				if err != nil {
-					return fmt.Errorf("parsing `application_insights_id` for %s: %+v", *id, err)
-				}
-				state.ApplicationInsightsID = parsedAppInsightsId.ID()
 				state.Tags = tags
 				state.Location = location.Normalize(model.Location)
 
@@ -575,8 +579,8 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 
 	for _, v := range input {
 		h := webtests.HeaderField{
-			Key:   utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Key:   pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		}
 		headers = append(headers, h)
 	}

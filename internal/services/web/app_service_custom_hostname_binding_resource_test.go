@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -132,12 +133,12 @@ func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, client
 	resp, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.HostNameBindingProperties != nil), nil
+	return pointer.To(resp.HostNameBindingProperties != nil), nil
 }
 
 func (ServiceCustomHostnameBindingResource) basicConfig(data acceptance.TestData, appServiceName string, domain string) string {
@@ -234,7 +235,7 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%d"
+  name                = "acctest-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -301,5 +302,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   ssl_state           = "SniEnabled"
   thumbprint          = azurerm_app_service_certificate.test.thumbprint
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, data.RandomInteger, data.RandomInteger, domain, data.RandomInteger, domain)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, data.RandomString, data.RandomInteger, domain, data.RandomInteger, domain)
 }

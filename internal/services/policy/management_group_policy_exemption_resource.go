@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -132,18 +133,18 @@ func resourceArmManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.Resource
 
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
-			PolicyAssignmentID:           utils.String(d.Get("policy_assignment_id").(string)),
+			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
 			PolicyDefinitionReferenceIds: utils.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("display_name"); ok {
-		exemption.ExemptionProperties.DisplayName = utils.String(v.(string))
+		exemption.DisplayName = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		exemption.ExemptionProperties.Description = utils.String(v.(string))
+		exemption.Description = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("expires_on"); ok {
@@ -151,7 +152,7 @@ func resourceArmManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.Resource
 		if err != nil {
 			return fmt.Errorf("expanding `expires_on`: %+v", err)
 		}
-		exemption.ExemptionProperties.ExpiresOn = &date.Time{Time: t}
+		exemption.ExpiresOn = &date.Time{Time: t}
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
@@ -159,7 +160,7 @@ func resourceArmManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.Resource
 		if err != nil {
 			return fmt.Errorf("unable to parse metadata: %+v", err)
 		}
-		exemption.ExemptionProperties.Metadata = &metaData
+		exemption.Metadata = &metaData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, managementGroupId.ID(), id.Name, exemption); err != nil {

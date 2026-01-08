@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,6 +28,7 @@ func TestAccCdnFrontDoorFirewallPolicy_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -43,6 +44,21 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyBasic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captchaPolicyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("45"),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +85,20 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeCustomRuleBasic(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.jsChallengeCustomRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_captchaCustomRuleBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captchaCustomRuleBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -206,13 +236,56 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			// NOTE: Since this is an O+C field, when the field is removed
-			// from the config it will get the last value from the state
-			// file so you need to verify that the last tests value is
-			// passed as the value for the field...
+			// from the config we need to check if the reset to default
+			// logic worked in the update function and reset the value
+			// to its default value of 30...
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("1440"),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captchaPolicyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("45"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.captchaPolicyBasicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("1440"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// NOTE: Since this is an O+C field, when the field is removed
+			// from the config we need to check if the reset to default
+			// logic worked in the update function and reset the value
+			// to its default value of 30...
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -599,6 +672,20 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyStandardSku(t *testing.T
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyStandardSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captchaPolicyStandardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCdnFrontDoorFirewallPolicy_jsChallengeDRSError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
@@ -616,7 +703,18 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyStandardSkuError(t *test
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.jsChallengePolicyStandardSkuError(data),
-			ExpectError: regexp.MustCompile(`the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the "Premium_AzureFrontDoor" sku`),
+			ExpectError: regexp.MustCompile(`'js_challenge_cookie_expiration_in_minutes' field is only supported with the "Premium_AzureFrontDoor" sku`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyStandardSkuError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.captchaPolicyStandardSkuError(data),
+			ExpectError: regexp.MustCompile(`'captcha_cookie_expiration_in_minutes' field is only supported with the "Premium_AzureFrontDoor" sku`),
 		},
 	})
 }
@@ -627,7 +725,7 @@ func TestAccCdnFrontDoorFirewallPolicy_standardSkuManagedRuleError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.standardSkuManagedRuleError(data),
-			ExpectError: regexp.MustCompile(`the 'managed_rule' code block is only supported with the "Premium_AzureFrontDoor" sku`),
+			ExpectError: regexp.MustCompile(`'managed_rule' code block is only supported with the "Premium_AzureFrontDoor" sku`),
 		},
 	})
 }
@@ -639,17 +737,6 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeStandardSkuCustomRuleActionErr
 		{
 			Config:      r.jsChallengeStandardSkuCustomRuleActionError(data),
 			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the "Premium_AzureFrontDoor" sku`),
-		},
-	})
-}
-
-func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyInvalidTimeSpanError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontDoorFirewallPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.jsChallengePolicyInvalidTimeSpanError(data),
-			ExpectError: regexp.MustCompile(`expected js_challenge_cookie_expiration_in_minutes to be in the range \(5 - 1440\), got 4`),
 		},
 	})
 }
@@ -788,10 +875,10 @@ func (r CdnFrontDoorFirewallPolicyResource) basicStandard(data acceptance.TestDa
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  sku_name            = "Standard_AzureFrontDoor"
   mode                = "Prevention"
 }
-`, r.templateStandard(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasic(data acceptance.TestData) string {
@@ -809,6 +896,21 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorFirewallPolicyResource) captchaPolicyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  captcha_cookie_expiration_in_minutes = 45
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -820,6 +922,21 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   mode                = "Prevention"
 
   js_challenge_cookie_expiration_in_minutes = 1440
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) captchaPolicyBasicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  captcha_cookie_expiration_in_minutes = 1440
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1641,6 +1758,40 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, r.templateStandard(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorFirewallPolicyResource) captchaPolicyStandardSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "ShortUserAgents"
+    enabled                        = true
+    type                           = "MatchRule"
+    priority                       = 500
+    rate_limit_threshold           = 1
+    rate_limit_duration_in_minutes = 5
+    action                         = "Allow"
+
+    match_condition {
+      match_variable = "RequestHeader"
+      selector       = "User-Agent"
+      operator       = "LessThanOrEqual"
+      match_values   = ["15"]
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSkuError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1656,6 +1807,25 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 
   js_challenge_cookie_expiration_in_minutes = 45
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) captchaPolicyStandardSkuError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  captcha_cookie_expiration_in_minutes = 45
 }
 `, r.templateStandard(data), data.RandomInteger)
 }
@@ -1803,6 +1973,40 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r CdnFrontDoorFirewallPolicyResource) captchaCustomRuleBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "CustomCaptcha"
+    enabled                        = true
+    priority                       = 2
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "CAPTCHA"
+
+    match_condition {
+      match_variable     = "RequestUri"
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["/path/captcha"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1875,25 +2079,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       transforms         = ["Lowercase", "Trim"]
     }
   }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyInvalidTimeSpanError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                              = "accTestWAF%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
-  enabled                           = true
-  mode                              = "Prevention"
-  redirect_url                      = "https://www.contoso.com"
-  custom_block_response_status_code = 403
-  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
-
-  js_challenge_cookie_expiration_in_minutes = 4
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redhatopenshift_test
@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OpenShiftClusterResource struct{}
@@ -200,7 +200,7 @@ func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.C
 		return nil, fmt.Errorf("reading Red Hat Openshift Cluster (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r OpenShiftClusterResource) basic(data acceptance.TestData) string {
@@ -243,7 +243,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -425,7 +425,7 @@ SECRET
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -478,7 +478,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -530,7 +530,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -583,7 +583,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -692,7 +692,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -718,6 +718,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -830,7 +831,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -886,7 +887,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -922,7 +923,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {

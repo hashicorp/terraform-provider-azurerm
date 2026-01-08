@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorSecurityPolicyResource struct{}
@@ -76,6 +75,27 @@ func TestAccCdnFrontDoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorSecurityPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "azurerm_cdn_frontdoor_custom_domain.update_test[0].id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "azurerm_cdn_frontdoor_custom_domain.update_test[1].id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
@@ -114,12 +134,12 @@ func (r CdnFrontDoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 	resp, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
@@ -390,6 +410,46 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
   }
 }
 `, config, data.RandomInteger)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) update(data acceptance.TestData, domainId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_custom_domain" "update_test" {
+  count                    = 2
+  name                     = "accTestCustomDomain${count.index}-%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  dns_zone_id = azurerm_dns_zone.test.id
+  host_name   = join(".", ["fabrikam${count.index}", azurerm_dns_zone.test.name])
+
+  tls { certificate_type = "ManagedCertificate" }
+}
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "accTestSecPol%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = %[3]s
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, domainId)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) complete(data acceptance.TestData) string {

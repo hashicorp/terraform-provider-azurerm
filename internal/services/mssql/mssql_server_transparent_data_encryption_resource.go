@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
@@ -25,7 +26,6 @@ import (
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
@@ -117,7 +117,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
 			Uri:                 &keyVaultKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 		}
 		serverKey.Properties = &serverKeyProperties
 
@@ -157,7 +157,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
 			Uri:                 &mhsmKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 		}
 		serverKey.Properties = &serverKeyProperties
 
@@ -189,7 +189,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	encryptionProtectorProperties := encryptionprotectors.EncryptionProtectorProperties{
 		ServerKeyType:       keyType,
 		ServerKeyName:       &serverKeyName,
-		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+		AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
 	}
 
 	keyId := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, serverKeyName)
@@ -263,7 +263,7 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	hsmKey := ""
 	keyVaultKeyId := ""
 	if keyId != "" {
-		isHSMURI, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, keyId)
+		isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyId)
 		if err != nil {
 			return err
 		}

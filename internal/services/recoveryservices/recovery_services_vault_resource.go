@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -29,7 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesVault() *pluginsdk.Resource {
@@ -248,7 +248,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-		vault.Sku.Tier = utils.String("Standard")
+		vault.Sku.Tier = pointer.To("Standard")
 	}
 
 	if _, ok := d.GetOk("encryption"); ok {
@@ -345,7 +345,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		settingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 		settingsInput := replicationvaultsetting.VaultSettingCreationInput{
 			Properties: replicationvaultsetting.VaultSettingCreationInputProperties{
-				VMwareToAzureProviderType: utils.String("Vmware"),
+				VMwareToAzureProviderType: pointer.To("Vmware"),
 			},
 		}
 		if err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput); err != nil {
@@ -437,7 +437,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
-			vault.Sku.Tier = utils.String("Standard")
+			vault.Sku.Tier = pointer.To("Standard")
 		}
 
 		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -758,18 +758,18 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	}
 	encryption := &vaults.VaultPropertiesEncryption{
 		KeyVaultProperties: &vaults.CmkKeyVaultProperties{
-			KeyUri: utils.String(keyUri),
+			KeyUri: pointer.To(keyUri),
 		},
 		KekIdentity: &vaults.CmkKekIdentity{
-			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
+			UseSystemAssignedIdentity: pointer.To(encryptionMap["use_system_assigned_identity"].(bool)),
 		},
 		InfrastructureEncryption: &infraEncryptionState,
 	}
 	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
 		if *encryption.KekIdentity.UseSystemAssignedIdentity {
-			return nil, fmt.Errorf(" `use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set.")
+			return nil, errors.New("`use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set")
 		}
-		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
+		encryption.KekIdentity.UserAssignedIdentity = pointer.To(v)
 	}
 	return encryption, nil
 }

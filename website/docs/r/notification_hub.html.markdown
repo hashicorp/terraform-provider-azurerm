@@ -36,7 +36,7 @@ resource "azurerm_notification_hub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ~> **Note:** Removing the `apns_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
 
-* `browser_credential` - (Optional) A `browser_credential` block as defined below.
+* `browser_credential` - (Optional) A `browser_credential` block as defined below. Changing this forces a new resource to be created.
 
 * `gcm_credential` - (Optional) A `gcm_credential` block as defined below.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-A `apns_credential` supports the following:
+A `apns_credential` block supports the following:
 
 * `application_mode` - (Required) The Application Mode which defines which server the APNS Messages should be sent to. Possible values are `Production` and `Sandbox`.
 
@@ -76,7 +76,7 @@ A `apns_credential` supports the following:
 
 ---
 
-A `browser_credential` supports the following:
+A `browser_credential` block supports the following:
 
 * `subject` - (Required) The subject name of web push.
 
@@ -86,7 +86,7 @@ A `browser_credential` supports the following:
 
 ---
 
-A `gcm_credential` supports the following:
+A `gcm_credential` block supports the following:
 
 * `api_key` - (Required) The API Key associated with the Google Cloud Messaging service.
 
@@ -98,7 +98,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Notification Hub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub.

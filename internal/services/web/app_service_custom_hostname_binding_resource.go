@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,7 +112,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 
 	properties := web.HostNameBinding{
 		HostNameBindingProperties: &web.HostNameBindingProperties{
-			SiteName: utils.String(appServiceName),
+			SiteName: pointer.To(appServiceName),
 		},
 	}
 
@@ -120,7 +121,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("`thumbprint` must be specified when `ssl_state` is set")
 		}
 
-		properties.HostNameBindingProperties.SslState = web.SslState(sslState)
+		properties.SslState = web.SslState(sslState)
 	}
 
 	if thumbprint != "" {
@@ -128,7 +129,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("`ssl_state` must be specified when `thumbprint` is set")
 		}
 
-		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
+		properties.Thumbprint = pointer.To(thumbprint)
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
@@ -140,7 +141,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
+		return fmt.Errorf("cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceDatabricksResource struct{}
@@ -110,7 +110,7 @@ func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("reading Data Factory Databricks Resource (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceDatabricksResource) msi(data acceptance.TestData) string {
@@ -200,7 +200,7 @@ resource "azurerm_data_factory" "test" {
 
 // Create a key vault so we can setup a KV linked service
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -231,7 +231,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     cluster_version       = "5.5.x-gpu-scala2.11"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (LinkedServiceDatabricksResource) newClusterConfig(data acceptance.TestData) string {

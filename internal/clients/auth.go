@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -47,10 +47,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		return nil, fmt.Errorf("parsing claims from access token: %+v", err)
 	}
 
-	authenticatedAsServicePrincipal := true
-	if strings.Contains(strings.ToLower(tokenClaims.Scopes), "openid") {
-		authenticatedAsServicePrincipal = false
-	}
+	authenticatedAsServicePrincipal := !strings.Contains(strings.ToLower(tokenClaims.Scopes), "openid")
 
 	clientId := tokenClaims.AppId
 	if clientId == "" {

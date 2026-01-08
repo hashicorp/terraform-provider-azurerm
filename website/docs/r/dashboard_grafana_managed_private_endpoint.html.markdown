@@ -53,35 +53,35 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
 
 The following arguments are supported:
 
-- `grafana_id` - (Required) The id of the associated managed Grafana. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `grafana_id` - (Required) The id of the associated managed Grafana. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
-- `location` - (Required) The Azure Region where the Dashboard Grafana Managed Private Endpoint should exist. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `location` - (Required) The Azure Region where the Dashboard Grafana Managed Private Endpoint should exist. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
-- `name` - (Required) The name which should be used for this Dashboard Grafana Managed Private Endpoint. Must be between 2 and 20 alphanumeric characters or dashes, must begin with letter and end with a letter or number. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `name` - (Required) The name which should be used for this Dashboard Grafana Managed Private Endpoint. Must be between 2 and 20 alphanumeric characters or dashes, must begin with letter and end with a letter or number. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
-- `private_link_resource_id` - (Required) The ID of the resource to which this Dashboard Grafana Managed Private Endpoint will connect. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `private_link_resource_id` - (Required) The ID of the resource to which this Dashboard Grafana Managed Private Endpoint will connect. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 ---
 
-- `group_ids` - (Optional) Specifies a list of private link group IDs. The value of this will depend on the private link resource to which you are connecting. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `group_ids` - (Optional) Specifies a list of private link group IDs. The value of this will depend on the private link resource to which you are connecting. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
-- `private_link_resource_region` - (Optional) The region in which to create the private link. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+* `private_link_resource_region` - (Optional) The region in which to create the private link. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
-- `request_message` - (Optional) A message to provide in the request which will be seen by approvers.
+* `request_message` - (Optional) A message to provide in the request which will be seen by approvers.
 
-- `private_link_service_url` - (Optional) A domain name for this endpoint to be used within Grafana. Must be just a domain, without schema, and with at least three parts.
+* `private_link_service_url` - (Optional) A domain name for this endpoint to be used within Grafana. Must be just a domain, without schema, and with at least three parts.
 
-- `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Dashboard Grafana Managed Private Endpoint.
+* `id` - The ID of the Dashboard Grafana Managed Private Endpoint.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana Managed Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana Managed Private Endpoint.
@@ -100,4 +100,4 @@ terraform import azurerm_dashboard_grafana_managed_private_endpoint.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Dashboard` - 2023-09-01
+* `Microsoft.Dashboard` - 2025-08-01

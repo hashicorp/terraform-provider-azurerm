@@ -73,7 +73,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
+* `cluster_id` - (Optional) The resource id of the cluster where the databases you would like to attach reside.
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
@@ -119,7 +119,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database.

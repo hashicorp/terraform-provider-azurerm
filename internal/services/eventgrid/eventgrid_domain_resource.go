@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridDomain() *pluginsdk.Resource {
@@ -237,9 +236,9 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	domain := domains.Domain{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &domains.DomainProperties{
-			AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
-			AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
-			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			AutoCreateTopicWithFirstSubscription: pointer.To(d.Get("auto_create_topic_with_first_subscription").(bool)),
+			AutoDeleteTopicWithLastSubscription:  pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DisableLocalAuth:                     pointer.To(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),

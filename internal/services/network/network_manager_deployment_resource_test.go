@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerDeploymentResource struct{}
@@ -122,7 +122,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 
 	client := clients.Network.NetworkManagers
 	listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
-		Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+		Regions:         &[]string{location.Normalize(id.Location)},
 		DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
 	}
 	networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
@@ -130,7 +130,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 	resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -139,7 +139,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("unexpected null model %s", *id)
 	}
 
-	return utils.Bool(resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0), nil
+	return pointer.To(resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0), nil
 }
 
 func (r ManagerDeploymentResource) template(data acceptance.TestData) string {

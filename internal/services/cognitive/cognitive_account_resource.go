@@ -1,12 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,18 +16,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
-	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -68,8 +69,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"AIServices",
 					"Academic",
 					"AnomalyDetector",
 					"Bing.Autosuggest",
@@ -113,14 +114,19 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0", "DC0",
+					"C2", "C3", "C4", "D3", "DC0", "E0", "F0", "F1", "P0", "P1", "P2", "S", "S0", "S1", "S2", "S3", "S4", "S5", "S6",
 				}, false),
+			},
+
+			"project_management_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"custom_subdomain_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -133,7 +139,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 
 						"identity_client_id": {
@@ -210,6 +216,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
 							}, false),
 						},
+
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -254,6 +261,30 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"network_injection": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scenario": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.ScenarioTypeAgent),
+							}, false),
+						},
+
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
+					},
+				},
+			},
+
 			"outbound_network_access_restricted": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -324,6 +355,67 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			kind := d.Get("kind").(string)
+
+			if d.Get("project_management_enabled").(bool) {
+				if kind != "AIServices" {
+					return errors.New("`project_management_enabled` can only be set to `true` when `kind` is set to `AIServices`")
+				}
+
+				if len(d.Get("identity").([]interface{})) == 0 {
+					return errors.New("for `project_management_enabled` to be set to `true`, a managed identity must be assigned. Please configure the `identity` block")
+				}
+
+				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
+					if err := d.ForceNew("customer_managed_key"); err != nil {
+						return err
+					}
+				}
+			} else if d.HasChange("project_management_enabled") && kind != "OpenAI" {
+				if err := d.ForceNew("project_management_enabled"); err != nil {
+					return err
+				}
+			}
+
+			if d.Get("dynamic_throttling_enabled").(bool) && slices.Contains([]string{"OpenAI", "AIServices"}, kind) {
+				return errors.New("`dynamic_throttling_enabled` is currently not supported when `kind` is set to `OpenAI` or `AIServices`")
+			}
+
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !slices.Contains([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
+				return fmt.Errorf("`network_acls.bypass` cannot be set when `kind` is set to `%s`", kind)
+			}
+
+			networkInjection := d.Get("network_injection").([]interface{})
+			if len(networkInjection) > 0 && networkInjection[0] != nil {
+				if kind != "AIServices" {
+					return errors.New("the `network_injection` block is only supported when `kind` is set to `AIServices`")
+				}
+			}
+
+			if d.HasChange("custom_subdomain_name") {
+				old, _ := d.GetChange("custom_subdomain_name")
+				if old != nil && old != "" {
+					if err := d.ForceNew("custom_subdomain_name"); err != nil {
+						return err
+					}
+				}
+			}
+
+			if d.HasChange("kind") {
+				old, new := d.GetChange("kind")
+
+				// Only allow changing `kind` from/to `OpenAI` or `AIServices`, force new for all others
+				if !slices.Contains([]string{"OpenAI", "AIServices"}, new.(string)) || !slices.Contains([]string{"OpenAI", "AIServices"}, old.(string)) {
+					if err := d.ForceNew("kind"); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -332,8 +424,6 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	kind := d.Get("kind").(string)
 
 	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
@@ -353,10 +443,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -365,7 +452,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -383,45 +470,35 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	props := cognitiveservicesaccounts.Account{
-		Kind:     utils.String(kind),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Sku:      &sku,
-		Properties: &cognitiveservicesaccounts.AccountProperties{
-			ApiProperties:                 apiProps,
-			NetworkAcls:                   networkAcls,
-			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
-			PublicNetworkAccess:           &publicNetworkAccess,
-			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
-			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	props.Identity = identity
 
-	if _, err := client.AccountsCreate(ctx, id, props); err != nil {
+	props := cognitiveservicesaccounts.Account{
+		Kind:     pointer.To(d.Get("kind").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Sku:      &sku,
+		Properties: &cognitiveservicesaccounts.AccountProperties{
+			ApiProperties:                 apiProps,
+			NetworkAcls:                   networkAcls,
+			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
+			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			PublicNetworkAccess:           &publicNetworkAccess,
+			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
+		},
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if err := client.AccountsCreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted", "Creating"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -442,10 +519,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -454,7 +528,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -473,17 +547,20 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Sku: &sku,
+		Sku:  &sku,
+		Kind: pointer.To(d.Get("kind").(string)),
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
-			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
+			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -499,28 +576,18 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		props.Identity = identity
 	}
-	props.Identity = identity
 
-	if _, err = client.AccountsUpdate(ctx, *id, props); err != nil {
+	if err = client.AccountsUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
-	}
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -577,13 +644,29 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
 			}
 
+			networkInjection, err := flattenCognitiveAccountNetworkInjection(props.NetworkInjections)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("network_injection", networkInjection); err != nil {
+				return fmt.Errorf("setting `network_injection`: %+v", err)
+			}
+
 			dynamicThrottlingEnabled := false
 			if props.DynamicThrottlingEnabled != nil {
 				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
 			}
 			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
 
-			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
+			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+
+			// Azure API issue: `AllowProjectManagement` not reset during the rollback, see: https://github.com/Azure/azure-rest-api-specs/issues/38678
+			allowProjectManagement := pointer.From(props.AllowProjectManagement)
+			if pointer.From(model.Kind) == "OpenAI" {
+				allowProjectManagement = false
+			}
+			d.Set("project_management_enabled", allowProjectManagement)
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
@@ -654,9 +737,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
-	if err != nil {
-		return err
-	}
 
 	log.Printf("[DEBUG] Deleting %s..", *id)
 	if err := accountsClient.AccountsDeleteThenPoll(ctx, *id); err != nil {
@@ -672,7 +752,72 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Skipping Purge of %s", *id)
 	}
 
+	// If `network_injection` is configured, wait for Service Association Link (SAL) to be removed from the agent subnet
+	// This is a service issue workaround as the SAL is not removed immediately after the Cognitive Account is deleted
+	var subnetId *commonids.SubnetId
+	if account.Model.Properties != nil && account.Model.Properties.NetworkInjections != nil {
+		networkInjections := *account.Model.Properties.NetworkInjections
+		if len(networkInjections) > 0 {
+			if subnetIdStr := pointer.From(networkInjections[0].SubnetArmId); subnetIdStr != "" {
+				parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
+				if err != nil {
+					return err
+				}
+				subnetId = parsedSubnetId
+			}
+		}
+	}
+
+	if subnetId != nil {
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+
+		subnetClient := meta.(*clients.Client).Network.Subnets
+		log.Printf("[DEBUG] Waiting for Service Association Links to be removed from subnet %s", subnetId.ID())
+
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{"SALExists"},
+			Target:     []string{"SALDeleted"},
+			Refresh:    serviceAssociationLinkStateRefreshFunc(ctx, subnetClient, *subnetId),
+			MinTimeout: 15 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Service Association Links to be removed from %s: %+v", *subnetId, err)
+		}
+	}
+
 	return nil
+}
+
+func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, subnetId commonids.SubnetId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, subnetId, subnets.DefaultGetOperationOptions())
+		if err != nil {
+			return nil, "Error", fmt.Errorf("retrieving subnet %s: %+v", subnetId, err)
+		}
+
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ServiceAssociationLinks != nil {
+			serviceAssociationLinks := *resp.Model.Properties.ServiceAssociationLinks
+
+			if len(serviceAssociationLinks) > 0 {
+				for _, sal := range serviceAssociationLinks {
+					// The SAL name associated with the Cognitive Services account is "legionservicelink"
+					if pointer.From(sal.Name) == "legionservicelink" && sal.Properties != nil && sal.Properties.ProvisioningState != nil {
+						log.Printf("[DEBUG] Found Service Association Link %s with provisioning state %s",
+							pointer.From(sal.Name), *sal.Properties.ProvisioningState)
+						return resp, "SALExists", nil
+					}
+				}
+			}
+		}
+
+		log.Printf("[DEBUG] No Service Association Links found on subnet %s", subnetId.ID())
+		return resp, "SALDeleted", nil
+	}
 }
 
 func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, id cognitiveservicesaccounts.AccountId) pluginsdk.StateRefreshFunc {
@@ -689,11 +834,11 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 	}
 }
 
-func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string, error) {
+func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
 	input := d.Get("network_acls").([]interface{})
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
-		return nil, subnetIds, nil
+		return nil, subnetIds
 	}
 
 	v := input[0].(map[string]interface{})
@@ -718,7 +863,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		subnetIds = append(subnetIds, subnetId)
 		rule := cognitiveservicesaccounts.VirtualNetworkRule{
 			Id:                               subnetId,
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
+			IgnoreMissingVnetServiceEndpoint: pointer.To(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 		networkRules = append(networkRules, rule)
 	}
@@ -730,15 +875,11 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		kind := d.Get("kind").(string)
-		if kind != "OpenAI" {
-			return nil, nil, fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
-		}
-		bypasss := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		ruleSet.Bypass = &bypasss
+		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		ruleSet.Bypass = &bypass
 	}
 
-	return &ruleSet, subnetIds, nil
+	return &ruleSet, subnetIds
 }
 
 func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesaccounts.UserOwnedStorage {
@@ -749,8 +890,8 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	for _, v := range input {
 		value := v.(map[string]interface{})
 		results = append(results, cognitiveservicesaccounts.UserOwnedStorage{
-			ResourceId:       utils.String(value["storage_account_id"].(string)),
-			IdentityClientId: utils.String(value["identity_client_id"].(string)),
+			ResourceId:       pointer.To(value["storage_account_id"].(string)),
+			IdentityClientId: pointer.To(value["identity_client_id"].(string)),
 		})
 	}
 	return &results
@@ -761,49 +902,50 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 	kind := d.Get("kind")
 	if kind == "QnAMaker" {
 		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.QnaRuntimeEndpoint = utils.String(v.(string))
+			props.QnaRuntimeEndpoint = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
 		if kind == "TextAnalytics" {
-			props.QnaAzureSearchEndpointId = utils.String(v.(string))
+			props.QnaAzureSearchEndpointId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
 		if kind == "TextAnalytics" {
-			props.QnaAzureSearchEndpointKey = utils.String(v.(string))
+			props.QnaAzureSearchEndpointKey = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
+
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 		if kind == "MetricsAdvisor" {
-			props.AadClientId = utils.String(v.(string))
+			props.AadClientId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
 		if kind == "MetricsAdvisor" {
-			props.AadTenantId = utils.String(v.(string))
+			props.AadTenantId = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
 		if kind == "MetricsAdvisor" {
-			props.SuperUser = utils.String(v.(string))
+			props.SuperUser = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
 		if kind == "MetricsAdvisor" {
-			props.WebsiteName = utils.String(v.(string))
+			props.WebsiteName = pointer.To(v.(string))
 		} else {
 			return nil, fmt.Errorf("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
 		}
@@ -871,7 +1013,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 
 	v := input[0].(map[string]interface{})
-	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if keyId == nil {
 		return nil
 	}
@@ -886,10 +1028,10 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	return &cognitiveservicesaccounts.Encryption{
 		KeySource: &keySource,
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
-			KeyName:          utils.String(keyId.Name),
-			KeyVersion:       utils.String(keyId.Version),
-			KeyVaultUri:      utils.String(keyId.KeyVaultBaseUrl),
-			IdentityClientId: utils.String(identity),
+			KeyName:          pointer.To(keyId.Name),
+			KeyVersion:       pointer.To(keyId.Version),
+			KeyVaultUri:      pointer.To(keyId.KeyVaultBaseURL),
+			IdentityClientId: pointer.To(identity),
 		},
 	}
 }
@@ -902,9 +1044,9 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 	var keyId string
 	var identityClientId string
 	if props := input.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+			return nil, err
 		}
 		keyId = keyVaultKeyId.ID()
 		if props.IdentityClientId != nil {
@@ -918,4 +1060,54 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 			"identity_client_id": identityClientId,
 		},
 	}, nil
+}
+
+func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveservicesaccounts.NetworkInjection {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]cognitiveservicesaccounts.NetworkInjection, 0)
+	for _, v := range input {
+		m := v.(map[string]interface{})
+
+		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
+
+		var subnetId *string
+		if m["subnet_id"] != nil && m["subnet_id"] != "" {
+			subnetId = pointer.To(m["subnet_id"].(string))
+		}
+
+		results = append(results, cognitiveservicesaccounts.NetworkInjection{
+			Scenario:    &scenario,
+			SubnetArmId: subnetId,
+		})
+	}
+
+	return &results
+}
+
+func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var subnetId string
+		if v.SubnetArmId != nil {
+			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
+			if err != nil {
+				return nil, err
+			}
+			subnetId = subnet.ID()
+		}
+
+		results = append(results, map[string]interface{}{
+			"scenario":  v.Scenario,
+			"subnet_id": subnetId,
+		})
+	}
+
+	return results, nil
 }

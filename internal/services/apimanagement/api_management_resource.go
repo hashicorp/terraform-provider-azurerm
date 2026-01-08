@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,13 +90,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(old.(string) == string(apimanagementservice.VirtualNetworkTypeNone) &&
-					(new.(string) == string(apimanagementservice.VirtualNetworkTypeInternal) ||
-						new.(string) == string(apimanagementservice.VirtualNetworkTypeExternal)))
+				return old.(string) != string(apimanagementservice.VirtualNetworkTypeNone) ||
+					(new.(string) != string(apimanagementservice.VirtualNetworkTypeInternal) &&
+						new.(string) != string(apimanagementservice.VirtualNetworkTypeExternal))
 			}),
 
 			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+				return len(old.([]interface{})) != 0 || len(new.([]interface{})) == 0
 			}),
 
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -767,7 +766,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_api_management", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	publicIpAddressId := d.Get("public_ip_address_id").(string)
@@ -1064,7 +1063,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		if publicIpAddressId != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
 				if d.Get("virtual_network_type").(string) == string(apimanagementservice.VirtualNetworkTypeNone) {
-					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			props.PublicIPAddressId = pointer.To(publicIpAddressId)
@@ -1079,7 +1078,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration == nil {
-				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
+				return fmt.Errorf("you must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
 			}
 			props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		}
@@ -1089,7 +1088,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration != nil {
-				return fmt.Errorf("You must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
+				return fmt.Errorf("you must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
 			}
 		}
 	}
@@ -1290,7 +1289,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
@@ -1725,7 +1724,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-		location := azure.NormalizeLocation(config["location"].(string))
+		location := location.Normalize(config["location"].(string))
 
 		if config["capacity"].(int) > 0 {
 			sku.Capacity = int64(config["capacity"].(int))
@@ -1755,7 +1754,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		if publicIPAddressID != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium {
 				if len(childVnetConfig) == 0 {
-					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			additionalLocation.PublicIPAddressId = &publicIPAddressID

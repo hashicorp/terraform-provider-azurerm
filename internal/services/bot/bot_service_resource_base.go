@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -196,7 +196,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 			}
 
 			props := botservice.Bot{
-				Location: utils.String(metadata.ResourceData.Get("location").(string)),
+				Location: pointer.To(metadata.ResourceData.Get("location").(string)),
 				Sku: &botservice.Sku{
 					Name: botservice.SkuName(metadata.ResourceData.Get("sku").(string)),
 				},
@@ -209,7 +209,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightsAPIKey:        pointer.To(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
 					DeveloperAppInsightsApplicationID: pointer.To(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
 					DisableLocalAuth:                  pointer.To(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
-					IsCmekEnabled:                     utils.Bool(false),
+					IsCmekEnabled:                     pointer.To(false),
 					CmekKeyVaultURL:                   pointer.To(metadata.ResourceData.Get("cmk_key_vault_key_url").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           pointer.To(metadata.ResourceData.Get("luis_key").(string)),
@@ -221,7 +221,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 			}
 
 			if _, ok := metadata.ResourceData.GetOk("cmk_key_vault_key_url"); ok {
-				props.Properties.IsCmekEnabled = utils.Bool(true)
+				props.Properties.IsCmekEnabled = pointer.To(true)
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_type"); ok {
@@ -262,27 +262,27 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				existing.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
+				existing.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
 			}
 
 			if metadata.ResourceData.HasChange("endpoint") {
-				existing.Properties.Endpoint = utils.String(metadata.ResourceData.Get("endpoint").(string))
+				existing.Properties.Endpoint = pointer.To(metadata.ResourceData.Get("endpoint").(string))
 			}
 
 			if metadata.ResourceData.HasChange("developer_app_insights_key") {
-				existing.Properties.DeveloperAppInsightKey = utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string))
+				existing.Properties.DeveloperAppInsightKey = pointer.To(metadata.ResourceData.Get("developer_app_insights_key").(string))
 			}
 
 			if metadata.ResourceData.HasChange("developer_app_insights_api_key") {
-				existing.Properties.DeveloperAppInsightsAPIKey = utils.String(metadata.ResourceData.Get("developer_app_insights_api_key").(string))
+				existing.Properties.DeveloperAppInsightsAPIKey = pointer.To(metadata.ResourceData.Get("developer_app_insights_api_key").(string))
 			}
 
 			if metadata.ResourceData.HasChange("developer_app_insights_application_id") {
-				existing.Properties.DeveloperAppInsightsApplicationID = utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
+				existing.Properties.DeveloperAppInsightsApplicationID = pointer.To(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
 			}
 
 			if metadata.ResourceData.HasChange("local_authentication_enabled") {
-				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool))
+				existing.Properties.DisableLocalAuth = pointer.To(!metadata.ResourceData.Get("local_authentication_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("luis_app_ids") {
@@ -290,7 +290,7 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("luis_key") {
-				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("luis_key").(string))
+				existing.Properties.LuisKey = pointer.To(metadata.ResourceData.Get("luis_key").(string))
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -302,11 +302,11 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
-				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
+				existing.Properties.IsStreamingSupported = pointer.To(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("icon_url") {
-				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
+				existing.Properties.IconURL = pointer.To(metadata.ResourceData.Get("icon_url").(string))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

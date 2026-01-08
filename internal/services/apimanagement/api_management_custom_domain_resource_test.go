@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -239,7 +239,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "apimkv%[3]s"
+  name                = "acctestkv%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Redis Enterprise Database.
 
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis](managed_redis.html).
+
 ## Example Usage
 
 ```hcl
@@ -72,7 +74,7 @@ The following arguments are supported:
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
 
--> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
+-> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database removed from the list will be forcefully unlinked. The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outage. The database cannot be linked again after force-unlink.
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
 
@@ -100,7 +102,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Redis Enterprise Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Enterprise Database.

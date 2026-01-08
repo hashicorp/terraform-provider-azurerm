@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -121,7 +121,7 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 			if response.WasNotFound(read.HttpResponse) {
 				return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was in non existent state, retrying", id))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("Expected %s was not be found", id))
+			return pluginsdk.NonRetryableError(fmt.Errorf("expected %s was not found", id))
 		}
 
 		d.SetId(id.ID())

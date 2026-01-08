@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprints
@@ -252,14 +252,14 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
+		return fmt.Errorf("read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
 	d.Set("name", id.BlueprintAssignmentName)
 	if model := resp.Model; model != nil {
 		p := model.Properties
 
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("target_subscription_id", pointer.From(p.Scope))
 		d.Set("version_id", pointer.From(p.BlueprintId))
 		d.Set("display_name", pointer.From(p.DisplayName))

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -119,10 +120,10 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.StorageAccountCreateParameters{
-		ResourceID:         utils.String(d.Get("storage_account_id").(string)),
-		ActiveKeyName:      utils.String(d.Get("storage_account_key").(string)),
-		AutoRegenerateKey:  utils.Bool(d.Get("regenerate_key_automatically").(bool)),
-		RegenerationPeriod: utils.String(d.Get("regeneration_period").(string)),
+		ResourceID:         pointer.To(d.Get("storage_account_id").(string)),
+		ActiveKeyName:      pointer.To(d.Get("storage_account_key").(string)),
+		AutoRegenerateKey:  pointer.To(d.Get("regenerate_key_automatically").(bool)),
+		RegenerationPeriod: pointer.To(d.Get("regeneration_period").(string)),
 		Tags:               tags.Expand(t),
 	}
 
@@ -224,7 +225,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Managed Storage Account %q (Key Vault %q): %+v", id.Name, *keyVaultId, err)
+		return fmt.Errorf("making Read request on Managed Storage Account %q (Key Vault %q): %+v", id.Name, *keyVaultId, err)
 	}
 
 	d.Set("name", id.Name)

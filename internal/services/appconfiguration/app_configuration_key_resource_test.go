@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration_test
@@ -238,7 +238,7 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return pointer.To(res.Response.StatusCode == 200), nil
+	return pointer.To(res.StatusCode == 200), nil
 }
 
 func (t AppConfigurationKeyResource) base(data acceptance.TestData) string {

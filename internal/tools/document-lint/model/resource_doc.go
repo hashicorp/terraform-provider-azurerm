@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package model
@@ -311,9 +311,10 @@ func (r *ResourceDoc) AllProp() Properties {
 }
 
 func (r *ResourceDoc) CurProp(pos PosType) Properties {
-	if pos == PosArgs {
+	switch pos {
+	case PosArgs:
 		return r.Args
-	} else if pos == PosAttr {
+	case PosAttr:
 		return r.Attr
 	}
 	return nil

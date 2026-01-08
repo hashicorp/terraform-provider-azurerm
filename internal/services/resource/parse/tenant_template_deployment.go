@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -41,7 +41,7 @@ func (id TenantTemplateDeploymentId) ID() string {
 func TenantTemplateDeploymentID(input string) (*TenantTemplateDeploymentId, error) {
 	idURL, err := url.ParseRequestURI(input)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure ID: %s", err)
 	}
 
 	path := idURL.Path
@@ -52,7 +52,7 @@ func TenantTemplateDeploymentID(input string) (*TenantTemplateDeploymentId, erro
 	components := strings.Split(path, "/")
 
 	if len(components)%2 != 0 {
-		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+		return nil, fmt.Errorf("the number of path segments is not divisible by 2 in %q", path)
 	}
 
 	componentMap := make(map[string]string, len(components)/2)
@@ -62,7 +62,7 @@ func TenantTemplateDeploymentID(input string) (*TenantTemplateDeploymentId, erro
 
 		// Check key/value for empty strings.
 		if key == "" || value == "" {
-			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+			return nil, fmt.Errorf("key/value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
 		}
 		componentMap[key] = value
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageContainerImmutabilityPolicyResource struct{}
@@ -125,7 +125,7 @@ func (r StorageContainerImmutabilityPolicyResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties.State != nil && !strings.EqualFold(string(*resp.Model.Properties.State), "Deleted")), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties.State != nil && !strings.EqualFold(string(*resp.Model.Properties.State), "Deleted")), nil
 }
 
 func (r StorageContainerImmutabilityPolicyResource) basic(data acceptance.TestData) string {
@@ -134,7 +134,7 @@ func (r StorageContainerImmutabilityPolicyResource) basic(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 1
 }
 `, template)
@@ -146,7 +146,7 @@ func (r StorageContainerImmutabilityPolicyResource) completeUnlocked(data accept
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 2
   protected_append_writes_all_enabled   = false
   protected_append_writes_enabled       = true
@@ -160,7 +160,7 @@ func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptan
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
-  storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.test.id
   immutability_period_in_days           = 2
   protected_append_writes_all_enabled   = true
   protected_append_writes_enabled       = false

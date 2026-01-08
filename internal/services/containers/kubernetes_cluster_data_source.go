@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -985,20 +985,20 @@ func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResult
 			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 			} else {
 				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 			}
 
-			return utils.String(rawConfig), flattenedKubeConfig
+			return pointer.To(rawConfig), flattenedKubeConfig
 		}
 	}
 

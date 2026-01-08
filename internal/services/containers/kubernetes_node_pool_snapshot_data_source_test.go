@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesNodePoolSnapshotDataSource struct{}
@@ -44,7 +44,7 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 						Location: data.Locations.Primary,
 						Properties: &snapshots.SnapshotProperties{
 							CreationData: &snapshots.CreationData{
-								SourceResourceId: utils.String(poolId.ID()),
+								SourceResourceId: pointer.To(poolId.ID()),
 							},
 						},
 					}
@@ -121,6 +121,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -158,6 +161,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 

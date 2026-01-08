@@ -38,17 +38,17 @@ resource "azurerm_eventhub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
+* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
-~> **Note:** `partition_count` cannot be changed unless Eventhub Namespace SKU is `Premium` and cannot be decreased.
+~> **Note:** When using a shared parent EventHub Namespace, `partition_count` cannot be changed unless the Eventhub Namespace SKU is `Premium`. When using a dedicated Event Hubs cluster, this restriction doesn't apply. In either case though, the `partition_count` cannot be decreased.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 
@@ -82,7 +82,7 @@ A `capture_description` block supports the following:
 
 A `retention_description` block supports the following:
 
-* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`.
+* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`. Changing this forces a new resource to be created.
 
 * `retention_time_in_hours` - (Optional) Specifies the number of hours to retain the events for this Event Hub. The value is only used when `cleanup_policy` is `Delete`.
 
@@ -112,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub.

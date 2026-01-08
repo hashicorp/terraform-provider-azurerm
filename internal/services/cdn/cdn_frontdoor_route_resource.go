@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -290,7 +291,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
-		props.RouteProperties.OriginPath = utils.String(originPath)
+		props.OriginPath = pointer.To(originPath)
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -457,9 +458,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: You need to always pass these three on update else you will
 	// disable your cache, disassociate your custom domains or remove your origin path...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
-		OriginPath:         existing.RouteProperties.OriginPath,
+		CustomDomains:      existing.CustomDomains,
+		CacheConfiguration: existing.CacheConfiguration,
+		OriginPath:         existing.OriginPath,
 	}
 
 	if d.HasChange("cache") {
@@ -495,7 +496,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		originPath := d.Get("cdn_frontdoor_origin_path").(string)
 		if originPath != "" {
-			updateProps.OriginPath = utils.String(originPath)
+			updateProps.OriginPath = pointer.To(originPath)
 		}
 	}
 
@@ -582,7 +583,7 @@ func expandRuleSetReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 
 	for _, item := range input {
 		results = append(results, cdn.ResourceReference{
-			ID: utils.String(item.(string)),
+			ID: pointer.To(item.(string)),
 		})
 	}
 
@@ -604,7 +605,7 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRout
 
 	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
 		CompressionSettings: &cdn.CompressionSettings{
-			IsCompressionEnabled: utils.Bool(compressionEnabled),
+			IsCompressionEnabled: pointer.To(compressionEnabled),
 		},
 		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,

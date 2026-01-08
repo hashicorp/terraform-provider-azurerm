@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -10,9 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -156,6 +158,8 @@ func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.Delete
 
 // SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
+// Do not use this for error diagnostics raised inside the iterator (stream.Results)
 func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
@@ -179,6 +183,46 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *ephemeral.CloseResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
+	case *action.InvokeResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewErrorDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
+	}
+}
+
+// SetResponseWarningDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
+// type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
+// Do not use this for warning diagnostics raised inside the iterator (stream.Results)
+func SetResponseWarningDiagnostic(resp any, summary string, detail any) {
+	var errorMsg string
+	switch e := detail.(type) {
+	case error:
+		errorMsg = e.Error()
+	case string:
+		errorMsg = e
+	}
+	switch v := resp.(type) {
+	case *resource.CreateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.UpdateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.DeleteResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.ReadResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.OpenResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.RenewResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.CloseResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewWarningDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
 	}
 }
 
@@ -205,6 +249,29 @@ func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {
 	case *datasource.ReadResponse:
 		v.Diagnostics.Append(d...)
 	}
+}
+
+// SetListIteratorErrorDiagnostic is a helper function to write an Error Diagnostic to a List Result
+func SetListIteratorErrorDiagnostic(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
+	result.Diagnostics.Append(NewErrorDiagnostic(summary, detail))
+	push(result)
+}
+
+// NewErrorDiagnostic is a helper function to create a new ErrorDiagnostic that accepts any input for detail
+// if `detail` is an error, error.Error() will be used
+// if `detail` is not an error or a string, fmt.Sprintf will be used to add the default string representation of `detail`
+func NewErrorDiagnostic(summary string, detail any) diag.ErrorDiagnostic {
+	var errorMsg string
+	switch e := detail.(type) {
+	case error:
+		errorMsg = e.Error()
+	case string:
+		errorMsg = e
+	default:
+		errorMsg = fmt.Sprintf("%v", detail)
+	}
+
+	return diag.NewErrorDiagnostic(summary, errorMsg)
 }
 
 type FrameworkWrappedResource interface {
@@ -254,4 +321,12 @@ type FrameworkWrappedResourceWithPlanModifier interface {
 	FrameworkWrappedResource
 
 	ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse, metadata ResourceMetadata)
+}
+
+type FrameworkWrappedResourceWithList interface {
+	FrameworkWrappedResource
+
+	List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata ResourceMetadata)
+
+	ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse, metadata ResourceMetadata)
 }

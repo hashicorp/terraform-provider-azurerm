@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -299,7 +300,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		// Assign the access token in the properties block
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &datafactory.SecureString{
-				Value: utils.String(accessTokenAuth),
+				Value: pointer.To(accessTokenAuth),
 				Type:  datafactory.TypeSecureString,
 			},
 		}
@@ -390,7 +391,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		AzureDatabricksLinkedServiceTypeProperties: databricksProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureDatabricks,
 	}
@@ -624,7 +625,7 @@ func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (int, int, e
 			max, err = strconv.Atoi(numOfWorkersParts[1])
 		}
 	default:
-		err = fmt.Errorf("Number of workers property has unknown format: %s", numberOfWorkersProperty)
+		err = fmt.Errorf("number of workers property has unknown format: %s", numberOfWorkersProperty)
 	}
 
 	return min, max, err

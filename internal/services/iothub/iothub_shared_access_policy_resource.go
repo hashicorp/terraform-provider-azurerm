@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -124,15 +125,15 @@ func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.Res
 	deviceConnect, hasDeviceConnect := d.GetOk("device_connect")
 
 	if !hasRegistryRead && !hasRegistryWrite && !hasServieConnect && !hasDeviceConnect {
-		return fmt.Errorf("One of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
+		return errors.New("one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
 	}
 
 	if !registryRead.(bool) && !registryWrite.(bool) && !serviceConnect.(bool) && !deviceConnect.(bool) {
-		err = multierror.Append(err, fmt.Errorf("At least one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set to true"))
+		err = multierror.Append(err, errors.New("at least one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set to true"))
 	}
 
 	if registryWrite.(bool) && !registryRead.(bool) {
-		err = multierror.Append(err, fmt.Errorf("If `registry_write` is set to true, `registry_read` must also be set to true"))
+		err = multierror.Append(err, errors.New("if `registry_write` is set to true, `registry_read` must also be set to true"))
 	}
 
 	return

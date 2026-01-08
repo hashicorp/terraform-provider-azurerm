@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -153,7 +153,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 				if domain.StaticSiteCustomDomainOverviewARMResourceProperties == nil {
 					return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
 				}
-				return domain, string(domain.StaticSiteCustomDomainOverviewARMResourceProperties.Status), nil
+				return domain, string(domain.Status), nil
 			},
 		}
 

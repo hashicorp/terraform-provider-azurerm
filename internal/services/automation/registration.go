@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -23,16 +24,22 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
+	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
+		AutomationRuntimeEnvironmentResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
-		SoftwareUpdateConfigurationResource{},
+		PowerShell72ModuleResource{},
+		Python3PackageResource{},
 		SourceControlResource{},
 		WatcherResource{},
-		Python3PackageResource{},
-		PowerShell72ModuleResource{},
 	}
+
+	if !features.FivePointOh() {
+		resources = append(resources, SoftwareUpdateConfigurationResource{})
+	}
+
+	return resources
 }
 
 func (r Registration) AssociatedGitHubLabel() string {

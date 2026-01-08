@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -196,7 +196,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 				}
-			} else if kv.Response.StatusCode == 200 {
+			} else if kv.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 

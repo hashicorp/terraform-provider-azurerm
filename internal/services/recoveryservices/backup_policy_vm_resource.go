@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
@@ -58,45 +58,45 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			switch frequency.(string) {
 			case string(protectionpolicies.ScheduleRunTypeHourly):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is hourly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
 				}
 			case string(protectionpolicies.ScheduleRunTypeDaily):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
 				}
 			case string(protectionpolicies.ScheduleRunTypeWeekly):
 				if hasDaily {
-					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
+					return errors.New("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
-					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+					return errors.New("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
 				}
 			default:
-				return fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return errors.New("unrecognized value for backup.0.frequency")
 			}
 			return nil
 		}),
@@ -134,7 +134,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7 {
-		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
+		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
 	schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
@@ -144,7 +144,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	policyType := protectionpolicies.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &protectionpolicies.AzureIaaSVMProtectionPolicy{
-		TimeZone:         utils.String(d.Get("timezone").(string)),
+		TimeZone:         pointer.To(d.Get("timezone").(string)),
 		PolicyType:       pointer.To(policyType),
 		SchedulePolicy:   schedulePolicy,
 		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
@@ -336,7 +336,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("timezone") {
-		properties.TimeZone = utils.String(d.Get("timezone").(string))
+		properties.TimeZone = pointer.To(d.Get("timezone").(string))
 	}
 
 	if d.HasChange("instant_restore_resource_group") {
@@ -520,7 +520,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 					ScheduleRunTimes: &times,
 				}
 			default:
-				return nil, fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return nil, errors.New("unrecognized value for backup.0.frequency")
 			}
 
 			return schedule, nil
@@ -534,10 +534,10 @@ func expandBackupProtectionPolicyVMResourceGroup(d *pluginsdk.ResourceData) *pro
 	if v, ok := d.Get("instant_restore_resource_group").([]interface{}); ok && len(v) > 0 {
 		rgRaw := v[0].(map[string]interface{})
 		output := &protectionpolicies.InstantRPAdditionalDetails{
-			AzureBackupRGNamePrefix: utils.String(rgRaw["prefix"].(string)),
+			AzureBackupRGNamePrefix: pointer.To(rgRaw["prefix"].(string)),
 		}
 		if suffix, ok := rgRaw["suffix"]; ok && suffix != "" {
-			output.AzureBackupRGNameSuffix = utils.String(suffix.(string))
+			output.AzureBackupRGNameSuffix = pointer.To(suffix.(string))
 		}
 		return output
 	}

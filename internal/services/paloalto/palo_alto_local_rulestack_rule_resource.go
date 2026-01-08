@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -80,7 +80,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IntBetween(1, 10000),
+			ValidateFunc: validation.IntBetween(1, 1000000),
 		},
 
 		"action": {
@@ -193,8 +193,8 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRules
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRules
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRuleModel{}
 
@@ -304,7 +304,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRules
+			client := metadata.Client.PaloAlto.LocalRules
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -361,7 +361,7 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRules
+			client := metadata.Client.PaloAlto.LocalRules
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -385,8 +385,8 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRules
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRules
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRuleModel{}
 

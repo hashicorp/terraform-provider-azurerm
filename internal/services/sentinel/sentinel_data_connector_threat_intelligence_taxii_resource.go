@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -197,11 +197,11 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 			}
 
 			if plan.UserName != "" {
-				params.TiTaxiiDataConnectorProperties.UserName = &plan.UserName
+				params.UserName = &plan.UserName
 			}
 
 			if plan.Password != "" {
-				params.TiTaxiiDataConnectorProperties.Password = &plan.Password
+				params.Password = &plan.Password
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {

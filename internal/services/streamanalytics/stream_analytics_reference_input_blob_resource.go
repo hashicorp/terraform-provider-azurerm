@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -246,12 +246,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			dataSource, ok := input.(inputs.ReferenceInputProperties)
+			dataSource, ok := props.(inputs.ReferenceInputProperties)
 			if !ok {
 				return fmt.Errorf("converting %s to a Reference Input", *id)
 			}
