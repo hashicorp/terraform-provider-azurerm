@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -32,6 +33,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server -service-package-name mysql -properties "name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
@@ -54,10 +57,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := servers.ParseFlexibleServerID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&servers.FlexibleServerId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&servers.FlexibleServerId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -520,6 +524,9 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMysqlFlexibleServerRead(d, meta)
 }
@@ -622,10 +629,12 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
