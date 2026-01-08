@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,12 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -108,30 +108,30 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
-				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
-				IsEnabled:                       utils.Bool(true),
+				CognitiveServiceRegion:          pointer.To(d.Get("cognitive_service_location").(string)),
+				CognitiveServiceSubscriptionKey: pointer.To(d.Get("cognitive_service_access_key").(string)),
+				IsDefaultBotForCogSvcAccount:    pointer.To(false),
+				IsEnabled:                       pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("cognitive_account_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
+		channel.Properties.CognitiveServiceResourceID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomSpeechModelID = utils.String(v.(string))
+		channel.Properties.CustomSpeechModelID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_voice_deployment_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomVoiceDeploymentID = utils.String(v.(string))
+		channel.Properties.CustomVoiceDeploymentID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {
@@ -193,30 +193,30 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
-				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
-				IsEnabled:                       utils.Bool(true),
+				CognitiveServiceRegion:          pointer.To(d.Get("cognitive_service_location").(string)),
+				CognitiveServiceSubscriptionKey: pointer.To(d.Get("cognitive_service_access_key").(string)),
+				IsDefaultBotForCogSvcAccount:    pointer.To(false),
+				IsEnabled:                       pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if d.HasChange("cognitive_account_id") {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceResourceID = utils.String(d.Get("cognitive_account_id").(string))
+		channel.Properties.CognitiveServiceResourceID = pointer.To(d.Get("cognitive_account_id").(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomSpeechModelID = utils.String(v.(string))
+		channel.Properties.CustomSpeechModelID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_voice_deployment_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomVoiceDeploymentID = utils.String(v.(string))
+		channel.Properties.CustomVoiceDeploymentID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {

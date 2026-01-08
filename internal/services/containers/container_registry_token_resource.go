@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/scopemaps"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerRegistryToken() *pluginsdk.Resource {
@@ -106,7 +106,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := tokens.Token{
 		Properties: &tokens.TokenProperties{
-			ScopeMapId: utils.String(scopeMapID),
+			ScopeMapId: pointer.To(scopeMapID),
 			Status:     &status,
 		},
 	}
@@ -144,7 +144,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := tokens.TokenUpdateParameters{
 		Properties: &tokens.TokenUpdateProperties{
-			ScopeMapId: utils.String(scopeMapID),
+			ScopeMapId: pointer.To(scopeMapID),
 			Status:     &status,
 		},
 	}

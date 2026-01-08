@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -2527,7 +2527,43 @@ provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.32.9"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
+  }
+}
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
@@ -2543,7 +2579,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, r.templateWindowsConfig(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesClusterNodePoolResource) windows2022Config(data acceptance.TestData) string {
@@ -3120,7 +3156,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_type               = "Windows"
-  os_sku                = "Windows2019"
+  os_sku                = "Windows2022"
   windows_profile {
     outbound_nat_enabled = true
   }

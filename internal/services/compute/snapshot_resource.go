@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSnapshot() *pluginsdk.Resource {
@@ -152,7 +151,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := snapshots.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -175,21 +174,21 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			CreationData: snapshots.CreationData{
 				CreateOption: snapshots.DiskCreateOption(createOption),
 			},
-			Incremental: utils.Bool(d.Get("incremental_enabled").(bool)),
+			Incremental: pointer.To(d.Get("incremental_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
-		properties.Properties.CreationData.SourceUri = utils.String(v.(string))
+		properties.Properties.CreationData.SourceUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_resource_id"); ok {
-		properties.Properties.CreationData.SourceResourceId = utils.String(v.(string))
+		properties.Properties.CreationData.SourceResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		properties.Properties.CreationData.StorageAccountId = utils.String(v.(string))
+		properties.Properties.CreationData.StorageAccountId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
@@ -197,7 +196,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("disk_access_id"); ok {
-		properties.Properties.DiskAccessId = utils.String(v.(string))
+		properties.Properties.DiskAccessId = pointer.To(v.(string))
 	}
 
 	properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessEnabled)
@@ -207,7 +206,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
-		properties.Properties.DiskSizeGB = utils.Int64(int64(diskSizeGB))
+		properties.Properties.DiskSizeGB = pointer.To(int64(diskSizeGB))
 	}
 
 	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
@@ -246,7 +245,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			data := props.CreationData

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApplicationInsightsWorkbookModel struct {
@@ -137,7 +137,7 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppInsights.WorkbookClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := workbooks.NewWorkbookID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbooksGet(ctx, id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			existing, err := client.WorkbooksGet(ctx, id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -200,7 +200,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -253,7 +253,7 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+			resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
