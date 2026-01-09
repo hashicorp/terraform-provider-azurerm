@@ -121,6 +121,8 @@ A `connection_configuration` block supports the following:
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
+* `configuration_policy_group_associations` - (Optional) A list of IDs of VPN Server Configuration Policy Groups which this Connection Configuration should use.
+
 ---
 
 A `vpn_client_address_pool` block supports the following:
