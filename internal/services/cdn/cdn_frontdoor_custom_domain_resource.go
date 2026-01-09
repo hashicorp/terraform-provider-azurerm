@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
@@ -232,9 +231,9 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
 
-	props := cdn.AFDDomain{
-		AFDDomainProperties: &cdn.AFDDomainProperties{
-			HostName: pointer.To(d.Get("host_name").(string)),
+	props := afdcustomdomains.AFDDomain{
+		Properties: &afdcustomdomains.AFDDomainProperties{
+			HostName: d.Get("host_name").(string),
 		},
 	}
 
@@ -290,7 +289,8 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 			}
 
-			tls := flattenAfdDomainHttpsParameters(props.TlsSettings)
+			includeDefaultCipherSuite := resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d)
+			tls := flattenAfdDomainHttpsParameters(props.TlsSettings, includeDefaultCipherSuite)
 			if err := d.Set("tls", tls); err != nil {
 				return fmt.Errorf("setting `tls`: %+v", err)
 			}
@@ -566,7 +566,32 @@ func expandAfdResourceReference(id string) *afdcustomdomains.ResourceReference {
 	}
 }
 
-func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParameters) []interface{} {
+func resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d *pluginsdk.ResourceData) bool {
+	raw := d.GetRawConfig()
+	if raw.IsNull() {
+		return false
+	}
+
+	tlsConfig := raw.GetAttr("tls")
+	if tlsConfig.IsNull() || tlsConfig.LengthInt() == 0 {
+		return false
+	}
+
+	tlsBlock := tlsConfig.AsValueSlice()[0]
+	if tlsBlock.IsNull() {
+		return false
+	}
+
+	cipherConfig := tlsBlock.GetAttr("cipher_suite")
+	if cipherConfig.IsNull() || cipherConfig.LengthInt() == 0 {
+		return false
+	}
+
+	cipherBlock := cipherConfig.AsValueSlice()[0]
+	return !cipherBlock.IsNull()
+}
+
+func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -583,17 +608,43 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 		minTlsVersion = string(pointer.From(input.MinimumTlsVersion))
 	}
 
-	cipherSuite := make([]interface{}, 0)
-	if input.CipherSuiteSetType != nil || input.CustomizedCipherSuiteSet != nil {
-		cipherSuiteType := ""
-		if input.CipherSuiteSetType != nil {
-			cipherSuiteType = string(pointer.From(input.CipherSuiteSetType))
-		}
+	// Azure omits `minimumTlsVersion` when the value is `TLS12`, so we default the field to
+	// that setting to avoid spurious diffs when the user explicitly configured nothing.
+	if minTlsVersion == "" {
+		minTlsVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+	}
 
+	customCiphers := flattenAfdCustomizedCipherSuiteSet(input.CustomizedCipherSuiteSet)
+	cipherSuiteType := ""
+	if input.CipherSuiteSetType != nil {
+		cipherSuiteType = string(pointer.From(input.CipherSuiteSetType))
+	}
+
+	// Azure always returns the default `TLS12_2022` cipher suite even when users never
+	// configured a block, so we ignore that value to avoid perpetual diffs. Only emit the
+	// block when the service reports a non-default type, custom entries exist, or the user
+	// explicitly configured the block (tracked via includeDefaultCipherSuite).
+	includeCipherSuite := len(customCiphers) > 0
+
+	switch cipherSuiteType {
+	case "":
+		if includeDefaultCipherSuite {
+			includeCipherSuite = true
+		}
+	case string(afdcustomdomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoTwo):
+		if includeDefaultCipherSuite {
+			includeCipherSuite = true
+		}
+	default:
+		includeCipherSuite = true
+	}
+
+	cipherSuite := make([]interface{}, 0)
+	if includeCipherSuite {
 		cipherSuite = []interface{}{
 			map[string]interface{}{
 				"type":           cipherSuiteType,
-				"custom_ciphers": flattenAfdCustomizedCipherSuiteSet(input.CustomizedCipherSuiteSet),
+				"custom_ciphers": customCiphers,
 			},
 		}
 	}
@@ -601,8 +652,11 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 	result := map[string]interface{}{
 		"cdn_frontdoor_secret_id": secretId,
 		"certificate_type":        string(input.CertificateType),
-		"minimum_version":         minTlsVersion,
 		"cipher_suite":            cipherSuite,
+	}
+
+	if features.FivePointOh() {
+		result["minimum_version"] = minTlsVersion
 	}
 
 	if !features.FivePointOh() {
