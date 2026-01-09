@@ -1,6 +1,13 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+
+* `azurerm_application_insights` - support for Terraform Resource Identity
+* `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity
+* `azurerm_application_insights_web_test` - support for Terraform Resource Identity
+* `azurerm_application_insights_workbook` - support for Terraform Resource Identity
+* `azurerm_application_insights_workbook_template` - support for Terraform Resource Identity
+* `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity
 * `azurerm_kubernetes_cluster` - `network_data_plane` and `network_policy` support update to `cilium` [GH-30958]
 * `azurerm_kusto_eventhub_data_connection` - support for`retrieval_start_date` [GH-31445]
 * `azurerm_kusto_iothub_data_connection` - support for `retrieval_start_date` [GH-31413]
