@@ -469,12 +469,28 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("priority", int(props.Priority))
 			d.Set("direction", string(props.Direction))
 
-			if err := d.Set("source_application_security_group_ids", flattenApplicationSecurityGroupIds(props.SourceApplicationSecurityGroups)); err != nil {
+			var stateSourceApplicationSecurityGroupIds *pluginsdk.Set
+
+			if rawStateSourceApplicationSecurityGroupIds, ok := d.GetOk("source_application_security_group_ids"); ok {
+				stateSourceApplicationSecurityGroupIds = rawStateSourceApplicationSecurityGroupIds.(*pluginsdk.Set)
+			} else {
+				stateSourceApplicationSecurityGroupIds = nil
+			}
+
+			if err := d.Set("source_application_security_group_ids", flattenApplicationSecurityGroupIds(props.SourceApplicationSecurityGroups, stateSourceApplicationSecurityGroupIds)); err != nil {
 				return fmt.Errorf("setting `source_application_security_group_ids`: %+v", err)
 			}
 
-			if err := d.Set("destination_application_security_group_ids", flattenApplicationSecurityGroupIds(props.DestinationApplicationSecurityGroups)); err != nil {
-				return fmt.Errorf("setting `source_application_security_group_ids`: %+v", err)
+			var stateDestinationApplicationSecurityGroupIds *pluginsdk.Set
+
+			if rawStateDestinationApplicationSecurityGroupIds, ok := d.GetOk("destination_application_security_group_ids"); ok {
+				stateDestinationApplicationSecurityGroupIds = rawStateDestinationApplicationSecurityGroupIds.(*pluginsdk.Set)
+			} else {
+				stateDestinationApplicationSecurityGroupIds = nil
+			}
+
+			if err := d.Set("destination_application_security_group_ids", flattenApplicationSecurityGroupIds(props.DestinationApplicationSecurityGroups, stateDestinationApplicationSecurityGroupIds)); err != nil {
+				return fmt.Errorf("setting `destination_application_security_group_ids`: %+v", err)
 			}
 		}
 	}
@@ -499,14 +515,18 @@ func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenApplicationSecurityGroupIds(groups *[]securityrules.ApplicationSecurityGroup) []string {
-	ids := make([]string, 0)
+func flattenApplicationSecurityGroupIds(groups *[]securityrules.ApplicationSecurityGroup, stateIds *pluginsdk.Set) *pluginsdk.Set {
+	ids := pluginsdk.Set{
+		F: pluginsdk.HashString,
+	}
 
 	if groups != nil {
 		for _, v := range *groups {
-			ids = append(ids, *v.Id)
+			ids.Add(pointer.From(v.Id))
 		}
 	}
 
-	return ids
+	ids = pointer.From(correctApplicationSecurityGroupIdsCase(&ids, stateIds))
+
+	return &ids
 }
