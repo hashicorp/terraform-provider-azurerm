@@ -141,10 +141,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_configuration" "test" {
-  name                    = "acctest-nmrc-%[2]d"
-  network_manager_id      = azurerm_network_manager.test.id
-  description             = "This is a test Routing Configuration"
-  route_table_usage_mode  = "ManagedOnly"
+  name                   = "acctest-nmrc-%[2]d"
+  network_manager_id     = azurerm_network_manager.test.id
+  description            = "This is a test Routing Configuration"
+  route_table_usage_mode = "ManagedOnly"
 }
 `, r.template(data), data.RandomInteger)
 }
