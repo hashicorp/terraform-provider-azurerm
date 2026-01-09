@@ -16,6 +16,10 @@ ENHANCEMENTS:
 * `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` [GH-31387]
 * `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` [GH-31424]
 * `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` [GH-31392]
+* `azurerm_linux_function_app` - add support for `24` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_function_app_slot` - add support for `24` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_web_app` - add support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_web_app_slot` - add support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
 
 FEATURES:
 
