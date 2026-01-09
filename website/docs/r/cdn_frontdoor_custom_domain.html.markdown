@@ -129,9 +129,11 @@ A `custom_ciphers` block supports the following:
 
 -> **Note:** Azure Front Door does not support `ECDSA` cipher suites. Only `RSA-based` cipher suites are supported.
 
+~> **Note:** At least one cipher suite must be selected when using `customized` cipher suites. When `minimum_version` is set to `TLS12`, at least one `TLS 1.2` cipher suite must be specified in the `tls12` field.
+
 * `tls13` - (Optional) A set of `TLS 1.3` cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
-~> **Note:** At least one cipher suite must be selected when using `customized` cipher suites. When `minimum_version` is set to `TLS12`, at least one `TLS 1.2` cipher suite must be specified in the `tls12` field.
+~> **Note:** When `cipher_suite.type` is set to `Customized`, the `tls13` collection must include both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` or Azure Front Door will reject the configuration.
 
 ---
 

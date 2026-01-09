@@ -13,9 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -351,8 +353,19 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	result, err := client.Delete(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(result.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	pollerType := custompollers.NewFrontDoorCustomDomainDeletePoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -440,6 +453,25 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 
 		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Suites.Len() == 0 {
 			return fmt.Errorf("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
+		}
+
+		requiredTls13Suites := []string{
+			string(afdcustomdomains.AfdCustomizedCipherSuiteForTls13TLSAESOneTwoEightGCMSHATwoFiveSix),
+			string(afdcustomdomains.AfdCustomizedCipherSuiteForTls13TLSAESTwoFiveSixGCMSHAThreeEightFour),
+		}
+
+		tls13Configured := make(map[string]struct{}, tls13Suites.Len())
+		for _, suite := range tls13Suites.List() {
+			if suite == nil {
+				continue
+			}
+			tls13Configured[suite.(string)] = struct{}{}
+		}
+
+		for _, requiredSuite := range requiredTls13Suites {
+			if _, exists := tls13Configured[requiredSuite]; !exists {
+				return fmt.Errorf("`custom_ciphers.tls13` must include `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when `type` is `Customized`")
+			}
 		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
 		return fmt.Errorf("`custom_ciphers` cannot be specified when `type` is not `Customized`")
@@ -653,10 +685,7 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 		"cdn_frontdoor_secret_id": secretId,
 		"certificate_type":        string(input.CertificateType),
 		"cipher_suite":            cipherSuite,
-	}
-
-	if features.FivePointOh() {
-		result["minimum_version"] = minTlsVersion
+		"minimum_version":         minTlsVersion,
 	}
 
 	if !features.FivePointOh() {
