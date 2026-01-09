@@ -67,14 +67,19 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 		useLatest = true
 	}
 
-	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
-	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, certificateId.KeyVaultBaseUrl)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseUrl, err)
-	}
+	var keyVaultBaseId *string
+	if customizedKeyVaultId, ok := item["key_vault_id"].(string); ok && customizedKeyVaultId != "" {
+		keyVaultBaseId = pointer.To(customizedKeyVaultId)
+	} else {
+		subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
+		keyVaultBaseId, err = clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, certificateId.KeyVaultBaseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseUrl, err)
+		}
 
-	if keyVaultBaseId == nil {
-		return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseUrl)
+		if keyVaultBaseId == nil {
+			return nil, fmt.Errorf("unexpected nil Key Vault Resource ID retrieved from the Key Vault Base URL %q", certificateId.KeyVaultBaseUrl)
+		}
 	}
 
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultBaseId)
