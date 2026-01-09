@@ -228,8 +228,6 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
   sharing {
     external_tables_to_exclude    = ["ExternalTable2"]
     external_tables_to_include    = ["ExternalTable1"]
-    functions_to_exclude          = ["Function2"]
-    functions_to_include          = ["Function1"]
     materialized_views_to_exclude = ["MaterializedViewTable2"]
     materialized_views_to_include = ["MaterializedViewTable1"]
     tables_to_exclude             = ["Table2"]

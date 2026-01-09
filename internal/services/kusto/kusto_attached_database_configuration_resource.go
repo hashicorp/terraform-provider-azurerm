@@ -86,14 +86,12 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				Description:  "Overrides the original database name. Relevant only when attaching to a specific database.",
 			},
 
 			"database_name_prefix": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				Description:  "Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.",
 			},
 
 			"attached_database_names": {
