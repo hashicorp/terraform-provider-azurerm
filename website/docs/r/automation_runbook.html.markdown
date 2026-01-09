@@ -96,7 +96,9 @@ The following arguments are supported:
 
 * `publish_content_link` - (Optional) One `publish_content_link` block as defined below.
 
-* `runtime_environment_name` - (Optional) The runtime environment name for the runbook. The `runbook_type` must be set to a value that supports runtime environments, such as `PowerShell` or `Python`.
+* `runtime_environment_name` - (Optional) The runtime environment name for the runbook.
+
+~> **Note:** The `runbook_type` must be set to a value that supports runtime environments, such as `PowerShell` or `Python`.
 
 * `description` - (Optional) A description for the runbook.
 
