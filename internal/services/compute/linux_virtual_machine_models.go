@@ -2,6 +2,7 @@ package compute
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	fwcommonschema "github.com/hashicorp/go-azure-helpers/framework/commonschema"
@@ -140,7 +141,9 @@ func flattenLinuxVirtualMachineModel(ctx context.Context, id *virtualmachines.Vi
 
 			state.ExtensionsTimeBudget = types.StringPointerValue(props.ExtensionsTimeBudget)
 			if props.BillingProfile != nil {
-				state.MaxBidPrice = types.Float64PointerValue(props.BillingProfile.MaxPrice)
+				if pointer.From(props.BillingProfile.MaxPrice) != -1 { // API defaults to -1 for spot if unspecified, otherwise it's nil
+					state.MaxBidPrice = types.Float64PointerValue(props.BillingProfile.MaxPrice)
+				}
 			}
 
 			if profile := props.NetworkProfile; profile != nil {
@@ -207,7 +210,8 @@ func flattenLinuxVirtualMachineModel(ctx context.Context, id *virtualmachines.Vi
 
 			if profile := props.StorageProfile; profile != nil {
 				state.DiskControllerType = types.StringValue(pointer.FromEnum(profile.DiskControllerType))
-				state.OSDisk, state.OSManagedDiskID = flattenVirtualMachineOSDiskModel(ctx, profile.OsDisk, diags)
+				planOSDisk, _ := typehelpers.DecodeObjectListOfOne(ctx, state.OSDisk)
+				state.OSDisk, state.OSManagedDiskID = planOSDisk.flattenVirtualMachineOSDiskModel(ctx, profile.OsDisk, metadata, diags)
 				if diags.HasError() {
 					return
 				}
@@ -326,21 +330,19 @@ func expandVirtualMachineOSDiskModel(ctx context.Context, input typehelpers.List
 	return &disk
 }
 
-func flattenVirtualMachineOSDiskModel(ctx context.Context, input *virtualmachines.OSDisk, diags *diag.Diagnostics) (typehelpers.ListNestedObjectValueOf[linuxVirtualMachineOSDiskModel], types.String) {
+// Note: receiver function due to the need to check a casing bug value between plan and received
+func (m *linuxVirtualMachineOSDiskModel) flattenVirtualMachineOSDiskModel(ctx context.Context, input *virtualmachines.OSDisk, metadata sdk.ResourceMetadata, diags *diag.Diagnostics) (typehelpers.ListNestedObjectValueOf[linuxVirtualMachineOSDiskModel], types.String) {
 	managedDiskIDValue := types.StringNull()
 
 	if input == nil {
 		return typehelpers.NewListNestedObjectValueOfNull[linuxVirtualMachineOSDiskModel](ctx), managedDiskIDValue
 	}
+
 	osDisk := *input
 
-	result := linuxVirtualMachineOSDiskModel{
-		Name:       types.StringPointerValue(osDisk.Name),
-		Caching:    types.StringValue(pointer.FromEnum(osDisk.Caching)),
-		DiskSizeGB: types.Int64PointerValue(osDisk.DiskSizeGB),
-
-		WriteAcceleratorEnabled: types.BoolPointerValue(osDisk.WriteAcceleratorEnabled),
-	}
+	m.Name = types.StringPointerValue(osDisk.Name)
+	m.Caching = types.StringValue(pointer.FromEnum(osDisk.Caching))
+	m.WriteAcceleratorEnabled = types.BoolPointerValue(osDisk.WriteAcceleratorEnabled)
 
 	if v := osDisk.ManagedDisk; v != nil {
 		osDiskId, err := commonids.ParseManagedDiskID(pointer.From(v.Id))
@@ -350,19 +352,37 @@ func flattenVirtualMachineOSDiskModel(ctx context.Context, input *virtualmachine
 		}
 
 		managedDiskIDValue = types.StringValue(osDiskId.ID())
-		result.ID = managedDiskIDValue
-		result.StorageAccountType = types.StringValue(pointer.FromEnum(v.StorageAccountType))
-		if v.SecurityProfile != nil && v.SecurityProfile.DiskEncryptionSet != nil {
-			result.SecureVMDiskEncryptionSetID = types.StringPointerValue(v.SecurityProfile.DiskEncryptionSet.Id)
+		// TODO - a Get on the Managed Disk as the model from Compute is lacking property values :(
+		m.ID = managedDiskIDValue
+
+		dd, err := metadata.Client.Compute.DisksClient.Get(ctx, *osDiskId)
+		if err != nil {
+			diags.AddError(fmt.Sprintf("retrieving OS managed disk %s", *osDiskId), err.Error())
+			return typehelpers.NewListNestedObjectValueOfNull[linuxVirtualMachineOSDiskModel](ctx), managedDiskIDValue
 		}
-		if v.DiskEncryptionSet != nil {
-			result.DiskEncryptionSetID = types.StringPointerValue(v.DiskEncryptionSet.Id)
+
+		if model := dd.Model; model != nil {
+			if props := model.Properties; props != nil {
+				m.DiskSizeGB = types.Int64PointerValue(props.DiskSizeGB)
+				if sp := props.SecurityProfile; sp != nil {
+					m.SecurityEncryptionType = types.StringValue(pointer.FromEnum(sp.SecurityType))
+					m.SecureVMDiskEncryptionSetID = types.StringPointerValue(sp.SecureVMDiskEncryptionSetId)
+				}
+				if e := props.Encryption; e != nil {
+					if !strings.EqualFold(m.DiskEncryptionSetID.ValueString(), pointer.From(e.DiskEncryptionSetId)) {
+						m.DiskEncryptionSetID = types.StringPointerValue(e.DiskEncryptionSetId)
+					}
+				}
+				if sku := model.Sku; sku != nil {
+					m.StorageAccountType = types.StringValue(pointer.FromEnum(sku.Name))
+				}
+			}
 		}
 	}
 
-	result.DiffDiskSettings = flattenVirtualMachineDiffDiskSettingsModel(ctx, osDisk.DiffDiskSettings)
+	m.DiffDiskSettings = flattenVirtualMachineDiffDiskSettingsModel(ctx, osDisk.DiffDiskSettings)
 
-	return typehelpers.NewListNestedObjectValueOfValueSliceMust(ctx, []linuxVirtualMachineOSDiskModel{result}), managedDiskIDValue
+	return typehelpers.NewListNestedObjectValueOfValueSliceMust(ctx, []linuxVirtualMachineOSDiskModel{*m}), managedDiskIDValue
 }
 
 type linuxVirtualMachineDiffDiskSettings struct {

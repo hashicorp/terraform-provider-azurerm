@@ -108,5 +108,3 @@ require (
 )
 
 go 1.25.3
-
-//replace github.com/hashicorp/go-azure-helpers => ../go-azure-helpers

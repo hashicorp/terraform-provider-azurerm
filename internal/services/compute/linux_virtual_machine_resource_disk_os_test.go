@@ -140,7 +140,7 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_disk.0.disk_encryption_set_id"), // This ID is returned with casing different to that which is sent, due to a bug in the API
 	})
 }
 

@@ -707,7 +707,7 @@ func (l *linuxVirtualMachineResource) Schema(ctx context.Context, _ resource.Sch
 						"security_encryption_type": schema.StringAttribute{
 							Optional: true,
 							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.RequiresReplaceIfConfigured(),
 							},
 							Validators: []validator.String{
 								stringvalidator.OneOf(
@@ -2423,7 +2423,7 @@ func (l *linuxVirtualMachineResource) Update(ctx context.Context, req resource.U
 
 	po, _ := typehelpers.DecodeObjectListOfOne(ctx, plan.OSDisk)
 	so, _ := typehelpers.DecodeObjectListOfOne(ctx, state.OSDisk)
-	mID := commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroupName, po.Name.ValueString())
+	mID := commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroupName, so.Name.ValueString())
 	if sdk.HasChange(po.DiskSizeGB, so.DiskSizeGB) {
 		diskUpdate := disks.DiskUpdate{
 			Properties: &disks.DiskUpdateProperties{
@@ -2486,6 +2486,7 @@ func (l *linuxVirtualMachineResource) Update(ctx context.Context, req resource.U
 	}
 
 	flattenLinuxVirtualMachineModel(ctx, id, vmReadBack.Model, plan, metadata, &resp.Diagnostics)
+
 }
 
 // 	return resourceLinuxVirtualMachineRead(d, meta)
