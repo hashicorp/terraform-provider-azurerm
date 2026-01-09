@@ -35,8 +35,8 @@ func TestAccStorageAccountNetworkRules_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_network_rules.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
