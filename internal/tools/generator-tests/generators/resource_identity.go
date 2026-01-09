@@ -111,7 +111,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
-	argSet.BoolVar(&d.NoSubscriptionID, "", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
+	argSet.BoolVar(&d.NoSubscriptionID, "no-subscription-id", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
 	argSet.StringVar(&d.ExampleID, "id", "", "an example of the resource id for this resource, can be used when all the id segments and the schema property names match. Conflicts with '-properties'")
 
 	if err := argSet.Parse(args); err != nil {
