@@ -109,6 +109,12 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key which is associated with the Express Route Circuit Connection.
 
+* `authorization_key_wo` - (Optional, Write-Only) The authorization key which is associated with the Express Route Circuit Connection.
+
+~> **Note:** One of `authorization_key` or `authorization_key_wo` must be specified.
+
+* `authorization_key_wo_version` - (Optional) An integer value used to trigger an update for `authorization_key_wo`. This property should be incremented when updating `authorization_key_wo`.
+
 * `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
 
 -> **Note:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
