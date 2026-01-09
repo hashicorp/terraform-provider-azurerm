@@ -35,6 +35,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `revision_mode` - The revision mode of the Container App.
 
+* `kind` - The kind of container app.
+
 * `template` - A `template` block as detailed below.
 
 * `dapr` - A `dapr` block as detailed below.
