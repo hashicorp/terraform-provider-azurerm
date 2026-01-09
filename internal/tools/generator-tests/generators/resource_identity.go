@@ -115,6 +115,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 	argSet.BoolVar(&d.NoSubscriptionID, "", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
+	argSet.BoolVar(&d.NoSubscriptionID, "no-subscription-id", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
 	argSet.StringVar(&d.ExampleID, "id", "", "an example of the resource id for this resource, can be used when all the id segments and the schema property names match. Conflicts with '-properties'")
 
 	if err := argSet.Parse(args); err != nil {
