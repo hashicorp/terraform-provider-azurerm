@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -165,8 +165,8 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:            utils.String(value),
-		ContentType:      utils.String(contentType),
+		Value:            pointer.To(value),
+		ContentType:      pointer.To(contentType),
 		Tags:             tags.Expand(t),
 		SecretAttributes: &keyvault.SecretAttributes{},
 	}
@@ -297,8 +297,8 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
-			Value:            utils.String(value),
-			ContentType:      utils.String(contentType),
+			Value:            pointer.To(value),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -308,7 +308,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType:      utils.String(contentType),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -401,13 +401,17 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("value_wo_version", d.Get("value_wo_version").(int))
 
 	if attributes := resp.Attributes; attributes != nil {
+		notBeforeDate := ""
 		if v := attributes.NotBefore; v != nil {
-			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("not_before_date", notBeforeDate)
 
+		expirationDate := ""
 		if v := attributes.Expires; v != nil {
-			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())

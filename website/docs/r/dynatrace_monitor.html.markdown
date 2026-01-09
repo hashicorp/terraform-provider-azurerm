@@ -57,15 +57,15 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dynatrace monitor should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) The kind of managed identity assigned to this resource.  A `identity` block as defined below.
+* `identity` - (Required) The kind of managed identity assigned to this resource. A `identity` block as defined below.
 
-* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active` and `Suspended`.
+* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active` and `Suspended`. Changing this forces a new resource to be created.
 
 * `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created.
+* `user` - (Required) User's information. A `user` block as defined below. Changing this forces a new resource to be created.
 
-* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
+* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`. Changing this forces a new resource to be created.
 
 * `environment_properties` - (Optional) Properties of the Dynatrace environment. An `environment_properties` block as defined below.
 

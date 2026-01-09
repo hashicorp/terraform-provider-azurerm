@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -274,7 +274,9 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("application_insights_id", parsedAppInsightsId.ID())
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
