@@ -35,6 +35,8 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_batch_certificate` resource has been deprecated because the Azure Batch Certificates feature was retired on 2024-02-29. This resource will be removed in v5.0 of the AzureRM Provider.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := certificate.ParseCertificateID(id)
 			return err
