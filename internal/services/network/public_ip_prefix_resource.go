@@ -65,13 +65,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(publicipprefixes.PublicIPPrefixSkuNameStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.PublicIPPrefixSkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuNameStandard),
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuName(), false),
 			},
 
 			"sku_tier": {
