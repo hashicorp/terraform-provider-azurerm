@@ -99,3 +99,9 @@ Storage Discovery Workspaces can be imported using the `resource id`, e.g.
 terraform import azurerm_storage_discovery_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageDiscovery/storageDiscoveryWorkspaces/workspace1
 ```
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageDiscovery` - 2025-09-01
+
