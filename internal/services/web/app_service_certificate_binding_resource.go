@@ -97,13 +97,10 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 
 	certificateID, err := parse.CertificateID(d.Get("certificate_id").(string))
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse ID: %+v", err)
 	}
 
 	id := parse.NewCertificateBindingId(*hostnameBindingID, *certificateID)
-	if err != nil {
-		return fmt.Errorf("could not parse ID: %+v", err)
-	}
 
 	certDetails, err := certClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
