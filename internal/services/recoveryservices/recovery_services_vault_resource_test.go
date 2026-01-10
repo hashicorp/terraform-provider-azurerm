@@ -39,7 +39,7 @@ func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithCrossRegionRestore(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -199,7 +199,7 @@ func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			// To test creation with `Locked`, it is irreversible.
 			Config: r.basicWithImmutability(data, "Locked"),

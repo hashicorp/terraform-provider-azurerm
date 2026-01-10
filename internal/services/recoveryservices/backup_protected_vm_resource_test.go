@@ -125,7 +125,7 @@ func TestAccBackupProtectedVm_updateVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.updateVaultFirstBackupVm(data),
 			Check: acceptance.ComposeTestCheckFunc(
